@@ -21,9 +21,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // =======================
-    // ثبت‌نام کاربر
-    // =======================
+
     public String registerUser(String username, String rawPassword, Role role) {
         Optional<User> existingUser = userRepository.findByUsername(username);
         if (existingUser.isPresent()) {
@@ -37,9 +35,6 @@ public class UserService {
         return "SUCCESS";
     }
 
-    // =======================
-    // جستجو کاربر
-    // =======================
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }

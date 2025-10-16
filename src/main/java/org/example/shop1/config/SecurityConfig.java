@@ -51,9 +51,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // برای تست، بعدا فعالش می‌کنی
                 .authorizeHttpRequests(auth -> auth
                         // این دو مسیر آزاد باشن:
-                        .requestMatchers("/userAuth.html", "/users/signup","/home.html").permitAll()
+                        .requestMatchers("/userAuth.html", "/users/signup","/home.html","/category.html").permitAll()
                                 .requestMatchers( "/api/current-user").authenticated()
 
+                                .requestMatchers("/api/**").hasRole("USER")
 
 //                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 //                        .requestMatchers("/api/support/**").hasRole("SUPPORT")

@@ -20,15 +20,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // جستجوی کاربر در MongoDB
         User user = repo.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         // تبدیل User مدل به UserDetails استاندارد Spring Security
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
-                .password(user.getPassword())         // پسورد هش‌شده
-                .roles(user.getRole().name())        // Role enum به authority تبدیل می‌شود
+                .password(user.getPassword())
+                .roles(user.getRole().name())
                 .build();
     }
 }

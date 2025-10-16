@@ -16,11 +16,11 @@ public class User {
 
     private String username;
 
-    private String password; // هش شده با BCrypt
+    private String password;
 
     private Role role;
 
-    // ======== Constructorها ========
+
     public User() {
     }
 
