@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گلین - فروشگاه محصولات سفالی و گلی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 25%, #CD853F 50%, #DEB887 75%, #F5DEB3 100%);
+        }
+
+        .clay-pattern {
+            background-image:
+                    radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 75% 75%, rgba(160, 82, 45, 0.1) 0%, transparent 50%);
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 1s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 1s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .product-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-hover:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(139, 69, 19, 0.25);
+        }
+
+        .clay-texture {
+            background: linear-gradient(45deg, #D2B48C 0%, #DEB887 50%, #F5DEB3 100%);
+            position: relative;
+        }
+
+        .clay-texture::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                    radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(160, 82, 45, 0.1) 0%, transparent 50%);
+        }
+
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-100 min-h-full">
+<!-- Navigation -->
+<nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-lg z-50 transition-all duration-300">
+    <div class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <div class="text-4xl">🏺</div>
+                <div>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-800 to-orange-700 bg-clip-text text-transparent">گلین</h1>
+                    <p class="text-xs text-gray-600">هنر اصیل ایرانی</p>
+                </div>
+            </div>
+
+            <div class="hidden md:flex space-x-8 space-x-reverse">
+                <a href="#home" class="nav-link text-gray-700 hover:text-amber-700 font-medium transition-colors">خانه</a>
+                <a href="#products" class="nav-link text-gray-700 hover:text-amber-700 font-medium transition-colors">محصولات</a>
+                <a href="#about" class="nav-link text-gray-700 hover:text-amber-700 font-medium transition-colors">درباره ما</a>
+                <a href="#contact" class="nav-link text-gray-700 hover:text-amber-700 font-medium transition-colors">تماس</a>
+            </div>
+
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <button onclick="toggleCart()" class="relative p-3 text-amber-700 hover:text-amber-900 transition-colors">
+                    <span class="text-2xl">🛒</span>
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">0</span>
+                </button>
+                <button onclick="toggleAdmin()" class="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 py-2 rounded-full hover:from-amber-700 hover:to-orange-700 transition-all duration-300 shadow-lg">
+                    پنل مدیریت
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section id="home" class="hero-bg min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div class="absolute inset-0 clay-pattern"></div>
+
+    <!-- Floating Elements -->
+    <div class="absolute top-20 left-10 floating text-6xl opacity-20">🏺</div>
+    <div class="absolute top-40 right-20 floating text-4xl opacity-30" style="animation-delay: -2s;">🪴</div>
+    <div class="absolute bottom-20 left-20 floating text-5xl opacity-25" style="animation-delay: -4s;">🫗</div>
+
+    <div class="container mx-auto px-6 text-center relative z-10">
+        <div class="slide-in-left">
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-6 drop-shadow-2xl">
+                گلین
+            </h1>
+            <p class="text-2xl md:text-3xl text-amber-100 mb-4 font-light">
+                هنر اصیل سفالگری ایرانی
+            </p>
+            <p class="text-lg text-amber-200 mb-12 max-w-2xl mx-auto leading-relaxed">
+                محصولات دست‌ساز سفالی و گلی با کیفیت بی‌نظیر، ساخته شده توسط هنرمندان ماهر ایرانی
+            </p>
+        </div>
+
+        <div class="slide-in-right flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <button onclick="scrollToProducts()" class="bg-white text-amber-800 px-8 py-4 rounded-full text-xl font-bold hover:bg-amber-50 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105">
+                مشاهده محصولات
+            </button>
+            <button onclick="scrollToAbout()" class="border-2 border-white text-white px-8 py-4 rounded-full text-xl font-bold hover:bg-white hover:text-amber-800 transition-all duration-300">
+                درباره گلین
+            </button>
+        </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
+        <div class="text-3xl">⬇</div>
+        <p class="text-sm mt-2">کشیده و ادامه دهید</p>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-20 bg-gradient-to-r from-yellow-50 to-amber-50">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16 scroll-reveal">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">چرا گلین؟</h2>
+            <div class="w-24 h-1 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto mb-8"></div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="text-center p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 scroll-reveal">
+                <div class="text-6xl mb-6">🎨</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">دست‌ساز اصیل</h3>
+                <p class="text-gray-600 leading-relaxed">تمام محصولات ما توسط هنرمندان ماهر و با تکنیک‌های سنتی ایرانی ساخته می‌شوند</p>
+            </div>
+
+            <div class="text-center p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 scroll-reveal" style="animation-delay: 0.2s;">
+                <div class="text-6xl mb-6">✨</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">کیفیت بالا</h3>
+                <p class="text-gray-600 leading-relaxed">استفاده از بهترین مواد اولیه و کنترل کیفیت دقیق در تمام مراحل تولید</p>
+            </div>
+
+            <div class="text-center p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 scroll-reveal" style="animation-delay: 0.4s;">
+                <div class="text-6xl mb-6">🚚</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">ارسال سریع</h3>
+                <p class="text-gray-600 leading-relaxed">ارسال امن و سریع به سراسر کشور با بسته‌بندی مخصوص محصولات شکستنی</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Products Section -->
+<section id="products" class="py-20 clay-texture">
+    <div class="container mx-auto px-6 relative z-10">
+        <div class="text-center mb-16 scroll-reveal">
+            <h2 class="text-5xl font-bold text-gray-800 mb-4">محصولات گلین</h2>
+            <div class="w-32 h-1 bg-gradient-to-r from-amber-600 to-orange-600 mx-auto mb-8"></div>
+            <p class="text-xl text-gray-700 max-w-3xl mx-auto">مجموعه‌ای منحصر به فرد از محصولات سفالی و گلی که زیبایی و کاربرد را در هم آمیخته‌اند</p>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="flex flex-wrap justify-center gap-4 mb-12 scroll-reveal">
+            <button onclick="filterProducts('all')" class="category-btn bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-3 rounded-full font-bold hover:from-amber-700 hover:to-orange-700 transition-all duration-300 shadow-lg">
+                همه محصولات
+            </button>
+            <button onclick="filterProducts('pottery')" class="category-btn bg-white text-amber-700 border-2 border-amber-600 px-8 py-3 rounded-full font-bold hover:bg-amber-600 hover:text-white transition-all duration-300">
+                سفالگری
+            </button>
+            <button onclick="filterProducts('clay')" class="category-btn bg-white text-amber-700 border-2 border-amber-600 px-8 py-3 rounded-full font-bold hover:bg-amber-600 hover:text-white transition-all duration-300">
+                گلی
+            </button>
+            <button onclick="filterProducts('decorative')" class="category-btn bg-white text-amber-700 border-2 border-amber-600 px-8 py-3 rounded-full font-bold hover:bg-amber-600 hover:text-white transition-all duration-300">
+                تزئینی
+            </button>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- Products will be loaded here -->
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="py-20 bg-gradient-to-br from-amber-100 to-orange-100">
+    <div class="container mx-auto px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="scroll-reveal">
+                    <h2 class="text-5xl font-bold text-gray-800 mb-6">داستان گلین</h2>
+                    <div class="w-24 h-1 bg-gradient-to-r from-amber-600 to-orange-600 mb-8"></div>
+                    <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                        گلین از عشق به هنر اصیل ایرانی و سفالگری متولد شد. ما معتقدیم که هر قطعه سفال داستانی دارد و هر اثر هنری روحی از خالقش در خود جای داده است.
+                    </p>
+                    <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                        تیم ما متشکل از هنرمندان ماهر و با تجربه‌ای است که سال‌ها در زمینه سفالگری فعالیت کرده‌اند. ما با ترکیب تکنیک‌های سنتی و طراحی‌های مدرن، آثاری خلق می‌کنیم که هم زیبا هستند و هم کاربردی.
+                    </p>
+                    <div class="flex items-center space-x-6 space-x-reverse">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-amber-600">500+</div>
+                            <div class="text-gray-600">محصول تولیدی</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-amber-600">1000+</div>
+                            <div class="text-gray-600">مشتری راضی</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-amber-600">5</div>
+                            <div class="text-gray-600">سال تجربه</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scroll-reveal">
+                    <div class="relative">
+                        <div class="bg-gradient-to-br from-amber-200 to-orange-200 rounded-3xl p-8 shadow-2xl">
+                            <div class="text-center">
+                                <div class="text-9xl mb-6">🏺</div>
+                                <h3 class="text-2xl font-bold text-gray-800 mb-4">هنر، سنت، کیفیت</h3>
+                                <p class="text-gray-700">در هر قطعه‌ای که می‌سازیم</p>
+                            </div>
+                        </div>
+                        <div class="absolute -top-4 -right-4 w-24 h-24 bg-amber-300 rounded-full opacity-50"></div>
+                        <div class="absolute -bottom-4 -left-4 w-32 h-32 bg-orange-300 rounded-full opacity-30"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="py-20 bg-gradient-to-r from-gray-100 to-amber-50">
+    <div class="container mx-auto px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-5xl font-bold text-gray-800 mb-4">تماس با گلین</h2>
+                <div class="w-24 h-1 bg-gradient-to-r from-amber-600 to-orange-600 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-700">سوالی دارید؟ دوست دارید محصول خاصی سفارش دهید؟ با ما در تماس باشید</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12">
+                <div class="scroll-reveal">
+                    <div class="bg-white rounded-2xl shadow-xl p-8">
+                        <form onsubmit="submitContact(event)" class="space-y-6">
+                            <div>
+                                <label for="contact-name" class="block text-gray-700 font-bold mb-3">نام و نام خانوادگی</label>
+                                <input type="text" id="contact-name" class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300" required>
+                            </div>
+                            <div>
+                                <label for="contact-email" class="block text-gray-700 font-bold mb-3">ایمیل</label>
+                                <input type="email" id="contact-email" class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300" required>
+                            </div>
+                            <div>
+                                <label for="contact-message" class="block text-gray-700 font-bold mb-3">پیام شما</label>
+                                <textarea id="contact-message" rows="5" class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300" required></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-4 rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-300 font-bold text-lg shadow-lg">
+                                ارسال پیام
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="scroll-reveal">
+                    <div class="space-y-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <div class="text-4xl">📞</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">تلفن تماس</h3>
+                                    <p class="text-gray-600">021-12345678</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <div class="text-4xl">📧</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">ایمیل</h3>
+                                    <p class="text-gray-600">info@golin.ir</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <div class="text-4xl">📍</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">آدرس</h3>
+                                    <p class="text-gray-600">تهران، خیابان ولیعصر، کارگاه گلین</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">ساعات کاری</h3>
+                            <div class="space-y-2 text-gray-700">
+                                <div class="flex justify-between">
+                                    <span>شنبه تا چهارشنبه:</span>
+                                    <span>9:00 - 18:00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>پنج‌شنبه:</span>
+                                    <span>9:00 - 14:00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>جمعه:</span>
+                                    <span>تعطیل</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-12">
+    <div class="container mx-auto px-6">
+        <div class="grid md:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center space-x-3 space-x-reverse mb-4">
+                    <div class="text-3xl">🏺</div>
+                    <h3 class="text-2xl font-bold">گلین</h3>
+                </div>
+                <p class="text-gray-300 leading-relaxed">
+                    هنر اصیل سفالگری ایرانی با کیفیت بی‌نظیر
+                </p>
+            </div>
+
+            <div>
+                <h4 class="text-lg font-bold mb-4">دسترسی سریع</h4>
+                <ul class="space-y-2 text-gray-300">
+                    <li><a href="#home" class="hover:text-amber-400 transition-colors">خانه</a></li>
+                    <li><a href="#products" class="hover:text-amber-400 transition-colors">محصولات</a></li>
+                    <li><a href="#about" class="hover:text-amber-400 transition-colors">درباره ما</a></li>
+                    <li><a href="#contact" class="hover:text-amber-400 transition-colors">تماس</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-lg font-bold mb-4">دسته‌بندی‌ها</h4>
+                <ul class="space-y-2 text-gray-300">
+                    <li><a href="#" class="hover:text-amber-400 transition-colors">سفالگری</a></li>
+                    <li><a href="#" class="hover:text-amber-400 transition-colors">محصولات گلی</a></li>
+                    <li><a href="#" class="hover:text-amber-400 transition-colors">تزئینی</a></li>
+                    <li><a href="#" class="hover:text-amber-400 transition-colors">سفارشی</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-lg font-bold mb-4">شبکه‌های اجتماعی</h4>
+                <div class="flex space-x-4 space-x-reverse">
+                    <a href="#" class="text-2xl hover:text-amber-400 transition-colors">📱</a>
+                    <a href="#" class="text-2xl hover:text-amber-400 transition-colors">📧</a>
+                    <a href="#" class="text-2xl hover:text-amber-400 transition-colors">🌐</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 1403 گلین. تمامی حقوق محفوظ است.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Shopping Cart -->
+<div id="cart-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+    <div class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl">
+        <div class="p-6 border-b bg-gradient-to-r from-amber-600 to-orange-600 text-white">
+            <div class="flex justify-between items-center">
+                <h3 class="text-2xl font-bold">سبد خرید</h3>
+                <button onclick="toggleCart()" class="text-white hover:text-gray-200 transition-colors">
+                    <span class="text-3xl">×</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="cart-items" class="p-6 flex-1 overflow-y-auto" style="height: calc(100% - 200px);">
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">🛒</div>
+                <p class="text-gray-500 text-lg">سبد خرید شما خالی است</p>
+                <p class="text-gray-400 text-sm mt-2">محصولات مورد علاقه‌تان را اضافه کنید</p>
+            </div>
+        </div>
+
+        <div id="cart-footer" class="hidden p-6 border-t bg-gray-50">
+            <div class="flex justify-between items-center mb-4">
+                <span class="font-bold text-lg">مجموع:</span>
+                <span id="cart-total" class="font-bold text-2xl text-amber-600">0 تومان</span>
+            </div>
+            <button onclick="checkout()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-4 rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-300 font-bold text-lg shadow-lg">
+                تکمیل خرید
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin-panel" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+    <div class="fixed inset-4 bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold">پنل مدیریت گلین</h2>
+                    <p class="text-amber-100 mt-2">مدیریت فروشگاه و محصولات</p>
+                </div>
+                <button onclick="toggleAdmin()" class="text-white hover:text-gray-200 transition-colors">
+                    <span class="text-3xl">×</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex h-full">
+            <!-- Admin Sidebar -->
+            <div class="w-80 bg-gradient-to-b from-gray-50 to-gray-100 p-8">
+                <nav class="space-y-3">
+                    <button onclick="showAdminSection('products')" class="admin-nav-btn w-full text-right p-4 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold shadow-lg">
+                        📦 مدیریت محصولات
+                    </button>
+                    <button onclick="showAdminSection('orders')" class="admin-nav-btn w-full text-right p-4 rounded-xl text-gray-700 hover:bg-white hover:shadow-md transition-all duration-300 font-medium">
+                        📋 سفارشات
+                    </button>
+                    <button onclick="showAdminSection('stats')" class="admin-nav-btn w-full text-right p-4 rounded-xl text-gray-700 hover:bg-white hover:shadow-md transition-all duration-300 font-medium">
+                        📊 آمار فروش
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Admin Content -->
+            <div class="flex-1 p-8 overflow-y-auto">
+                <!-- Products Management -->
+                <div id="admin-products" class="admin-section">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-3xl font-bold text-gray-800">مدیریت محصولات</h3>
+                        <button onclick="showAddProduct()" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-bold shadow-lg">
+                            ➕ افزودن محصول جدید
+                        </button>
+                    </div>
+
+                    <div id="admin-products-list" class="space-y-6">
+                        <!-- Admin products will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Orders Management -->
+                <div id="admin-orders" class="admin-section hidden">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-8">مدیریت سفارشات</h3>
+                    <div id="orders-list" class="space-y-6">
+                        <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-8 rounded-2xl text-center">
+                            <div class="text-6xl mb-4">📋</div>
+                            <p class="text-gray-600 text-lg">هنوز سفارشی ثبت نشده است</p>
+                            <p class="text-gray-500 text-sm mt-2">سفارشات مشتریان اینجا نمایش داده می‌شوند</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div id="admin-stats" class="admin-section hidden">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-8">آمار فروش گلین</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-2xl text-center shadow-lg">
+                            <div class="text-5xl font-bold text-blue-600 mb-2" id="total-products">0</div>
+                            <div class="text-gray-700 font-medium">تعداد محصولات</div>
+                            <div class="text-3xl mt-4">📦</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-100 to-green-200 p-8 rounded-2xl text-center shadow-lg">
+                            <div class="text-5xl font-bold text-green-600 mb-2" id="total-orders">0</div>
+                            <div class="text-gray-700 font-medium">تعداد سفارشات</div>
+                            <div class="text-3xl mt-4">🛒</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-amber-100 to-orange-200 p-8 rounded-2xl text-center shadow-lg">
+                            <div class="text-5xl font-bold text-amber-600 mb-2" id="total-revenue">0</div>
+                            <div class="text-gray-700 font-medium">درآمد کل (تومان)</div>
+                            <div class="text-3xl mt-4">💰</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div id="add-product-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-60">
+    <div class="fixed inset-4 bg-white rounded-3xl shadow-2xl overflow-y-auto">
+        <div class="p-8 border-b bg-gradient-to-r from-green-500 to-green-600 text-white">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-2xl font-bold">افزودن محصول جدید</h3>
+                    <p class="text-green-100 mt-1">محصول جدید به مجموعه گلین اضافه کنید</p>
+                </div>
+                <button onclick="hideAddProduct()" class="text-white hover:text-gray-200 transition-colors">
+                    <span class="text-3xl">×</span>
+                </button>
+            </div>
+        </div>
+
+        <form onsubmit="addProduct(event)" class="p-8 space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label for="product-name" class="block text-gray-700 font-bold mb-3">نام محصول</label>
+                    <input type="text" id="product-name" class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300" required>
+                </div>
+                <div>
+                    <label for="product-price" class="block text-gray-700 font-bold mb-3">قیمت (تومان)</label>
+                    <input type="number" id="product-price" class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300" required>
+                </div>
+            </div>
+
+            <div>
+                <label for="product-category" class="block text-gray-700 font-bold mb-3">دسته‌بندی</label>
+                <select id="product-category" class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300" required>
+                    <option value="pottery">سفالگری</option>
+                    <option value="clay">گلی</option>
+                    <option value="decorative">تزئینی</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="product-description" class="block text-gray-700 font-bold mb-3">توضیحات محصول</label>
+                <textarea id="product-description" rows="4" class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300" required></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-bold text-lg shadow-lg">
+                ➕ افزودن محصول
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Sample products data
+    let products = [
+        {
+            id: 1,
+            name: "کوزه سفالی کلاسیک گلین",
+            price: 280000,
+            category: "pottery",
+            description: "کوزه زیبا و دست‌ساز با طرح‌های سنتی ایرانی، ساخته شده از بهترین خاک رس",
+            emoji: "🏺"
+        },
+        {
+            id: 2,
+            name: "گلدان گلی تزئینی مدرن",
+            price: 150000,
+            category: "clay",
+            description: "گلدان زیبا و شیک برای گل‌های طبیعی و مصنوعی با طراحی مدرن",
+            emoji: "🪴"
+        },
+        {
+            id: 3,
+            name: "بشقاب سفالی نقاشی شده",
+            price: 220000,
+            category: "decorative",
+            description: "بشقاب تزئینی با نقاشی‌های دست‌کشیده و طرح‌های اصیل ایرانی",
+            emoji: "🍽️"
+        },
+        {
+            id: 4,
+            name: "آبخوری سفالی سنتی",
+            price: 180000,
+            category: "pottery",
+            description: "آبخوری سنتی برای نگهداری آب با خاصیت خنک‌کنندگی طبیعی",
+            emoji: "🫗"
+        },
+        {
+            id: 5,
+            name: "مجسمه گلی هنری",
+            price: 350000,
+            category: "decorative",
+            description: "مجسمه تزئینی دست‌ساز با جزئیات فوق‌العاده و طراحی منحصر به فرد",
+            emoji: "🗿"
+        },
+        {
+            id: 6,
+            name: "کاسه سفالی خوراکی",
+            price: 120000,
+            category: "pottery",
+            description: "کاسه سفالی زیبا و کاربردی برای سرو غذا با لعاب طبیعی",
+            emoji: "🥣"
+        },
+        {
+            id: 7,
+            name: "گلدان آویز گلی",
+            price: 95000,
+            category: "clay",
+            description: "گلدان آویز زیبا برای فضاهای داخلی با طراحی مینیمال",
+            emoji: "🌿"
+        },
+        {
+            id: 8,
+            name: "ظرف میوه سفالی",
+            price: 200000,
+            category: "decorative",
+            description: "ظرف میوه تزئینی با طرح‌های کلاسیک و رنگ‌آمیزی زیبا",
+            emoji: "🍇"
+        }
+    ];
+
+    let cart = [];
+    let orders = [];
+    let currentFilter = 'all';
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProducts();
+        updateStats();
+        initScrollReveal();
+        initSmoothScroll();
+    });
+
+    // Scroll reveal animation
+    function initScrollReveal() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+    }
+
+    // Smooth scroll
+    function initSmoothScroll() {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    }
+
+    function scrollToProducts() {
+        document.getElementById('products').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
+    function scrollToAbout() {
+        document.getElementById('about').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
+    // Product functions
+    function loadProducts() {
+        const grid = document.getElementById('products-grid');
+        const filteredProducts = currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter);
+
+        grid.innerHTML = filteredProducts.map((product, index) => `
+                <div class="product-hover bg-white rounded-3xl shadow-xl overflow-hidden scroll-reveal" style="animation-delay: ${index * 0.1}s;">
+                    <div class="p-8 text-center">
+                        <div class="text-8xl mb-6 floating" style="animation-delay: ${index * 0.5}s;">${product.emoji}</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">${product.name}</h3>
+                        <p class="text-gray-600 mb-6 leading-relaxed">${product.description}</p>
+                        <div class="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-6">
+                            ${product.price.toLocaleString()} تومان
+                        </div>
+                        <button onclick="addToCart(${product.id})" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-4 rounded-2xl hover:from-amber-700 hover:to-orange-700 transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105">
+                            افزودن به سبد خرید
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function filterProducts(category) {
+        currentFilter = category;
+        loadProducts();
+
+        // Update category buttons
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('bg-gradient-to-r', 'from-amber-600', 'to-orange-600', 'text-white');
+            btn.classList.add('bg-white', 'text-amber-700', 'border-2', 'border-amber-600');
+        });
+        event.target.classList.remove('bg-white', 'text-amber-700', 'border-2', 'border-amber-600');
+        event.target.classList.add('bg-gradient-to-r', 'from-amber-600', 'to-orange-600', 'text-white');
+    }
+
+    // Cart functions
+    function addToCart(productId) {
+        const product = products.find(p => p.id === productId);
+        const existingItem = cart.find(item => item.id === productId);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({...product, quantity: 1});
+        }
+
+        updateCartUI();
+        showMessage('محصول به سبد خرید اضافه شد! 🛒', 'success');
+    }
+
+    function removeFromCart(productId) {
+        cart = cart.filter(item => item.id !== productId);
+        updateCartUI();
+    }
+
+    function updateCartQuantity(productId, change) {
+        const item = cart.find(item => item.id === productId);
+        if (item) {
+            item.quantity += change;
+            if (item.quantity <= 0) {
+                removeFromCart(productId);
+            } else {
+                updateCartUI();
+            }
+        }
+    }
+
+    function updateCartUI() {
+        const cartCount = document.getElementById('cart-count');
+        const cartItems = document.getElementById('cart-items');
+        const cartFooter = document.getElementById('cart-footer');
+        const cartTotal = document.getElementById('cart-total');
+
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        cartCount.textContent = totalItems;
+        cartCount.classList.add('cart-badge');
+        setTimeout(() => cartCount.classList.remove('cart-badge'), 500);
+
+        if (cart.length === 0) {
+            cartItems.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🛒</div>
+                        <p class="text-gray-500 text-lg">سبد خرید شما خالی است</p>
+                        <p class="text-gray-400 text-sm mt-2">محصولات مورد علاقه‌تان را اضافه کنید</p>
+                    </div>
+                `;
+            cartFooter.classList.add('hidden');
+        } else {
+            cartItems.innerHTML = cart.map(item => `
+                    <div class="flex items-center justify-between p-6 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <span class="text-3xl">${item.emoji}</span>
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-800">${item.name}</h4>
+                                <p class="text-amber-600 font-medium">${item.price.toLocaleString()} تومان</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 space-x-reverse">
+                            <button onclick="updateCartQuantity(${item.id}, -1)" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors font-bold">-</button>
+                            <span class="w-12 text-center font-bold text-lg">${item.quantity}</span>
+                            <button onclick="updateCartQuantity(${item.id}, 1)" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors font-bold">+</button>
+                            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 mr-3 text-xl">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            cartFooter.classList.remove('hidden');
+            cartTotal.textContent = totalPrice.toLocaleString() + ' تومان';
+        }
+    }
+
+    function toggleCart() {
+        const overlay = document.getElementById('cart-overlay');
+        overlay.classList.toggle('hidden');
+    }
+
+    function checkout() {
+        if (cart.length === 0) return;
+
+        const order = {
+            id: Date.now(),
+            items: [...cart],
+            total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            date: new Date().toLocaleDateString('fa-IR'),
+            status: 'در انتظار پردازش'
+        };
+
+        orders.push(order);
+        cart = [];
+        updateCartUI();
+        toggleCart();
+        updateStats();
+
+        showMessage('سفارش شما با موفقیت ثبت شد! 🎉', 'success');
+    }
+
+    // Admin functions
+    function toggleAdmin() {
+        const panel = document.getElementById('admin-panel');
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+            loadAdminProducts();
+            loadOrders();
+            updateStats();
+        }
+    }
+
+    function showAdminSection(section) {
+        document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
+        document.getElementById('admin-' + section).classList.remove('hidden');
+
+        // Update nav buttons
+        document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+            btn.classList.remove('bg-gradient-to-r', 'from-amber-600', 'to-orange-600', 'text-white');
+            btn.classList.add('text-gray-700', 'hover:bg-white', 'hover:shadow-md');
+        });
+        event.target.classList.remove('text-gray-700', 'hover:bg-white', 'hover:shadow-md');
+        event.target.classList.add('bg-gradient-to-r', 'from-amber-600', 'to-orange-600', 'text-white');
+    }
+
+    function loadAdminProducts() {
+        const list = document.getElementById('admin-products-list');
+        list.innerHTML = products.map(product => `
+                <div class="bg-white p-6 rounded-2xl shadow-lg border hover:shadow-xl transition-all duration-300">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <span class="text-4xl">${product.emoji}</span>
+                            <div>
+                                <h4 class="font-bold text-xl text-gray-800">${product.name}</h4>
+                                <p class="text-gray-600 mt-1">${product.description}</p>
+                                <p class="text-amber-600 font-bold text-lg mt-2">${product.price.toLocaleString()} تومان</p>
+                                <span class="inline-block bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm mt-2 font-medium">
+                                    ${getCategoryName(product.category)}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3 space-x-reverse">
+                            <button onclick="editProduct(${product.id})" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium">
+                                ✏️ ویرایش
+                            </button>
+                            <button onclick="deleteProduct(${product.id})" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 font-medium">
+                                🗑️ حذف
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function loadOrders() {
+        const list = document.getElementById('orders-list');
+        if (orders.length === 0) {
+            list.innerHTML = `
+                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-8 rounded-2xl text-center">
+                        <div class="text-6xl mb-4">📋</div>
+                        <p class="text-gray-600 text-lg">هنوز سفارشی ثبت نشده است</p>
+                        <p class="text-gray-500 text-sm mt-2">سفارشات مشتریان اینجا نمایش داده می‌شوند</p>
+                    </div>
+                `;
+            return;
+        }
+
+        list.innerHTML = orders.map(order => `
+                <div class="bg-white p-6 rounded-2xl shadow-lg border hover:shadow-xl transition-all duration-300">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-bold text-xl text-gray-800">سفارش #${order.id}</h4>
+                            <p class="text-gray-600 mt-1">📅 تاریخ: ${order.date}</p>
+                            <p class="text-amber-600 font-bold text-lg mt-1">💰 مجموع: ${order.total.toLocaleString()} تومان</p>
+                        </div>
+                        <span class="bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium">
+                            ${order.status}
+                        </span>
+                    </div>
+                    <div class="border-t pt-4">
+                        <h5 class="font-bold mb-3 text-gray-800">اقلام سفارش:</h5>
+                        <div class="space-y-2">
+                            ${order.items.map(item => `
+                                <div class="flex justify-between items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
+                                    <span class="flex items-center space-x-2 space-x-reverse">
+                                        <span class="text-xl">${item.emoji}</span>
+                                        <span class="font-medium">${item.name}</span>
+                                    </span>
+                                    <span class="font-bold">${item.quantity} عدد</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function updateStats() {
+        document.getElementById('total-products').textContent = products.length;
+        document.getElementById('total-orders').textContent = orders.length;
+        document.getElementById('total-revenue').textContent = orders.reduce((sum, order) => sum + order.total, 0).toLocaleString();
+    }
+
+    function showAddProduct() {
+        document.getElementById('add-product-modal').classList.remove('hidden');
+    }
+
+    function hideAddProduct() {
+        document.getElementById('add-product-modal').classList.add('hidden');
+        document.getElementById('add-product-modal').querySelector('form').reset();
+    }
+
+    function addProduct(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('product-name').value;
+        const price = parseInt(document.getElementById('product-price').value);
+        const category = document.getElementById('product-category').value;
+        const description = document.getElementById('product-description').value;
+
+        const emojis = {
+            pottery: ['🏺', '🫗', '🥣', '🍽️', '🫖', '🍇'],
+            clay: ['🪴', '🌿', '🌱', '🏺', '🫖'],
+            decorative: ['🗿', '🎨', '🖼️', '✨', '🏺', '🍽️']
+        };
+
+        const newProduct = {
+            id: Date.now(),
+            name,
+            price,
+            category,
+            description,
+            emoji: emojis[category][Math.floor(Math.random() * emojis[category].length)]
+        };
+
+        products.push(newProduct);
+        loadProducts();
+        loadAdminProducts();
+        updateStats();
+        hideAddProduct();
+
+        showMessage('محصول جدید با موفقیت اضافه شد! ✅', 'success');
+    }
+
+    function deleteProduct(productId) {
+        showConfirm('آیا از حذف این محصول اطمینان دارید؟').then(result => {
+            if (result) {
+                products = products.filter(p => p.id !== productId);
+                loadProducts();
+                loadAdminProducts();
+                updateStats();
+                showMessage('محصول حذف شد! 🗑️', 'success');
+            }
+        });
+    }
+
+    function editProduct(productId) {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-category').value = product.category;
+            document.getElementById('product-description').value = product.description;
+
+            // Remove the product and show add modal (acting as edit)
+            products = products.filter(p => p.id !== productId);
+            loadProducts();
+            loadAdminProducts();
+            updateStats();
+            showAddProduct();
+        }
+    }
+
+    // Utility functions
+    function getCategoryName(category) {
+        const names = {
+            pottery: 'سفالگری',
+            clay: 'گلی',
+            decorative: 'تزئینی'
+        };
+        return names[category] || category;
+    }
+
+    function showMessage(message, type = 'info') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `fixed top-6 right-6 z-50 p-6 rounded-2xl shadow-2xl transform transition-all duration-500 ${
+            type === 'success' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' :
+                type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' :
+                    'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+        }`;
+        messageDiv.innerHTML = `
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="text-2xl">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</div>
+                    <div class="font-medium text-lg">${message}</div>
+                </div>
+            `;
+
+        document.body.appendChild(messageDiv);
+
+        // Animate in
+        setTimeout(() => {
+            messageDiv.style.transform = 'translateX(0)';
+            messageDiv.style.opacity = '1';
+        }, 100);
+
+        // Animate out and remove
+        setTimeout(() => {
+            messageDiv.style.transform = 'translateX(100%)';
+            messageDiv.style.opacity = '0';
+            setTimeout(() => messageDiv.remove(), 300);
+        }, 3000);
+    }
+
+    function showConfirm(message) {
+        return new Promise(resolve => {
+            const confirmDiv = document.createElement('div');
+            confirmDiv.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+            confirmDiv.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md mx-4 transform transition-all duration-300">
+                        <div class="text-center mb-6">
+                            <div class="text-6xl mb-4">❓</div>
+                            <p class="text-gray-800 text-lg font-medium">${message}</p>
+                        </div>
+                        <div class="flex space-x-4 space-x-reverse">
+                            <button onclick="confirmAction(true)" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 font-bold">
+                                بله، حذف کن
+                            </button>
+                            <button onclick="confirmAction(false)" class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-400 transition-all duration-300 font-bold">
+                                انصراف
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+            document.body.appendChild(confirmDiv);
+
+            window.confirmAction = function(result) {
+                confirmDiv.remove();
+                resolve(result);
+                delete window.confirmAction;
+            };
+        });
+    }
+
+    function submitContact(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('contact-name').value;
+        const email = document.getElementById('contact-email').value;
+        const message = document.getElementById('contact-message').value;
+
+        // Simulate form submission
+        showMessage('پیام شما با موفقیت ارسال شد! به زودی با شما تماس خواهیم گرفت. 📧', 'success');
+
+        // Reset form
+        event.target.reset();
+    }
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9907586331078239',t:'MTc2MDc4MzI2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

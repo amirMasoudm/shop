@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فروشگاه آنلاین ما</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif; background-color: #f7f7f7; }
+        .product-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); }
+        .rating-star { color: gold; }
+
+        .loading-spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #10b981; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* برای درخت دسته‌بندی */
+        .category-item { transition: background-color 0.1s; cursor: pointer; }
+        .category-item:hover { background-color: #f3f4f6; }
+        .category-item.active { background-color: #10b981; color: white; font-weight: 600; border-radius: 6px; }
+        .category-ul { padding-right: 1rem; border-right: 1px solid #e5e7eb; }
+
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+<header class="mb-8 bg-white p-4 rounded-xl shadow-md flex justify-between items-center sticky top-0 z-10 border-b border-gray-100">
+    <h1 class="text-3xl font-bold text-gray-800">🛍️ فروشگاه</h1>
+    <div class="relative w-1/3 min-w-[200px] hidden md:block">
+        <input type="text" placeholder="جستجو در محصولات..." class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+        <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">🔍</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <button class="text-gray-600 hover:text-green-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        </button>
+        <button class="bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-green-700 transition">ورود</button>
+    </div>
+</header>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <aside class="lg:col-span-3">
+        <div class="bg-white p-4 rounded-xl shadow-md space-y-6">
+
+            <div class="border-b pb-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">🏷️ دسته‌بندی‌ها</h3>
+                <div id="category-tree-container" class="space-y-1 max-h-96 overflow-y-auto">
+                    <div class="text-gray-500 text-sm text-center">در حال بارگذاری...</div>
+                </div>
+            </div>
+
+            <div class="border-b pb-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">💰 فیلتر قیمت</h3>
+                <div class="flex gap-2 items-center">
+                    <input type="number" id="minPriceFilter" placeholder="حداقل" class="w-1/2 px-3 py-2 border rounded-lg text-sm" min="0">
+                    <span>تا</span>
+                    <input type="number" id="maxPriceFilter" placeholder="حداکثر" class="w-1/2 px-3 py-2 border rounded-lg text-sm" min="0">
+                </div>
+                <button onclick="handleFilterChange()" class="mt-3 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition text-sm">اعمال فیلتر</button>
+            </div>
+
+        </div>
+    </aside>
+
+    <section class="lg:col-span-9">
+
+        <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-md border-b border-gray-100">
+            <p class="text-gray-600 text-sm">
+                نمایش <span id="pagination-info">...</span>
+            </p>
+
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700">ترتیب بر اساس:</label>
+                <select id="sortBySelect" onchange="handleSortChange()" class="px-3 py-1 border rounded-lg bg-white text-sm focus:ring-2 focus:ring-green-500">
+                    <option value="createdAt" data-direction="desc">جدیدترین</option>
+                    <option value="salesCount" data-direction="desc">پرفروش‌ترین</option>
+                    <option value="averageRating" data-direction="desc">محبوب‌ترین</option>
+                    <option value="price" data-direction="asc">ارزان‌ترین</option>
+                    <option value="price" data-direction="desc">گران‌ترین</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="col-span-full text-center py-10" id="loading-state">
+                <span class="loading-spinner border-gray-400 border-t-green-600 w-8 h-8"></span>
+                <p class="text-gray-600 mt-3">در حال بارگذاری محصولات...</p>
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-8">
+            <nav id="pagination-controls" class="flex gap-2" aria-label="Pagination">
+            </nav>
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+    // ***************************************************************
+    // تنظیمات هوشمند آدرس سرور
+    // ***************************************************************
+
+    const hostname = window.location.hostname;
+    const port = '8080';
+
+    const API_CONFIG = {
+        baseURL: `http://${hostname}:${port}/api`,
+        uploadsURL: `http://${hostname}:${port}/uploads`
+    };
+
+    // ***************************************************************
+
+    // STATE
+    let currentPage = 0;
+    let currentCategoryId = null;
+    let currentSortBy = 'createdAt';
+    let currentSortDirection = 'desc';
+
+    // ================= CATEGORY MANAGER (Client View) =================
+
+    const clientCategoryManager = {
+        allCategories: [],
+
+        async loadCategories() {
+            const container = document.getElementById('category-tree-container');
+            container.innerHTML = '<div class="text-center"><span class="loading-spinner"></span></div>';
+
+            try {
+                // استفاده از API درخت برای ساخت منو
+                const res = await fetch(`${API_CONFIG.baseURL}/categories/tree`);
+                if (!res.ok) throw new Error('Failed to fetch categories.');
+
+                const data = await res.json();
+                this.allCategories = this.flattenCategories(data);
+
+                this.renderTree(data, container);
+
+            } catch(e) {
+                container.innerHTML = `<p class="text-red-500 text-sm p-4">خطا: ${e.message}</p>`;
+            }
+        },
+
+        flattenCategories(categories, path = '', flatList = []) {
+            categories.forEach(cat => {
+                const currentPath = path ? `${path} > ${cat.name}` : cat.name;
+                flatList.push({ id: cat.id, name: cat.name, fullPath: currentPath, parentId: cat.parentId });
+                if (cat.children && cat.children.length > 0) {
+                    this.flattenCategories(cat.children, currentPath, flatList);
+                }
+            });
+            return flatList;
+        },
+
+        renderTree(categories, parentElement, isRoot = true) {
+            if (isRoot) {
+                parentElement.innerHTML = '';
+                // آیتم "همه محصولات"
+                const allItem = document.createElement('div');
+                allItem.className = 'category-item p-2 active';
+                allItem.textContent = '🏠 همه محصولات';
+                allItem.dataset.id = ''; // ID خالی برای نمایش همه
+                allItem.onclick = (e) => this.handleCategoryClick(e, '');
+                parentElement.appendChild(allItem);
+            }
+
+            const ul = document.createElement('ul');
+            ul.className = isRoot ? 'space-y-1' : 'category-ul mt-1 space-y-1';
+
+            categories.forEach(cat => {
+                const li = document.createElement('li');
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'category-item p-2';
+                itemDiv.textContent = cat.name;
+                itemDiv.dataset.id = cat.id;
+                itemDiv.onclick = (e) => this.handleCategoryClick(e, cat.id);
+
+                li.appendChild(itemDiv);
+
+                if (cat.children && cat.children.length > 0) {
+                    const childContainer = document.createElement('div');
+                    this.renderTree(cat.children, childContainer, false);
+                    li.appendChild(childContainer);
+                }
+
+                ul.appendChild(li);
+            });
+            parentElement.appendChild(ul);
+        },
+
+        handleCategoryClick(event, categoryId) {
+            // حذف کلاس active از همه آیتم‌ها
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.classList.remove('active');
+                item.classList.remove('text-white');
+            });
+
+            // افزودن کلاس active به آیتم کلیک شده
+            event.currentTarget.classList.add('active');
+
+            currentCategoryId = categoryId;
+            currentPage = 0; // بازگشت به صفحه اول هنگام تغییر فیلتر
+            loadProducts();
+        }
+    };
+
+
+    // ================= PRODUCT LOADING & RENDERING =================
+
+    function getSelectedSortParams() {
+        const select = document.getElementById('sortBySelect');
+        const selectedOption = select.options[select.selectedIndex];
+        return {
+            sortBy: selectedOption.value,
+            sortDirection: selectedOption.dataset.direction
+        };
+    }
+
+    function handleSortChange() {
+        const params = getSelectedSortParams();
+        currentSortBy = params.sortBy;
+        currentSortDirection = params.sortDirection;
+        currentPage = 0; // بازگشت به صفحه اول هنگام تغییر سورت
+        loadProducts();
+    }
+
+    function handleFilterChange() {
+        currentPage = 0; // بازگشت به صفحه اول هنگام تغییر فیلتر
+        loadProducts();
+    }
+
+
+    async function loadProducts() {
+        document.getElementById('product-grid').innerHTML = '<div class="col-span-full text-center py-10" id="loading-state"><span class="loading-spinner border-gray-400 border-t-green-600 w-8 h-8"></span> <p class="text-gray-600 mt-3">در حال بارگذاری محصولات...</p></div>';
+
+        const minPrice = document.getElementById('minPriceFilter').value;
+        const maxPrice = document.getElementById('maxPriceFilter').value;
+
+        const url = new URL(`${API_CONFIG.baseURL}/v1/products`);
+
+        // پارامترهای فیلترینگ و صفحه‌بندی
+        url.searchParams.append('page', currentPage);
+        url.searchParams.append('size', 20); // 20 محصول در هر صفحه
+
+        if (currentCategoryId) url.searchParams.append('categoryId', currentCategoryId);
+        if (minPrice) url.searchParams.append('minPrice', minPrice);
+        if (maxPrice) url.searchParams.append('maxPrice', maxPrice);
+
+        // پارامترهای سورتینگ
+        url.searchParams.append('sortBy', currentSortBy);
+        url.searchParams.append('sortDirection', currentSortDirection);
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`API Error: ${errorText}`);
+            }
+
+            const pageData = await res.json();
+            renderProductGrid(pageData.content);
+            renderPagination(pageData);
+
+        } catch(e) {
+            console.error('Error loading products:', e);
+            document.getElementById('product-grid').innerHTML = `<div class="col-span-full text-center py-10 text-red-600">❌ ${e.message}</div>`;
+            document.getElementById('pagination-info').textContent = '0 محصول';
+            document.getElementById('pagination-controls').innerHTML = '';
+        }
+    }
+
+    function renderProductGrid(products) {
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = '';
+
+        if (products.length === 0) {
+            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">😔 محصولی با این فیلترها یافت نشد.</div>';
+            return;
+        }
+
+        products.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'product-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col justify-between';
+            card.innerHTML = `
+                <div class="h-48 overflow-hidden">
+                    <img src="${p.images && p.images.length > 0 ? `${API_CONFIG.uploadsURL}/${p.images[0]}` : 'placeholder.svg'}"
+                         alt="${p.name}" class="w-full h-full object-cover">
+                </div>
+
+                <div class="p-4 flex flex-col flex-grow">
+                    <h4 class="text-lg font-bold text-gray-800 mb-1">${p.name}</h4>
+
+                    <div class="flex items-center text-sm mb-2">
+                        ${renderStars(p.averageRating)}
+                        <span class="text-gray-500 text-xs mr-2">(${p.reviewCount || 0} نظر)</span>
+                    </div>
+
+                    <div class="mt-auto">
+                        ${p.discountPercent > 0 ?
+                `
+                            <span class="text-xs text-red-500 bg-red-100 px-2 py-0.5 rounded-full font-medium ml-2">
+                                %${p.discountPercent}
+                            </span>
+                            <span class="text-gray-500 line-through text-sm">${p.price ? p.price.toLocaleString() : ''}</span>
+                            <span class="text-xl font-bold text-green-600 block mt-1">${p.discountedPrice ? p.discountedPrice.toLocaleString() : ''} <span class="text-sm">تومان</span></span>
+                            `
+                :
+                `<span class="text-xl font-bold text-gray-800">${p.price ? p.price.toLocaleString() : ''} <span class="text-sm">تومان</span></span>`
+            }
+                    </div>
+                </div>
+
+                <div class="p-4 border-t flex justify-between items-center">
+                    <span class="text-xs ${p.stock > 0 ? 'text-green-600' : 'text-red-500'} font-medium">
+                        ${p.stock > 0 ? `موجودی: ${p.stock} عدد` : 'ناموجود'}
+                    </span>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition disabled:bg-gray-400" ${p.stock === 0 ? 'disabled' : ''}>
+                        🛒 افزودن به سبد
+                    </button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function renderStars(rating) {
+        const fullStars = Math.floor(rating);
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                html += '<span class="rating-star">★</span>';
+            } else {
+                html += '<span class="text-gray-300">★</span>';
+            }
+        }
+        return html;
+    }
+
+
+    function renderPagination(pageData) {
+        const controls = document.getElementById('pagination-controls');
+        controls.innerHTML = '';
+
+        const totalPages = pageData.totalPages;
+        const totalElements = pageData.totalElements;
+        const number = pageData.number; // Current page index (0-based)
+        const size = pageData.size;
+
+        // Update pagination info
+        const start = number * size + 1;
+        const end = Math.min((number + 1) * size, totalElements);
+        document.getElementById('pagination-info').textContent = `${start}-${end} از ${totalElements}`;
+
+        if (totalPages <= 1) return;
+
+        // Previous Button
+        const prevButton = createPaginationButton('قبلی', number - 1, number === 0);
+        controls.appendChild(prevButton);
+
+        // Page Numbers (Show max 5 pages, centered on current)
+        let startPage = Math.max(0, number - 2);
+        let endPage = Math.min(totalPages - 1, number + 2);
+
+        if (number < 2) endPage = Math.min(totalPages - 1, 4);
+        if (number > totalPages - 3) startPage = Math.max(0, totalPages - 5);
+
+        if (startPage > 0) controls.appendChild(createEllipsis());
+
+        for (let i = startPage; i <= endPage; i++) {
+            const button = createPaginationButton(i + 1, i, i === number);
+            controls.appendChild(button);
+        }
+
+        if (endPage < totalPages - 1) controls.appendChild(createEllipsis());
+
+        // Next Button
+        const nextButton = createPaginationButton('بعدی', number + 1, number === totalPages - 1);
+        controls.appendChild(nextButton);
+    }
+
+    function createPaginationButton(text, pageIndex, isDisabled = false) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.className = `px-3 py-1 rounded-lg transition text-sm ${
+            isDisabled
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                : (pageIndex === currentPage ? 'bg-green-600 text-white font-semibold' : 'bg-white text-gray-700 border hover:bg-gray-100')
+        }`;
+        button.disabled = isDisabled;
+        button.onclick = () => {
+            if (!isDisabled) {
+                currentPage = pageIndex;
+                loadProducts();
+            }
+        };
+        return button;
+    }
+
+    function createEllipsis() {
+        const span = document.createElement('span');
+        span.textContent = '...';
+        span.className = 'px-3 py-1 text-gray-500';
+        return span;
+    }
+
+
+    // ================= INITIALIZATION =================
+    document.addEventListener('DOMContentLoaded', () => {
+        clientCategoryManager.loadCategories();
+        loadProducts(); // بارگذاری اولیه محصولات
+
+        // تنظیمات اولیه سورتینگ
+        const initialSort = getSelectedSortParams();
+        currentSortBy = initialSort.sortBy;
+        currentSortDirection = initialSort.sortDirection;
+    });
+</script>
+
+</body>
+</html>

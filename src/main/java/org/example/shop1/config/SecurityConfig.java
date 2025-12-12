@@ -1,8 +1,5 @@
 package org.example.shop1.config;
 
-
-
-
 import org.example.shop1.model.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +9,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -22,17 +24,11 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    // =======================
-    //  Password Encoder
-    // =======================
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // =======================
-    //  Authentication Manager
-    // =======================
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
@@ -42,28 +38,31 @@ public class SecurityConfig {
                 .build();
     }
 
-    // =======================
-    //  Security Filter Chain
-    // =======================
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // برای تست، بعدا فعالش می‌کنی
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable()) // برای محیط توسعه غیرفعال است
                 .authorizeHttpRequests(auth -> auth
-                        // این دو مسیر آزاد باشن:
-                        .requestMatchers("/userAuth.html", "/users/signup","/home.html","/category.html").permitAll()
-                                .requestMatchers( "/api/current-user").authenticated()
+                        // دسترسی‌های عمومی (بدون لاگین)
+                        .requestMatchers(
+                                "/userAuth.html",
+                                "/users/signup",
+                                "/home.html",
+                                "/category.html",
+                                "/perform_login",
+                                "/uploads/**",       // دسترسی به تصاویر آپلود شده
+                                "/api/v1/files/**"   // اجازه آپلود فایل (می‌توانید محدود کنید)
+                        ).permitAll()
 
-                                .requestMatchers("/api/**").hasRole("USER")
-
-//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-//                        .requestMatchers("/api/support/**").hasRole("SUPPORT")
-//                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "SUPPORT")
+                        // دسترسی‌های نیازمند احراز هویت
+                        .requestMatchers("/api/current-user").authenticated()
+                        .requestMatchers("/api/**").hasRole("USER") // یا hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/userAuth.html") // صفحه HTML ساده
-                        .loginProcessingUrl("/perform_login") // مسیر پردازش لاگین (بعدا اضافه می‌کنیم)
+                        .loginPage("/userAuth.html")
+                        .loginProcessingUrl("/perform_login")
                         .defaultSuccessUrl("/users/home", true)
                         .failureUrl("/userAuth.html?error=true")
                         .permitAll()
@@ -77,4 +76,17 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // پورت‌های فرانت‌اند خود را اینجا اضافه کنید
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:63342"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

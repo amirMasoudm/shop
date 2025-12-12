@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت فروشگاه</title>
+    <script src="/_sdk/data_sdk.js"></script>
+    <script src="/_sdk/element_sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { box-sizing: border-box; font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif; }
+        * { box-sizing: border-box; }
+
+        /* انیمیشن‌ها */
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .chart-bar { transition: all 0.3s ease; }
+        .chart-bar:hover { opacity: 0.8; }
+        .metric-card { transition: all 0.2s ease; }
+        .metric-card:hover { transform: translateY(-2px); }
+        .nav-item { transition: all 0.2s ease; cursor: pointer; }
+        .nav-item:hover { transform: translateX(-5px); }
+        .nav-item.active { font-weight: 600; }
+
+        .loading-spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-left: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .tree-node { transition: all 0.2s; }
+        .tree-node.drag-over { background-color: #ecfeff; border: 2px dashed #06b6d4; transform: scale(1.01); }
+        .tree-ul { padding-right: 24px; border-right: 1px solid #e5e7eb; margin-right: 10px; }
+
+        .specs-scroll::-webkit-scrollbar { width: 6px; }
+        .specs-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .sidebar-overlay { background-color: rgba(0,0,0,0.5); }
+
+        /* برای غیرفعال کردن فیلد ID در حالت ویرایش */
+        #p_id[disabled] { background-color: #f3f4f6; cursor: not-allowed; }
+    </style>
+    <style>@view-transition { navigation: auto; }</style>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col lg:flex-row overflow-hidden">
+
+<div class="lg:hidden bg-white shadow-sm p-4 flex justify-between items-center z-20">
+    <h1 class="text-xl font-bold text-gray-800">پنل مدیریت</h1>
+    <button onclick="toggleSidebar()" class="text-gray-600 focus:outline-none">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+</div>
+
+<div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 sidebar-overlay z-30 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
+
+<aside id="sidebar" class="fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform translate-x-full lg:translate-x-0 lg:static lg:inset-auto transition-transform duration-300 z-40 h-full overflow-y-auto">
+    <div class="p-6 border-b flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">پنل مدیریت</h1>
+            <p id="store-name" class="text-sm text-gray-500 mt-1">فروشگاه من</p>
+        </div>
+        <button onclick="toggleSidebar()" class="lg:hidden text-gray-500">✕</button>
+    </div>
+    <nav class="p-4 space-y-2">
+        <div class="nav-item active p-3 rounded-lg bg-blue-50 text-blue-600" data-section="dashboard"><span class="ml-3">📊</span> داشبورد</div>
+        <div class="nav-item p-3 rounded-lg text-gray-700 hover:bg-gray-50" data-section="products"><span class="ml-3">📦</span> محصولات</div>
+        <div class="nav-item p-3 rounded-lg text-gray-700 hover:bg-gray-50" data-section="categories"><span class="ml-3">🏷️</span> دسته‌بندی</div>
+        <div class="nav-item p-3 rounded-lg text-gray-700 hover:bg-gray-50" data-section="customers"><span class="ml-3">👥</span> مشتریان</div>
+        <div class="nav-item p-3 rounded-lg text-gray-700 hover:bg-gray-50" data-section="ai-agent"><span class="ml-3">🤖</span> هوش مصنوعی</div>
+        <div class="nav-item p-3 rounded-lg text-gray-700 hover:bg-gray-50" data-section="inventory"><span class="ml-3">📋</span> موجودی</div>
+        <div class="nav-item p-3 rounded-lg text-gray-700 hover:bg-gray-50" data-section="financial"><span class="ml-3">💰</span> مالی</div>
+        <div class="nav-item p-3 rounded-lg text-gray-700 hover:bg-gray-50" data-section="analytics"><span class="ml-3">📈</span> گزارشات</div>
+    </nav>
+</aside>
+
+<main class="flex-1 p-4 lg:p-8 overflow-y-auto h-full w-full">
+
+    <div id="dashboard-section" class="section-content">
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">داشبورد</h2>
+            <p class="text-gray-600">خلاصه عملکرد فروشگاه شما</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card bg-white p-6 rounded-xl shadow-md">
+                <div class="flex justify-between items-start mb-4">
+                    <div><p class="text-gray-500 text-sm">فروش امروز</p><h3 class="text-2xl font-bold text-gray-800 mt-1">۱۲,۳۴۵,۰۰۰</h3></div><span class="text-3xl">💵</span>
+                </div>
+                <div class="flex items-center text-green-600 text-sm"><span>↑ ۱۲٪</span></div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md h-64 flex items-center justify-center text-gray-400">نمودارهای فروش</div>
+    </div>
+
+    <div id="products-section" class="section-content hidden">
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">مدیریت محصولات</h2>
+                <p class="text-gray-600">لیست محصولات با قابلیت جستجو و فیلتر پیشرفته</p>
+            </div>
+            <button onclick="openProductModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2 w-full md:w-auto justify-center"> ➕ افزودن محصول </button>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-4 border border-gray-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="relative">
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">🔍</span>
+                    <input type="text" id="filterSearch" oninput="handleSearch()" placeholder="جستجو (نام، ویژگی...)" class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                </div>
+
+                <div>
+                    <select id="filterCategory" onchange="handleSearch()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm text-gray-700">
+                        <option value="">همه دسته‌بندی‌ها</option>
+                    </select>
+                </div>
+
+                <div class="relative">
+                    <input type="number" id="filterMinPrice" oninput="handleSearch()" placeholder="حداقل قیمت" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    <span class="absolute left-3 top-2 text-xs text-gray-400">تومان</span>
+                </div>
+
+                <div class="relative">
+                    <input type="number" id="filterMaxPrice" oninput="handleSearch()" placeholder="حداکثر قیمت" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    <span class="absolute left-3 top-2 text-xs text-gray-400">تومان</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-full">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-24">تصویر</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">کد کالا (ID)</th> <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">نام محصول</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">دسته‌بندی</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700 w-1/4">ویژگی‌ها (Specs)</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">قیمت</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">موجودی</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">عملیات</th>
+                    </tr>
+                    </thead>
+                    <tbody id="products-table-body" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="categories-section" class="section-content hidden">
+        <div class="mb-6"><h2 class="text-3xl font-bold text-gray-800 mb-2">📂 مدیریت دسته‌بندی‌ها</h2></div>
+        <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+            <div class="flex gap-4">
+                <input type="text" id="newCategoryName" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder="نام دسته اصلی جدید...">
+                <button onclick="categoryManager.addCategory()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">➕ افزودن</button>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md min-h-[400px]">
+            <div id="treeContainer" class="space-y-2">
+                <div class="flex justify-center text-gray-500 py-10"><span class="loading-spinner border-gray-400 border-t-blue-600 ml-2"></span> در حال بارگذاری...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="customers-section" class="section-content hidden"><h2 class="text-2xl mb-4">مدیریت مشتریان</h2><div class="bg-white p-6 rounded-xl shadow">جدول مشتریان</div></div>
+    <div id="ai-agent-section" class="section-content hidden"><h2 class="text-2xl mb-4">هوش مصنوعی</h2><div class="bg-white p-6 rounded-xl shadow">چت بات</div></div>
+    <div id="inventory-section" class="section-content hidden"><h2 class="text-2xl mb-4">موجودی انبار</h2><div class="bg-white p-6 rounded-xl shadow">لیست انبار</div></div>
+    <div id="financial-section" class="section-content hidden"><h2 class="text-2xl mb-4">مدیریت مالی</h2><div class="bg-white p-6 rounded-xl shadow">گزارشات</div></div>
+    <div id="analytics-section" class="section-content hidden"><h2 class="text-2xl mb-4">گزارشات</h2><div class="bg-white p-6 rounded-xl shadow">نمودارها</div></div>
+
+</main>
+
+
+<div id="moveModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 m-4">
+        <h3 class="text-xl font-bold mb-4">📦 انتقال دسته</h3>
+        <select id="parentSelect" class="w-full px-4 py-2 border rounded-lg mb-4"></select>
+        <div class="flex justify-end gap-3">
+            <button onclick="categoryManager.closeMoveModal()" class="px-4 py-2 bg-gray-100 rounded-lg">انصراف</button>
+            <button onclick="categoryManager.confirmMove()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">تایید</button>
+        </div>
+    </div>
+</div>
+
+<div id="productModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeProductModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+        <div class="relative inline-block align-bottom bg-white rounded-xl text-right overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div class="bg-white px-6 pt-5 pb-6 sm:p-8">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2" id="modal-title-text">📦 افزودن محصول جدید</h3>
+                    <button onclick="closeProductModal()" class="text-gray-400 hover:text-red-500 text-2xl">✕</button>
+                </div>
+
+                <form id="productForm" onsubmit="handleProductSubmit(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <div class="space-y-4">
+
+                            <div>
+                                <label class="block text-sm font-medium mb-1">شناسه محصول / کد کالا (ID)</label>
+                                <input type="text" id="p_id" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-1">نام محصول</label>
+                                <input type="text" id="p_name" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-1">دسته‌بندی</label>
+                                <select id="p_category" required class="w-full px-3 py-2 border rounded-lg outline-none bg-white focus:ring-2 focus:ring-purple-500"></select>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">قیمت (تومان)</label>
+                                    <input type="number" id="p_price" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500" min="0">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">موجودی</label>
+                                    <input type="number" id="p_stock" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500" min="0">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">درصد تخفیف (%)</label>
+                                    <input type="number" id="p_discount_percent" class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500" value="0" min="0" max="100">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-sm font-medium">توضیحات محصول</label>
+                                    <button type="button" onclick="generateAIDescription()" class="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full flex items-center gap-1 transition shadow-sm border border-purple-500">
+                                        <span>✨</span> تولید هوشمند (SEO)
+                                    </button>
+                                </div>
+                                <div class="relative">
+                                    <textarea id="p_desc" rows="6" class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition" placeholder="می‌توانید متن خود را بنویسید یا از دکمه تولید هوشمند استفاده کنید..."></textarea>
+                                    <div id="ai-loading" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10">
+                                        <span class="loading-spinner border-purple-200 border-t-purple-600 w-8 h-8"></span>
+                                        <p class="text-xs text-purple-700 mt-2 font-medium">در حال نگارش متن حرفه‌ای...</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">(اختیاری: مدل با متن شما ترکیب می‌کند)</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 p-4 rounded-lg border">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-bold">⚙️ ویژگی‌های فنی</label>
+                                    <button type="button" onclick="addSpecRow()" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition">+ افزودن</button>
+                                </div>
+                                <div id="specs-container" class="space-y-2 max-h-48 overflow-y-auto specs-scroll pr-1"></div>
+                                <p class="text-xs text-gray-400 mt-2 text-center" id="no-specs-msg">ویژگی اضافه نشده است</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-1">تصاویر محصول</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 transition relative">
+                                    <input id="p_image" type="file" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleImageSelect(event)">
+                                    <div class="text-gray-500"><span class="text-2xl block mb-1">📷</span>انتخاب تصاویر</div>
+                                </div>
+                                <div id="image-preview-container" class="grid grid-cols-3 gap-3 mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse gap-3 mt-8 border-t -mx-6 -mb-6">
+                        <button type="submit" id="modal-submit-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">✅ ثبت محصول</button>
+                        <button type="button" onclick="closeProductModal()" class="bg-white text-gray-700 border px-6 py-2 rounded-lg hover:bg-gray-50">انصراف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="fixed bottom-6 left-6 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-all z-[60]"><p id="toast-message"></p></div>
+
+<script>
+    // ***************************************************************
+    // تنظیمات هوشمند آدرس سرور
+    // ***************************************************************
+
+    const hostname = window.location.hostname;
+    const port = '8080';
+
+    const API_CONFIG = {
+        baseURL: `http://${hostname}:${port}/api`,
+        uploadsURL: `http://${hostname}:${port}/uploads`
+    };
+
+    // ***************************************************************
+
+    // STATE
+    let fileStore = [];
+    let fileIdCounter = 0;
+    let editingProductId = null;
+    let productsCache = [];
+
+    // Sidebar Toggle
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const isHidden = sidebar.classList.contains('translate-x-full');
+        if (isHidden) { sidebar.classList.remove('translate-x-full'); overlay.classList.remove('hidden'); }
+        else { sidebar.classList.add('translate-x-full'); overlay.classList.add('hidden'); }
+    }
+
+    function showToast(msg, isError = false) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-message').textContent = msg;
+
+        t.classList.remove('hidden', 'bg-gray-800', 'bg-red-600');
+        t.classList.add(isError ? 'bg-red-600' : 'bg-gray-800');
+
+        setTimeout(() => t.classList.add('hidden'), 4000);
+    }
+
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active', 'bg-blue-50', 'text-blue-600'));
+            item.classList.add('active', 'bg-blue-50', 'text-blue-600');
+            document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+
+            const target = document.getElementById(`${item.dataset.section}-section`);
+            if(target) {
+                target.classList.remove('hidden');
+                target.classList.add('slide-in');
+            }
+
+            if(window.innerWidth < 1024) toggleSidebar();
+
+            if(item.dataset.section === 'categories') categoryManager.loadTree();
+            if(item.dataset.section === 'products') loadProducts();
+        });
+    });
+
+    // ================= PRODUCT & SEARCH LOGIC =================
+
+    function handleSearch() {
+        const searchTerm = document.getElementById('filterSearch').value.toLowerCase().trim();
+        const catFilter = document.getElementById('filterCategory').value;
+        const minPrice = parseFloat(document.getElementById('filterMinPrice').value) || 0;
+        const maxPrice = parseFloat(document.getElementById('filterMaxPrice').value) || Infinity;
+
+        const filtered = productsCache.filter(p => {
+            let matchesSearch = true;
+            let matchesCat = true;
+            let matchesPrice = true;
+
+            if (searchTerm) {
+                const inID = p.id ? p.id.toLowerCase().includes(searchTerm) : false; // جستجو بر اساس ID
+                const inName = p.name.toLowerCase().includes(searchTerm);
+                let inSpecs = false;
+                if (p.specifications) {
+                    const specVals = Object.values(p.specifications).join(' ').toLowerCase();
+                    const specKeys = Object.keys(p.specifications).join(' ').toLowerCase();
+                    if (specVals.includes(searchTerm) || specKeys.includes(searchTerm)) inSpecs = true;
+                }
+                matchesSearch = inID || inName || inSpecs; // اضافه شدن ID به جستجو
+            }
+
+            if (catFilter && p.categoryId !== catFilter) matchesCat = false;
+
+            // استفاده از discountedPrice برای فیلتر سمت ادمین
+            const currentPrice = p.discountedPrice !== undefined ? p.discountedPrice : p.price;
+            if (currentPrice < minPrice || currentPrice > maxPrice) matchesPrice = false;
+
+            return matchesSearch && matchesCat && matchesPrice;
+        });
+
+        renderProductsTable(filtered);
+    }
+
+    function renderProductsTable(products) {
+        const tbody = document.getElementById('products-table-body');
+
+        if(products.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-gray-500 bg-gray-50 rounded-lg m-2">هیچ محصولی با این مشخصات یافت نشد.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = products.map(p => {
+            let imgHtml = '<div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center text-xl">🖼️</div>';
+            if(p.images && p.images.length > 0) {
+                // فرض می‌کنیم تصویر اول اصلی است
+                imgHtml = `<img src="${API_CONFIG.uploadsURL}/${p.images[0]}" class="w-12 h-12 rounded object-cover border border-gray-200">`;
+            }
+
+            const cat = categoryManager.allCategories.find(c => c.id === p.categoryId);
+            const catDisplay = cat ? `<span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 whitespace-nowrap" title="${cat.fullPath}">${cat.fullPath}</span>` : '<span class="text-xs text-red-400">نامشخص</span>';
+
+            let specsHtml = '<span class="text-gray-400 text-xs">-</span>';
+            if (p.specifications && Object.keys(p.specifications).length > 0) {
+                specsHtml = `<div class="flex flex-wrap gap-1 max-h-12 overflow-hidden">`;
+                Object.entries(p.specifications).forEach(([key, val]) => {
+                    specsHtml += `<span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100 whitespace-nowrap">${key}: ${val}</span>`;
+                });
+                specsHtml += `</div>`;
+            }
+
+            // --- منطق نمایش قیمت با تخفیف (اصلاح شده) ---
+            let priceHtml = '';
+            if (p.discountPercent > 0 && p.discountedPrice !== undefined) {
+                priceHtml = `
+                    <div class="flex flex-col items-end">
+                        <span class="text-sm text-red-600 font-bold whitespace-nowrap">${p.discountedPrice.toLocaleString()} <span class="text-xs">ت</span></span>
+                        <span class="text-xs text-gray-500 line-through">${p.price ? p.price.toLocaleString() : 0}</span>
+                    </div>
+                `;
+            } else {
+                priceHtml = `<span class="text-gray-700 font-medium whitespace-nowrap">${p.price ? p.price.toLocaleString() : 0} <span class="text-xs text-gray-400">ت</span></span>`;
+            }
+            // ----------------------------------------------
+
+            // نمایش ID
+            const idDisplay = p.id || '<span class="text-red-400 text-xs">بدون کد</span>';
+
+            return `
+            <tr class="hover:bg-gray-50 border-b last:border-0 transition">
+                <td class="px-6 py-4">${imgHtml}</td>
+                <td class="px-6 py-4 text-xs font-mono text-gray-600 whitespace-nowrap">${idDisplay}</td> <td class="px-6 py-4 font-medium text-gray-800">${p.name}</td>
+                <td class="px-6 py-4">${catDisplay}</td>
+                <td class="px-6 py-4 max-w-xs overflow-hidden">${specsHtml}</td>
+                <td class="px-6 py-4 text-gray-700 font-medium whitespace-nowrap">${priceHtml}</td>
+                <td class="px-6 py-4 text-sm whitespace-nowrap">
+                    <span class="${p.stock > 0 ? 'text-green-600 bg-green-50 px-2 py-1 rounded-full' : 'text-red-600 bg-red-50 px-2 py-1 rounded-full'}">
+                        ${p.stock} عدد
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm whitespace-nowrap">
+                    <button onclick='openEditMode("${p.id}")' class="text-blue-600 hover:text-blue-800 ml-2 font-medium">✏️</button>
+                    <button onclick="deleteProduct('${p.id}')" class="text-red-600 hover:text-red-800 font-medium">🗑️</button>
+                </td>
+            </tr>
+            `;
+        }).join('');
+    }
+
+    async function loadProducts() {
+        const tbody = document.getElementById('products-table-body');
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-400">در حال بارگذاری...</td></tr>'; // colspan به 8 تغییر یافت
+
+        try {
+            if (categoryManager.allCategories.length === 0) await categoryManager.loadTree();
+
+            const filterSelect = document.getElementById('filterCategory');
+            if (filterSelect.options.length <= 1) {
+                categoryManager.allCategories.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.fullPath;
+                    filterSelect.appendChild(opt);
+                });
+            }
+
+            // --- تغییر آدرس به API ادمین ---
+            const res = await fetch(`${API_CONFIG.baseURL}/v1/products/admin`);
+            if (!res.ok) {
+                throw new Error('Failed to fetch admin products');
+            }
+            productsCache = await res.json();
+            // ------------------------------
+
+            renderProductsTable(productsCache);
+        } catch(e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">خطا در ارتباط با سرور: ' + e.message + '</td></tr>';
+        }
+    }
+
+    // --- Modal Functions ---
+
+    async function openProductModal(productToEdit = null) {
+        const modal = document.getElementById('productModal');
+        const form = document.getElementById('productForm');
+        modal.classList.remove('hidden');
+
+        form.reset();
+        fileStore = [];
+        fileIdCounter = 0;
+        document.getElementById('image-preview-container').innerHTML = '';
+        document.getElementById('specs-container').innerHTML = '';
+        document.getElementById('no-specs-msg').classList.remove('hidden');
+
+        await populateCategories();
+
+        // --- عناصر جدید ---
+        const pIdInput = document.getElementById('p_id');
+        const pDiscountInput = document.getElementById('p_discount_percent');
+        // ------------------
+
+        if (productToEdit) {
+            editingProductId = productToEdit.id;
+            document.getElementById('modal-title-text').textContent = '✏️ ویرایش محصول';
+            document.getElementById('modal-submit-btn').textContent = '💾 ذخیره تغییرات';
+
+            // --- منطق ID ---
+            pIdInput.value = productToEdit.id || '';
+            pIdInput.disabled = true; // غیرفعال کردن فیلد ID در حالت ویرایش
+            pIdInput.classList.add('disabled');
+            // ----------------
+
+            document.getElementById('p_name').value = productToEdit.name;
+            document.getElementById('p_category').value = productToEdit.categoryId;
+            document.getElementById('p_price').value = productToEdit.price;
+            document.getElementById('p_stock').value = productToEdit.stock;
+            document.getElementById('p_desc').value = productToEdit.description || '';
+
+            // --- منطق تخفیف ---
+            pDiscountInput.value = productToEdit.discountPercent || 0;
+            // ------------------
+
+            if (productToEdit.specifications) {
+                Object.entries(productToEdit.specifications).forEach(([key, value]) => {
+                    addSpecRow(key, value);
+                });
+            }
+
+            if (productToEdit.images && productToEdit.images.length > 0) {
+                productToEdit.images.forEach((imgName, index) => {
+                    fileIdCounter++;
+                    fileStore.push({
+                        id: fileIdCounter,
+                        name: imgName,
+                        preview: `${API_CONFIG.uploadsURL}/${imgName}`,
+                        priority: index + 1,
+                        isNew: false
+                    });
+                });
+                renderImagePreviews();
+            }
+
+        } else {
+            editingProductId = null;
+            document.getElementById('modal-title-text').textContent = '📦 افزودن محصول جدید';
+            document.getElementById('modal-submit-btn').textContent = '✅ ثبت محصول';
+
+            // --- منطق ID ---
+            pIdInput.disabled = false; // فعال کردن فیلد ID در حالت افزودن
+            pIdInput.classList.remove('disabled');
+            // ----------------
+
+            // --- منطق تخفیف ---
+            pDiscountInput.value = 0;
+            // ------------------
+        }
+    }
+
+    function closeProductModal() {
+        document.getElementById('productModal').classList.add('hidden');
+        editingProductId = null;
+    }
+
+    function openEditMode(id) {
+        const product = productsCache.find(p => p.id === id);
+        if(product) openProductModal(product);
+    }
+
+    async function populateCategories() {
+        const select = document.getElementById('p_category');
+        select.innerHTML = '<option value="">انتخاب...</option>';
+        if(!categoryManager.allCategories.length) await categoryManager.loadTree();
+        categoryManager.allCategories.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.fullPath;
+            select.appendChild(opt);
+        });
+    }
+
+    function addSpecRow(key = '', value = '') {
+        document.getElementById('no-specs-msg').classList.add('hidden');
+        const container = document.getElementById('specs-container');
+        const div = document.createElement('div');
+        div.className = "flex gap-2 items-center spec-row mb-2 slide-in";
+        div.innerHTML = `
+            <input type="text" placeholder="ویژگی" value="${key}" class="spec-key w-1/3 text-sm px-2 py-1 border rounded outline-none">
+            <input type="text" placeholder="مقدار" value="${value}" class="spec-value flex-1 text-sm px-2 py-1 border rounded outline-none">
+            <button type="button" onclick="this.parentElement.remove(); checkEmptySpecs();" class="text-red-500 hover:bg-red-50 p-1">✕</button>
+        `;
+        container.appendChild(div);
+    }
+
+    function checkEmptySpecs() {
+        const container = document.getElementById('specs-container');
+        if (container.children.length === 0) {
+            document.getElementById('no-specs-msg').classList.remove('hidden');
+        }
+    }
+
+    function handleImageSelect(event) {
+        const files = Array.from(event.target.files);
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                fileIdCounter++;
+                fileStore.push({ id: fileIdCounter, file: file, preview: e.target.result, priority: fileStore.length + 1, isNew: true });
+                renderImagePreviews();
+            };
+            reader.readAsDataURL(file);
+        });
+        event.target.value = '';
+    }
+
+    function renderImagePreviews() {
+        const container = document.getElementById('image-preview-container');
+        container.innerHTML = '';
+        fileStore.sort((a, b) => a.priority - b.priority);
+        fileStore.forEach(item => {
+            const div = document.createElement('div');
+            div.className = "relative group aspect-square rounded-lg overflow-hidden border shadow-sm bg-white";
+            div.innerHTML = `
+                <img src="${item.preview}" class="w-full h-full object-cover">
+                <button type="button" onclick="removeFile(${item.id})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">✕</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function removeFile(id) {
+        fileStore = fileStore.filter(item => item.id !== id);
+        renderImagePreviews();
+    }
+
+    // --- مدیریت آپلود و ارسال محصول ---
+
+    async function uploadNewFiles() {
+        const newFiles = fileStore.filter(f => f.isNew);
+        if (newFiles.length === 0) return [];
+
+        const formData = new FormData();
+        newFiles.forEach(f => {
+            formData.append('files', f.file, f.file.name);
+        });
+
+        // فرض می‌کنیم یک API برای آپلود فایل دارید که لیست نام فایل‌های ذخیره شده را برمی‌گرداند
+        const uploadRes = await fetch(`${API_CONFIG.uploadsURL}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!uploadRes.ok) {
+            const errorText = await uploadRes.text();
+            throw new Error(`Upload failed: ${errorText}`);
+        }
+        return await uploadRes.json(); // فرض می‌کنیم آرایه‌ای از نام فایل‌ها را برمی‌گرداند
+    }
+
+    async function handleProductSubmit(event) {
+        event.preventDefault();
+        const btn = document.getElementById('modal-submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'در حال ذخیره...';
+
+        try {
+            // 1. آپلود فایل‌های جدید
+            const newFileNames = await uploadNewFiles();
+
+            // 2. ترکیب فایل‌های قدیمی (که قبلاً در سرور بودند) و جدید
+            const existingFileNames = fileStore.filter(f => !f.isNew).map(f => f.name);
+            const uploadedImageNames = [...existingFileNames, ...newFileNames];
+
+            // 3. جمع آوری ویژگی ها
+            const specifications = {};
+            document.querySelectorAll('.spec-row').forEach(row => {
+                const key = row.querySelector('.spec-key').value.trim();
+                const value = row.querySelector('.spec-value').value.trim();
+                if (key && value) {
+                    specifications[key] = value;
+                }
+            });
+
+            // 4. ساخت ProductRequest DTO
+            const productData = {
+                // --- فیلدهای جدید (ID و تخفیف) ---
+                id: document.getElementById('p_id').value.trim(),
+                discountPercent: parseInt(document.getElementById('p_discount_percent').value, 10) || 0,
+                // ---------------------------------
+
+                name: document.getElementById('p_name').value.trim(),
+                categoryId: document.getElementById('p_category').value,
+                price: parseFloat(document.getElementById('p_price').value),
+                stock: parseInt(document.getElementById('p_stock').value, 10),
+                description: document.getElementById('p_desc').value.trim(),
+                specifications: specifications,
+                images: uploadedImageNames,
+            };
+
+            // 5. ارسال درخواست به API
+            const url = editingProductId ? `${API_CONFIG.baseURL}/products/${editingProductId}` : `${API_CONFIG.baseURL}/products`;
+            const method = editingProductId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData)
+            });
+
+            if (!res.ok) {
+                // اگر ID تکراری باشد، بک‌اند خطای 500 می‌دهد که باید مدیریت شود
+                const errorText = await res.text();
+                throw new Error(errorText || 'خطا در ذخیره محصول رخ داد.');
+            }
+
+            showToast(editingProductId ? 'محصول با موفقیت به‌روزرسانی شد.' : 'محصول جدید با موفقیت ثبت شد.');
+            closeProductModal();
+            loadProducts(); // رفرش لیست محصولات
+
+        } catch(e) {
+            console.error('Submission Error:', e);
+            showToast(`خطا: ${e.message}`, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = editingProductId ? '💾 ذخیره تغییرات' : '✅ ثبت محصول';
+        }
+    }
+
+    // ***************************************************************
+    // کدهای بازیابی شده (که در پاسخ قبلی حذف شده بودند)
+    // ***************************************************************
+
+    async function deleteProduct(id) {
+        if (!confirm('آیا مطمئن هستید که می‌خواهید این محصول را حذف کنید؟')) return;
+
+        try {
+            const res = await fetch(`${API_CONFIG.baseURL}/products/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!res.ok) throw new Error('Failed to delete product.');
+
+            showToast('محصول با موفقیت حذف شد.');
+            loadProducts();
+        } catch(e) {
+            console.error('Delete Error:', e);
+            showToast(`خطا در حذف: ${e.message}`, true);
+        }
+    }
+
+    // این تابع فرضی برای نمایش قابلیت‌های AI در Modal است
+    function generateAIDescription() {
+        const loadingDiv = document.getElementById('ai-loading');
+        const descTextarea = document.getElementById('p_desc');
+        const productName = document.getElementById('p_name').value.trim();
+
+        if (!productName) {
+            showToast('لطفاً ابتدا نام محصول را وارد کنید.', true);
+            return;
+        }
+
+        loadingDiv.classList.remove('hidden');
+        descTextarea.disabled = true;
+
+        // شبیه‌سازی تأخیر API هوش مصنوعی
+        setTimeout(() => {
+            loadingDiv.classList.add('hidden');
+            descTextarea.disabled = false;
+
+            let currentText = descTextarea.value.trim();
+            const aiText = `این محصول، ${productName}، با استفاده از جدیدترین تکنولوژی‌ها طراحی شده است. ویژگی‌های کلیدی آن شامل عملکرد بهینه و دوام بالا است که آن را به انتخابی عالی تبدیل می‌کند. (متن تولید شده توسط AI)`;
+
+            // اگر قبلاً متنی وجود دارد، آن را با متن AI ترکیب می‌کند
+            descTextarea.value = currentText ? `${currentText}\n\n---\n${aiText}` : aiText;
+
+            showToast('توضیحات هوشمند با موفقیت تولید شد.', false);
+        }, 2500);
+    }
+
+    // ***************************************************************
+    // پیاده‌سازی کامل categoryManager
+    // ***************************************************************
+
+    const categoryManager = {
+        // ساختار درخت دسته‌بندی‌ها
+        tree: [],
+        // لیست مسطح برای جستجو سریع (و پر کردن Select Options)
+        allCategories: [],
+        // برای عملیات جابجایی
+        movingCategoryId: null,
+
+        async loadTree() {
+            const treeContainer = document.getElementById('treeContainer');
+            treeContainer.innerHTML = '<div class="flex justify-center text-gray-500 py-10"><span class="loading-spinner border-gray-400 border-t-blue-600 ml-2"></span> در حال بارگذاری...</div>';
+
+            try {
+                const res = await fetch(`${API_CONFIG.baseURL}/categories/tree`);
+                if (!res.ok) throw new Error('Failed to fetch categories.');
+
+                const data = await res.json();
+                this.tree = data;
+                this.allCategories = this.flattenCategories(data);
+
+                this.renderTree(data, treeContainer);
+                this.populateParentSelect();
+
+            } catch(e) {
+                treeContainer.innerHTML = `<div class="text-red-500 text-center py-10">خطا: ${e.message}</div>`;
+                showToast(`خطا در بارگذاری دسته‌بندی‌ها: ${e.message}`, true);
+            }
+        },
+
+        flattenCategories(categories, path = '') {
+            let flatList = [];
+            categories.forEach(cat => {
+                const currentPath = path ? `${path} > ${cat.name}` : cat.name;
+                flatList.push({ id: cat.id, name: cat.name, fullPath: currentPath, parentId: cat.parentId });
+                if (cat.children && cat.children.length > 0) {
+                    flatList = flatList.concat(this.flattenCategories(cat.children, currentPath));
+                }
+            });
+            return flatList;
+        },
+
+        renderTree(categories, parentElement) {
+            parentElement.innerHTML = '';
+            if (categories.length === 0) {
+                parentElement.innerHTML = '<p class="text-gray-500 text-center py-10">هنوز دسته‌بندی ایجاد نشده است.</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            ul.className = 'tree-ul space-y-2';
+
+            categories.forEach(cat => {
+                const li = document.createElement('li');
+                li.className = 'tree-node p-3 rounded-lg bg-white border shadow-sm cursor-grab';
+                li.draggable = true;
+                li.dataset.id = cat.id;
+                li.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-800 flex items-center gap-2">
+                            ${cat.children && cat.children.length > 0 ? '📁' : '🏷️'} ${cat.name}
+                        </span>
+                        <div class="flex gap-2">
+                            <button onclick="categoryManager.openMoveModal('${cat.id}')" class="text-xs text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded">انتقال</button>
+                            <button onclick="categoryManager.promptForChild('${cat.id}', '${cat.name}')" class="text-xs text-green-500 hover:text-green-700 bg-green-50 px-2 py-1 rounded">زیردسته</button>
+                            <button onclick="categoryManager.deleteCategory('${cat.id}', '${cat.name}')" class="text-xs text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded">حذف</button>
+                        </div>
+                    </div>
+                `;
+
+                li.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', cat.id);
+                    e.target.classList.add('opacity-50');
+                });
+                li.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('opacity-50');
+                });
+                li.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add('drag-over');
+                });
+                li.addEventListener('dragleave', (e) => {
+                    e.currentTarget.classList.remove('drag-over');
+                });
+                li.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('drag-over');
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    const targetId = e.currentTarget.dataset.id;
+                    if (draggedId !== targetId) {
+                        this.moveCategory(draggedId, targetId); // انتقال زیرمجموعه
+                    }
+                });
+
+                if (cat.children && cat.children.length > 0) {
+                    const childContainer = document.createElement('div');
+                    childContainer.className = 'mt-2';
+                    this.renderTree(cat.children, childContainer);
+                    li.appendChild(childContainer);
+                }
+
+                ul.appendChild(li);
+            });
+            parentElement.appendChild(ul);
+        },
+
+        async addCategory(parentId = null, name = null) {
+            const categoryName = name || document.getElementById('newCategoryName').value.trim();
+            if (!categoryName) {
+                showToast('لطفاً نام دسته‌بندی را وارد کنید.', true);
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_CONFIG.baseURL}/categories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: categoryName, parentId: parentId })
+                });
+
+                if (!res.ok) throw new Error('Failed to add category.');
+
+                showToast('دسته‌بندی با موفقیت اضافه شد.');
+                document.getElementById('newCategoryName').value = '';
+                this.loadTree();
+
+            } catch(e) {
+                showToast(`خطا در افزودن: ${e.message}`, true);
+            }
+        },
+
+        promptForChild(parentId, parentName) {
+            const childName = prompt(`نام زیردسته جدید برای "${parentName}" را وارد کنید:`);
+            if (childName && childName.trim()) {
+                this.addCategory(parentId, childName.trim());
+            }
+        },
+
+        async deleteCategory(id, name) {
+            if (!confirm(`آیا مطمئن هستید که می‌خواهید دسته‌بندی "${name}" و تمام زیردسته‌های آن را حذف کنید؟`)) return;
+
+            try {
+                const res = await fetch(`${API_CONFIG.baseURL}/categories/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!res.ok) throw new Error('Failed to delete category.');
+
+                showToast('دسته‌بندی با موفقیت حذف شد.');
+                this.loadTree();
+            } catch(e) {
+                showToast(`خطا در حذف: ${e.message}`, true);
+            }
+        },
+
+        populateParentSelect(excludeId = null) {
+            const select = document.getElementById('parentSelect');
+            select.innerHTML = '<option value="">(ریشه) بدون والد</option>';
+
+            this.allCategories.forEach(cat => {
+                if (cat.id !== excludeId) {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.fullPath;
+                    select.appendChild(opt);
+                }
+            });
+        },
+
+        openMoveModal(id) {
+            this.movingCategoryId = id;
+            this.populateParentSelect(id);
+            document.getElementById('moveModal').classList.remove('hidden');
+        },
+
+        closeMoveModal() {
+            document.getElementById('moveModal').classList.add('hidden');
+            this.movingCategoryId = null;
+        },
+
+        async confirmMove() {
+            const targetParentId = document.getElementById('parentSelect').value || null;
+            const categoryId = this.movingCategoryId;
+
+            if (!categoryId || categoryId === targetParentId) {
+                this.closeMoveModal();
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_CONFIG.baseURL}/categories/${categoryId}/move`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newParentId: targetParentId })
+                });
+
+                if (!res.ok) throw new Error('Failed to move category.');
+
+                showToast('دسته‌بندی با موفقیت منتقل شد.');
+                this.closeMoveModal();
+                this.loadTree();
+
+            } catch (e) {
+                showToast(`خطا در انتقال: ${e.message}`, true);
+            }
+        },
+
+        // این متد برای Drag and Drop است، که از confirmMove استفاده می‌کند
+        async moveCategory(categoryId, targetId) {
+            try {
+                const res = await fetch(`${API_CONFIG.baseURL}/categories/${categoryId}/move`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newParentId: targetId })
+                });
+
+                if (!res.ok) throw new Error('Failed to move category.');
+
+                showToast('دسته‌بندی با موفقیت منتقل شد.');
+                this.loadTree();
+
+            } catch (e) {
+                showToast(`خطا در انتقال: ${e.message}`, true);
+            }
+        }
+    };
+    // اجرای اولیه
+    document.addEventListener('DOMContentLoaded', () => {
+        // فعال کردن بخش محصولات به صورت پیش‌فرض
+        document.querySelector('.nav-item[data-section="products"]').click();
+    });
+</script>
+</body>
+</html>
