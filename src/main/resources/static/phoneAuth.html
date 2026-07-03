@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ورود | ثبت‌نام</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        .hidden { display: none !important; }
+        #msg { margin-top: 15px; font-size: 0.85rem; min-height: 20px; }
+
+        /* Modal Style */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 320px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 id="title">خوش آمدید</h2>
+
+    <div id="step-phone">
+        <p>شماره موبایل خود را وارد کنید</p>
+        <input type="text" id="phone" placeholder="09123456789" maxlength="11">
+        <button onclick="sendOtp()">ارسال کد تایید</button>
+    </div>
+
+    <div id="step-otp" class="hidden">
+        <p>کد ۵ رقمی را وارد کنید</p>
+        <input type="text" id="otp" placeholder="-----" maxlength="5">
+        <button onclick="verifyOtp()">تایید کد</button>
+        <button style="background:none; color:#777; margin-top:10px;" onclick="location.reload()">اصلاح شماره</button>
+    </div>
+
+    <div id="msg"></div>
+</div>
+
+<div id="modal-profile" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3>تکمیل پروفایل</h3>
+        <p>لطفاً نام خود را وارد کنید</p>
+        <input type="text" id="fName" placeholder="نام">
+        <input type="text" id="lName" placeholder="نام خانوادگی">
+        <button onclick="saveProfile()">ثبت و ورود نهایی</button>
+    </div>
+</div>
+
+<script>
+    let userPhone = ""; // ذخیره شماره برای مراحل بعد
+
+    function showMsg(text, color) {
+        const m = document.getElementById('msg');
+        m.innerText = text;
+        m.style.color = color;
+    }
+
+    async function sendOtp() {
+        const phone = document.getElementById('phone').value;
+        if (!/^09\d{9}$/.test(phone)) {
+            showMsg("شماره موبایل معتبر نیست", "red");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ phoneNumber: phone })
+            });
+
+            if (res.ok) {
+                userPhone = phone; // ذخیره شماره
+                document.getElementById('step-phone').classList.add('hidden');
+                document.getElementById('step-otp').classList.remove('hidden');
+                document.getElementById('title').innerText = "تایید هویت";
+                showMsg("کد با موفقیت ارسال شد", "green");
+            } else {
+                showMsg("خطا در ارسال کد", "red");
+            }
+        } catch (e) {
+            showMsg("خطای شبکه", "red");
+        }
+    }
+
+    // async function verifyOtp() {
+    //     const code = document.getElementById('otp').value;
+    //     if (code.length < 5) return;
+    //
+    //     try {
+    //         const res = await fetch('/api/auth/verify-otp', {
+    //             method: 'POST',
+    //             headers: {'Content-Type': 'application/json'},
+    //             body: JSON.stringify({ phoneNumber: userPhone, code: code })
+    //         });
+    //
+    //         if (res.ok) {
+    //             const data = await res.json();
+    //
+    //             // بررسی فیلد isProfileComplete که در بک‌ند اضافه کردیم
+    //             if (data.isProfileComplete === false) {
+    //                 document.getElementById('modal-profile').classList.remove('hidden');
+    //             } else {
+    //                 showMsg("در حال انتقال به پنل...", "green");
+    //                 setTimeout(() => window.location.href = "/customerPanel.html", 1000);
+    //             }
+    //         } else {
+    //             showMsg("کد اشتباه است", "red");
+    //         }
+    //     } catch (e) {
+    //         showMsg("خطا در سیستم", "red");
+    //     }
+    // }
+
+    async function verifyOtp() {
+        const code = document.getElementById('otp').value;
+        if (!code) return;
+
+        try {
+            const res = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ phoneNumber: userPhone, code: code })
+            });
+
+            if (res.ok) {
+                const data = await res.json(); // دریافت اطلاعات یوزر شامل نقش (Role)
+                const user = data.user;
+                const isProfileComplete = data.isProfileComplete;
+
+                if (!isProfileComplete) {
+                    // اگر مشخصات نام و نام‌خانوادگی ندارد، اول پروفایل را تکمیل کند
+                    document.getElementById('modal-profile').classList.remove('hidden');
+                } else {
+                    showMsg("در حال انتقال به پنل مدیریت...", "green");
+
+                    // منطق تفکیک نقش‌ها
+                    if (user.role === 'ADMIN') {
+                        setTimeout(() => window.location.href = "/Admin.html", 800);
+                    } else {
+                        setTimeout(() => window.location.href = "/customerPanel.html", 800);
+                    }
+                }
+            } else {
+                showMsg("کد وارد شده اشتباه است", "red");
+            }
+        } catch (e) {
+            showMsg("خطا در برقراری ارتباط با سرور", "red");
+        }
+    }
+    // async function saveProfile() {
+    //     const firstName = document.getElementById('fName').value;
+    //     const lastName = document.getElementById('lName').value;
+    //
+    //     if (!firstName || !lastName) {
+    //         alert("لطفا نام و نام خانوادگی را وارد کنید");
+    //         return;
+    //     }
+    //
+    //     try {
+    //         const res = await fetch('/api/auth/complete-profile', {
+    //             method: 'POST',
+    //             headers: {'Content-Type': 'application/json'},
+    //             body: JSON.stringify({
+    //                 phoneNumber: userPhone, // شماره موبایلی که در مرحله اول ذخیره شد
+    //                 firstName: firstName,
+    //                 lastName: lastName
+    //             })
+    //         });
+    //
+    //         if (res.ok) {
+    //             window.location.href ="/customerPanel.html";
+    //         } else {
+    //             const err = await res.text();
+    //             alert("خطا در ثبت: " + err);
+    //         }
+    //     } catch (e) {
+    //         alert("خطای ارتباط با سرور");
+    //     }
+    // }
+    async function saveProfile() {
+        const firstName = document.getElementById('fName').value;
+        const lastName = document.getElementById('lName').value;
+
+        if (!firstName || !lastName) {
+            alert("لطفا نام و نام خانوادگی را وارد کنید");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/complete-profile', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    phoneNumber: userPhone,
+                    firstName: firstName,
+                    lastName: lastName
+                })
+            });
+
+            if (res.ok) {
+                // چون معمولاً ثبت‌نامی‌های جدید USER هستند:
+                window.location.href = "/customerPanel.html";
+            } else {
+                alert("خطا در ثبت اطلاعات");
+            }
+        } catch (e) {
+            alert("خطای ارتباط با سرور");
+        }
+    }
+</script>
+
+</body>
+</html>

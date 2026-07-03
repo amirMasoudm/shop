@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -64,16 +65,41 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setImages(request.getImages());
         product.setSpecifications(request.getSpecifications());
-
+        product.setBasePrice(request.getBasePrice()); // مقداردهی قیمت پایه
+        product.setUpdatedAt(Instant.now()); // زمان ساخت همان زمان بروزرسانی اولیه است
         // ۳. تنظیم فیلدهای سورتینگ اولیه
         product.setCreatedAt(Instant.now());
         product.setSalesCount(0L);
         product.setReviewCount(0L);
         product.setAverageRating(0.0);
+        product.setWarehouseDescription(request.getWarehouseDescription());
+
+        // ---> کدهای جدید سئو <---
+        product.setSeoTitle(request.getSeoTitle());
+        product.setSeoDescription(request.getSeoDescription());
+        // اگر اسلاگ خالی بود، از نام محصول استفاده کن (جایگزینی فاصله‌ها با خط تیره)
+        if (request.getSlug() == null || request.getSlug().trim().isEmpty()) {
+            product.setSlug(request.getName().trim().replaceAll("\\s+", "-"));
+        } else {
+            product.setSlug(request.getSlug().trim().replaceAll("\\s+", "-"));
+        }
+        // ---> پایان کدهای جدید سئو <---
+
+        product.setUnit(request.getUnit());
+        product.setPackQuantity(request.getPackQuantity());
+
+        product.setOnlinePrice(request.getOnlinePrice());
+
 
         // ۴. اعمال تخفیف و ذخیره
         applyDiscount(product, request.getDiscountPercent());
+// داخل متد createProduct و updateProduct:
+        product.setWeight(request.getWeight());
+        product.setLength(request.getLength());
+        product.setWidth(request.getWidth());
+        product.setHeight(request.getHeight());
 
+        product.setWarehouseCategoryId(request.getWarehouseCategoryId());
         return productRepo.save(product);
     }
 
@@ -89,6 +115,17 @@ public class ProductService {
         product.setPrice(request.getPrice());
         product.setStock(request.getStock());
         product.setDescription(request.getDescription());
+        product.setBasePrice(request.getBasePrice()); // آپدیت قیمت پایه
+        product.setUpdatedAt(Instant.now()); // ثبت زمان آپدیت
+        product.setWarehouseDescription(request.getWarehouseDescription());
+        product.setUnit(request.getUnit());
+        product.setPackQuantity(request.getPackQuantity());
+        product.setOnlinePrice(request.getOnlinePrice());
+
+        product.setWeight(request.getWeight());
+        product.setLength(request.getLength());
+        product.setWidth(request.getWidth());
+        product.setHeight(request.getHeight());
 
         if (!product.getCategoryId().equals(request.getCategoryId())) {
             Category category = categoryRepo.findById(request.getCategoryId())
@@ -101,6 +138,18 @@ public class ProductService {
 
         // اعمال مجدد تخفیف با درصد جدید
         applyDiscount(product, request.getDiscountPercent());
+// داخل متد createProduct و updateProduct:
+        product.setWarehouseCategoryId(request.getWarehouseCategoryId());
+
+        // ---> کدهای جدید سئو <---
+        product.setSeoTitle(request.getSeoTitle());
+        product.setSeoDescription(request.getSeoDescription());
+        if (request.getSlug() == null || request.getSlug().trim().isEmpty()) {
+            product.setSlug(request.getName().trim().replaceAll("\\s+", "-"));
+        } else {
+            product.setSlug(request.getSlug().trim().replaceAll("\\s+", "-"));
+        }
+        // ---> پایان کدهای جدید سئو <---
 
         return productRepo.save(product);
     }
@@ -111,6 +160,8 @@ public class ProductService {
     }
 
     // متد اصلی برای فرانت‌اند (با قابلیت فیلتر، سورتینگ و صفحه‌بندی)
+// در فایل ProductService.java متد را به این شکل اصلاح کنید:
+
     public Page<Product> getProductsForClient(
             String categoryId,
             BigDecimal minPrice,
@@ -123,16 +174,22 @@ public class ProductService {
         Sort sort = defineSort(sortBy, sortDirection);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // **نکته:** منطق فیلتر قیمت (minPrice/maxPrice) و فیلتر مشخصات
-        // در حال حاضر نیاز به پیاده‌سازی کوئری‌های پیشرفته در ریپازیتوری دارد.
-
-        // مثال پیاده‌سازی فیلتر CategoryId:
         if (categoryId != null && !categoryId.trim().isEmpty()) {
-            // در حالت واقعی باید فیلتر قیمت را نیز اینجا اعمال کنید
-            return productRepo.findByCategoryId(categoryId, pageable);
+            // ۱. پیدا کردن تمام دسته‌هایی که این دسته‌بندی والد یا جدّ آن‌هاست
+            // از فیلد ancestors که در کدهای CategoryService شما پر می‌شود استفاده می‌کنیم
+            List<Category> subCategories = categoryRepo.findAll().stream()
+                    .filter(c -> c.getAncestors().contains(categoryId) || c.getId().equals(categoryId))
+                    .collect(Collectors.toList());
+
+            // ۲. استخراج تمام IDها
+            List<String> allCategoryIds = subCategories.stream()
+                    .map(Category::getId)
+                    .collect(Collectors.toList());
+
+            // ۳. فراخوانی متد جدید ریپازیتوری
+            return productRepo.findByCategoryIdIn(allCategoryIds, pageable);
         }
 
-        // بدون فیلتر خاص (فقط سورتینگ و صفحه‌بندی)
         return productRepo.findAll(pageable);
     }
 

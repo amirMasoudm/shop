@@ -43,14 +43,29 @@
     </form>
 
     <script>
+        // async function loadUser() {
+        //     try {
+        //         const res = await fetch("/users/api/current-user");
+        //         const user = await res.json();
+        //         document.getElementById("info").innerHTML =
+        //             `👤 کاربر: <b>${user.username}</b> <br> 🧩 نقش‌ها: <b>${user.roles.join(', ')}</b>`;
+        //     } catch (e) {
+        //         document.getElementById("info").textContent = "خطا در دریافت اطلاعات کاربر!";
+        //     }
+        // }
         async function loadUser() {
             try {
-                const res = await fetch("/users/api/current-user");
-                const user = await res.json();
-                document.getElementById("info").innerHTML =
-                    `👤 کاربر: <b>${user.username}</b> <br> 🧩 نقش‌ها: <b>${user.roles.join(', ')}</b>`;
+                const res = await fetch('/users/api/current-user', {
+                    method: 'GET',
+                    // این خط بسیار مهم است تا سشن بین درخواست‌ها جابجا شود
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('username-display').innerText = user.username;
+                }
             } catch (e) {
-                document.getElementById("info").textContent = "خطا در دریافت اطلاعات کاربر!";
+                console.error("Error loading user", e);
             }
         }
         loadUser();

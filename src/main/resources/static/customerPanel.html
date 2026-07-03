@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>پنل کاربری | فروشگاه یاس</title>
+
+    <!-- منابع لوکال (آفلاین) -->
+    <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">
+    <link rel="stylesheet" href="/css/fonts/Vazirmatn-font-face.css">
+
+    <!-- فایل‌های نقشه Leaflet -->
+    <link rel="stylesheet" href="/css/leaflet.css" />
+    <script src="/js/leaflet.js"></script>
+
+    <style>
+        :root {
+            --primary: #1b4f8a;
+            --primary-light: #f2f5fb;
+            --accent: #e8861a;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --text-dark: #1a2235;
+            --text-gray: #64748b;
+            --white: #ffffff;
+            --radius: 18px;
+        }
+
+        body { font-family: 'Vazirmatn', sans-serif; background: #f8fafc; color: var(--text-dark); line-height: 1.6; }
+
+        /* سایدبار */
+        .glass-sidebar { background: var(--white); border-left: 1px solid #e2e8f0; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 14px 20px; margin: 4px 15px; border-radius: 14px; color: var(--text-gray); transition: 0.3s; font-weight: 500; cursor: pointer; border: none; background: transparent; width: calc(100% - 30px); text-align: right; }
+        .nav-link:hover { background: var(--primary-light); color: var(--primary); }
+        .nav-link.active { background: var(--primary); color: var(--white); box-shadow: 0 10px 15px -3px rgba(27, 79, 138, 0.2); }
+
+        /* کارت‌ها */
+        .yas-card { background: var(--white); border-radius: var(--radius); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; transition: 0.3s; position: relative; }
+        .yas-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.04); }
+
+        .status-pill { padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+        .st-pending { background: #fff7ed; color: #c2410c; }
+        .st-paid { background: #f0fdf4; color: #166534; }
+
+        #map { height: 320px; width: 100%; border-radius: 15px; z-index: 10; border: 1px solid #e2e8f0; }
+
+        /* مودال‌ها */
+        .modal { position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); padding: 15px; backdrop-filter: blur(4px); opacity: 0; transition: 0.3s; }
+        .modal.active { display: flex; opacity: 1; }
+        .modal-box { background: var(--white); padding: 25px; border-radius: 20px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+
+        /* دکمه‌ها */
+        .btn-yas { background: var(--primary); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .btn-yas:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-yas:hover:not(:disabled) { opacity: 0.9; transform: scale(0.98); }
+        .btn-yas-outline { border: 2px solid var(--primary); color: var(--primary); padding: 8px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; background: transparent; transition: 0.2s; }
+        .btn-yas-outline:hover { background: var(--primary-light); }
+
+        /* آیتم‌های فاکتور */
+        .checkout-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #f1f5f9; border-radius: 14px; margin-bottom: 10px; }
+        .qty-ctrl { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 5px 10px; border-radius: 10px; }
+        .qty-btn { width: 26px; height: 26px; background: white; border: 1px solid #e2e8f0; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .qty-btn:hover { background: #e2e8f0; }
+
+        .shipping-option { cursor: pointer; border: 2px solid #f1f5f9; padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; transition: 0.2s; }
+        .shipping-option.active { border-color: var(--primary); background: var(--primary-light); }
+
+        /* فرم ثبت آدرس پیشرفته */
+        .form-input-wrapper { position: relative; display: flex; align-items: center; }
+        .form-input-icon { position: absolute; right: 12px; color: var(--text-gray); font-size: 1.1rem; }
+        .form-field { width: 100%; padding: 12px 38px 12px 14px; background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 14px; transition: 0.2s; }
+        .form-field:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 4px rgba(27, 79, 138, 0.08); }
+
+        /* ناوبری پایینی موبایل */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: none; justify-content: space-around; padding: 12px 10px; border-top: 1px solid #e2e8f0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-gray); font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .nav-item.active { color: var(--primary); }
+
+        @media (max-width: 768px) { .desktop-sidebar { display: none; } .bottom-nav { display: flex; } .main-content { padding-bottom: 90px; } .modal-box { padding: 15px; } }
+    </style>
+</head>
+<body>
+
+<div class="flex h-screen overflow-hidden">
+    <!-- ═════════ SIDEBAR (DESKTOP) ═════════ -->
+    <aside class="desktop-sidebar w-72 glass-sidebar flex-shrink-0 flex flex-col py-6 z-20">
+        <div class="px-8 mb-10 text-center">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold mb-3 shadow-lg" id="avatar-box">Y</div>
+            <h2 class="font-bold text-xl" id="sidebar-name">فروشگاه یاس</h2>
+            <p class="text-xs text-gray-400" id="sidebar-phone">پنل کاربری</p>
+        </div>
+        <nav class="flex-1">
+            <button onclick="showTab('dashboard')" id="link-dashboard" class="nav-link active">📊 پیشخوان</button>
+            <button onclick="showTab('orders')" id="link-orders" class="nav-link">📦 سفارش‌های من</button>
+            <button onclick="showTab('comments')" id="link-comments" class="nav-link">💬 نظرات من</button>
+            <button onclick="showTab('addresses')" id="link-addresses" class="nav-link">📍 آدرس‌ها</button>
+            <button onclick="showTab('profile')" id="link-profile" class="nav-link">👤 تنظیمات حساب</button>
+
+        </nav>
+        <div class="px-6 mt-auto"><button onclick="logout()" class="w-full p-3 text-red-500 bg-red-50 rounded-xl font-bold hover:bg-red-100 transition border-none cursor-pointer">خروج از حساب</button></div>
+    </aside>
+
+    <!-- ═════════ MAIN CONTENT ═════════ -->
+    <main class="main-content flex-1 h-full overflow-y-auto bg-[#f8fafc]">
+        <!-- هدر موبایل -->
+        <header class="md:hidden flex justify-between items-center p-4 bg-white border-b mb-4 sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold" id="mobile-avatar">Y</div>
+                <span class="font-bold text-gray-800">یاس پنل</span>
+            </div>
+            <a href="/templates/CL.html" class="btn-yas-outline text-xs" style="text-decoration:none;">فروشگاه</a>
+        </header>
+
+        <div class="p-4 md:p-10 max-w-5xl mx-auto">
+            <!-- ── TAB: DASHBOARD ── -->
+            <section id="tab-dashboard" class="animate-fade-in">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-black text-gray-800" id="welcome-msg">سلام؛ وقت بخیر! 👋</h1>
+                    <p class="text-gray-500 mt-2">خلاصه‌ای از فعالیت‌های شما در فروشگاه یاس</p>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                    <div class="yas-card p-6 border-b-4 border-blue-500"><span class="text-xs text-gray-400 block mb-1">کل سفارشات</span><div class="flex items-center justify-between"><span class="text-2xl font-black" id="stat-total">0</span><span class="text-2xl">📦</span></div></div>
+                    <div class="yas-card p-6 border-b-4 border-amber-500"><span class="text-xs text-gray-400 block mb-1">در انتظار تکمیل</span><div class="flex items-center justify-between"><span class="text-2xl font-black text-amber-600" id="stat-pending">0</span><span class="text-2xl">💳</span></div></div>
+                    <div class="yas-card p-6 border-b-4 border-green-500"><span class="text-xs text-gray-400 block mb-1">آدرس‌ها</span><div class="flex items-center justify-between"><span class="text-2xl font-black" id="stat-addr">0</span><span class="text-2xl">📍</span></div></div>
+                    <div class="yas-card p-6 border-b-4 border-purple-500"><span class="text-xs text-gray-400 block mb-1">امتیاز</span><div class="flex items-center justify-between"><span class="text-2xl font-black text-purple-600" id="stat-score">0</span><span class="text-2xl">✨</span></div></div>
+                </div>
+
+                <!-- هشدار پرداخت نهایی نشده -->
+                <div id="pending-payment-alert" class="hidden yas-card bg-amber-50 border-amber-200 p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-4 text-center md:text-right">
+                        <div class="w-12 h-12 bg-amber-200 rounded-full flex items-center justify-center text-2xl">⚠️</div>
+                        <div>
+                            <h3 class="font-bold text-amber-900">سفارش نهایی نشده دارید!</h3>
+                            <p class="text-sm text-amber-700">شما سفارشاتی دارید که هنوز پرداخت نشده‌اند. برای قطعی شدن، پرداخت را نهایی کنید.</p>
+                        </div>
+                    </div>
+                    <button onclick="showTab('orders')" class="btn-yas bg-amber-600 border-none">مشاهده و پرداخت</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 yas-card p-6">
+                        <h3 class="font-bold text-lg mb-6 flex items-center gap-2">
+                            <span class="w-2 h-6 bg-[#1b4f8a] rounded-full"></span> آخرین فعالیت‌ها
+                        </h3>
+                        <div id="latest-orders-container" class="space-y-4"></div>
+                    </div>
+                    <div class="yas-card p-6 h-fit bg-white">
+                        <h3 class="font-bold text-lg mb-4 text-primary">پشتیبانی فروشگاه</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed mb-6">سوالی در مورد سفارش خود دارید؟ تیم پشتیبانی ما آماده پاسخگویی به شماست.</p>
+                        <a href="tel:021000000" class="btn-yas w-full" style="text-decoration:none;">تماس با پشتیبانی</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── TAB: ORDERS ── -->
+            <section id="tab-orders" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-gray-800">تاریخچه کامل سفارشات</h2>
+                <div id="all-orders-list" class="grid grid-cols-1 gap-4"></div>
+            </section>
+            <!-- ── TAB: COMMENTS ── -->
+            <section id="tab-comments" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-gray-800">نظرات و پرسش‌های من</h2>
+                <div id="my-comments-list" class="grid grid-cols-1 gap-4">
+                    <p class="text-center py-10 text-gray-400">در حال بارگذاری نظرات...</p>
+                </div>
+            </section>
+            <!-- ── TAB: ADDRESSES ── -->
+            <section id="tab-addresses" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-black text-gray-800">آدرس‌های پستی شما</h2>
+                    <button onclick="openAddressModal()" class="btn-yas text-sm">➕ افزودن آدرس جدید</button>
+                </div>
+                <div id="address-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </section>
+
+            <!-- ── TAB: PROFILE ── -->
+            <section id="tab-profile" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-gray-800">تنظیمات حساب کاربری</h2>
+                <div class="yas-card p-8 max-w-xl">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 block mb-1">نام</label>
+                            <input type="text" id="inp-fname" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 block mb-1">نام خانوادگی</label>
+                            <input type="text" id="inp-lname" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 block mb-1">شماره موبایل (غیرقابل تغییر)</label>
+                            <input type="text" id="inp-phone" readonly class="w-full p-3 bg-gray-100 border rounded-xl text-gray-500">
+                        </div>
+                        <button onclick="updateProfile()" class="btn-yas w-full mt-4">ثبت تغییرات پروفایل</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ناوبری موبایل -->
+    <nav class="bottom-nav">
+        <div onclick="showTab('dashboard')" class="nav-item active" id="mob-dashboard"><span class="text-xl">📊</span><span>خانه</span></div>
+        <div onclick="showTab('orders')" class="nav-item" id="mob-orders"><span class="text-xl">📦</span><span>سفارشات</span></div>
+        <div onclick="showTab('comments')" class="nav-item" id="mob-comments"><span class="text-xl">💬</span><span>نظرات</span></div>
+        <div onclick="showTab('addresses')" class="nav-item" id="mob-addresses"><span class="text-xl">📍</span><span>آدرس</span></div>
+        <div onclick="showTab('profile')" class="nav-item" id="mob-profile"><span class="text-xl">👤</span><span>حساب</span></div>
+    </nav>
+</div>
+
+<!-- ═════════ MODAL: CHECKOUT (3 STEPS WIZARD) ═════════ -->
+<div id="checkoutModal" class="modal">
+    <div class="modal-box">
+        <div class="flex justify-between items-center mb-6 border-b pb-3">
+            <h3 class="font-black text-xl text-primary" id="checkout-title">تکمیل و نهایی‌سازی سفارش</h3>
+            <button onclick="closeModal('checkoutModal')" class="text-gray-400 text-2xl hover:text-red-500 transition">✕</button>
+        </div>
+
+        <!-- Step 1: Items Edit -->
+        <div id="checkout-step-items">
+            <h4 class="font-bold text-sm mb-4">۱. بررسی و ویرایش تعداد کالاها</h4>
+            <div id="checkout-items-list" class="space-y-2 mb-6 max-h-60 overflow-y-auto pr-2"></div>
+            <div class="bg-gray-50 p-4 rounded-xl flex justify-between items-center mb-6 border">
+                <span class="font-bold">مجموع کالاها:</span>
+                <span id="checkout-items-total" class="font-black text-blue-700 text-lg">۰ تومان</span>
+            </div>
+            <button id="btn-next-step" onclick="proceedToAddressSelection()" class="btn-yas w-full py-4 text-lg shadow-lg">تایید و انتخاب آدرس تحویل ❯</button>
+        </div>
+
+        <!-- Step 2 & 3: Address & Shipping Options -->
+        <div id="checkout-step-address" class="hidden">
+            <h4 class="font-bold text-sm mb-4">۲. انتخاب آدرس ارسال</h4>
+            <div id="checkout-addresses-list" class="space-y-3 mb-6 max-h-48 overflow-y-auto pr-2"></div>
+            <button onclick="openAddressModal()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 rounded-xl mb-6 hover:bg-gray-50 transition">+ تعریف آدرس جدید روی نقشه</button>
+
+            <div id="shipping-section" class="hidden border-t pt-6">
+                <h4 class="font-bold text-sm mb-4">۳. روش ارسال و هزینه:</h4>
+                <div id="shipping-options" class="space-y-3 mb-6"></div>
+                <div class="flex gap-3">
+                    <button onclick="goToCheckoutStep('items')" class="flex-1 p-3 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition">❮ برگشت</button>
+                    <button onclick="finalizeAndPay()" id="btn-final-pay" class="flex-[2] btn-yas shadow-xl" disabled>تایید نهایی و پرداخت 💳</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═════════ MODAL: ADDRESS (MAP & ADVANCED FORM) ═════════ -->
+<div id="addrModal" class="modal">
+    <div class="modal-box !max-w-4xl !p-0 overflow-hidden">
+        <div class="flex justify-between items-center p-5 border-b bg-gray-50">
+            <h3 class="font-bold text-lg text-primary flex items-center gap-2">📍 ثبت نشانی جدید روی نقشه و فرم</h3>
+            <button onclick="closeModal('addrModal')" class="text-2xl text-gray-400 hover:text-red-500 transition">✕</button>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12">
+            <!-- ستون نقشه -->
+            <div class="lg:col-span-7 p-5 bg-white flex flex-col justify-between">
+                <div id="map" class="shadow-inner rounded-xl"></div>
+                <p class="text-[11px] text-center text-gray-500 mt-2 bg-blue-50 py-2 px-3 rounded-lg border border-blue-100 font-medium">📍 پین آبی رنگ را جابجا کنید تا استان، شهر و آدرس پستی شما به طور خودکار استخراج و فرم پر شود.</p>
+            </div>
+
+            <!-- ستون فرم آدرس -->
+            <div class="lg:col-span-5 p-6 bg-gray-50 border-r border-gray-100 flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="form-input-wrapper">
+                        <span class="form-input-icon">👤</span>
+                        <input type="text" id="addr-recipient" placeholder="نام و نام خانوادگی تحویل‌گیرنده *" class="form-field">
+                    </div>
+
+                    <div class="form-input-wrapper">
+                        <span class="form-input-icon">📞</span>
+                        <input type="tel" id="addr-phone" placeholder="شماره تماس تحویل‌گیرنده *" class="form-field text-left" dir="ltr">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 block mb-1">استان *</label>
+                            <select id="addr-state" onchange="updateCityDropdown(this.value)" class="w-full p-3 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500 shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 block mb-1">شهر *</label>
+                            <select id="addr-city" class="w-full p-3 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500 shadow-sm"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-input-wrapper">
+                        <span class="form-input-icon" style="top: 14px;">🏠</span>
+                        <textarea id="addr-text" rows="3" placeholder="نشانی دقیق پستی (خیابان، کوچه، پلاک، واحد) *" class="form-field resize-none !pr-9"></textarea>
+                    </div>
+
+                    <div class="form-input-wrapper">
+                        <span class="form-input-icon">📮</span>
+                        <input type="text" id="addr-postal" placeholder="کد پستی ۱۰ رقمی الزامی *" class="form-field text-left" dir="ltr" maxlength="10">
+                    </div>
+                </div>
+
+                <button onclick="saveAddress()" class="btn-yas w-full py-3.5 shadow-lg mt-6 bg-blue-700 hover:bg-blue-800 text-white font-bold transition">💾 تایید و ذخیره آدرس نهایی</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Dialog -->
+<!-- دیالوگ تایید بومی و بهینه‌شده به صورت کاملا آفلاین -->
+<div id="confirmModal" class="modal" style="z-index:5000;">
+    <div class="modal-box !max-w-md text-center">
+        <h3 id="confirmTitle" class="mb-3 font-bold text-xl text-gray-800">هشدار</h3>
+        <p id="confirmText" class="text-sm text-gray-500 mb-6 leading-relaxed"></p>
+        <div class="flex gap-3">
+            <!-- استفاده از استایل inline برای پایداری رنگ در حالت آفلاین -->
+            <button id="confirmYes" class="flex-1 p-3 rounded-xl font-bold text-white transition border-none cursor-pointer hover:opacity-90" style="background-color: var(--primary);">بله، تایید</button>
+            <button onclick="closeConfirm()" class="flex-1 p-3 bg-gray-100 rounded-xl font-bold text-gray-600 transition border-none cursor-pointer hover:bg-gray-200">انصراف</button>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<script>
+    const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:8080' : location.origin;
+    const NESHAN_KEY = 'service.fb31fc2777724344bcb6a3ed747219d6';
+
+    const iranCities = {
+        "آذربایجان شرقی": ["تبریز", "مراغه", "مرند", "میانه", "اهر", "بناب", "سراب", "آذرشهر", "هریس", "عجب شیر", "ملکان"],
+        "آذربایجان غربی": ["ارومیه", "خوی", "بوکان", "مهاباد", "میاندوآب", "سلماس", "پیرانشهر", "نقده", "تکاب", "ماکو", "سردشت"],
+        "اردبیل": ["اردبیل", "مشگین شهر", "پارس آباد", "خلخال", "گرمی", "نمین", "سرعین", "بیله سوار", "کوثر"],
+        "اصفهان": ["اصفهان", "کاشان", "خمینی شهر", "نجف آباد", "شاهین شهر", "شهرضا", "فلاورجان", "گلپایگان", "تیران", "خوانسار", "سمیرم", "نائین", "نطنز", "اردستان"],
+        "البرز": ["کرج", "فردیس", "کمال شهر", "نظرآباد", "محمدشهر", "هشتگرد", "طالقان", "اشتهارد"],
+        "ایلام": ["ایلام", "دهلران", "چرداول", "ایوان", "آبدانان", "مهران", "دره شهر", "بدره"],
+        "بوشهر": ["بوشهر", "برازجان", "کنگان", "گناوه", "خورموج", "جم", "عسلویه", "دیلم", "دیر"],
+        "تهران": ["تهران", "ورامین", "شهریار", "اسلامشهر", "قدس", "ملارد", "پردیس", "دماوند", "ری", "پاکدشت", "قرچک", "بهارستان", "رباط کریم", "فیروزکوه"],
+        "چهارمحال و بختیاری": ["شهرکرد", "بروجن", "لردگان", "فارسان", "اردل", "کیان", "بن", "سامان"],
+        "خراسان جنوبی": ["بیرجند", "قاین", "طبس", "فردوس", "نهبندان", "سرایان", "بشرویه", "خضری"],
+        "خراسان رضوی": ["مشهد", "سبزوار", "نیشابور", "تربت حیدریه", "قوچان", "کاشمر", "گناباد", "تربت جام", "تایباد", "خواف", "چناران", "سرخس", "بردسکن"],
+        "خراسان شمالی": ["بجنورد", "شیروان", "اسفراین", "آشخانه", "جاجرم", "گرمه", "راز"],
+        "خوزستان": ["اهواز", "دزفول", "آبادان", "خرمشهر", "ماهشهر", "شوشتر", "بهبهان", "ایذه", "مسجدسلیمان", "اندیمشک", "امیدیه", "شوش", "شادگان", "رامهرمز"],
+        "زنجان": ["زنجان", "ابهر", "خرمدره", "قیدار", "طارم", "سلطانیه", "ماه نشان"],
+        "سمنان": ["سمنان", "شاهرود", "دامغان", "گرمسار", "مهدی شهر", "ایوانکی", "سرخه"],
+        "سیستان و بلوچستان": ["زاهدان", "زابل", "ایرانشهر", "چابهار", "سراوان", "خاش", "کنارک", "زهک", "نیک شهر"],
+        "فارس": ["شیراز", "مرودشت", "جهرم", "فسا", "کازرون", "داراب", "فیروزآباد", "لار", "نی ریز", "آباده", "اقلید", "لامرد", "استهبان", "کوار"],
+        "قزوین": ["قزوین", "الوند", "تاکستان", "آبیک", "اقبالیه", "محمدیه", "بویین زهرا"],
+        "قم": ["قم", "قنوات", "جعفریه", "کهک"],
+        "کردستان": ["سنندج", "سقز", "مریوان", "بانه", "قروه", "کامیاران", "بیجار", "دیواندره", "دهگلان"],
+        "کرمان": ["کرمان", "سیرجان", "رفسنجان", "جیرفت", "بم", "زرند", "شهربابک", "کهنوج", "بافت", "بردسیر", "راور"],
+        "کرمانشاه": ["کرمانشاه", "اسلام آباد غرب", "کنگاور", "جوانرود", "سنقر", "هرسین", "سرپل ذهاب", "پاوه", "صحنه"],
+        "کهگیلویه و بویراحمد": ["یاسوج", "دوگنبدان", "دهدشت", "لیکک", "چرام", "لنده", "سی سخت"],
+        "گلستان": ["گرگان", "گنبد کاووس", "بندر ترکمن", "علی آباد کتول", "آزادشهر", "کردکوی", "کلاله", "مینودشت", "آق قلا"],
+        "گیلان": ["رشت", "بندرانزلی", "لاهیجان", "لنگرود", "هشتپر", "آستارا", "صومعه سرا", "رودسر", "فومن", "آستانه اشرفیه", "رودبار"],
+        "لرستان": ["خرم آباد", "بروجرد", "دورود", "کوهدشت", "الیگودرز", "نورآباد", "ازنا", "الشتر", "پلدختر"],
+        "مازندران": ["ساری", "بابل", "آمل", "قائم شهر", "بهشهر", "چالوس", "نکا", "بابلسر", "تنکابن", "نوشهر", "رامسر", "محمودآباد", "فریدونکنار"],
+        "مرکزی": ["اراک", "ساوه", "خمین", "محلات", "دلیجان", "شازند", "تفرش", "آشتیان"],
+        "هرمزگان": ["بندرعباس", "میناب", "دهبارز", "قشم", "کیش", "بندر لنگه", "حاجی آباد", "جاسک", "بستک"],
+        "همدان": ["همدان", "ملایر", "نهاوند", "تویسرکان", "اسدآباد", "کبودرآهنگ", "بهار", "رزن"],
+        "یزد": ["یزد", "میبد", "اردکان", "بافق", "مهریز", "ابرکوه", "تفت", "اشکذر", "هرات"]
+    };
+
+    let state = { userData: null, addresses: [], orders: [], currentOrder: null, selectedAddrIdx: null, selectedShip: null };
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        if(!localStorage.getItem('userName')) return window.location.href = '/CL.html';
+        await loadData();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('pendingOrderId')) {
+            openCheckoutWizard(urlParams.get('pendingOrderId'));
+        }
+    });
+
+    async function loadData() {
+        try {
+            const [uRes, oRes] = await Promise.all([
+                fetch(`${API}/api/users/api/current-user`, { credentials: 'include' }),
+                fetch(`${API}/api/orders/my/orders`, { credentials: 'include' })
+            ]);
+            if(uRes.ok) {
+                state.userData = await uRes.json();
+                state.addresses = state.userData.addresses || [];
+            }
+            if(oRes.ok) state.orders = await oRes.json();
+            renderUI();
+        } catch(e) { console.error("Load Error:", e); }
+    }
+
+    function renderUI() {
+        const u = state.userData;
+        if(u) {
+            const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || "کاربر یاس";
+            if(document.getElementById('sidebar-name')) document.getElementById('sidebar-name').innerText = fullName;
+            if(document.getElementById('mobile-name')) document.getElementById('mobile-name').innerText = u.firstName || "کاربر";
+            if(document.getElementById('sidebar-phone')) document.getElementById('sidebar-phone').innerText = u.username || "";
+            if(document.getElementById('avatar-box')) document.getElementById('avatar-box').innerText = (u.firstName ? u.firstName[0] : "Y");
+            if(document.getElementById('mobile-avatar')) document.getElementById('mobile-avatar').innerText = (u.firstName ? u.firstName[0] : "Y");
+            if(document.getElementById('welcome-msg')) document.getElementById('welcome-msg').innerText = `سلام ${u.firstName || ''}؛ وقت بخیر! 👋`;
+
+            if(document.getElementById('inp-fname')) document.getElementById('inp-fname').value = u.firstName || '';
+            if(document.getElementById('inp-lname')) document.getElementById('inp-lname').value = u.lastName || '';
+            if(document.getElementById('inp-phone')) document.getElementById('inp-phone').value = u.username || '';
+            if(document.getElementById('stat-score')) document.getElementById('stat-score').innerText = u.points || 0;
+        }
+
+        if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = state.orders.length;
+
+        const pendingCount = state.orders.filter(o => o.status === 'PENDING_PAYMENT').length;
+        if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = pendingCount;
+        if(document.getElementById('stat-addr')) document.getElementById('stat-addr').innerText = state.addresses.length;
+
+        if(document.getElementById('pending-payment-alert')) {
+            document.getElementById('pending-payment-alert').classList.toggle('hidden', pendingCount === 0);
+        }
+
+        renderOrders();
+        renderAddresses();
+    }
+
+    // --- CHECKOUT WIZARD LOGIC ---
+    async function openCheckoutWizard(orderId) {
+        try {
+            const res = await fetch(`${API}/api/orders/${orderId}`, { credentials: 'include' });
+            if(!res.ok) throw new Error();
+            state.currentOrder = await res.json();
+            renderCheckoutItems();
+            goToCheckoutStep('items');
+            document.getElementById('checkoutModal').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        } catch(e) { alert("سفارش یافت نشد"); }
+    }
+
+    function renderCheckoutItems() {
+        const list = document.getElementById('checkout-items-list');
+        if(!state.currentOrder.items || state.currentOrder.items.length === 0) {
+            list.innerHTML = '<p class="text-center text-red-500 py-4 font-bold">سبد شما خالی شده است.</p>';
+            document.getElementById('checkout-items-total').innerText = '۰ تومان';
+            document.getElementById('btn-next-step').disabled = true;
+            return;
+        }
+
+        let total = 0;
+        list.innerHTML = state.currentOrder.items.map(item => {
+            const rowTotal = item.unitPrice * item.quantity;
+            total += rowTotal;
+            return `
+            <div class="checkout-item">
+                <div style="flex:1">
+                    <div class="font-bold text-sm text-gray-800">${item.productName}</div>
+                    <div class="text-[10px] text-gray-400">${item.unitPrice.toLocaleString()} تومان</div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="qty-ctrl">
+                        <button class="qty-btn" onclick="updateWizardQty('${item.productId}', 1)">+</button>
+                        <span class="text-sm font-bold px-1">${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateWizardQty('${item.productId}', -1)">-</button>
+                    </div>
+                    <div class="text-xs font-black text-blue-800 w-24 text-left">${rowTotal.toLocaleString()} ت</div>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('checkout-items-total').innerText = total.toLocaleString() + ' تومان';
+        state.currentOrder.itemsTotal = total;
+        document.getElementById('btn-next-step').disabled = false;
+    }
+
+    function updateWizardQty(pid, delta) {
+        const item = state.currentOrder.items.find(x => x.productId === pid);
+        if(!item) return;
+        item.quantity += delta;
+        if(item.quantity <= 0) state.currentOrder.items = state.currentOrder.items.filter(x => x.productId !== pid);
+        renderCheckoutItems();
+    }
+
+    async function proceedToAddressSelection() {
+        const btn = document.getElementById('btn-next-step');
+        btn.disabled = true;
+        const originalText = btn.innerText;
+        btn.innerText = "در حال بروزرسانی سرور...";
+
+        try {
+            const res = await fetch(`${API}/api/orders/${state.currentOrder.id}/items`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify(state.currentOrder.items.map(i => ({
+                    productId: i.productId,
+                    quantity: i.quantity
+                })))
+            });
+
+            if (res.ok) {
+                state.selectedAddrIdx = null;
+                state.selectedShip = null;
+                document.getElementById('shipping-section').classList.add('hidden');
+                goToCheckoutStep('address');
+            } else {
+                alert('خطا در ذخیره تغییرات فاکتور');
+            }
+        } catch(e) {
+            alert('خطا در ارتباط با سرور');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
+
+    function goToCheckoutStep(step) {
+        document.getElementById('checkout-step-items').classList.toggle('hidden', step !== 'items');
+        document.getElementById('checkout-step-address').classList.toggle('hidden', step !== 'address');
+        if(step === 'address') renderCheckoutAddresses();
+    }
+
+    function renderCheckoutAddresses() {
+        const cont = document.getElementById('checkout-addresses-list');
+        if(state.addresses.length === 0) {
+            cont.innerHTML = '<p class="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-xl border border-dashed">آدرسی یافت نشد. لطفاً آدرس جدید ثبت کنید.</p>';
+            return;
+        }
+        cont.innerHTML = state.addresses.map((addr, i) => `
+            <div class="yas-card p-4 cursor-pointer border-2 transition ${state.selectedAddrIdx === i ? 'border-blue-600 bg-blue-50' : 'border-transparent'}" onclick="selectCheckoutAddress(${i})">
+                <div class="font-bold text-sm text-[#1b4f8a] mb-1">📍 ${addr.recipientName}</div>
+                <div class="text-xs text-gray-600 leading-relaxed">${addr.state}، ${addr.city} - ${addr.fullAddress.substring(0,60)}...</div>
+            </div>
+        `).join('');
+    }
+
+    async function selectCheckoutAddress(idx) {
+        state.selectedAddrIdx = idx;
+        renderCheckoutAddresses();
+
+        document.getElementById('shipping-section').classList.remove('hidden');
+        const cont = document.getElementById('shipping-options');
+        cont.innerHTML = '<p class="text-center py-4 text-xs font-bold text-blue-600 animate-pulse">در حال استعلام هوشمند هزینه ارسال...</p>';
+        document.getElementById('btn-final-pay').disabled = true;
+        document.getElementById('btn-final-pay').classList.add('opacity-50');
+
+        const addr = state.addresses[idx];
+
+        try {
+            const res = await fetch(`${API}/api/orders/${state.currentOrder.id}/shipping-quotes`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include',
+                body: JSON.stringify(addr)
+            });
+
+            if(!res.ok) throw new Error();
+
+            const quotes = await res.json();
+            state.lastQuotes = quotes;
+            renderShippingOptions(quotes);
+        } catch(e) {
+            cont.innerHTML = '<p class="text-center py-4 text-xs text-red-500 font-bold">خطا در ارتباط با سیستم پست و اسنپ</p>';
+        }
+    }
+
+    function renderShippingOptions(quotes) {
+        const cont = document.getElementById('shipping-options');
+        cont.innerHTML = quotes.map((q) => {
+            let icon = '🚚';
+            if (q.method === 'SNAPP_BOX') icon = '🛵';
+            else if (q.method === 'POST_PISHTAZ') icon = '📦';
+            else if (q.method === 'POST_SEFARESHI') icon = '✉️';
+
+            return `
+            <div class="shipping-option ${state.selectedShip?.method === q.method ? 'active' : ''}" onclick="setShipMethod('${q.method}', ${q.cost})">
+                <div class="text-2xl">${icon}</div>
+                <div class="flex-1">
+                    <div class="font-bold text-sm text-gray-800">${q.title}</div>
+                    <div class="text-[10px] text-gray-500">${q.estimatedTime}</div>
+                </div>
+                <div class="font-black text-blue-900">${q.cost.toLocaleString()} تومان</div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    function setShipMethod(method, cost) {
+        state.selectedShip = { method, cost };
+        document.getElementById('btn-final-pay').disabled = false;
+        document.getElementById('btn-final-pay').classList.remove('opacity-50');
+        renderShippingOptions(state.lastQuotes || []);
+    }
+
+    async function finalizeAndPay() {
+        const btn = document.getElementById('btn-final-pay');
+        const addr = state.addresses[state.selectedAddrIdx];
+        btn.disabled = true; btn.innerText = "در حال اعتبارسنجی انبار...";
+
+        const addrString = `${addr.state}-${addr.city} | ${addr.fullAddress} | گیرنده: ${addr.recipientName}`;
+        try {
+            const res = await fetch(`${API}/api/orders/${state.currentOrder.id}/finalize`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include',
+                body: JSON.stringify({
+                    address: addrString,
+                    shippingMethod: state.selectedShip.method,
+                    shippingCost: state.selectedShip.cost,
+                    items: state.currentOrder.items
+                })
+            });
+
+            // بررسی پاسخ کمبود موجودی انبار به صورت هوشمند
+            if (res.status === 409 || res.status === 422) {
+                const updatedOrder = await res.json();
+                btn.disabled = false; btn.innerText = "تایید نهایی و پرداخت 💳";
+
+                // استفاده از مودال تایید بومی به جای آلرت سنتی
+                askConfirm(
+                    "بروزرسانی فاکتور خرید",
+                    `به علت اتمام موجودی برخی کالاها، فاکتور شما اصلاح شد. مبلغ جدید فاکتور ${updatedOrder.totalAmount.toLocaleString()} تومان می‌باشد. آیا مایل به پرداخت هستید؟`,
+                    async () => {
+                        state.currentOrder = updatedOrder;
+                        renderCheckoutItems();
+                        await finalizeAndPay(); // تلاش مجدد با فاکتور جدید
+                    }
+                );
+                return;
+            }
+
+            if(res.ok) {
+                btn.innerText = "انتقال به درگاه تستی...";
+                const payRes = await fetch(`${API}/api/orders/${state.currentOrder.id}/pay`, { method: 'POST', credentials: 'include' }).then(r => r.json());
+                if(payRes.paymentUrl) window.location.href = payRes.paymentUrl;
+                else location.reload();
+            } else {
+                alert("امکان ثبت سفارش با موجودی فعلی وجود ندارد.");
+                btn.disabled = false; btn.innerText = "تایید نهایی و پرداخت 💳";
+            }
+        } catch(e) {
+            alert('خطا در ثبت نهایی');
+            btn.disabled = false; btn.innerText = "تایید نهایی و پرداخت 💳";
+        }
+    }
+
+    // --- MAP & ADDRESS LOGIC ---
+    let map, marker;
+    function openAddressModal() {
+        document.getElementById('addrModal').classList.add('active');
+        document.getElementById('overlay').classList.add('active');
+        populateProvinces();
+        setTimeout(() => {
+            if (typeof L === 'undefined') {
+                console.warn("Leaflet library is missing.");
+                return;
+            }
+            if(!map) {
+                map = L.map('map', { minZoom: 2, maxZoom: 18, zoomControl: true }).setView([35.6997, 51.3380], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 2, attribution: '© OSM' }).addTo(map);
+                marker = L.marker([35.6997, 51.3380], {draggable: true}).addTo(map);
+                marker.on('dragend', (e) => reverseGeocode(e.target.getLatLng()));
+            } else {
+                map.invalidateSize();
+            }
+        }, 400);
+    }
+
+    async function reverseGeocode(latlng) {
+        try {
+            const res = await fetch(`https://api.neshan.org/v4/reverse?lat=${latlng.lat}&lng=${latlng.lng}`, {
+                headers: {'Api-Key': NESHAN_KEY}
+            });
+            const d = await res.json();
+            if(d) {
+                document.getElementById('addr-text').value = d.formatted_address || '';
+
+                let rawState = d.state || '';
+                let cleanState = rawState.replace('استان ', '').trim();
+
+                const matchedState = Object.keys(iranCities).find(p => p.includes(cleanState) || cleanState.includes(p));
+
+                if (matchedState) {
+                    document.getElementById('addr-state').value = matchedState;
+                    updateCityDropdown(matchedState);
+
+                    let rawCity = d.city || d.suburb || '';
+                    const matchedCity = iranCities[matchedState].find(c => c.includes(rawCity) || rawCity.includes(c));
+                    if (matchedCity) {
+                        document.getElementById('addr-city').value = matchedCity;
+                    }
+                }
+            }
+        } catch(e) {
+            console.warn("استعلام خودکار آدرس با اختلال مواجه شد.");
+        }
+    }
+
+    function populateProvinces() {
+        const s = document.getElementById('addr-state');
+        s.innerHTML = '<option value="">انتخاب استان...</option>' + Object.keys(iranCities).map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+
+    window.updateCityDropdown = function(provinceName) {
+        const c = document.getElementById('addr-city');
+        if(!provinceName) {
+            c.innerHTML = '<option value="">انتخاب شهر...</option>';
+            return;
+        }
+        const cities = iranCities[provinceName] || [];
+        c.innerHTML = '<option value="">انتخاب شهر...</option>' + cities.map(city => `<option value="${city}">${city}</option>`).join('');
+    }
+
+    async function saveAddress() {
+        const recipientName = document.getElementById('addr-recipient').value.trim();
+        const recipientPhone = document.getElementById('addr-phone').value.trim();
+        const stateName = document.getElementById('addr-state').value;
+        const cityName = document.getElementById('addr-city').value;
+        const fullAddress = document.getElementById('addr-text').value.trim();
+        const postalCode = document.getElementById('addr-postal').value.trim();
+
+        if(!recipientName || !recipientPhone || !stateName || !cityName || !fullAddress || !postalCode) {
+            alert('تکمیل تمامی فیلدهای ستاره‌دار الزامی است.');
+            return;
+        }
+
+        const postalRegex = /^\d{10}$/;
+        if(!postalRegex.test(postalCode)) {
+            alert('کد پستی وارد شده باید دقیقاً ۱۰ رقم عددی باشد.');
+            return;
+        }
+
+        const addr = {
+            recipientName: recipientName,
+            recipientPhone: recipientPhone,
+            state: stateName,
+            city: cityName,
+            fullAddress: fullAddress,
+            postalCode: postalCode,
+            latitude: marker ? marker.getLatLng().lat : 35.6997,
+            longitude: marker ? marker.getLatLng().lng : 51.3380
+        };
+
+        try {
+            const res = await fetch(`${API}/api/users/my/addresses`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify(addr)
+            });
+            if(res.ok) {
+                closeModal('addrModal');
+
+                document.getElementById('addr-recipient').value = '';
+                document.getElementById('addr-phone').value = '';
+                document.getElementById('addr-state').value = '';
+                document.getElementById('addr-city').innerHTML = '<option value="">انتخاب شهر...</option>';
+                document.getElementById('addr-text').value = '';
+                document.getElementById('addr-postal').value = '';
+
+                await loadData();
+
+                if(state.currentOrder) {
+                    renderCheckoutAddresses();
+                    if(state.addresses.length > 0) {
+                        selectCheckoutAddress(state.addresses.length - 1);
+                    }
+                }
+            } else {
+                alert('خطا در ثبت آدرس روی سرور');
+            }
+        } catch(e) {
+            alert('ارتباط با سرور برقرار نشد.');
+        }
+    }
+
+    // --- SHARED UI & RENDERERS ---
+    function showTab(id) {
+        // ۱. حتماً چک کنید کلمه 'comments' در این آرایه باشد
+        ['dashboard', 'orders', 'addresses', 'profile', 'comments'].forEach(t => {
+            const section = document.getElementById(`tab-${t}`);
+            const link = document.getElementById(`link-${t}`);
+            const mobLink = document.getElementById(`mob-${t}`);
+
+            if (section) section.classList.add('hidden');
+
+            // این دو خط رنگ دکمه‌ها را مدیریت می‌کنند
+            if (link) link.classList.remove('active');
+            if (mobLink) mobLink.classList.remove('active');
+        });
+
+        // ۲. نمایش تب کلیک شده و فعال کردن رنگ دکمه آن
+        const targetSection = document.getElementById(`tab-${id}`);
+        const targetLink = document.getElementById(`link-${id}`);
+        const targetMob = document.getElementById(`mob-${id}`);
+
+        if (targetSection) targetSection.classList.remove('hidden');
+        if (targetLink) targetLink.classList.add('active'); // اینجا رنگ آبی اعمال می‌شود
+        if (targetMob) targetMob.classList.add('active');
+
+        if (id === 'comments') fetchMyComments();
+    }
+
+    function renderOrders() {
+        const cont = document.getElementById('all-orders-list');
+        const latest = document.getElementById('latest-orders-container');
+
+        const getStatusStepClass = (currentStatus, targetStatus) => {
+            const stepsOrder = ['PENDING_PAYMENT', 'PAID_PREPARING', 'POST_PROCESSING', 'SHIPPED', 'DELIVERED'];
+            const currentIndex = stepsOrder.indexOf(currentStatus);
+            const targetIndex = stepsOrder.indexOf(targetStatus);
+            return currentIndex >= targetIndex ? 'text-blue-600 font-bold' : 'text-gray-300';
+        };
+
+        const buildStatusStepper = (status) => {
+            if (status === 'PENDING_PAYMENT') return '';
+            return `
+            <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-[10px] md:text-xs">
+                <div class="flex flex-col items-center">
+                    <span class="text-lg">🛒</span>
+                    <span class="${getStatusStepClass(status, 'PAID_PREPARING')}">پرداخت شده</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-100 mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <span class="text-lg">📦</span>
+                    <span class="${getStatusStepClass(status, 'POST_PROCESSING')}">بسته‌بندی</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-100 mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <span class="text-lg">🚚</span>
+                    <span class="${getStatusStepClass(status, 'SHIPPED')}">ارسال پست</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-100 mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <span class="text-lg">🎁</span>
+                    <span class="${getStatusStepClass(status, 'DELIVERED')}">تحویل شده</span>
+                </div>
+            </div>`;
+        };
+
+        const getStatusBadge = (status) => {
+            switch(status) {
+                case 'PENDING_PAYMENT': return '<span class="status-pill st-pending">💳 انتظار پرداخت</span>';
+                case 'PAID_PREPARING': return '<span class="status-pill bg-blue-50 text-blue-700">📦 آماده‌سازی در فروشگاه</span>';
+                case 'POST_PROCESSING': return '<span class="status-pill bg-amber-50 text-amber-700">🏢 پردازش در پست</span>';
+                case 'SHIPPED': return '<span class="status-pill bg-purple-50 text-purple-700">🚚 در حال ارسال</span>';
+                case 'DELIVERED': return '<span class="status-pill bg-green-50 text-green-700">✅ تحویل داده شد</span>';
+                default: return '';
+            }
+        };
+
+        const build = (o) => `
+        <div class="yas-card p-5 flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div style="flex:1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-bold text-gray-800">سفارش #${o.orderCode || o.id.slice(-6).toUpperCase()}</span>
+                        ${getStatusBadge(o.status)}
+                    </div>
+                    <div class="text-[11px] text-gray-500">${new Date(o.orderDate).toLocaleDateString('fa-IR')} | ${o.items?.length || 0} کالا</div>
+                </div>
+                <div class="text-left flex flex-col md:items-end w-full md:w-auto">
+                    <div class="font-black text-blue-900 mb-2">${(o.totalAmount || 0).toLocaleString()} تومان</div>
+                    ${o.status === 'PENDING_PAYMENT' ? `
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button onclick="deleteOrder('${o.id}')" class="p-2 px-3 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition border-none cursor-pointer">حذف سفارش</button>
+                            <button onclick="openCheckoutWizard('${o.id}')" class="btn-yas !py-2 !px-6 !text-xs shadow-md">تکمیل سفارش</button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            ${buildStatusStepper(o.status)}
+        </div>`;
+
+        if(cont) cont.innerHTML = state.orders.length ? state.orders.map(o => build(o)).join('') : '<p class="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed">سفارشی یافت نشد</p>';
+        if(latest) latest.innerHTML = state.orders.slice(0, 3).map(o => build(o)).join('');
+    }
+
+    function deleteOrder(orderId) {
+        askConfirm(
+            "حذف سفارش خرید",
+            "آیا از حذف و لغو این سفارش اطمینان دارید؟ این عمل غیرقابل بازگشت است.",
+            async () => {
+                try {
+                    const res = await fetch(`${API}/api/orders/${orderId}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    if(res.ok) {
+                        await loadData();
+                    } else {
+                        alert('خطا در حذف سفارش از روی سرور');
+                    }
+                } catch(e) {
+                    alert('ارتباط با سرور برقرار نشد.');
+                }
+            }
+        );
+    }
+
+    function renderAddresses() {
+        const grid = document.getElementById('address-grid');
+        if(!grid) return;
+        grid.innerHTML = state.addresses.map((a, i) => `
+            <div class="yas-card p-5 group">
+                <div class="flex justify-between items-start mb-3">
+                    <h4 class="font-bold text-primary">${a.recipientName}</h4>
+                    <button onclick="deleteAddr(${i})" class="text-red-500 text-xs bg-red-50 p-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition border-none cursor-pointer">حذف</button>
+                </div>
+                <p class="text-sm text-gray-600 leading-relaxed mb-3">${a.state}، ${a.city} - ${a.fullAddress}</p>
+                <div class="text-xs text-gray-400 mt-2 font-medium">📮 کد پستی: ${a.postalCode || 'ثبت نشده'}</div>
+                <div class="text-xs text-gray-400 mt-1">📞 ${a.recipientPhone}</div>
+            </div>
+        `).join('');
+    }
+
+    function deleteAddr(idx) {
+        askConfirm(
+            "حذف آدرس نشانی",
+            "آیا از حذف این آدرس اطمینان دارید؟",
+            async () => {
+                try {
+                    await fetch(`${API}/api/users/my/addresses/${idx}`, { method: 'DELETE', credentials: 'include' });
+                    await loadData();
+                } catch(e) {
+                    alert('خطا در حذف آدرس');
+                }
+            }
+        );
+    }
+
+    async function updateProfile() {
+        const d = { firstName: document.getElementById('inp-fname').value, lastName: document.getElementById('inp-lname').value };
+        const res = await fetch(`${API}/api/users/api/current-user`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(d) });
+        if(res.ok) { alert('تغییرات ثبت شد'); await loadData(); }
+    }
+
+    function askConfirm(title, text, onConfirm) {
+        document.getElementById('confirmTitle').innerText = title;
+        document.getElementById('confirmText').innerText = text;
+        document.getElementById('confirmModal').classList.add('active');
+        document.getElementById('confirmYes').onclick = () => { onConfirm(); closeConfirm(); };
+    }
+
+    // اعمال بومی دیالوگ برای خروج از حساب
+    function logout() {
+        askConfirm(
+            "خروج از حساب کاربری",
+            "آیا از خروج خود از حساب کاربری فروشگاه یاس اطمینان دارید؟",
+            () => {
+                localStorage.clear();
+                window.location.href='/CL.html';
+            }
+        );
+    }
+
+    function closeConfirm() { document.getElementById('confirmModal').classList.remove('active'); }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+        if (id !== 'confirmModal') {
+            document.getElementById('overlay').classList.remove('active');
+        }
+    }
+
+    function closeAll() {
+        document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.remove('active'));
+    }
+    // دریافت نظرات من از سرور
+    async function fetchMyComments() {
+        const cont = document.getElementById('my-comments-list');
+        try {
+            const res = await fetch(`${API}/api/comments/my`, { credentials: 'include' });
+            if(!res.ok) throw new Error();
+            const comments = await res.json();
+
+            if(comments.length === 0) {
+                cont.innerHTML = '<p class="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed">شما هنوز هیچ نظری ثبت نکرده‌اید.</p>';
+                return;
+            }
+
+            cont.innerHTML = comments.map(c => {
+                const stars = '★'.repeat(c.rating) + '☆'.repeat(5 - c.rating);
+                const date = new Date(c.createdAt).toLocaleDateString('fa-IR');
+
+                let statusBadge = '';
+                if (c.status === 'PENDING') statusBadge = '<span class="status-pill st-pending">⏳ در انتظار تایید</span>';
+                else if (c.status === 'APPROVED') statusBadge = '<span class="status-pill bg-green-50 text-green-700">✅ تایید شده</span>';
+                else statusBadge = '<span class="status-pill bg-red-50 text-red-700">❌ رد شده</span>';
+
+                return `
+<div class="yas-card p-5 relative overflow-hidden flex flex-col">
+    ${c.isBuyer ? `
+        <div class="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-3 py-1 rounded-bl-xl font-bold z-10">
+            خریدار محصول
+        </div>
+    ` : ''}
+
+    <div class="flex justify-between items-start mb-4 ${c.isBuyer ? 'mt-3' : ''}">
+        <div class="flex flex-col">
+            <span class="text-amber-500 text-sm">${stars}</span>
+            <span class="text-[10px] text-gray-400 mt-1">${date}</span>
+        </div>
+        <div class="z-0">
+            ${statusBadge}
+        </div>
+    </div>
+
+    <p class="text-sm text-gray-700 leading-7 mb-4 flex-1">${c.text}</p>
+
+    ${c.adminReply ? `
+        <div class="bg-blue-50 p-4 rounded-xl border-r-4 border-blue-500 text-sm mb-4">
+            <strong class="block text-blue-800 mb-1 text-xs">پاسخ فروشگاه یاس:</strong>
+            <div class="text-blue-900">${c.adminReply}</div>
+        </div>
+    ` : ''}
+
+    <!-- دکمه هدایت به صفحه محصول (بدون تب جدید) -->
+    <div class="border-t border-gray-100 pt-3 mt-auto flex justify-end">
+        <a href="/product/${c.productId}" class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition" style="text-decoration:none;">
+            مشاهده محصول ❯
+        </a>
+    </div>
+</div>`;
+            }).join('');
+        } catch(e) {
+            cont.innerHTML = '<p class="text-center py-10 text-red-500">خطا در بارگذاری نظرات</p>';
+        }
+    }
+</script>
+</body>
+</html>

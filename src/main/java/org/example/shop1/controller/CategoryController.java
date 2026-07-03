@@ -18,7 +18,11 @@ public class CategoryController {
     public CategoryController(CategoryService service) {
         this.service = service;
     }
-
+    // متد getTree را تغییر دهید تا بر اساس نوع فیلتر کند
+    @GetMapping("/tree")
+    public List<CategoryResponseDto> getTree(@RequestParam(required = false) String type) {
+        return service.getTree(type); // سرویس باید آپدیت شود
+    }
     @PostMapping
     public Category create(@RequestBody CategoryRequestDto dto) {
         return service.create(dto);
@@ -26,6 +30,7 @@ public class CategoryController {
 
     @PutMapping("/{id}")
     public Category update(@PathVariable String id, @RequestBody CategoryRequestDto dto) {
+
         return service.update(id, dto);
     }
 
@@ -34,13 +39,12 @@ public class CategoryController {
         service.delete(id);
     }
 
-    @GetMapping("/tree")
-    public List<CategoryResponseDto> getTree() {
-        return service.getTree();
-    }
+//    @GetMapping("/tree")
+//    public List<CategoryResponseDto> getTree() {
+//        return service.getTree();
+//    }
 
-    @PostMapping("/{id}/move")
-    public Category move(@PathVariable String id, @RequestBody CategoryRequestDto dto) {
+    @PutMapping("/{id}/move")     public Category move(@PathVariable String id, @RequestBody CategoryRequestDto dto) {
         return service.moveCategory(id, dto.getNewParentId());
     }
 }

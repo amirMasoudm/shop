@@ -16,6 +16,74 @@ public class ProductRequest {
     private List<String> images;
     private Integer discountPercent; // درصد تخفیف ارسالی از پنل ادمین
 
+
+    // به DTO هم اضافه کنید تا از فرانت دریافت شود
+    private String warehouseCategoryId;
+    // دریافت قیمت پایه از فرانت
+    private BigDecimal basePrice;
+    private String warehouseDescription;
+// ... سایر فیلدها ...
+
+    private String unit;
+    private Integer packQuantity;
+
+    private BigDecimal onlinePrice;
+
+    // در فایل ProductRequest.java این فیلدها را اضافه کنید:
+
+    private Double weight;
+    private Double length;
+    private Double width;
+    private Double height;
+
+    // ==========================================
+    // فیلدهای جدید مربوط به SEO
+    // ==========================================
+    private String slug;
+    private String seoTitle;
+    private String seoDescription;
+
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
+
+    public String getSeoTitle() { return seoTitle; }
+    public void setSeoTitle(String seoTitle) { this.seoTitle = seoTitle; }
+
+    public String getSeoDescription() { return seoDescription; }
+    public void setSeoDescription(String seoDescription) { this.seoDescription = seoDescription; }
+    // ==========================================
+
+    // گترها و سترها:
+    public Double getWeight() { return weight; }
+    public void setWeight(Double weight) { this.weight = weight; }
+    public Double getLength() { return length; }
+    public void setLength(Double length) { this.length = length; }
+    public Double getWidth() { return width; }
+    public void setWidth(Double width) { this.width = width; }
+    public Double getHeight() { return height; }
+    public void setHeight(Double height) { this.height = height; }
+
+    public BigDecimal getOnlinePrice() { return onlinePrice; }
+    public void setOnlinePrice(BigDecimal onlinePrice) { this.onlinePrice = onlinePrice; }
+
+
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
+
+    public Integer getPackQuantity() { return packQuantity; }
+    public void setPackQuantity(Integer packQuantity) { this.packQuantity = packQuantity; }
+
+
+    public String getWarehouseDescription() { return warehouseDescription; }
+    public void setWarehouseDescription(String warehouseDescription) { this.warehouseDescription = warehouseDescription; }
+
+    public BigDecimal getBasePrice() { return basePrice; }
+    public void setBasePrice(BigDecimal basePrice) { this.basePrice = basePrice; }
+
+    public String getWarehouseCategoryId() { return warehouseCategoryId; }
+    public void setWarehouseCategoryId(String warehouseCategoryId) { this.warehouseCategoryId = warehouseCategoryId; }
+
+
     // --- Getters & Setters ---
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
