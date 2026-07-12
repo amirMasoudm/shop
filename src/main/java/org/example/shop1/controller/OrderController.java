@@ -1,5 +1,6 @@
 package org.example.shop1.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.shop1.exeption.InsufficientStockException;
 import org.example.shop1.model.dto.OrderRequestDto;
 import org.example.shop1.model.dto.ShippingOption;
@@ -9,6 +10,8 @@ import org.example.shop1.model.enums.OrderStatus;
 import org.example.shop1.model.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -95,11 +98,12 @@ public class OrderController {
     }
     // متد جدید: شروع فرآیند پرداخت و بازگرداندن لینک درگاه تستی
     @PostMapping("/{orderId}/pay")
-    public ResponseEntity<?> initiatePayment(@PathVariable String orderId) {
+    public ResponseEntity<?> initiatePayment(@PathVariable String orderId, HttpServletRequest request) {
         try {
+            // آدرس درگاه را بر اساس آدرس فعلی سرور میسازیم
+            String baseUrl = request.getContextPath();
             java.util.Map<String, String> response = new java.util.HashMap<>();
-            // کاربر را به درگاه شبیه‌سازی شده هدایت می‌کنیم
-            response.put("paymentUrl", "/api/orders/mock-gateway/" + orderId);
+            response.put("paymentUrl", baseUrl + "/api/orders/mock-gateway/" + orderId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -133,7 +137,7 @@ public class OrderController {
             <body>
                 <div class="card">
                     <div class="logo">💳</div>
-                    <h2>درگاه پرداخت شبیه‌سازی شده یاس</h2>
+                    <h2>درگاه پرداخت شبیه‌سازی شده داده نما</h2>
                     <p>شما در حال پرداخت تستی سفارش شماره <br><strong>{{orderId}}</strong> هستید.</p>
                     
                     <form action="/api/orders/mock-gateway-callback/{{orderId}}" method="POST">
@@ -170,8 +174,8 @@ public class OrderController {
             log.error("خطا در ثبت تراکنش: {}", e.getMessage());
         }
 
-        return ResponseEntity.status(org.springframework.http.HttpStatus.FOUND)
-                .header(org.springframework.http.HttpHeaders.LOCATION, "/customerPanel.html")
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, "/profile") // هدایت به مسیری که در کنترلر تعریف کردیم
                 .build();
     }
 

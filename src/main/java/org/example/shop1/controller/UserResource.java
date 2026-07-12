@@ -1,5 +1,6 @@
 package org.example.shop1.controller;
 
+import org.example.shop1.config.SecurityUtils;
 import org.example.shop1.model.dto.UserForm;
 import org.example.shop1.model.entity.Address; // ایمپورت
 import org.example.shop1.model.entity.User;
@@ -67,12 +68,30 @@ public class UserResource {
     @PostMapping("/my/addresses")
     @ResponseBody
     public User addMyAddress(@RequestBody Address address) {
+        // پاکسازی فیلدهای متنی برای جلوگیری از XSS
+        address.setRecipientName(SecurityUtils.clean(address.getRecipientName()));
+        address.setRecipientPhone(SecurityUtils.clean(address.getRecipientPhone()));
+        address.setFullAddress(SecurityUtils.clean(address.getFullAddress()));
+        address.setPostalCode(SecurityUtils.clean(address.getPostalCode()));
+        address.setState(SecurityUtils.clean(address.getState()));
+        address.setCity(SecurityUtils.clean(address.getCity()));
+
+        // فیلدهای Double (Latitude/Longitude) نیاز به پاکسازی ندارند
         return userService.addAddress(address);
     }
 
+
     @PutMapping("/my/addresses/{index}")
     @ResponseBody
-    public User updateMyAddress(@PathVariable("indexcnd") int index, @RequestBody Address address) {
+    public User updateMyAddress(@PathVariable("index") int index, @RequestBody Address address) {
+        // پاکسازی فیلدها قبل از آپدیت
+        address.setRecipientName(SecurityUtils.clean(address.getRecipientName()));
+        address.setRecipientPhone(SecurityUtils.clean(address.getRecipientPhone()));
+        address.setFullAddress(SecurityUtils.clean(address.getFullAddress()));
+        address.setPostalCode(SecurityUtils.clean(address.getPostalCode()));
+        address.setState(SecurityUtils.clean(address.getState()));
+        address.setCity(SecurityUtils.clean(address.getCity()));
+
         return userService.updateAddress(index, address);
     }
 

@@ -19,7 +19,8 @@ public class FileController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
         String fileName = fileStorageService.storeFile(file);
-        // نام فایل را برمی‌گرداند تا فرانت‌اند آن را نگه دارد
-        return ResponseEntity.ok(fileName);
+
+        // نام فایل را به همراه مسیر برمی‌گرداند تا فرانت‌اند مستقیم در src قرار دهد
+        return ResponseEntity.ok("/uploads/" + fileName);
     }
 }

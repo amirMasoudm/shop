@@ -1,5 +1,6 @@
 package org.example.shop1.controller;
 
+import org.example.shop1.config.SecurityUtils;
 import org.example.shop1.model.dto.CommentRequest;
 import org.example.shop1.model.entity.Comment;
 import org.example.shop1.model.entity.User;
@@ -28,19 +29,20 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<?> addComment(@RequestBody CommentRequest req) {
         try {
-            // گرفتن اطلاعات کاربر واقعی که لاگین کرده است
             User currentUser = userService.getCurrentAuthenticatedUser();
+
+            // پاکسازی متن نظر از تگ‌های مخرب HTML
+            req.setText(SecurityUtils.clean(req.getText()));
+
             String userId = currentUser.getId();
             String userName = currentUser.getFirstName() + " " + currentUser.getLastName();
 
             Comment created = commentService.submitComment(req, userId, userName);
             return ResponseEntity.ok(created);
         } catch (Exception e) {
-            // اگر لاگین نبود
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("برای ثبت نظر ابتدا وارد حساب کاربری خود شوید.");
         }
     }
-
     // ۲. دریافت نظرات تایید شده یک محصول (دسترسی عمومی)
     @GetMapping("/product/{pid}")
     public ResponseEntity<List<Comment>> getProductComments(@PathVariable String pid) {

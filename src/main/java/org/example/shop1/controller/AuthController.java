@@ -41,10 +41,14 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-
+    @GetMapping("/csrf")
+    public ResponseEntity<String> getCsrfToken() {
+        return ResponseEntity.ok("CSRF Token initialized");
+    }
     // مرحله اول لاگین ادمین
     @PostMapping("/admin/login-step1")
     public ResponseEntity<?> adminLoginStep1(@RequestBody Map<String, String> payload) {
+        System.out.println("tttttttttttttttttttttttttttttttttttt");
         String username = payload.get("username");
         String password = payload.get("password");
 

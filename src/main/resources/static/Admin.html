@@ -196,44 +196,11 @@
         #adminDashboard { display: none; }
 
         /* استایل فرم لاگین */
-        #loginContainer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #f4f4f4; display: flex; justify-content: center; align-items: center;
-            z-index: 9999; font-family: tahoma; direction: rtl;
-        }
-        .login-box {
-            background: white; padding: 20px; border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px;
-        }
-        .login-box input { width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
-        .login-box button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
-        .hidden { display: none; }
-        .error { color: red; font-size: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <!-- ریسپانسیو شدن لایه اصلی -->
 <body class="bg-gray-50 text-gray-800">
 <!-- فرم لاگین دو مرحله ای -->
-<div id="loginContainer">
-    <div class="login-box">
-        <h3 id="loginTitle">ورود مدیریت</h3>
-        <div id="errorMessage" class="error"></div>
-
-        <!-- مرحله اول: نام کاربری و رمز عبور -->
-        <div id="step1">
-            <input type="text" id="adminUser" placeholder="نام کاربری">
-            <input type="password" id="adminPass" placeholder="رمز عبور">
-            <button onclick="handleStep1()">ارسال کد تایید</button>
-        </div>
-
-        <!-- مرحله دوم: کد OTP -->
-        <div id="step2" class="hidden">
-            <p style="font-size: 13px;">کد ارسال شده به موبایل را وارد کنید:</p>
-            <input type="text" id="otpCode" placeholder="کد ۵ رقمی">
-            <button onclick="handleStep2()" style="background: #007bff;">تایید و ورود</button>
-        </div>
-    </div>
-</div>
 
 <div id="adminDashboard" style="display: none;" class="h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -933,40 +900,42 @@
     }
 
     // ۱. تنظیم اتوماتیک برای تمام درخواست‌های Axios (بیشتر در پنل ادمین)
+    // تنظیم Axios
     if (typeof axios !== 'undefined') {
-        axios.defaults.xsrfCookieName = 'XSRF-TOKEN';
-        axios.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
         axios.defaults.withCredentials = true;
+        axios.interceptors.request.use(config => {
+            const token = getCsrfToken();
+            if (token && ['post', 'put', 'delete', 'patch'].includes(config.method.toLowerCase())) {
+                config.headers['X-XSRF-TOKEN'] = token;
+            }
+            return config;
+        });
     }
 
     // ۲. تنظیم اتوماتیک برای تمام درخواست‌های Fetch (بیشتر در لندینگ و لاگین)
+    // تنظیم Fetch
     const originalFetch = window.fetch;
     window.fetch = async function(url, options = {}) {
-        options = options || {};
+        options.headers = options.headers || {};
         const method = (options.method || 'GET').toUpperCase();
-
-        // فقط برای درخواست‌هایی که اطلاعات را تغییر می‌دهند توکن را ارسال می‌کنیم
         if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-            options.headers = options.headers || {};
             const token = getCsrfToken();
             if (token) {
-                if (options.headers instanceof Headers) {
-                    options.headers.set('X-XSRF-TOKEN', token);
-                } else {
-                    options.headers['X-XSRF-TOKEN'] = token;
-                }
+                if (options.headers instanceof Headers) options.headers.set('X-XSRF-TOKEN', token);
+                else options.headers['X-XSRF-TOKEN'] = token;
             }
         }
         options.credentials = options.credentials || 'include';
         return originalFetch(url, options);
     };
+
     // =========================================================
     // ==========================================
     // تنظیمات پایه و متغیرهای سراسری
     // ==========================================
-    const API = `http://${window.location.hostname}:8080/api`;
-    const API_BASE = `http://${window.location.hostname}:8080/api`;
-    const AI_API = `${API}/v1/ai/generate-description`;
+    const API = "/api";
+    const API_BASE = "/api";
+    const AI_API = "/api/v1/ai/generate-description";
     const FALLBACK_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_1%20text%20%7B%20fill%3A%23999%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_1%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%23eee%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2210%22%20y%3D%2224%22%3EIMG%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E";
     const NESHAN_API_KEY = 'service.fb31fc2777724344bcb6a3ed747219d6';
 
@@ -994,103 +963,33 @@
     // ۱. بررسی لاگین بودن کاربر هنگام باز شدن صفحه
     window.onload = async function() {
         try {
+            // چک کردن وضعیت لاگین از سرور
             const res = await fetch("http://localhost:8080/api/users/api/current-user", {
                 credentials: 'include'
             });
 
-            // اگر پاسخ OK نبود (مثلا 401 یا 403)
-            if (!res.ok) {
-                throw new Error("Not Authenticated");
-            }
+            if (!res.ok) throw new Error("Unauthorized");
 
             const user = await res.json();
 
-            // بررسی دقیق‌تر ادمین بودن
+            // اگر ادمین بود، دیتای پنل را لود کن
             if (user && user.roles && user.roles.includes("ROLE_ADMIN")) {
-                showDashboard();
+                document.getElementById('adminDashboard').style.display = 'flex';
+                fetchAllData(); // فراخوانی تمام اطلاعات از سرور
+                fetchStoreSettings();
             } else {
-                // اگر کاربر معمولی بود نه ادمین
-                document.getElementById('loginContainer').style.display = 'flex';
+                // اگر ادمین نبود یا لاگین نبود، بفرستش به صفحه لاگین
+                window.location.href = "/AdminLogin.html";
             }
         } catch (e) {
-            console.log("کاربر لاگین نیست یا سشن منقضی شده است.");
-            // نمایش اجباری فرم لاگین
-            document.getElementById('loginContainer').style.display = 'flex';
-            document.getElementById('adminDashboard').style.display = 'none';
+            // در صورت هرگونه خطا، هدایت به صفحه لاگین
+            window.location.href = "/AdminLogin.html";
         }
     };
-
     // ۲. نمایش پنل و واکشی اطلاعات اصلی سرور
-    function showDashboard() {
-        // ۱. مخفی کردن فرم لاگین
-        document.getElementById('loginContainer').style.display = 'none';
-
-        // ۲. نمایش کانتینر اصلی
-        const dashboard = document.getElementById('adminDashboard');
-        dashboard.style.display = 'flex';
-
-        // ۳. چک کردن وضعیت سایدبار در دسکتاپ
-        const sidebar = document.getElementById('mobile-sidebar');
-        if (window.innerWidth >= 768) {
-            sidebar.classList.remove('hidden'); // مطمئن می‌شویم در دسکتاپ مخفی نیست
-        }
-
-        // ۴. بارگذاری داده‌ها
-        fetchAllData();
-        fetchStoreSettings();
-    }
     // ۳. مرحله اول: بررسی یوزرنیم و پسورد
-    async function handleStep1() {
-        const username = document.getElementById('adminUser').value;
-        const password = document.getElementById('adminPass').value;
-        const errorDiv = document.getElementById('errorMessage');
-
-        try {
-            const response = await fetch(`${API_BASE}/auth/admin/login-step1`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            const data = await response.text();
-
-            if (response.ok) {
-                document.getElementById('step1').classList.add('hidden');
-                document.getElementById('step2').classList.remove('hidden');
-                document.getElementById('loginTitle').innerText = "تایید کد OTP";
-                errorDiv.innerText = "";
-            } else {
-                errorDiv.innerText = data; // نمایش خطای پسورد اشتباه
-            }
-        } catch (err) {
-            errorDiv.innerText = "خطا در اتصال به سرور";
-        }
-    }
 
     // ۴. مرحله دوم: ارسال کد پیامک شده
-    async function handleStep2() {
-        const username = document.getElementById('adminUser').value;
-        const code = document.getElementById('otpCode').value;
-        const errorDiv = document.getElementById('errorMessage');
-
-        try {
-            const response = await fetch(`${API_BASE}/auth/admin/login-step2`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, code }),
-                credentials: 'include' // ذخیره سشن
-            });
-
-            if (response.ok) {
-                showDashboard(); // لاگین موفق، نمایش پنل
-            } else {
-                const msg = await response.text();
-                errorDiv.innerText = msg; // خطای کد اشتباه
-            }
-        } catch (err) {
-            errorDiv.innerText = "خطا در تایید کد";
-        }
-    }
 
     // ۵. خروج از حساب کاربری
     async function logout() {
@@ -1147,6 +1046,7 @@
         }
     });
 
+    // ۲. ابزار جلوگیری از XSS
     function escapeHTML(str) {
         if (!str) return '';
         return str.toString()
@@ -1155,7 +1055,7 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
+        }
 
     // ==========================================
     // توابع عمومی و UI (تب ها، لودر، مودال)
@@ -1548,15 +1448,35 @@
         });
     }
 
-    function handleImageSelect(e) {
-        Array.from(e.target.files).forEach(f => {
-            const r = new FileReader();
-            r.onload = (ev) => {
-                state.currentImages.push(ev.target.result);
-                renderImages();
-            };
-            r.readAsDataURL(f);
-        });
+    async function handleImageSelect(e) {
+        const files = Array.from(e.target.files);
+
+        // نمایش لودینگ
+        toggleLoader(true);
+
+        try {
+            for (let f of files) {
+                const formData = new FormData();
+                formData.append("file", f);
+
+                // ارسال فایل به صورت باینری به سرور
+                const res = await axios.post(`${API}/v1/files/upload`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                // رسپانس (آدرس فایل مثل /uploads/abcd.jpg) را در لیست عکس‌ها قرار می‌دهیم
+                state.currentImages.push(res.data);
+            }
+            renderImages();
+        } catch (error) {
+            console.error("خطا در آپلود عکس:", error);
+            Swal.fire('خطا', 'آپلود تصویر با مشکل مواجه شد. حجم فایل را بررسی کنید.', 'error');
+        } finally {
+            // مخفی کردن لودینگ
+            toggleLoader(false);
+            // خالی کردن اینپوت برای اینکه بشه دوباره همون عکس رو انتخاب کرد
+            e.target.value = '';
+        }
     }
 
     function addImageByUrl(url) {

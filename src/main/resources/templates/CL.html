@@ -2,92 +2,85 @@
 <html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${seoTitle}">فروشگاه یاس | خرید آنلاین</title>
+    <title th:text="${seoTitle}">فروشگاه داده نما | خرید آنلاین</title>
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta property="og:title" th:content="${seoTitle}">
     <meta property="og:description" th:content="${seoDescription}">
     <meta property="og:type" content="product">
-    <meta property="og:url" th:content="${productSlug != null ? 'http://localhost:8080/product/' + productSlug : 'http://localhost:8080/'}">
-    <meta property="og:image" th:content="${p != null && p.images != null && !p.images.isEmpty() ? p.images[0] : 'http://localhost:8080/logo.png'}">
-    <meta property="og:site_name" content="فروشگاه یاس">
+<!--    <meta property="og:url" th:content="${productSlug != null ? 'http://localhost:8080/product/' + productSlug : 'http://localhost:8080/'}">-->
+<!--    <meta property="og:image" th:content="${p != null && p.images != null && !p.images.isEmpty() ? p.images[0] : 'http://localhost:8080/logo.png'}">-->
+    <meta property="og:url" th:href="${currentUrl}">
+    <meta property="og:image" th:content="${p != null && p.images != null && !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'}">
+    <meta property="og:site_name" content="فروشگاه داده نما">
 
     <!-- هدرهای داینامیک سئو توسط اسپرینگ بوت (SSR) -->
-    <meta name="description" th:content="${seoDescription}">
-    <link rel="canonical" th:href="${productSlug != null ? 'http://localhost:8080/product/' + productSlug : 'http://localhost:8080/'}">    <!-- این بخش جدید برای بمب سئو گوگل (Schema Markup) است -->
+    <meta property="og:description" th:content="${seoDescription}">
+<!--    <link rel="canonical" th:href="${productSlug != null ? 'http://localhost:8080/product/' + productSlug : 'http://localhost:8080/'}">    &lt;!&ndash; این بخش جدید برای بمب سئو گوگل (Schema Markup) است &ndash;&gt;-->
+    <link rel="canonical" th:href="${currentUrl}">
+
+    <!-- بخش اسکیما (Schema Markup) هوشمند و داینامیک -->
     <script type="application/ld+json" th:if="${p != null}">
         {
             "@context": "https://schema.org/",
-            "@type": "Product",
-            "name": "[(${p.name})]",
-            "image": "[(${p.images != null && !p.images.isEmpty() ? p.images[0] : ''})]",
-            "description": "[(${seoDescription})]",
-            "sku": "[(${p.id})]",
-            "mpn": "[(${p.id})]",
-            "brand": {
-                "@type": "Brand",
-                "name": "فروشگاه یاس"
-            },
-            "review": {
-                "@type": "Review",
-                "reviewRating": {
-                    "@type": "Rating",
-                    "ratingValue": "5"
-                },
-                "author": {"@type": "Person", "name": "مدیر فروشگاه"}
-            },
-            "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": "[(${p.averageRating != null && p.averageRating > 0 ? p.averageRating : 5})]",
-                "reviewCount": "[(${p.reviewCount != null && p.reviewCount > 0 ? p.reviewCount : 1})]"
-            },
-            "offers": {
-                "@type": "Offer",
-                "url": "[(${'http://localhost:8080/product/' + productSlug})]",
-                "priceCurrency": "IRR",
-                "price": "[(${#numbers.formatDecimal(p.onlinePrice != null ? p.onlinePrice : p.price, 1, 0)})]0",
-                "priceValidUntil": "2026-12-31",
-                "itemCondition": "https://schema.org/NewCondition",
-                "availability": "https://schema.org/InStock",
-                "shippingDetails": {
-                    "@type": "OfferShippingDetails",
-                    "shippingRate": {
-                        "@type": "MonetaryAmount",
-                        "value": "0",
-                        "currency": "IRR"
+            "@graph": [
+                {
+                    "@type": "Product",
+                    "name": "[(${p.name})]",
+                    "image": "[(${p.images != null && !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'})]",
+                    "description": "[(${seoDescription})]",
+                    "sku": "[(${p.id})]",
+                    "mpn": "[(${p.id})]",
+                    "brand": {
+                        "@type": "Brand",
+                        "name": "فروشگاه داده نما"
                     },
-                    "shippingDestination": {
-                        "@type": "DefinedRegion",
-                        "addressCountry": "IR"
+                    "aggregateRating": {
+                        "@type": "AggregateRating",
+                        "ratingValue": "[(${p.averageRating != null && p.averageRating > 0 ? p.averageRating : 5})]",
+                        "reviewCount": "[(${p.reviewCount != null && p.reviewCount > 0 ? p.reviewCount : 1})]"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "url": "[(${currentUrl})]",
+                        "priceCurrency": "IRR",
+                        "price": "[(${#numbers.formatDecimal(p.onlinePrice != null ? p.onlinePrice : p.price, 1, 0)})]0",
+                        "priceValidUntil": "2026-12-31",
+                        "itemCondition": "https://schema.org/NewCondition",
+                        "availability": "[(${p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'})]",
+                        "shippingDetails": {
+                            "@type": "OfferShippingDetails",
+                            "shippingRate": {
+                                "@type": "MonetaryAmount",
+                                "value": "0",
+                                "currency": "IRR"
+                            },
+                            "shippingDestination": {
+                                "@type": "DefinedRegion",
+                                "addressCountry": "IR"
+                            }
+                        }
                     }
                 },
-                "hasMerchantReturnPolicy": {
-                    "@type": "MerchantReturnPolicy",
-                    "applicableCountry": "IR",
-                    "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-                    "merchantReturnDays": 7,
-                    "returnMethod": "https://schema.org/ReturnByMail"
+                {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        {
+                            "@type": "ListItem",
+                            "position": 1,
+                            "name": "خانه",
+                            "item": "[(${baseUrl + '/'})]"
+                        },
+                        {
+                            "@type": "ListItem",
+                            "position": 2,
+                            "name": "[(${categoryName})]",
+                            "item": "[(${currentUrl})]"
+                        }
+                    ]
                 }
-            }
-        }
-    </script>
-
-    <script type="application/ld+json" th:if="${p != null}">
-        {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [{
-                "@type": "ListItem",
-                "position": 1,
-                "name": "خانه",
-                "item": "http://localhost:8080/"
-            },{
-                "@type": "ListItem",
-                "position": 2,
-                "name": "[(${categoryName})]",
-                "item": "[(${'http://localhost:8080/product/' + productSlug})]"
-            }]
+            ]
         }
     </script>
 
@@ -899,7 +892,7 @@
             </div>
             <div class="logo-text">
                 <span class="main">فروشگاه</span>
-                <span class="sub">یاس</span>
+                <span class="sub">داده نما</span>
             </div>
         </a>
 
@@ -1087,7 +1080,9 @@
         return originalFetch(url, options);
     };
     // =========================================================
-    const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:8080' : location.origin;
+    // const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:8080' : location.origin;
+    const API = window.location.origin;
+
     let state = {all: [], cats: [], secs: [], current: [], cart: [], serverOrders: [], tab: 'current', phone: ''};
 
     try {
@@ -1146,7 +1141,7 @@
 
         // --- بخش ۱: به‌روزرسانی سئو و آدرس (URL) ---
         if (!state.originalTitle) state.originalTitle = document.title;
-        document.title = p.seoTitle || `${p.name} | فروشگاه یاس`;
+        document.title = p.seoTitle || `${p.name} | فروشگاه داده نما`;
 
         let metaDesc = document.querySelector('meta[name="description"]');
         if (!metaDesc) {
@@ -1273,7 +1268,7 @@
                 </div>
             </div>
             <div class="p-buy-box">
-                <div style="font-weight:700; color:#27ae60; margin-bottom:15px;">● موجود در انبار یاس</div>
+                <div style="font-weight:700; color:#27ae60; margin-bottom:15px;">● موجود در انبار داده نما</div>
                 <div style="text-align:left; border-top:1px solid #eee; padding-top:15px;">
                     ${oldPrice}
                     <div style="font-size:1.8rem; font-weight:900; color:var(--primary)">
@@ -1496,7 +1491,7 @@
                 foot.innerHTML = '';
                 return;
             }
-            body.innerHTML = state.serverOrders.map(d => `<div style="background:#f9f9f9; padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid #eee;"><div style="font-weight:700; color:var(--primary);">سفارش #${d.id.slice(-6).toUpperCase()}</div><div style="font-size:0.85rem; margin-top:5px;">مبلغ: ${(d.totalAmount || 0).toLocaleString()} ت</div><div style="display:flex; gap:5px; margin-top:10px;"><button onclick="location.href='/customerPanel.html?pendingOrderId=${d.id}'" style="flex:1.5; padding:6px; background:var(--primary); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">پرداخت</button><button onclick="editServerOrder('${d.id}')" style="flex:1; padding:6px; background:#fff; border:1px solid var(--primary); border-radius:6px; cursor:pointer; font-size:0.8rem;">ویرایش</button><button onclick="deleteServerOrder('${d.id}')" style="padding:6px; background:#fff; border:1px solid var(--danger); border-radius:6px; cursor:pointer;">🗑</button></div></div>`).join('');
+            body.innerHTML = state.serverOrders.map(d => `<div style="background:#f9f9f9; padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid #eee;"><div style="font-weight:700; color:var(--primary);">سفارش #${d.id.slice(-6).toUpperCase()}</div><div style="font-size:0.85rem; margin-top:5px;">مبلغ: ${(d.totalAmount || 0).toLocaleString()} ت</div><div style="display:flex; gap:5px; margin-top:10px;"><button onclick="location.href='/profile?pendingOrderId=${d.id}'" style="flex:1.5; padding:6px; background:var(--primary); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">پرداخت</button><button onclick="editServerOrder('${d.id}')" style="flex:1; padding:6px; background:#fff; border:1px solid var(--primary); border-radius:6px; cursor:pointer; font-size:0.8rem;">ویرایش</button><button onclick="deleteServerOrder('${d.id}')" style="padding:6px; background:#fff; border:1px solid var(--danger); border-radius:6px; cursor:pointer;">🗑</button></div></div>`).join('');
             foot.innerHTML = '';
         }
     }
@@ -1609,10 +1604,12 @@
             }
         });
     }
-
     function updateAuthWidget() {
         const n = localStorage.getItem('userName');
-        document.getElementById('authWidget').innerHTML = n ? `<div class="user-box"><a href="/customerPanel.html" class="user-name">${n}</a><button class="logout-btn" onclick="logout()">خروج</button></div>` : `<button onclick="document.getElementById('authOverlay').classList.add('active')" style="background:var(--accent); color:#fff; padding:8px 16px; border-radius:100px; border:none; font-weight:700; font-size:0.85rem; cursor:pointer;">ورود / ثبت‌نام</button>`;
+        // لینک را به /profile تغییر دادیم
+        document.getElementById('authWidget').innerHTML = n ?
+            `<div class="user-box">
+            <a href="/profile" class="user-name">${escapeHTML(n)}</a><button class="logout-btn" onclick="logout()">خروج</button></div>` : `<button onclick="document.getElementById('authOverlay').classList.add('active')" style="background:var(--accent); color:#fff; padding:8px 16px; border-radius:100px; border:none; font-weight:700; font-size:0.85rem; cursor:pointer;">ورود / ثبت‌نام</button>`;
     }
 
     function logout() {
@@ -1630,7 +1627,7 @@
             const res = await fetch(`${API}/api/orders/create-draft`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + localStorage.getItem('token') // در صورت استفاده از توکن
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
                 },
                 credentials: 'include',
                 body: JSON.stringify({items: state.cart.map(i => ({productId: i.id, quantity: i.qty || 1}))})
@@ -1639,9 +1636,11 @@
                 const data = await res.json();
                 state.cart = [];
                 saveCart();
-                location.href = `/customerPanel.html?pendingOrderId=${data.id}`;
+                // تغییر مهم: انتقال به مسیر profile 👇
+                location.href = `/profile?pendingOrderId=${data.id}`;
             }
         } catch (e) {
+            console.error("خطا در ایجاد فاکتور", e);
         }
     }
 
@@ -1780,7 +1779,7 @@
                 <div style="border-bottom: 1px solid var(--border); padding: 15px 0; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
                         <span style="font-weight: 800; color: var(--text);">
-                            ${escapeHTML(c.userName || 'کاربر یاس')}
+                            ${escapeHTML(c.userName || 'کاربر داده نما')}
                             ${c.isBuyer ? '<span style="color:#27ae60; background:#e8f8f0; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px; font-weight:bold;">✓ خریدار</span>' : ''}
                         </span>
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1792,7 +1791,7 @@
 
                     ${c.adminReply ? `
                         <div style="background: #f0f5fa; padding: 12px; border-right: 3px solid var(--primary); border-radius: 4px 8px 8px 4px; font-size: 0.8rem; margin-top: 5px;">
-                            <strong style="color: var(--primary); display: block; margin-bottom: 4px;">پاسخ فروشگاه یاس:</strong>
+                            <strong style="color: var(--primary); display: block; margin-bottom: 4px;">پاسخ فروشگاه داده نما:</strong>
                             <p style="color: var(--text-mid); line-height: 1.5;">${escapeHTML(c.adminReply)}</p>
                         </div>
                     ` : ''}

@@ -83,10 +83,9 @@
 //3-
 package org.example.shop1.config;
 
-import org.example.shop1.model.service.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -101,6 +100,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 // ۱. ابتدا این ایمپورت‌ها را بالای فایل SecurityConfig اضافه کنید:
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+
 import java.util.List;
 
 @Configuration
@@ -119,51 +119,77 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> {
+        http
+                .csrf(csrf -> {
                     CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-                    CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
-                    // این خط باعث می‌شود اسپرینگ توکن را بلافاصله بسازد و داخل کوکی مرورگر بگذارد
-                    requestHandler.setCsrfRequestAttributeName(null);
+                    tokenRepository.setCookiePath("/");
 
+                    CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+                    requestHandler.setCsrfRequestAttributeName(null);
                     csrf.csrfTokenRepository(tokenRepository)
-                            .csrfTokenRequestHandler(requestHandler);
+                            .csrfTokenRequestHandler(requestHandler)
+                            //  مسیر سفارشات را از چک کردن CSRF معاف کن
+                            .ignoringRequestMatchers("/api/orders/**");
+
                 })
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // در SecurityConfig.java بخش authorizeHttpRequests
+
                 .authorizeHttpRequests(auth -> auth
-                        // ۱. دسترسی آزاد به صفحات HTML، استاتیک‌ها و صفحه اصلی (لندینگ)
-                        .requestMatchers("/", "/CL.html", "/customerPanel.html", "/error").permitAll()
+                        // ۱. حتما صفحه خطا را کاملا باز بگذارید
+                        .requestMatchers("/error", "/favicon.ico").permitAll()
+
+                        .requestMatchers("/", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/fonts/**", "/images/**").permitAll()
 
-                        // ۲. مسیرهای احراز هویت (لاگین، ثبت نام، لاگ‌اوت و وضعیت کاربر)
+                        // ۲. مسیرهای عمومی API را با دقت بیشتر باز کنید (حذف HttpMethod.GET برای تست اگر جواب نداد)
+                        .requestMatchers(
+                                "/api/v1/products/**",
+                                "/api/categories/**",
+                                "/api/v1/landing-sections/**", // اینجا در لاگ خطا میداد
+                                "/api/comments/product/**",
+                                "/api/settings/**",
+                                "/api/auth/csrf"
+                        ).permitAll()
+
+                        // ۳. باقی مسیرها
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/api/current-user", "/api/auth/logout").permitAll()
 
-                        // ۳. مسیرهای عمومی سایت (که در فایل CL.html برای نمایش سایت فراخوانی می‌شوند)
-                        // فقط متد GET را باز می‌گذاریم تا کسی نتواند محصول جدیدی اضافه کند
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/products/**",
-                                "/api/categories/**",
-                                "/api/v1/landing-sections/**",
-                                "/api/comments/product/**",
-                                "/api/settings/**"
-                        ).permitAll()
-
-                        // ۴. مسیرهای امنیتی ادمین (اصلاح شده - بدون ** در وسط)
+                        // ۴. مسیرهای ادمین
                         .requestMatchers(
+                                "/Admin.html",
                                 "/api/users/admin/**",
                                 "/api/orders/admin/**",
                                 "/api/v1/products/admin/**",
                                 "/api/comments/admin/**"
-                                , "/Admin.html"
                         ).hasRole("ADMIN")
 
-                        // ۵. هر درخواست دیگری به جز موارد بالا، حتماً نیاز به لاگین دارد (مثل ثبت سفارش، پروفایل و ...)
                         .anyRequest().authenticated()
+                )
+                // ۴. این بخش را اضافه کن: اگر کاربر لاگین نبود و خواست وارد Admin.html شود، به AdminLogin.html هدایت شود
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            if (request.getRequestURI().startsWith("/Admin.html")) {
+                                response.sendRedirect("/AdminLogin.html");
+                            } else {
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                            }
+                        })
+                        // این بخش جدید است: وقتی شخص لاگین کرده اما ادمین نیست (ROLE_USER دارد)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            if (request.getRequestURI().startsWith("/Admin.html")) {
+                                response.sendRedirect("/AdminLogin.html");
+                            } else {
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+                            }
+                        })
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

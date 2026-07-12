@@ -1,5 +1,7 @@
 package org.example.shop1.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.example.shop1.config.SecurityUtils;
 import org.example.shop1.model.dto.ProductRequest;
 import org.example.shop1.model.dto.ProductSearchRequestDto;
 import org.example.shop1.model.dto.ProductSearchResponseDto;
@@ -27,31 +29,34 @@ public class ProductController {
     }
     // در بالای فایل:
 
-    
+
+    // ۱. اضافه کردن ورودی HttpServletRequest به متد سitemap
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     @ResponseBody
-    public String getSitemap() {
+    public String getSitemap(HttpServletRequest request) {
+        // تشخیص خودکار دامنه سرور (بدون هاردکد کردن)
+        String baseUrl = request.getScheme() + "://" + request.getServerName() +
+                (request.getServerPort() == 80 || request.getServerPort() == 443 ? "" : ":" + request.getServerPort());
+
         List<Product> products = productService.getAllProductsForAdmin();
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
 
-        // لینک صفحه اصلی
-        xml.append("<url><loc>https://yourdomain.com/</loc><priority>1.0</priority></url>");
+        xml.append("<url><loc>").append(baseUrl).append("/</loc><priority>1.0</priority></url>");
 
-        // لینک تمام محصولات
         for (Product p : products) {
             String slug = (p.getSlug() != null) ? p.getSlug() : p.getId();
             xml.append("<url>");
-            xml.append("<loc>https://yourdomain.com/product/").append(slug).append("</loc>");
+            xml.append("<loc>").append(baseUrl).append("/product/").append(slug).append("</loc>");
             xml.append("<lastmod>").append(p.getUpdatedAt().toString().substring(0,10)).append("</lastmod>");
             xml.append("<priority>0.8</priority>");
             xml.append("</url>");
         }
-
         xml.append("</urlset>");
         return xml.toString();
     }
+
 
 
     // اندپوینت جدید قدرتمند ما:
@@ -61,13 +66,17 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    // متد ایجاد محصول
+    // ۲. متد ایجاد محصول (پاکسازی امنیت XSS)
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody ProductRequest request) {
+        request.setName(SecurityUtils.clean(request.getName()));
+        request.setDescription(SecurityUtils.clean(request.getDescription()));
+        request.setSeoTitle(SecurityUtils.clean(request.getSeoTitle()));
+        request.setSeoDescription(SecurityUtils.clean(request.getSeoDescription()));
+
         Product createdProduct = productService.createProduct(request);
         return ResponseEntity.ok(createdProduct);
     }
-
     // متد مخصوص پنل ادمین (دریافت لیست کامل برای جدول ادمین)
     @GetMapping("/admin")
     public List<Product> getAllProductsForAdmin() {
