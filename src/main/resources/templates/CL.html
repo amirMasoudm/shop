@@ -865,6 +865,70 @@
                 border-radius: 15px;
             }
         }
+        /* استایل مدرن انتخابگر تعداد */
+        .cart-qty-ctrl {
+            display: flex;
+            align-items: center;
+            background: #f1f5f9; /* خاکستری خیلی روشن */
+            border-radius: 10px;
+            padding: 2px;
+            width: fit-content;
+            margin-top: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: var(--primary);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .qty-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .qty-btn:active {
+            transform: scale(0.9);
+        }
+
+        .qty-count {
+            padding: 0 12px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: var(--text);
+            min-width: 35px;
+            text-align: center;
+        }
+
+        /* استایل کلی آیتم سبد خرید برای نظم بهتر */
+        .cart-item {
+            display: flex;
+            gap: 12px;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            transition: 0.3s;
+        }
+
+        .cart-item:hover {
+            border-color: var(--primary-lt);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
@@ -1012,6 +1076,7 @@
 <div class="overlay" id="authOverlay" style="z-index:3000;">
     <div style="background:#fff; width:90%; max-width:340px; margin:100px auto; padding:30px; border-radius:20px; text-align:center;">
         <h3 id="authTitle">ورود / ثبت‌نام</h3>
+        <div id="authMsg" style="display:none; margin:10px 0; padding:8px; border-radius:8px; font-size:13px;"></div>
         <div id="stepPhone">
             <input type="tel" id="phoneInput" placeholder="09123456789"
                    style="width:100%; padding:12px; margin:15px 0; border:1px solid var(--border); border-radius:10px; text-align:center;">
@@ -1482,7 +1547,22 @@
             let total = 0;
             body.innerHTML = state.cart.map(i => {
                 total += i.price * i.qty;
-                return `<div class="cart-item"><img src="${i.img}" width="50" height="50" style="object-fit:contain;"><div style="flex:1"><div style="font-size:0.85rem; font-weight:700;">${i.name}</div><div style="font-weight:800; color:var(--primary); font-size:0.85rem;">${i.price.toLocaleString()} ت</div><div class="cart-qty-ctrl"><button class="qty-btn" onclick="changeQty('${i.id}',-1)">-</button><span style="font-weight:700; width:20px; text-align:center;">${i.qty}</span><button class="qty-btn" onclick="changeQty('${i.id}',1)">+</button></div></div></div>`;
+                return `
+    <div class="cart-item">
+        <div style="width: 70px; height: 70px; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
+            <img src="${i.img}" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div style="flex:1">
+            <div style="font-size:0.85rem; font-weight:700; color: var(--text); margin-bottom: 4px;">${i.name}</div>
+            <div style="font-weight:900; color:var(--primary); font-size:0.9rem;">${i.price.toLocaleString()} <span style="font-size: 0.7rem;">تومان</span></div>
+
+            <div class="cart-qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('${i.id}',-1)">−</button>
+                <span class="qty-count">${i.qty}</span>
+                <button class="qty-btn" onclick="changeQty('${i.id}',1)">+</button>
+            </div>
+        </div>
+    </div>`;
             }).join('');
             foot.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>جمع کل:</b><b>${total.toLocaleString()} ت</b></div><button onclick="checkout()" class="p-buy-btn" style="padding:10px; font-size:1rem;">تایید و ثبت نهایی</button>`;
         } else {
@@ -1644,28 +1724,58 @@
         }
     }
 
+    function showAuthMsg(text, ok) {
+        const m = document.getElementById('authMsg');
+        if (!m) return;
+        if (!text) { m.style.display = 'none'; return; }
+        m.style.display = 'block';
+        m.innerText = text;
+        m.style.background = ok ? '#dcfce7' : '#fee2e2';
+        m.style.color = ok ? '#166534' : '#b91c1c';
+    }
+
     async function sendOtp() {
         const p = document.getElementById('phoneInput').value;
-        if (p.length < 11) return;
+        if (!/^09\d{9}$/.test(p)) {
+            showAuthMsg('شماره موبایل معتبر نیست', false);
+            return;
+        }
+        showAuthMsg('', true);
         try {
-            await fetch(`${API}/api/auth/send-otp`, {
+            const res = await fetch(`${API}/api/auth/send-otp`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({phoneNumber: p})
             });
+
+            if (!res.ok) {
+                // پیام واقعی سرور (مثلاً محدودیت زمانی) را نشان بده و در همین مرحله بمان
+                const serverMsg = await res.text();
+                showAuthMsg(serverMsg || 'خطا در ارسال کد، لطفاً دوباره تلاش کنید', false);
+                return;
+            }
+
             state.phone = p;
             document.getElementById('stepPhone').style.display = 'none';
             document.getElementById('stepOtp').style.display = 'block';
+            showAuthMsg('کد تایید ارسال شد', true);
         } catch (e) {
+            showAuthMsg('خطای ارتباط با سرور', false);
         }
     }
 
     async function verifyOtp() {
+        const code = document.getElementById('otpInput').value;
+        if (!code) {
+            showAuthMsg('کد تایید را وارد کنید', false);
+            return;
+        }
+        showAuthMsg('', true);
         try {
             const res = await fetch(`${API}/api/auth/verify-otp`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({phoneNumber: state.phone, code: document.getElementById('otpInput').value})
+                body: JSON.stringify({phoneNumber: state.phone, code: code})
             });
             if (res.ok) {
                 const data = await res.json();
@@ -1673,15 +1783,19 @@
                 // در صورتی که سرور توکن فرستاد، آن را ذخیره می‌کنیم
                 if (data && data.token) localStorage.setItem('token', data.token);
 
-                if (!data.isProfileComplete) {
+                if (data.user && data.user.firstName && data.user.lastName) {
+                    finishLogin(data.user);
+                } else {
                     document.getElementById('stepOtp').style.display = 'none';
                     document.getElementById('stepProfile').style.display = 'block';
-                } else {
-                    finishLogin(data.user);
+                    showAuthMsg('', true);
                 }
+            } else {
+                const serverMsg = await res.text();
+                showAuthMsg(serverMsg || 'کد وارد شده اشتباه است یا منقضی شده', false);
             }
         } catch (e) {
-            console.error("خطا در تایید کد:", e);
+            showAuthMsg('خطای ارتباط با سرور', false);
         }
     }
 
@@ -1709,8 +1823,10 @@
 
                 if (data && data.token) localStorage.setItem('token', data.token);
 
-                // اگر بک‌اند دیتای کاربر را برگرداند از آن استفاده میکنیم، در غیر این صورت از مقادیر فرم استفاده می‌کنیم
-                const userObj = (data && data.user) ? data.user : { firstName: fName, lastName: lName };
+                const userObj = {
+                    firstName: fName,
+                    lastName: lName
+                };
 
                 finishLogin(userObj);
             }
@@ -1739,6 +1855,7 @@
         document.getElementById('stepProfile').style.display = 'none';
         document.getElementById('stepOtp').style.display = 'none';
         document.getElementById('stepPhone').style.display = 'block';
+        showAuthMsg('', true);
         document.getElementById('phoneInput').value = '';
         document.getElementById('otpInput').value = '';
         document.getElementById('fName').value = '';

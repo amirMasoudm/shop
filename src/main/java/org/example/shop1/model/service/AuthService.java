@@ -1,60 +1,129 @@
 package org.example.shop1.model.service;
 
+import org.example.shop1.exeption.ApiException;
+import org.example.shop1.model.entity.OtpData;
 import org.example.shop1.model.entity.User;
 import org.example.shop1.model.enums.Role;
+import org.example.shop1.model.reposritory.OtpRepository;
 import org.example.shop1.model.reposritory.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
+import java.security.SecureRandom;
 
 @Service
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
     private final UserRepository userRepository;
     private final SmsService smsService;
+    private final OtpRepository otpRepository;
 
-    // ذخیره موقت: Key=شماره موبایل, Value=کد
-    // در محیط واقعی بهتر است از Redis با TTL استفاده شود
-    private final Map<String, String> otpStorage = new ConcurrentHashMap<>();
+    // تولید کد امن (به جای java.util.Random که قابل پیش‌بینی است)
+    private final SecureRandom secureRandom = new SecureRandom();
 
-    public AuthService(UserRepository userRepository, SmsService smsService) {
+    private static final long OTP_EXPIRE_TIME = 120000; //2 دقیقه
+
+    private static final long OTP_REQUEST_INTERVAL = 60000; //60 ثانیه
+
+    private static final int MAX_ATTEMPTS = 5;
+
+    public AuthService(UserRepository userRepository, SmsService smsService, OtpRepository otpRepository) {
         this.userRepository = userRepository;
         this.smsService = smsService;
+        this.otpRepository = otpRepository;
     }
 
-    // مرحله ۱: تولید کد و ارسال
+
+    /*
+        ارسال OTP
+    */
     public void sendOtpCode(String phoneNumber) {
-        String code = String.valueOf(new Random().nextInt(90000) + 10000); // کد ۵ رقمی
-        otpStorage.put(phoneNumber, code);
+
+        validatePhone(phoneNumber);
+
+        // محدودیت نرخ: اگر کد فعالی وجود دارد که کمتر از فاصله مجاز از آن گذشته، اجازه نده
+        OtpData existing = otpRepository.findById(phoneNumber).orElse(null);
+        if (existing != null
+                && System.currentTimeMillis() - existing.getCreatedAt() < OTP_REQUEST_INTERVAL) {
+            long waitSeconds = (OTP_REQUEST_INTERVAL - (System.currentTimeMillis() - existing.getCreatedAt())) / 1000 + 1;
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS,
+                    "کد قبلاً ارسال شده؛ لطفاً " + waitSeconds + " ثانیه دیگر دوباره تلاش کنید");
+        }
+
+        // کد ۵ رقمی امن (بازه 10000..99999 مطابق رفتار قبلی حفظ شده)
+        String code = String.valueOf(10000 + secureRandom.nextInt(90000));
+
+        OtpData otp = new OtpData(phoneNumber, code, System.currentTimeMillis() + OTP_EXPIRE_TIME);
+
+        // فقط در محیط توسعه (سطح DEBUG) دیده می‌شود؛ در prod لاگ نمی‌شود
+        log.debug("OTP for {} = {}", phoneNumber, code);
+
+        otpRepository.save(otp);
+
         smsService.sendOtp(phoneNumber, code);
     }
 
-// در کلاس AuthService
 
+    /*
+       فقط بررسی OTP
+       مخصوص Admin
+    */
     public boolean verifyOnlyCode(String phoneNumber, String code) {
-        String savedCode = otpStorage.get(phoneNumber);
-        if (savedCode != null && savedCode.equals(code)) {
-            otpStorage.remove(phoneNumber);
-            return true;
+
+        OtpData otp = otpRepository.findById(phoneNumber).orElse(null);
+
+        if (otp == null) {
+            return false;
         }
-        return false;
+
+        if (otp.isExpired()) {
+            otpRepository.deleteById(phoneNumber);
+            return false;
+        }
+
+        if (otp.getAttempts() >= MAX_ATTEMPTS) {
+            otpRepository.deleteById(phoneNumber);
+            return false;
+        }
+
+        if (!otp.getCode().equals(code)) {
+            otp.increaseAttempts();
+            otpRepository.save(otp);
+            return false;
+        }
+
+        /*
+           OTP مصرف شد
+        */
+        otpRepository.deleteById(phoneNumber);
+
+        return true;
     }
 
-    // متد قبلی شما باید اصلاح شود تا نقش پیش فرض USER بدهد و باگ admin حذف شود
+
+    /*
+       Login مشتری با OTP
+    */
     public User verifyCodeAndLogin(String phoneNumber, String code) {
-        if (verifyOnlyCode(phoneNumber, code)) {
-            return userRepository.findByPhoneNumber(phoneNumber)
-                    .orElseGet(() -> {
-                        // کاربران عادی که با شماره ثبت نام میکنند
-                        User newUser = new User(phoneNumber, Role.USER);
-                        return userRepository.save(newUser);
-                    });
-        } else {
-            throw new RuntimeException("کد وارد شده صحیح نیست!");
+
+        if (!verifyOnlyCode(phoneNumber, code)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "کد تایید اشتباه است یا منقضی شده");
         }
+
+        return userRepository.findByPhoneNumber(phoneNumber).orElseGet(() -> {
+            User newUser = new User(phoneNumber, Role.USER);
+            return userRepository.save(newUser);
+        });
     }
 
+
+    private void validatePhone(String phone) {
+        if (phone == null || !phone.matches("^09\\d{9}$")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "شماره موبایل معتبر نیست");
+        }
+    }
 }

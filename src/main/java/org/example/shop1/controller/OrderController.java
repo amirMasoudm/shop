@@ -120,7 +120,7 @@ public class OrderController {
             <html lang="fa" dir="rtl">
             <head>
                 <meta charset="UTF-8">
-                <title>درگاه پرداخت تستی | فروشگاه یاس</title>
+                <title>درگاه پرداخت تستی | داده نما</title>
                 <style>
                     body { font-family: Tahoma, Arial, sans-serif; background: #f3f4f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
                     .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 100%; border: 1px solid #e5e7eb; }
@@ -164,8 +164,8 @@ public class OrderController {
     public ResponseEntity<Void> mockCallback(@PathVariable String orderId, @RequestParam String status) {
         try {
             if ("SUCCESS".equals(status)) {
-                // ۱. تغییر وضعیت سفارش به پرداخت شده و در حال بسته‌بندی در فروشگاه
-                orderService.updateOrderStatus(orderId, OrderStatus.PAID_PREPARING);
+                // ۱. تغییر وضعیت سفارش به پرداخت شده — فقط برای صاحب همان سفارش
+                orderService.payOrderByCurrentUser(orderId);
                 log.info("سفارش شماره {} با موفقیت پرداخت شد و به مرحله بسته‌بندی رفت.", orderId);
             } else {
                 log.warn("پرداخت سفارش شماره {} ناموفق بود.", orderId);

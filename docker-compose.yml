@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # 1. دیتابیس MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: shop_mongodb
+    restart: always
+    environment:
+      # یوزر/پسورد از فایل .env خوانده می‌شوند (در گیت کامیت نشود)
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      # ذخیره دائمی دیتای مونگو در یک والیوم داکر (تا با پاک شدن کانتینر، دیتا نپره)
+      - mongo_data:/data/db
+
+  # 2. اپلیکیشن Spring Boot شما
+  backend:
+    build: .  # از روی Dockerfile در همین پوشه ایمیج می‌سازد
+    container_name: shop_backend
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      # فعال کردن پروفایل پروداکشن
+      - SPRING_PROFILES_ACTIVE=prod
+
+      # آدرس اتصال به مونگو بر اساس یوزر/پسورد فایل .env و اسم کانتینر mongodb
+      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/shopdb?authSource=admin
+
+      # مسیر ذخیره عکس‌ها در لینوکس (کانتینر)
+      - UPLOAD_DIR=/opt/shop/uploads
+
+      # کلیدها و توکن‌ها از فایل .env خوانده می‌شوند
+      - OPENAI_KEY=${OPENAI_KEY}
+      - TAPIN_TOKEN=${TAPIN_TOKEN}
+      - SNAPP_TOKEN=${SNAPP_TOKEN}
+      - SMS_API_KEY=${SMS_API_KEY}
+      - SMS_TEMPLATE_ID=${SMS_TEMPLATE_ID}
+
+      # اطلاعات ادمین اولیه
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PHONE=${ADMIN_PHONE}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+
+      # یک نکته طلایی برای شبیه‌ساز:
+      # چون روی لوکال هستیم و HTTPS نداریم، کوکی‌های سکیور کار نمی‌کنند و ادمین نمی‌تونه لاگین کنه.
+      # با این خط، موقتاً در شبیه‌ساز کوکی سکیور رو خاموش می‌کنیم (در VPS این خط رو پاک می‌کنیم)
+      - SERVER_SERVLET_SESSION_COOKIE_SECURE=false
+
+    volumes:
+      # وصل کردن یک پوشه از ویندوز تو به پوشه آپلود لینوکس، تا عکسا رو به صورت زنده ببینی!
+      - ./uploads_sim:/opt/shop/uploads
+
+  # 3. وب‌سرور Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: shop_nginx
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      # مپ کردن پورت 80 سیستم شما به پورت 80 کانتینر
+      - "80:80"
+    volumes:
+      # جایگذاری کانفیگ اختصاصی ما به جای کانفیگ پیش‌فرض انجینکس
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+
+volumes:
+  mongo_data:

@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Project specific (security & runtime artifacts) ###
+.env
+*.env
+!.env.example
+uploads/
+uploads_sim/
+javacore.*.txt
+*.hprof
+heapdump.*

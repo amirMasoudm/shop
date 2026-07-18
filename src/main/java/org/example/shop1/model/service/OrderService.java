@@ -38,13 +38,31 @@ public class OrderService {
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-            return userRepo.findByUsername(auth.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+            return userRepo.findByUsername(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
         }
-        return userRepo.findByUsername("09120000000").orElseGet(() -> {
-            User testUser = new User("09120000000", Role.USER);
-            testUser.setFirstName("کاربر"); testUser.setLastName("تستی");
-            return userRepo.save(testUser);
-        });
+        // دیگر کاربر تستی ساختگی ساخته نمی‌شود؛ عملیات سفارش نیازمند ورود واقعی است
+        throw new RuntimeException("برای انجام این عملیات ابتدا باید وارد شوید");
+    }
+
+    /*
+       سفارش را پیدا می‌کند و مطمئن می‌شود متعلق به کاربر جاری است.
+       ادمین به همه سفارش‌ها دسترسی دارد.
+    */
+    private Order getOwnedOrder(String orderId) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("سفارش پیدا نشد"));
+
+        User current = getCurrentUser();
+        if (current.getRole() == Role.ADMIN) {
+            return order;
+        }
+
+        if (order.getUser() == null || order.getUser().getId() == null
+                || !order.getUser().getId().equals(current.getId())) {
+            throw new RuntimeException("شما به این سفارش دسترسی ندارید");
+        }
+        return order;
     }
 
     @Transactional
@@ -62,9 +80,8 @@ public class OrderService {
 
     // متد لغو و حذف سفارش برای اضافه کردن به کلاس OrderService
     public void deleteOrder(String id) {
-        // ۱. پیدا کردن سفارش
-        Order order = orderRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("سفارش مورد نظر یافت نشد: " + id));
+        // ۱. پیدا کردن سفارش + بررسی مالکیت
+        Order order = getOwnedOrder(id);
 
         // ۲. امنیت: بررسی اینکه سفارش فقط در وضعیت پرداخت‌نشده باشد
         if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
@@ -78,7 +95,7 @@ public class OrderService {
     // متد جدید: بروزرسانی سبد خرید قبل از پرداخت
     @Transactional
     public Order updateOrderItems(String orderId, List<OrderRequestDto.CartItemDto> items) {
-        Order order = orderRepo.findById(orderId).orElseThrow(() -> new RuntimeException("سفارش پیدا نشد"));
+        Order order = getOwnedOrder(orderId);
         if (order.isFinalized()) throw new RuntimeException("امکان ویرایش سفارش نهایی شده وجود ندارد");
         return updateOrderItemsLogic(order, items);
     }
@@ -109,7 +126,7 @@ public class OrderService {
     }
 
     public List<ShippingOption> getShippingQuotes(String orderId, Address destination) {
-        Order order = orderRepo.findById(orderId).orElseThrow(() -> new RuntimeException("سفارش یافت نشد"));
+        Order order = getOwnedOrder(orderId);
         double totalWeight = 0;
         for (OrderItem item : order.getItems()) {
             Product product = productRepo.findById(item.getProductId()).orElse(null);
@@ -122,7 +139,7 @@ public class OrderService {
 
     @Transactional
     public Order finalizeOrder(String orderId, OrderRequestDto request) {
-        Order order = orderRepo.findById(orderId).orElseThrow(() -> new RuntimeException("سفارش پیدا نشد"));
+        Order order = getOwnedOrder(orderId);
         if (order.isFinalized()) throw new RuntimeException("این سفارش قبلاً نهایی شده");
 
         // اگر حین فینالایز اقلامی ارسال شد (محکم‌کاری)، آپدیت کن
@@ -185,7 +202,16 @@ public class OrderService {
 
     public List<Order> getMyOrders() { return orderRepo.findByUserOrderByOrderDateDesc(getCurrentUser()); }
     public List<Order> getAllOrdersForAdmin() { return orderRepo.findAll(); }
-    public Order getOrderById(String id) { return orderRepo.findById(id).orElseThrow(() -> new RuntimeException("سفارش پیدا نشد")); }
+
+    // با بررسی مالکیت: هر کاربر فقط سفارش خودش را می‌بیند (ادمین همه را)
+    public Order getOrderById(String id) { return getOwnedOrder(id); }
+
+    // پرداخت سفارش توسط صاحب همان سفارش (درگاه تستی). ادمین هم مجاز است.
+    @Transactional
+    public Order payOrderByCurrentUser(String orderId) {
+        getOwnedOrder(orderId); // فقط جهت اعمال بررسی مالکیت
+        return updateOrderStatus(orderId, OrderStatus.PAID_PREPARING);
+    }
 
     // متد جدید جهت تغییر وضعیت سفارش در دیتابیس به صورت کاملا ایمن
     @Transactional

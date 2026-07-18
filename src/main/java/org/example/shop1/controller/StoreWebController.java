@@ -28,7 +28,7 @@ public class StoreWebController {
         // متد کمکی برای اضافه کردن آدرس‌های زنده (جلوگیری از خطای ۵۰۰)
         addDynamicUrls(model, request);
 
-        model.addAttribute("seoTitle", "فروشگاه یاس | خرید آنلاین با بهترین قیمت");
+        model.addAttribute("seoTitle", "داده نما | اتصال آسان است");
         model.addAttribute("seoDescription", "فروشگاه اینترنتی یاس، عرضه کننده بهترین محصولات با گارانتی معتبر و ارسال فوری");
         return "CL";
     }
@@ -52,11 +52,11 @@ public class StoreWebController {
             String slug = (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
             model.addAttribute("productSlug", slug);
 
-            String catName = "فروشگاه یاس";
+            String catName = "داده نما";
             if (p.getCategoryId() != null) {
                 catName = categoryRepo.findById(p.getCategoryId())
                         .map(Category::getName)
-                        .orElse("فروشگاه یاس");
+                        .orElse("داده نما");
             }
             model.addAttribute("categoryName", catName);
         } else {

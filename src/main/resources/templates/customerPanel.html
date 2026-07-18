@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>پنل کاربری | فروشگاه یاس</title>
+    <title>پنل کاربری | فروشگاه داده نما</title>
 
     <!-- منابع لوکال (آفلاین) -->
     <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">
@@ -86,7 +86,7 @@
     <aside class="desktop-sidebar w-72 glass-sidebar flex-shrink-0 flex flex-col py-6 z-20">
         <div class="px-8 mb-10 text-center">
             <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold mb-3 shadow-lg" id="avatar-box">Y</div>
-            <h2 class="font-bold text-xl" id="sidebar-name">فروشگاه یاس</h2>
+            <h2 class="font-bold text-xl" id="sidebar-name">داده نما</h2>
             <p class="text-xs text-gray-400" id="sidebar-phone">پنل کاربری</p>
         </div>
         <nav class="flex-1">
@@ -116,7 +116,7 @@
             <section id="tab-dashboard" class="animate-fade-in">
                 <div class="mb-8">
                     <h1 class="text-3xl font-black text-gray-800" id="welcome-msg">سلام؛ وقت بخیر! 👋</h1>
-                    <p class="text-gray-500 mt-2">خلاصه‌ای از فعالیت‌های شما در فروشگاه یاس</p>
+                    <p class="text-gray-500 mt-2">خلاصه‌ای از فعالیت‌های شما در فروشگاه داده نما</p>
                 </div>
 
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
@@ -933,7 +933,7 @@
     async function logout() {
         askConfirm(
             "خروج از حساب کاربری",
-            "آیا از خروج خود از حساب کاربری فروشگاه یاس اطمینان دارید؟",
+            "آیا از خروج خود از حساب کاربری فروشگاه داده نما اطمینان دارید؟",
             async () => {
                 // ۱. ابتدا به سرور میگوییم سشن را باطل کند
                 try { await fetch('/api/auth/logout', { method: 'POST' }); } catch(e) {}
@@ -1013,7 +1013,7 @@
 
                 ${c.adminReply ? `
                     <div class="bg-blue-50 p-4 rounded-xl border-r-4 border-blue-500 text-sm mb-4">
-                        <strong class="block text-blue-800 mb-1 text-xs">پاسخ فروشگاه یاس:</strong>
+                        <strong class="block text-blue-800 mb-1 text-xs">پاسخ فروشگاه داده نما:</strong>
                         <!-- استفاده از escapeHTML برای پاسخ ادمین -->
                         <div class="text-blue-900">${escapeHTML(c.adminReply)}</div>
                     </div>

@@ -79,7 +79,8 @@
                 document.getElementById('title').innerText = "تایید هویت";
                 showMsg("کد با موفقیت ارسال شد", "green");
             } else {
-                showMsg("خطا در ارسال کد", "red");
+                const serverMsg = await res.text();
+                showMsg(serverMsg || "خطا در ارسال کد", "red");
             }
         } catch (e) {
             showMsg("خطای شبکه", "red");

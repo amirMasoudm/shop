@@ -22,8 +22,7 @@ public class User {
     private String firstName;
     private String lastName;
     private String email;
-    private Role role;
-
+    private Role role = Role.USER;
     @Indexed(unique = true)
     private String phoneNumber;
 
@@ -41,10 +40,13 @@ public class User {
 // در کلاس User این بخش را اضافه یا اصلاح کنید:
 
     public User(String phoneNumber, Role role) {
+
         this.phoneNumber = phoneNumber;
-        this.username = phoneNumber; // به عنوان پیش‌فرض، یوزرنیم همان شماره موبایل باشد
+        this.username = phoneNumber;
         this.role = role;
-        this.addresses = new ArrayList<>(); // مقداردهی اولیه لیست آدرس‌ها
+        this.password = null;
+        this.addresses = new ArrayList<>();
+
     }
     public User(String username, String password, Role role) {
         this.username = username;

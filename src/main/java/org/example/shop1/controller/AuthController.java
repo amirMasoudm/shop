@@ -5,11 +5,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.example.shop1.config.SecurityUtils;
+import org.example.shop1.exeption.ApiException;
 import org.example.shop1.model.entity.User;
 
 import org.example.shop1.model.enums.Role;
 import org.example.shop1.model.reposritory.UserRepository;
 import org.example.shop1.model.service.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,30 +49,40 @@ public class AuthController {
     }
     // مرحله اول لاگین ادمین
     @PostMapping("/admin/login-step1")
-    public ResponseEntity<?> adminLoginStep1(@RequestBody Map<String, String> payload) {
-        System.out.println("tttttttttttttttttttttttttttttttttttt");
+    public ResponseEntity<?> adminLoginStep1(
+            @RequestBody Map<String,String> payload,
+            HttpServletRequest request){
         String username = payload.get("username");
         String password = payload.get("password");
 
         User admin = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("نام کاربری یا رمز عبور اشتباه است"));
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "نام کاربری یا رمز عبور اشتباه است"));
 
         // فقط ادمین ها مجاز به استفاده از این مسیر هستند
         if (admin.getRole() != Role.ADMIN) {
             return ResponseEntity.status(403).body("شما اجازه ورود از این بخش را ندارید");
         }
 
-        if (!passwordEncoder.matches(password, admin.getPassword())) {
-            return ResponseEntity.badRequest().body("نام کاربری یا رمز عبور اشتباه است");
+        if (admin.getPassword() == null || !passwordEncoder.matches(password, admin.getPassword())) {
+            return ResponseEntity.status(401).body("نام کاربری یا رمز عبور اشتباه است");
         }
 
-        // تولید و ارسال OTP به شماره موبایل ثبت شده برای ادمین
         authService.sendOtpCode(admin.getPhoneNumber());
 
-        return ResponseEntity.ok(Map.of(
-                "message", "رمز عبور صحیح بود. کد تایید به شماره موبایل شما ارسال شد.",
-                "phoneNumber", admin.getPhoneNumber() // می‌توان بخشی از آن را ستاره دار کرد
-        ));
+
+        request.getSession()
+                .setAttribute(
+                        "PENDING_ADMIN_LOGIN",
+                        admin.getUsername()
+                );
+
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message",
+                        "کد تایید ارسال شد"
+                )
+        );
     }
 
     // مرحله دوم لاگین ادمین
@@ -78,11 +90,21 @@ public class AuthController {
     public ResponseEntity<?> adminLoginStep2(@RequestBody Map<String, String> payload,
                                              HttpServletRequest request,
                                              HttpServletResponse response) {
-        String username = payload.get("username");
-        String code = payload.get("code");
+        String username =
+                (String) request.getSession()
+                        .getAttribute("PENDING_ADMIN_LOGIN");
 
-        User admin = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
+
+        if(username == null){
+
+            return ResponseEntity.status(401)
+                    .body("جلسه ورود منقضی شده");
+
+        }        String code = payload.get("code");
+
+        User admin =
+                userRepository.findByUsername(username)
+                        .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "کاربر یافت نشد"));
 
         // بررسی صحت کد OTP
         // (باید یک متد در AuthService بنویسید که فقط کد را چک کند بدون اینکه یوزر جدید بسازد)
@@ -102,14 +124,30 @@ public class AuthController {
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
 
-        return ResponseEntity.ok(Map.of("message", "ورود ادمین با موفقیت انجام شد", "user", admin));
+        Map<String,Object> result=new HashMap<>();
+
+        result.put(
+                "message",
+                "ورود ادمین با موفقیت انجام شد"
+        );
+
+        result.put(
+                "username",
+                admin.getUsername()
+        );
+
+        result.put(
+                "role",
+                admin.getRole()
+        );
+
+
+        return ResponseEntity.ok(result);
     }
     // متد sendOtp بدون تغییر باقی می‌ماند...
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> payload) {
-        System.out.println("/////////test");
         authService.sendOtpCode(payload.get("phoneNumber"));
-        System.out.println("gggggggggggggggggggggggg");
         return ResponseEntity.ok("کد ارسال شد");
     }
 

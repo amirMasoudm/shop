@@ -964,7 +964,7 @@
     window.onload = async function() {
         try {
             // چک کردن وضعیت لاگین از سرور
-            const res = await fetch("http://localhost:8080/api/users/api/current-user", {
+            const res = await fetch("/api/users/api/current-user", {
                 credentials: 'include'
             });
 
