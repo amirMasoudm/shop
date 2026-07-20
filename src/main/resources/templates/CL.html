@@ -928,6 +928,33 @@
 </head>
 <body>
 
+<!-- بلوک سروری محصول: برای خزنده‌های گوگل و لود اولیه (بدنه بدون وابستگی به JS دیده می‌شود).
+     پس از رندر شدن صفحه توسط JS، این بلوک حذف می‌شود تا کاربر تجربه‌ی SPA را داشته باشد. -->
+<div id="ssr-product" th:if="${p != null}"
+     style="position:fixed; inset:0; z-index:5000; background:#fff; overflow:auto; padding:24px 16px; direction:rtl;">
+    <div style="max-width:900px; margin:0 auto;">
+        <nav style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            <a th:href="${baseUrl + '/'}" style="color:#1b4f8a; text-decoration:none;">خانه</a>
+            <span> / </span>
+            <span th:text="${categoryName}">دسته‌بندی</span>
+        </nav>
+        <div style="display:flex; flex-wrap:wrap; gap:24px;">
+            <img th:src="${p.images != null and !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'}"
+                 th:alt="${p.name}"
+                 style="width:320px; max-width:100%; height:auto; border-radius:12px; border:1px solid #eee; object-fit:cover;">
+            <div style="flex:1; min-width:260px;">
+                <h1 th:text="${p.name}" style="font-size:24px; margin:0 0 12px; color:#1f2937;">نام محصول</h1>
+                <div style="font-size:22px; font-weight:bold; color:#059669; margin-bottom:16px;">
+                    <span th:text="${#numbers.formatInteger(p.onlinePrice != null ? p.onlinePrice : (p.price != null ? p.price : 0), 1, 'COMMA')}">0</span>
+                    <span>تومان</span>
+                </div>
+                <p th:text="${p.description}" style="color:#374151; line-height:1.9; font-size:15px; white-space:pre-line;">توضیحات محصول</p>
+            </div>
+        </div>
+        <p style="margin-top:24px; color:#9ca3af; font-size:13px;">در حال بارگذاری فروشگاه…</p>
+    </div>
+</div>
+
 <header class="top-bar">
     <div class="navbar">
         <button onclick="toggleDr('menuDrawer')"
@@ -1223,6 +1250,10 @@
         window.scrollTo(0, 0);
         document.getElementById('homeView').classList.remove('active');
         document.getElementById('productView').classList.add('active');
+
+        // حذف بلوک سروری پس از رندر واقعی صفحه توسط JS (اگر محصول پیدا نشده باشد بالاتر return شده و بلوک می‌ماند)
+        const ssrBlock = document.getElementById('ssr-product');
+        if (ssrBlock) ssrBlock.remove();
 
         const mainImg = (p.images && p.images.length > 0) ? p.images[0] : '';
 
