@@ -40,6 +40,9 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     // پیدا کردن محصولاتی که یک sectionId خاص را دارند (برای پاکسازی)
     List<Product> findBySectionIdsContaining(String sectionId);
 
+    // نسخه صفحه‌بندی‌شده برای فرانت (جشنواره‌ها بدون نیاز به لود همه محصولات)
+    Page<Product> findBySectionIdsContaining(String sectionId, Pageable pageable);
+
     // نمونه‌ای از فیلترینگ ترکیبی (پیاده‌سازی در سرویس):
     // Page<Product> findByCategoryIdAndDiscountedPriceBetween(String categoryId, BigDecimal min, BigDecimal max, Pageable pageable);
 }

@@ -156,6 +156,13 @@ public class ProductService {
         return productRepo.findAll();
     }
 
+    // دریافت یک محصول با اسلاگ یا شناسه (برای صفحه محصول بدون نیاز به لود کل لیست)
+    public Optional<Product> findBySlugOrId(String slugOrId) {
+        Optional<Product> bySlug = productRepo.findBySlug(slugOrId);
+        if (bySlug.isPresent()) return bySlug;
+        return productRepo.findById(slugOrId);
+    }
+
     /*
        ساخت اسلاگ تمیز و یکتا:
        - فاصله‌ها به خط تیره تبدیل می‌شوند
@@ -187,6 +194,7 @@ public class ProductService {
 
     public Page<Product> getProductsForClient(
             String categoryId,
+            String sectionId,
             BigDecimal minPrice,
             BigDecimal maxPrice,
             String sortBy,
@@ -196,6 +204,11 @@ public class ProductService {
 
         Sort sort = defineSort(sortBy, sortDirection);
         Pageable pageable = PageRequest.of(page, size, sort);
+
+        // فیلتر جشنواره (لندینگ سکشن) — سمت سرور تا فرانت نیازی به لود همه محصولات نداشته باشد
+        if (sectionId != null && !sectionId.trim().isEmpty()) {
+            return productRepo.findBySectionIdsContaining(sectionId, pageable);
+        }
 
         if (categoryId != null && !categoryId.trim().isEmpty()) {
             // ۱. پیدا کردن تمام دسته‌هایی که این دسته‌بندی والد یا جدّ آن‌هاست

@@ -1229,13 +1229,16 @@
             state.secs = s;
         });
         try {
-            const pRes = await fetch(`${API}/api/v1/products?size=500`);
+            // فقط ۱۰۰ محصول اول برای صفحه اصلی؛ بقیه در لحظه از سرور واکشی می‌شوند
+            const pRes = await fetch(`${API}/api/v1/products?size=100`);
             const pData = await pRes.json();
             state.all = pData.content || pData || [];
             document.getElementById('loadingSkeleton').style.display = 'none';
 
             if (window.SERVER_PRODUCT_SLUG) {
-                const targetProduct = state.all.find(x => x.slug === window.SERVER_PRODUCT_SLUG || x.id === window.SERVER_PRODUCT_SLUG);
+                let targetProduct = state.all.find(x => x.slug === window.SERVER_PRODUCT_SLUG || x.id === window.SERVER_PRODUCT_SLUG);
+                // اگر محصول در ۱۰۰ تای اول نبود، تکی از سرور بگیر
+                if (!targetProduct) targetProduct = await fetchProductBySlugOrId(window.SERVER_PRODUCT_SLUG);
                 if (targetProduct) {
                     document.getElementById('landingSections').style.display = 'block';
                     document.getElementById('latestSectionHeader').style.display = 'block';
@@ -1267,8 +1270,23 @@
         }
     }    // PRODUCT DETAIL
 
-    function openProductDetail(productId, isInitialLoad = false) {
-        const p = state.all.find(x => x.id === productId);
+    // واکشی تکی محصول از سرور (وقتی در لیست لودشده نیست) و ادغام در حافظه
+    async function fetchProductBySlugOrId(key) {
+        try {
+            const res = await fetch(`${API}/api/v1/products/single/${encodeURIComponent(key)}`);
+            if (!res.ok) return null;
+            const p = await res.json();
+            if (p && p.id && !state.all.some(x => x.id === p.id)) state.all.push(p);
+            return p;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function openProductDetail(productId, isInitialLoad = false) {
+        let p = state.all.find(x => x.id === productId);
+        // اگر محصول در حافظه نبود (خارج از ۱۰۰ تای اول)، تکی از سرور بگیر
+        if (!p) p = await fetchProductBySlugOrId(productId);
         if(!p) return;
 
         // --- بخش ۱: به‌روزرسانی سئو و آدرس (URL) ---
@@ -1480,7 +1498,7 @@
         return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div><button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button></div>`;
     }
 
-    function loadHome(isPopState = false) {
+    async function loadHome(isPopState = false) {
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
 
@@ -1490,12 +1508,26 @@
         document.getElementById('latestSectionHeader').style.display = 'block';
         document.getElementById('latestSectionHeader').innerText = 'جدیدترین محصولات';
 
-        let secHtml = '';
-        state.secs.forEach(sec => {
-            const ps = state.all.filter(p => p.sectionIds && p.sectionIds.includes(sec.id));
-            if (ps.length) secHtml += `<div class="dynamic-section"><div class="section-color-bar" style="background:${sec.stickerColor}"></div><div class="section-header"><span>${sec.title}</span><button onclick="loadSection('${sec.id}','${sec.title}')" style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer;">همه محصولات ❯</button></div><div class="section-slider">${ps.map(p => renderCard(p, [sec])).join('')}</div></div>`;
-        });
-        document.getElementById('landingSections').innerHTML = secHtml;
+        // محصولات هر جشنواره از سرور گرفته می‌شود (وابسته به لود کل محصولات نیست)
+        try {
+            const secResults = await Promise.all(
+                state.secs.map(sec =>
+                    fetch(`${API}/api/v1/products?sectionId=${sec.id}&size=15`)
+                        .then(r => r.json())
+                        .then(d => ({sec, ps: d.content || d || []}))
+                        .catch(() => ({sec, ps: []}))
+                )
+            );
+            let secHtml = '';
+            secResults.forEach(({sec, ps}) => {
+                // ادغام در حافظه تا کلیک روی کارت بدون واکشی مجدد کار کند
+                ps.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
+                if (ps.length) secHtml += `<div class="dynamic-section"><div class="section-color-bar" style="background:${sec.stickerColor}"></div><div class="section-header"><span>${sec.title}</span><button onclick="loadSection('${sec.id}','${sec.title}')" style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer;">همه محصولات ❯</button></div><div class="section-slider">${ps.map(p => renderCard(p, [sec])).join('')}</div></div>`;
+            });
+            document.getElementById('landingSections').innerHTML = secHtml;
+        } catch (e) {
+            document.getElementById('landingSections').innerHTML = '';
+        }
         renderGrid(state.all.slice(0, 20));
 
         // ذخیره در تاریخچه مرورگر
@@ -1514,6 +1546,8 @@
 
         const res = await fetch(`${API}/api/v1/products?categoryId=${id}&size=200`).then(r => r.json());
         state.current = res.content || res || [];
+        // ادغام در حافظه تا باز کردن محصول نیاز به واکشی مجدد نداشته باشد
+        state.current.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
         renderGrid(state.current);
         setupFilters(state.current);
 
@@ -1523,13 +1557,16 @@
         }
     }
 
-    function loadSection(id, title, isPopState = false) {
+    async function loadSection(id, title, isPopState = false) {
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         document.getElementById('latestSectionHeader').innerText = title;
 
-        state.current = state.all.filter(p => p.sectionIds && p.sectionIds.includes(id));
+        // لیست کامل جشنواره از سرور (مثل loadCat)
+        const res = await fetch(`${API}/api/v1/products?sectionId=${id}&size=200`).then(r => r.json()).catch(() => null);
+        state.current = (res && (res.content || res)) || [];
+        state.current.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
         renderGrid(state.current);
         setupFilters(state.current);
 
@@ -2056,9 +2093,14 @@
         const searchParams = new URLSearchParams(window.location.search);
 
         if (path.startsWith('/product/')) {
-            const slug = path.split('/')[2];
+            const slug = decodeURIComponent(path.split('/')[2]);
             const p = state.all.find(x => x.slug === slug || x.id === slug);
-            if(p) openProductDetail(p.id, true);
+            if (p) {
+                openProductDetail(p.id, true);
+            } else {
+                // محصول در حافظه نیست؛ تکی واکشی و باز کن
+                fetchProductBySlugOrId(slug).then(fp => { if (fp) openProductDetail(fp.id, true); });
+            }
         }
         else {
             // اگر کاربر بک زد تا به لیست یا صفحه اصلی برگردد

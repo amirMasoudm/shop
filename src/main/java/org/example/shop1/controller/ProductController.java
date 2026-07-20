@@ -60,6 +60,7 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<Product>> getProductsForClient(
             @RequestParam(name = "categoryId", required = false) String categoryId,
+            @RequestParam(name = "sectionId", required = false) String sectionId, // فیلتر جشنواره
             @RequestParam(name = "minPrice", required = false) BigDecimal minPrice, // فیلتر از سمت فرانت
             @RequestParam(name = "maxPrice", required = false) BigDecimal maxPrice, // فیلتر از سمت فرانت
             @RequestParam(name = "sortBy", required = false) String sortBy,
@@ -67,8 +68,17 @@ public class ProductController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
         Page<Product> products = productService.getProductsForClient(
-                categoryId, minPrice, maxPrice, sortBy, sortDirection, page, size);
+                categoryId, sectionId, minPrice, maxPrice, sortBy, sortDirection, page, size);
         return ResponseEntity.ok(products);
+    }
+
+    // دریافت یک محصول با اسلاگ یا شناسه (برای صفحه محصول، بدون لود کل لیست)
+    @GetMapping("/single/{slugOrId}")
+    public ResponseEntity<Product> getSingleProduct(@PathVariable String slugOrId) {
+        return productService.findBySlugOrId(slugOrId)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new org.example.shop1.exeption.ApiException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "محصول یافت نشد"));
     }
 
     @PutMapping("/{id}")
