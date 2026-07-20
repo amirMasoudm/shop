@@ -905,6 +905,44 @@
                 </div>
                 <div id="c-filter-tags" class="flex flex-wrap gap-2"></div>
             </div>
+
+            <!-- ================= تنظیمات سئو دسته ================= -->
+            <div class="bg-purple-50 p-3 rounded-xl border border-purple-200">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-xs font-bold text-purple-800">تنظیمات سئو (صفحه /category)</label>
+                    <button onclick="autoFillCatSeo()" type="button"
+                            class="text-[11px] bg-purple-600 text-white px-2 py-1 rounded-lg hover:bg-purple-700">تولید خودکار از نام</button>
+                </div>
+
+                <label class="block text-[11px] text-gray-600 mb-1 mt-2">اسلاگ آدرس (خالی = ساخت خودکار از نام؛ تغییرش آدرس صفحه را عوض می‌کند)</label>
+                <input type="text" id="c-slug" dir="ltr" placeholder="مثلاً: routers"
+                       class="w-full p-2 text-sm border rounded-lg outline-none font-mono"
+                       oninput="updateCatSeoPreview()">
+
+                <div class="flex items-center justify-between mt-2 mb-1">
+                    <label class="text-[11px] text-gray-600">عنوان سئو (تگ title)</label>
+                    <span id="c-seo-title-count" class="text-[10px] text-gray-400">0/60</span>
+                </div>
+                <input type="text" id="c-seo-title" placeholder="مثلاً: خرید روتر | بهترین قیمت روتر"
+                       class="w-full p-2 text-sm border rounded-lg outline-none"
+                       oninput="updateCatSeoPreview()">
+
+                <div class="flex items-center justify-between mt-2 mb-1">
+                    <label class="text-[11px] text-gray-600">توضیح متا (meta description)</label>
+                    <span id="c-seo-desc-count" class="text-[10px] text-gray-400">0/160</span>
+                </div>
+                <textarea id="c-seo-desc" rows="2" placeholder="توضیح جذاب برای نتایج گوگل..."
+                          class="w-full p-2 text-sm border rounded-lg outline-none resize-none"
+                          oninput="updateCatSeoPreview()"></textarea>
+
+                <!-- پیش‌نمایش نتیجه گوگل -->
+                <div class="mt-3 bg-white border rounded-lg p-3" style="direction:rtl;">
+                    <div class="text-[10px] text-gray-400 mb-1">پیش‌نمایش نتیجه گوگل:</div>
+                    <div id="serp-url" class="text-[11px]" style="color:#0d652d; direction:ltr; text-align:right;">dadehnama.com/category/...</div>
+                    <div id="serp-title" class="text-sm font-bold" style="color:#1a0dab;">عنوان صفحه</div>
+                    <div id="serp-desc" class="text-[11px] text-gray-600 leading-5">توضیح صفحه در نتایج جستجو...</div>
+                </div>
+            </div>
             <input type="hidden" id="c-type" value="ONLINE">
         </div>
         <div class="mt-6 flex flex-col md:flex-row justify-end gap-3">
@@ -1946,11 +1984,50 @@
             });
     }
 
+    // ================= سئو دسته: ابزارهای فرم =================
+    // آینه‌ی ساده‌ی منطق اسلاگ سرور (نسخه‌ی نهایی همیشه سمت سرور ساخته می‌شود)
+    function jsSlugify(s) {
+        if (!s) return '';
+        return s.trim().replace(/\s+/g, '-')
+            .replace(/[!-,.\/:-@\[-`{-~]/g, '')
+            .replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '');
+    }
+
+    function updateCatSeoPreview() {
+        const name = document.getElementById('c-name').value.trim();
+        const slug = document.getElementById('c-slug').value.trim();
+        const title = document.getElementById('c-seo-title').value;
+        const desc = document.getElementById('c-seo-desc').value;
+
+        const tc = document.getElementById('c-seo-title-count');
+        tc.innerText = title.length + '/60';
+        tc.style.color = title.length > 60 ? '#dc2626' : '#9ca3af';
+
+        const dc = document.getElementById('c-seo-desc-count');
+        dc.innerText = desc.length + '/160';
+        dc.style.color = desc.length > 160 ? '#dc2626' : '#9ca3af';
+
+        const effSlug = jsSlugify(slug || name) || '...';
+        document.getElementById('serp-url').innerText = location.host + '/category/' + effSlug;
+        document.getElementById('serp-title').innerText = title || (name ? 'خرید ' + name + ' | فروشگاه داده نما' : 'عنوان صفحه');
+        document.getElementById('serp-desc').innerText = desc || (name ? 'خرید انواع ' + name + ' با بهترین قیمت و گارانتی معتبر از فروشگاه داده نما' : 'توضیح صفحه در نتایج جستجو...');
+    }
+
+    function autoFillCatSeo() {
+        const name = document.getElementById('c-name').value.trim();
+        if (!name) { Swal.fire('توجه', 'اول نام دسته را وارد کنید', 'info'); return; }
+        document.getElementById('c-slug').value = jsSlugify(name);
+        document.getElementById('c-seo-title').value = 'خرید ' + name + ' | بهترین قیمت ' + name;
+        document.getElementById('c-seo-desc').value = 'خرید انواع ' + name + ' اورجینال با گارانتی معتبر، بهترین قیمت و ارسال سریع از فروشگاه داده نما. مشاهده لیست قیمت روز ' + name + '.';
+        updateCatSeoPreview();
+    }
+
     function openCategoryModal() {
         resetForm('c');
         populateSelects();
         state.currentFilters = [];
         renderFilterTags();
+        updateCatSeoPreview();
         document.getElementById('cat-modal-title').innerText = 'ایجاد دسته اصلی';
         openModal('categoryModal');
     }
@@ -1964,6 +2041,11 @@
         document.getElementById('c-parent').value = c.parentId || '';
         state.currentFilters = c.filterKeys || [];
         renderFilterTags();
+        // فیلدهای سئو
+        document.getElementById('c-slug').value = c.slug || '';
+        document.getElementById('c-seo-title').value = c.seoTitle || '';
+        document.getElementById('c-seo-desc').value = c.seoDescription || '';
+        updateCatSeoPreview();
         document.getElementById('cat-modal-title').innerText = 'ویرایش دسته';
         openModal('categoryModal');
     }
@@ -1973,6 +2055,7 @@
         populateSelects();
         state.currentFilters = [];
         renderFilterTags();
+        updateCatSeoPreview();
         document.getElementById('c-parent').value = parentId;
         document.getElementById('cat-modal-title').innerText = 'افزودن زیردسته';
         openModal('categoryModal');
@@ -1990,7 +2073,11 @@
             name: name,
             parentId: document.getElementById('c-parent').value || null,
             type: 'ONLINE',
-            filterKeys: state.currentFilters
+            filterKeys: state.currentFilters,
+            // فیلدهای سئو (اسلاگ خالی = ساخت خودکار سمت سرور)
+            slug: document.getElementById('c-slug').value.trim() || null,
+            seoTitle: document.getElementById('c-seo-title').value.trim() || null,
+            seoDescription: document.getElementById('c-seo-desc').value.trim() || null
         };
 
         const req = id

@@ -34,6 +34,9 @@ public class CategoryController {
         dto.setName(SecurityUtils.clean(dto.getName()));
         dto.setParentId(SecurityUtils.clean(dto.getParentId()));
         dto.setType(SecurityUtils.clean(dto.getType()));
+        dto.setSlug(SecurityUtils.clean(dto.getSlug()));
+        dto.setSeoTitle(SecurityUtils.clean(dto.getSeoTitle()));
+        dto.setSeoDescription(SecurityUtils.clean(dto.getSeoDescription()));
 
         // ۲. پاکسازی لیست ویژگی‌های فیلتر (Filter Keys)
         if (dto.getFilterKeys() != null) {
@@ -51,6 +54,9 @@ public class CategoryController {
         dto.setParentId(SecurityUtils.clean(dto.getParentId()));
         dto.setNewParentId(SecurityUtils.clean(dto.getNewParentId()));
         dto.setType(SecurityUtils.clean(dto.getType()));
+        dto.setSlug(SecurityUtils.clean(dto.getSlug()));
+        dto.setSeoTitle(SecurityUtils.clean(dto.getSeoTitle()));
+        dto.setSeoDescription(SecurityUtils.clean(dto.getSeoDescription()));
 
         // ۲. پاکسازی لیست ویژگی‌ها
         if (dto.getFilterKeys() != null) {

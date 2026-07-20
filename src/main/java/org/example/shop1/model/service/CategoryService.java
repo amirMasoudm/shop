@@ -51,6 +51,12 @@ public class CategoryService {
         // ترتیب: انتهای هم‌ردیف‌های همان والد قرار بگیرد
         category.setPosition(nextPositionAmongSiblings(typeToSave, category.getParentId()));
 
+        // ---> سئو: اسلاگ یکتا + عنوان/توضیح <---
+        String slugBase = (dto.getSlug() == null || dto.getSlug().trim().isEmpty()) ? dto.getName() : dto.getSlug();
+        category.setSlug(generateUniqueSlug(slugBase, null));
+        category.setSeoTitle(dto.getSeoTitle());
+        category.setSeoDescription(dto.getSeoDescription());
+
         return repo.save(category);
     }
 
@@ -66,6 +72,18 @@ public class CategoryService {
         if (dto.getType() != null && !dto.getType().isEmpty()) {
             category.setType(dto.getType());
         }
+
+        // ---> سئو <---
+        category.setSeoTitle(dto.getSeoTitle());
+        category.setSeoDescription(dto.getSeoDescription());
+        // پایداری URL: اگر ادمین صریحاً اسلاگ داد، همان اعمال می‌شود؛
+        // اگر نداد و دسته هنوز اسلاگ ندارد، از نام ساخته می‌شود؛ در غیر این صورت اسلاگ قبلی حفظ می‌شود
+        if (dto.getSlug() != null && !dto.getSlug().trim().isEmpty()) {
+            category.setSlug(generateUniqueSlug(dto.getSlug(), id));
+        } else if (category.getSlug() == null || category.getSlug().isEmpty()) {
+            category.setSlug(generateUniqueSlug(category.getName(), id));
+        }
+
         // ابتدا نام/ویژگی‌ها ذخیره شود
         repo.save(category);
 
@@ -217,8 +235,41 @@ public class CategoryService {
         dto.setLevel(c.getLevel());
         dto.setPosition(c.getPosition());
         dto.setFilterKeys(c.getFilterKeys());
+        dto.setSlug(c.getSlug());
+        dto.setSeoTitle(c.getSeoTitle());
+        dto.setSeoDescription(c.getSeoDescription());
         dto.setChildren(new ArrayList<>());
         return dto;
+    }
+
+    // اسلاگ یکتا برای دسته (در صورت تکرار، شماره اضافه می‌شود)
+    private String generateUniqueSlug(String base, String excludeId) {
+        String slug = org.example.shop1.model.service.util.SlugUtil.slugify(base);
+        if (slug.isEmpty()) slug = "category";
+
+        String candidate = slug;
+        int i = 2;
+        while (true) {
+            Optional<Category> existing = repo.findBySlug(candidate);
+            if (existing.isEmpty() || existing.get().getId().equals(excludeId)) {
+                return candidate;
+            }
+            candidate = slug + "-" + i++;
+        }
+    }
+
+    // پیدا کردن دسته با اسلاگ یا شناسه (برای مسیر /category/{slugOrId})
+    public Optional<Category> findBySlugOrId(String slugOrId) {
+        Optional<Category> bySlug = repo.findBySlug(slugOrId);
+        if (bySlug.isPresent()) return bySlug;
+        return repo.findById(slugOrId);
+    }
+
+    // محصولات یک دسته و همه زیرمجموعه‌هایش (برای بلوک سروری صفحه دسته)
+    public List<Product> getProductsInSubtree(String categoryId, int limit) {
+        List<String> ids = subtreeCategoryIds(categoryId);
+        List<Product> products = productRepo.findByCategoryIdIn(ids);
+        return products.size() > limit ? products.subList(0, limit) : products;
     }
 
     /*

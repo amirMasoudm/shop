@@ -5,10 +5,13 @@ import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.entity.Category;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.example.shop1.model.reposritory.CategoryRepository;
+import org.example.shop1.model.service.CategoryService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,10 +22,13 @@ public class StoreWebController {
 
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
+    private final CategoryService categoryService;
 
-    public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo) {
+    public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo,
+                              CategoryService categoryService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
+        this.categoryService = categoryService;
     }
 
     @GetMapping("/")
@@ -32,6 +38,7 @@ public class StoreWebController {
 
         model.addAttribute("seoTitle", "داده نما | اتصال آسان است");
         model.addAttribute("seoDescription", "فروشگاه اینترنتی یاس، عرضه کننده بهترین محصولات با گارانتی معتبر و ارسال فوری");
+        model.addAttribute("canonicalUrl", buildBaseUrl(request) + "/");
         return "CL";
     }
 
@@ -73,6 +80,9 @@ public class StoreWebController {
             String slug = (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
             model.addAttribute("productSlug", slug);
 
+            // canonical همیشه نسخه‌ی اسلاگ است (جلوگیری از ایندکس دوگانه‌ی /product/{id} و /product/{slug})
+            model.addAttribute("canonicalUrl", baseUrl + "/product/" + slug);
+
             String catName = "داده نما";
             if (p.getCategoryId() != null) {
                 catName = categoryRepo.findById(p.getCategoryId())
@@ -81,9 +91,82 @@ public class StoreWebController {
             }
             model.addAttribute("categoryName", catName);
         } else {
-            return "redirect:/";
+            // ۴۰۴ واقعی به‌جای ریدایرکت (soft 404 برای گوگل مضر است)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد");
         }
         return "CL";
+    }
+
+    // ================= صفحه‌ی سئوی دسته‌بندی =================
+    @GetMapping("/category/{slugOrId}")
+    public String categoryPage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+
+        Category cat = categoryService.findBySlugOrId(slugOrId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "دسته یافت نشد"));
+
+        String baseUrl = buildBaseUrl(request);
+        String slug = (cat.getSlug() != null && !cat.getSlug().isEmpty()) ? cat.getSlug() : cat.getId();
+        String canonical = baseUrl + "/category/" + slug;
+
+        String title = (cat.getSeoTitle() != null && !cat.getSeoTitle().isEmpty())
+                ? cat.getSeoTitle()
+                : "خرید " + cat.getName() + " | فروشگاه داده نما";
+        String description = (cat.getSeoDescription() != null && !cat.getSeoDescription().isEmpty())
+                ? cat.getSeoDescription()
+                : "خرید انواع " + cat.getName() + " با بهترین قیمت و گارانتی معتبر از فروشگاه داده نما";
+
+        List<Product> catProducts = categoryService.getProductsInSubtree(cat.getId(), 60);
+
+        model.addAttribute("cat", cat);
+        model.addAttribute("catProducts", catProducts);
+        model.addAttribute("seoTitle", title);
+        model.addAttribute("seoDescription", description);
+        model.addAttribute("canonicalUrl", canonical);
+        model.addAttribute("categoryJsonLd", buildCategoryJsonLd(cat, catProducts, baseUrl, canonical, description));
+
+        return "CL";
+    }
+
+    // ساخت JSON-LD صفحه دسته به صورت سروری (CollectionPage + BreadcrumbList + ItemList)
+    private String buildCategoryJsonLd(Category cat, List<Product> products,
+                                       String baseUrl, String canonical, String description) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[");
+
+        sb.append("{\"@type\":\"CollectionPage\",\"name\":\"").append(esc(cat.getName()))
+                .append("\",\"description\":\"").append(esc(description))
+                .append("\",\"url\":\"").append(esc(canonical)).append("\"}");
+
+        sb.append(",{\"@type\":\"BreadcrumbList\",\"itemListElement\":[")
+                .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"خانه\",\"item\":\"")
+                .append(esc(baseUrl)).append("/\"},")
+                .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"").append(esc(cat.getName()))
+                .append("\",\"item\":\"").append(esc(canonical)).append("\"}]}");
+
+        if (products != null && !products.isEmpty()) {
+            sb.append(",{\"@type\":\"ItemList\",\"itemListElement\":[");
+            int pos = 1;
+            int max = Math.min(products.size(), 30);
+            for (int i = 0; i < max; i++) {
+                Product p = products.get(i);
+                String pSlug = (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
+                if (i > 0) sb.append(",");
+                sb.append("{\"@type\":\"ListItem\",\"position\":").append(pos++)
+                        .append(",\"url\":\"").append(esc(baseUrl + "/product/" + pSlug)).append("\"}");
+            }
+            sb.append("]}");
+        }
+
+        sb.append("]}");
+        return sb.toString();
+    }
+
+    // escape امن رشته برای قرارگیری داخل JSON
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", " ").replace("\r", " ").replace("\t", " ");
     }
 
     // متد اختصاصی برای ساخت آدرس‌های داینامیک بدون هاردکد کردن localhost
@@ -93,6 +176,14 @@ public class StoreWebController {
         model.addAttribute("currentUrl", request.getRequestURL().toString());
         // تصویر پیش‌فرض سئو؛ در صفحه‌ی محصول با تصویر واقعی بازنویسی می‌شود
         model.addAttribute("ogImage", baseUrl + "/logo.png");
+
+        // لینک‌های فوتر به صفحات دسته (لینک داخلی واقعی برای خزنده‌ها در همه صفحات)
+        List<Category> footerCategories = categoryRepo.findAll().stream()
+                .filter(c -> c.getType() == null || !"WAREHOUSE".equalsIgnoreCase(c.getType()))
+                .filter(c -> c.getName() != null && !c.getName().isBlank())
+                .limit(30)
+                .toList();
+        model.addAttribute("footerCategories", footerCategories);
     }
 
     private String buildBaseUrl(HttpServletRequest request) {
@@ -124,6 +215,16 @@ public class StoreWebController {
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
         xml.append("<url><loc>").append(baseUrl).append("/</loc><priority>1.0</priority></url>");
+
+        // صفحات دسته‌بندی (فقط دسته‌های فروشگاه آنلاین، نه انبار)
+        for (Category c : categoryRepo.findAll()) {
+            if (c.getType() != null && "WAREHOUSE".equalsIgnoreCase(c.getType())) continue;
+            String cSlug = (c.getSlug() != null && !c.getSlug().isEmpty()) ? c.getSlug() : c.getId();
+            xml.append("<url>");
+            xml.append("<loc>").append(baseUrl).append("/category/").append(cSlug).append("</loc>");
+            xml.append("<priority>0.9</priority>");
+            xml.append("</url>");
+        }
 
         for (Product p : products) {
             String slug = (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();

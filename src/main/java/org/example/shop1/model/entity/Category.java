@@ -22,6 +22,11 @@ public class Category {
     // ترتیب نمایش بین هم‌ردیف‌ها (برای درگ‌دراپ و مرتب‌سازی پایدار)
     private Integer position = 0;
 
+    // ---> فیلدهای سئو برای صفحه‌ی مستقل دسته (/category/{slug}) <---
+    private String slug;           // آدرس تمیز و یکتا
+    private String seoTitle;       // عنوان تگ <title> و og:title
+    private String seoDescription; // متن meta description
+
     // --- Constructors ---
     // اضافه کردن فیلد جدید
     private List<String> filterKeys = new ArrayList<>(); // مثلا: ["سایز", "رنگ", "ولتاژ"]
@@ -54,4 +59,13 @@ public class Category {
 
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
+
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
+
+    public String getSeoTitle() { return seoTitle; }
+    public void setSeoTitle(String seoTitle) { this.seoTitle = seoTitle; }
+
+    public String getSeoDescription() { return seoDescription; }
+    public void setSeoDescription(String seoDescription) { this.seoDescription = seoDescription; }
 }

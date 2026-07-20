@@ -36,4 +36,18 @@ public class CategoryResponseDto {
 
     public List<CategoryResponseDto> getChildren() { return children; }
     public void setChildren(List<CategoryResponseDto> children) { this.children = children; }
+
+    // ---> فیلدهای سئو دسته <---
+    private String slug;
+    private String seoTitle;
+    private String seoDescription;
+
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
+
+    public String getSeoTitle() { return seoTitle; }
+    public void setSeoTitle(String seoTitle) { this.seoTitle = seoTitle; }
+
+    public String getSeoDescription() { return seoDescription; }
+    public void setSeoDescription(String seoDescription) { this.seoDescription = seoDescription; }
 }
