@@ -8,6 +8,7 @@ public class CategoryResponseDto {
     private String name;
     private String parentId;
     private Integer level;
+    private Integer position;
     // *** این فیلد را اضافه کنید ***
     private List<String> filterKeys = new ArrayList<>();
 
@@ -25,6 +26,9 @@ public class CategoryResponseDto {
 
     public Integer getLevel() { return level; }
     public void setLevel(Integer level) { this.level = level; }
+
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
 
     // *** Getter & Setter جدید ***
     public List<String> getFilterKeys() { return filterKeys; }

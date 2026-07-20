@@ -22,6 +22,13 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     // متد جدید: پیدا کردن محصولات اگر دسته‌بندی آن‌ها در لیست ارسالی باشد
     Page<Product> findByCategoryIdIn(List<String> categoryIds, Pageable pageable);
 
+    // برای مدیریت حذف دسته: پیدا کردن/شمارش محصولات یک زیردرخت دسته‌بندی
+    List<Product> findByCategoryIdIn(List<String> categoryIds);
+    long countByCategoryIdIn(List<String> categoryIds);
+
+    List<Product> findByWarehouseCategoryIdIn(List<String> categoryIds);
+    long countByWarehouseCategoryIdIn(List<String> categoryIds);
+
     // متد مورد نیاز برای بررسی یونیک بودن ID توسط سرویس
     boolean existsById(String id);
     // پیدا کردن محصول از روی اسلاگ

@@ -48,6 +48,13 @@
             list-style: none;
         }
 
+        /* برگ‌های بدون فرزند هم باید ناحیه‌ی قابل دراپ داشته باشند (برای زیرمجموعه کردن) */
+        .tree-ul:empty {
+            min-height: 16px;
+            margin-top: 2px;
+            border-right: 2px dashed transparent;
+        }
+
         .tree-item-content {
             transition: all 0.2s;
             position: relative;
@@ -385,12 +392,43 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div class="p-4 border-b bg-gray-50 flex gap-4">
-                <div class="relative w-full md:w-1/3">
-                    <span class="absolute right-3 top-3 text-gray-400">🔍</span>
-                    <input type="text" id="prod-search" onkeyup="filterProducts()" placeholder="جستجو در نام، کد..."
+            <div class="p-4 border-b bg-gray-50 flex flex-wrap gap-3 items-end">
+                <div class="relative w-full md:w-56">
+                    <label class="block text-xs text-gray-500 mb-1">جستجو</label>
+                    <span class="absolute right-3 top-8 text-gray-400">🔍</span>
+                    <input type="text" id="prod-search" onkeyup="applyProductFilters()" placeholder="نام یا کد..."
                            class="w-full pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">دسته‌بندی</label>
+                    <select id="filter-category" onchange="applyProductFilters()"
+                            class="w-44 py-2 px-2 border rounded-lg bg-white outline-none text-sm">
+                        <option value="">همه دسته‌ها</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">قیمت از</label>
+                    <input type="number" id="filter-min-price" oninput="applyProductFilters()" placeholder="حداقل"
+                           class="w-28 py-2 px-2 border rounded-lg outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">قیمت تا</label>
+                    <input type="number" id="filter-max-price" oninput="applyProductFilters()" placeholder="حداکثر"
+                           class="w-28 py-2 px-2 border rounded-lg outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">موجودی</label>
+                    <select id="filter-stock" onchange="applyProductFilters()"
+                            class="w-32 py-2 px-2 border rounded-lg bg-white outline-none text-sm">
+                        <option value="">همه</option>
+                        <option value="in">موجود</option>
+                        <option value="out">ناموجود</option>
+                        <option value="low">کم‌موجود (≤۵)</option>
+                    </select>
+                </div>
+                <button onclick="resetProductFilters()"
+                        class="py-2 px-3 text-gray-500 border rounded-lg text-sm hover:bg-gray-100">پاک‌کردن</button>
+                <div class="text-xs text-gray-500 mr-auto self-center" id="filter-count"></div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-right whitespace-nowrap md:whitespace-normal">
@@ -880,6 +918,47 @@
     </div>
 </div>
 
+<!-- Delete Category Modal -->
+<div id="deleteCategoryModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">حذف دسته‌بندی</h3>
+        <input type="hidden" id="del-cat-id">
+        <p class="text-sm text-gray-600 mb-4" id="del-cat-info"></p>
+
+        <div class="space-y-3">
+            <label class="flex items-start gap-2 p-3 border rounded-xl cursor-pointer hover:bg-gray-50">
+                <input type="radio" name="del-mode" value="REASSIGN" checked onchange="onDeleteModeChange()" class="mt-1">
+                <span class="text-sm text-gray-700">انتقال محصولات به دسته‌ی دیگر (دسته حذف می‌شود ولی محصولات می‌مانند)</span>
+            </label>
+
+            <div id="del-reassign-box" class="pr-6 space-y-2">
+                <select id="del-target-cat" class="w-full p-2.5 border rounded-lg bg-white outline-none text-sm"></select>
+                <div class="flex gap-2">
+                    <input type="text" id="del-new-cat-name" placeholder="یا نام دسته‌ی جدید را بنویس..."
+                           class="flex-1 p-2 text-sm border rounded-lg outline-none">
+                    <button onclick="createAndSelectTarget()"
+                            class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap">ساخت و انتخاب</button>
+                </div>
+            </div>
+
+            <label class="flex items-start gap-2 p-3 border rounded-xl cursor-pointer hover:bg-red-50">
+                <input type="radio" name="del-mode" value="CASCADE" onchange="onDeleteModeChange()" class="mt-1">
+                <span class="text-sm text-red-600">حذف محصولات همراه دسته (این عملیات غیرقابل بازگشت است)</span>
+            </label>
+        </div>
+
+        <div class="mt-6 flex flex-col md:flex-row justify-end gap-3">
+            <button onclick="closeModal('deleteCategoryModal')"
+                    class="w-full md:w-auto px-4 py-2 text-gray-500 border rounded-lg">انصراف
+            </button>
+            <button onclick="confirmDeleteCategory()"
+                    class="w-full md:w-auto px-6 py-2 bg-red-600 text-white rounded-lg shadow">تأیید حذف
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Landing Section Modal -->
 
 <!-- انتهای بخش محتوا و مودال‌ها -->
@@ -1315,9 +1394,21 @@
     // ==========================================
     // مدیریت محصولات (Products & AI)
     // ==========================================
-    function renderProducts() {
+    // پر کردن دراپ‌داون فیلتر دسته‌بندی (با حفظ انتخاب فعلی)
+    function populateProductFilterCategory() {
+        const sel = document.getElementById('filter-category');
+        if (!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">همه دسته‌ها</option>' +
+            state.flatCategories.map(c =>
+                `<option value="${c.id}">${'— '.repeat(c.level || 0)}${c.name}</option>`).join('');
+        sel.value = current;
+    }
+
+    // رندر ردیف‌های جدول از روی لیست فیلترشده
+    function renderProductRows(list) {
         const tbody = document.getElementById('products-table-body');
-        tbody.innerHTML = state.products.map(p => `
+        tbody.innerHTML = list.map(p => `
             <tr class="hover:bg-gray-50 border-b transition group">
                 <td class="p-3 md:p-4"><img src="${p.images?.[0] || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'" class="w-8 h-8 md:w-10 md:h-10 rounded object-cover border bg-white"></td>
                 <td class="p-3 md:p-4">
@@ -1334,22 +1425,58 @@
                 </td>
             </tr>
         `).join('');
+
+        const fc = document.getElementById('filter-count');
+        if (fc) fc.innerText = `${list.length} از ${state.products.length} محصول`;
+    }
+
+    // اعمال همه‌ی فیلترها (جستجو + دسته‌بندی + محدوده قیمت + موجودی)
+    function applyProductFilters() {
+        const q = (document.getElementById('prod-search').value || '').toLowerCase().trim();
+        const catId = document.getElementById('filter-category').value;
+        const minP = parseFloat(document.getElementById('filter-min-price').value);
+        const maxP = parseFloat(document.getElementById('filter-max-price').value);
+        const stock = document.getElementById('filter-stock').value;
+
+        // دسته‌بندی به همراه همه‌ی زیرمجموعه‌هایش
+        const subtree = catId ? collectSubtreeIds(catId) : null;
+
+        const list = state.products.filter(p => {
+            if (q && !((p.name || '').toLowerCase().includes(q) || (p.id || '').toLowerCase().includes(q))) return false;
+            if (subtree && !subtree.has(p.categoryId)) return false;
+
+            const price = p.onlinePrice || p.price || 0;
+            if (!isNaN(minP) && price < minP) return false;
+            if (!isNaN(maxP) && price > maxP) return false;
+
+            const s = p.stock || 0;
+            if (stock === 'in' && !(s > 0)) return false;
+            if (stock === 'out' && !(s <= 0)) return false;
+            if (stock === 'low' && !(s > 0 && s <= 5)) return false;
+
+            return true;
+        });
+
+        renderProductRows(list);
+    }
+
+    // سازگاری: هر جای دیگری renderProducts/filterProducts صدا زده شود
+    function renderProducts() {
+        populateProductFilterCategory();
+        applyProductFilters();
     }
 
     function filterProducts() {
-        const q = document.getElementById('prod-search').value.toLowerCase();
-        const tbody = document.getElementById('products-table-body');
-        tbody.innerHTML = state.products.filter(p => p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)).map(p => `
-            <tr class="hover:bg-gray-50 border-b transition group">
-                <td class="p-3 md:p-4"><img src="${p.images?.[0] || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'" class="w-8 h-8 md:w-10 md:h-10 rounded object-cover border bg-white"></td>
-                <td class="p-3 md:p-4"><div class="font-bold text-gray-800 truncate w-24 md:w-auto">${p.name}</div></td>
-                <td class="p-3 md:p-4 text-[10px] md:text-sm text-gray-600 hidden md:table-cell">${getCatName(p.categoryId)}</td>
-                <td class="p-3 md:p-4 text-green-700 font-bold">${(p.onlinePrice || p.price || 0).toLocaleString()}</td>
-                <td class="p-3 md:p-4 text-indigo-700 font-bold hidden md:table-cell">${(p.price || 0).toLocaleString()}</td>
-                <td class="p-3 md:p-4 text-center">${p.stock}</td>
-                <td class="p-3 md:p-4 text-center"><button onclick='editProduct("${p.id}")' class="text-indigo-600 hover:bg-indigo-50 p-1 md:p-2 rounded transition">✏️</button></td>
-            </tr>
-        `).join('');
+        applyProductFilters();
+    }
+
+    function resetProductFilters() {
+        document.getElementById('prod-search').value = '';
+        document.getElementById('filter-category').value = '';
+        document.getElementById('filter-min-price').value = '';
+        document.getElementById('filter-max-price').value = '';
+        document.getElementById('filter-stock').value = '';
+        applyProductFilters();
     }
 
     function openProductModal() {
@@ -1570,15 +1697,16 @@
                     <div class="flex gap-1 shrink-0">
                         <button onclick='addSubCategory("${node.id}")' class="text-xs bg-green-50 text-green-600 p-1 md:px-2 md:py-1 rounded hover:bg-green-100 font-bold">＋</button>
                         <button onclick='editCategory("${node.id}")' class="text-xs bg-indigo-50 text-indigo-600 p-1 md:px-2 md:py-1 rounded hover:bg-indigo-100">✏️</button>
-                        <button onclick="deleteItem('categories', '${node.id}')" class="text-xs bg-red-50 text-red-600 p-1 md:px-2 md:py-1 rounded hover:bg-red-100">✕</button>
+                        <button onclick='deleteCategory("${node.id}")' class="text-xs bg-red-50 text-red-600 p-1 md:px-2 md:py-1 rounded hover:bg-red-100">✕</button>
                     </div>
                 `;
                 li.appendChild(content);
 
+                // همیشه یک ul داخلی می‌سازیم تا هر دسته (حتی بی‌فرزند) قابل دراپ باشد
+                const ul = document.createElement('ul');
+                ul.className = 'tree-ul pl-0 md:pr-5';
+                li.appendChild(ul);
                 if (node.children && node.children.length > 0) {
-                    const ul = document.createElement('ul');
-                    ul.className = 'tree-ul pl-0 md:pr-5';
-                    li.appendChild(ul);
                     buildTree(node.children, ul);
                 }
                 container.appendChild(li);
@@ -1599,12 +1727,10 @@
                 swapThreshold: 0.65,
                 ghostClass: 'sortable-ghost',
                 onEnd: function (evt) {
-                    const itemEl = evt.item;
-                    const newParentUl = itemEl.parentElement;
-                    const newParentLi = newParentUl.closest('li.tree-group');
-                    const newParentId = newParentLi ? newParentLi.dataset.id : null;
-
-                    axios.put(`${API}/categories/${itemEl.dataset.id}/move`, {newParentId: newParentId})
+                    // کل ساختار درخت را از روی DOM سریالایز و یکجا ذخیره می‌کنیم
+                    const payload = serializeCategoryTree();
+                    axios.put(`${API}/categories/reorder`, payload)
+                        .then(() => fetchAllData())
                         .catch(err => {
                             Swal.fire('خطا', 'جابجایی ناموفق بود.', 'error');
                             fetchAllData();
@@ -1612,6 +1738,26 @@
                 }
             });
         });
+    }
+
+    // پیمایش DOM درخت و ساخت لیست {id, parentId, position} برای ذخیره‌ی ساختار
+    function serializeCategoryTree() {
+        const result = [];
+        const root = document.getElementById('category-tree-root');
+
+        const walk = (ul, parentId) => {
+            let index = 0;
+            Array.from(ul.children).forEach(li => {
+                if (li.tagName !== 'LI' || !li.dataset.id) return;
+                result.push({id: li.dataset.id, parentId: parentId, position: index});
+                index++;
+                const childUl = li.querySelector(':scope > ul.tree-ul');
+                if (childUl) walk(childUl, li.dataset.id);
+            });
+        };
+
+        walk(root, null);
+        return result;
     }
 
     function addFilterKey() {
@@ -1694,6 +1840,112 @@
             });
     }
 
+    // ==========================================
+    // حذف دسته‌بندی با تعیین تکلیف محصولات
+    // ==========================================
+
+    // شناسه‌ی یک دسته + همه‌ی زیرمجموعه‌هایش (از روی state محلی)
+    function collectSubtreeIds(id) {
+        const set = new Set([id]);
+        let changed = true;
+        while (changed) {
+            changed = false;
+            state.flatCategories.forEach(c => {
+                if (c.parentId && set.has(c.parentId) && !set.has(c.id)) {
+                    set.add(c.id);
+                    changed = true;
+                }
+            });
+        }
+        return set;
+    }
+
+    async function deleteCategory(id) {
+        let count = 0;
+        try {
+            const res = await axios.get(`${API}/categories/${id}/product-count`);
+            count = res.data || 0;
+        } catch (e) { count = 0; }
+
+        // اگر محصولی ندارد، حذف ساده با یک تأیید
+        if (!count) {
+            const r = await Swal.fire({
+                title: 'حذف دسته‌بندی؟',
+                text: 'این دسته و زیرمجموعه‌هایش حذف می‌شوند.',
+                icon: 'warning', showCancelButton: true, confirmButtonText: 'بله، حذف کن', cancelButtonText: 'انصراف'
+            });
+            if (r.isConfirmed) {
+                axios.delete(`${API}/categories/${id}`, {params: {mode: 'BLOCK'}})
+                    .then(() => fetchAllData())
+                    .catch(() => Swal.fire('خطا', 'حذف ناموفق بود.', 'error'));
+            }
+            return;
+        }
+
+        // در غیر این صورت مودال تعیین تکلیف محصولات را باز کن
+        document.getElementById('del-cat-id').value = id;
+        document.getElementById('del-cat-info').innerHTML =
+            `این دسته و زیرمجموعه‌هایش <b>${count}</b> محصول دارند. تکلیف محصولات چه می‌شود؟`;
+
+        // پر کردن لیست مقصد با دسته‌هایی که در زیردرخت این دسته نیستند
+        const subtree = collectSubtreeIds(id);
+        const opts = state.flatCategories
+            .filter(c => !subtree.has(c.id))
+            .map(c => `<option value="${c.id}">${c.name}</option>`)
+            .join('');
+        document.getElementById('del-target-cat').innerHTML =
+            opts || '<option value="">(دسته‌ی دیگری وجود ندارد — یک دسته بسازید)</option>';
+        document.getElementById('del-new-cat-name').value = '';
+
+        // حالت پیش‌فرض: انتقال
+        document.querySelector('input[name="del-mode"][value="REASSIGN"]').checked = true;
+        onDeleteModeChange();
+        openModal('deleteCategoryModal');
+    }
+
+    function onDeleteModeChange() {
+        const mode = document.querySelector('input[name="del-mode"]:checked').value;
+        document.getElementById('del-reassign-box').style.display = (mode === 'REASSIGN') ? 'block' : 'none';
+    }
+
+    // ساخت دسته‌ی جدید همان لحظه و انتخابش به عنوان مقصد انتقال
+    async function createAndSelectTarget() {
+        const name = document.getElementById('del-new-cat-name').value.trim();
+        if (!name) { Swal.fire('خطا', 'نام دسته‌ی جدید را وارد کنید', 'error'); return; }
+        try {
+            const res = await axios.post(`${API}/categories`, {name: name, type: 'ONLINE', parentId: null});
+            const newId = res.data.id;
+            const sel = document.getElementById('del-target-cat');
+            const opt = document.createElement('option');
+            opt.value = newId;
+            opt.text = name + ' (جدید)';
+            sel.appendChild(opt);
+            sel.value = newId;
+            document.getElementById('del-new-cat-name').value = '';
+        } catch (e) {
+            Swal.fire('خطا', 'ساخت دسته‌ی جدید ناموفق بود', 'error');
+        }
+    }
+
+    function confirmDeleteCategory() {
+        const id = document.getElementById('del-cat-id').value;
+        const mode = document.querySelector('input[name="del-mode"]:checked').value;
+        const params = {mode: mode};
+
+        if (mode === 'REASSIGN') {
+            const target = document.getElementById('del-target-cat').value;
+            if (!target) { Swal.fire('خطا', 'دسته‌ی مقصد را انتخاب یا بسازید', 'error'); return; }
+            params.targetCategoryId = target;
+        }
+
+        axios.delete(`${API}/categories/${id}`, {params})
+            .then(() => { closeModal('deleteCategoryModal'); fetchAllData(); })
+            .catch(err => {
+                const msg = (err.response && err.response.data) ? err.response.data : 'حذف ناموفق بود';
+                Swal.fire('خطا', msg, 'error');
+            });
+    }
+
     function openCategoryModal() {
         resetForm('c');
         populateSelects();
@@ -1741,8 +1993,12 @@
             filterKeys: state.currentFilters
         };
 
-        if (id) axios.put(`${API}/categories/${id}`, data).then(() => { closeModal('categoryModal'); fetchAllData(); });
-        else axios.post(`${API}/categories`, data).then(() => { closeModal('categoryModal'); fetchAllData(); });
+        const req = id
+            ? axios.put(`${API}/categories/${id}`, data)
+            : axios.post(`${API}/categories`, data);
+
+        req.then(() => { closeModal('categoryModal'); fetchAllData(); })
+            .catch(() => Swal.fire('خطا', 'ذخیره‌ی دسته ناموفق بود. آیا والدِ انتخابی معتبر است؟', 'error'));
     }
 
     // ==========================================

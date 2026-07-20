@@ -19,6 +19,9 @@ public class Category {
     private Integer level = 0;
     private List<String> childrenIds = new ArrayList<>();
 
+    // ترتیب نمایش بین هم‌ردیف‌ها (برای درگ‌دراپ و مرتب‌سازی پایدار)
+    private Integer position = 0;
+
     // --- Constructors ---
     // اضافه کردن فیلد جدید
     private List<String> filterKeys = new ArrayList<>(); // مثلا: ["سایز", "رنگ", "ولتاژ"]
@@ -48,4 +51,7 @@ public class Category {
 
     public List<String> getChildrenIds() { return childrenIds; }
     public void setChildrenIds(List<String> childrenIds) { this.childrenIds = childrenIds; }
+
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
 }

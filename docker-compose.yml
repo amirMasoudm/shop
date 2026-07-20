@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. دیتابیس MongoDB
   mongodb:
@@ -13,6 +11,13 @@ services:
     volumes:
       # ذخیره دائمی دیتای مونگو در یک والیوم داکر (تا با پاک شدن کانتینر، دیتا نپره)
       - mongo_data:/data/db
+    healthcheck:
+      # تا وقتی مونگو واقعاً آماده نشده، بک‌اند بالا نمی‌آید
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   # 2. اپلیکیشن Spring Boot شما
   backend:
@@ -20,7 +25,8 @@ services:
     container_name: shop_backend
     restart: always
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     environment:
       # فعال کردن پروفایل پروداکشن
       - SPRING_PROFILES_ACTIVE=prod
