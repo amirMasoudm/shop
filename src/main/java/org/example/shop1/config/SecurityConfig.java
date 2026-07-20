@@ -60,9 +60,9 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // ۱. حتما صفحه خطا را کاملا باز بگذارید
-                        .requestMatchers("/error", "/favicon.ico").permitAll()
+                        .requestMatchers("/error", "/favicon.ico", "/robots.txt", "/sitemap.xml").permitAll()
 
-                        .requestMatchers("/", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
+                        .requestMatchers("/", "/product/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/fonts/**", "/images/**", "/uploads/**").permitAll()
 
                         // ۲. مسیرهای عمومی API را با دقت بیشتر باز کنید (حذف HttpMethod.GET برای تست اگر جواب نداد)

@@ -30,34 +30,7 @@ public class ProductController {
     // در بالای فایل:
 
 
-    // ۱. اضافه کردن ورودی HttpServletRequest به متد سitemap
-    @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
-    @ResponseBody
-    public String getSitemap(HttpServletRequest request) {
-        // تشخیص خودکار دامنه سرور (بدون هاردکد کردن)
-        String baseUrl = request.getScheme() + "://" + request.getServerName() +
-                (request.getServerPort() == 80 || request.getServerPort() == 443 ? "" : ":" + request.getServerPort());
-
-        List<Product> products = productService.getAllProductsForAdmin();
-        StringBuilder xml = new StringBuilder();
-        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
-
-        xml.append("<url><loc>").append(baseUrl).append("/</loc><priority>1.0</priority></url>");
-
-        for (Product p : products) {
-            String slug = (p.getSlug() != null) ? p.getSlug() : p.getId();
-            xml.append("<url>");
-            xml.append("<loc>").append(baseUrl).append("/product/").append(slug).append("</loc>");
-            xml.append("<lastmod>").append(p.getUpdatedAt().toString().substring(0,10)).append("</lastmod>");
-            xml.append("<priority>0.8</priority>");
-            xml.append("</url>");
-        }
-        xml.append("</urlset>");
-        return xml.toString();
-    }
-
-
+    // sitemap.xml به StoreWebController (روتِ /sitemap.xml) منتقل شد
 
     // اندپوینت جدید قدرتمند ما:
     @PostMapping("/search")

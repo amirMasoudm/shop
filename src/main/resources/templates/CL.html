@@ -6,18 +6,18 @@
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+
+    <!-- توضیح متا برای نمایش در نتایج جستجوی گوگل (SERP) -->
+    <meta name="description" th:content="${seoDescription}">
+
+    <!-- Open Graph برای اشتراک‌گذاری در شبکه‌های اجتماعی -->
     <meta property="og:title" th:content="${seoTitle}">
     <meta property="og:description" th:content="${seoDescription}">
     <meta property="og:type" content="product">
-<!--    <meta property="og:url" th:content="${productSlug != null ? 'http://localhost:8080/product/' + productSlug : 'http://localhost:8080/'}">-->
-<!--    <meta property="og:image" th:content="${p != null && p.images != null && !p.images.isEmpty() ? p.images[0] : 'http://localhost:8080/logo.png'}">-->
-    <meta property="og:url" th:href="${currentUrl}">
-    <meta property="og:image" th:content="${p != null && p.images != null && !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'}">
+    <meta property="og:url" th:content="${currentUrl}">
+    <meta property="og:image" th:content="${ogImage}">
     <meta property="og:site_name" content="فروشگاه داده نما">
 
-    <!-- هدرهای داینامیک سئو توسط اسپرینگ بوت (SSR) -->
-    <meta property="og:description" th:content="${seoDescription}">
-<!--    <link rel="canonical" th:href="${productSlug != null ? 'http://localhost:8080/product/' + productSlug : 'http://localhost:8080/'}">    &lt;!&ndash; این بخش جدید برای بمب سئو گوگل (Schema Markup) است &ndash;&gt;-->
     <link rel="canonical" th:href="${currentUrl}">
 
     <!-- بخش اسکیما (Schema Markup) هوشمند و داینامیک -->
@@ -28,7 +28,7 @@
                 {
                     "@type": "Product",
                     "name": "[(${p.name})]",
-                    "image": "[(${p.images != null && !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'})]",
+                    "image": "[(${ogImage})]",
                     "description": "[(${seoDescription})]",
                     "sku": "[(${p.id})]",
                     "mpn": "[(${p.id})]",
@@ -36,17 +36,12 @@
                         "@type": "Brand",
                         "name": "فروشگاه داده نما"
                     },
-                    "aggregateRating": {
-                        "@type": "AggregateRating",
-                        "ratingValue": "[(${p.averageRating != null && p.averageRating > 0 ? p.averageRating : 5})]",
-                        "reviewCount": "[(${p.reviewCount != null && p.reviewCount > 0 ? p.reviewCount : 1})]"
-                    },
                     "offers": {
                         "@type": "Offer",
                         "url": "[(${currentUrl})]",
                         "priceCurrency": "IRR",
                         "price": "[(${#numbers.formatDecimal(p.onlinePrice != null ? p.onlinePrice : p.price, 1, 0)})]0",
-                        "priceValidUntil": "2026-12-31",
+                        "priceValidUntil": "[(${priceValidUntil})]",
                         "itemCondition": "https://schema.org/NewCondition",
                         "availability": "[(${p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'})]",
                         "shippingDetails": {
@@ -61,7 +56,7 @@
                                 "addressCountry": "IR"
                             }
                         }
-                    }
+                    }[(${aggregateRatingJson})]
                 },
                 {
                     "@type": "BreadcrumbList",

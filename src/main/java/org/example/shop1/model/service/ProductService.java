@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,12 +78,10 @@ public class ProductService {
         // ---> کدهای جدید سئو <---
         product.setSeoTitle(request.getSeoTitle());
         product.setSeoDescription(request.getSeoDescription());
-        // اگر اسلاگ خالی بود، از نام محصول استفاده کن (جایگزینی فاصله‌ها با خط تیره)
-        if (request.getSlug() == null || request.getSlug().trim().isEmpty()) {
-            product.setSlug(request.getName().trim().replaceAll("\\s+", "-"));
-        } else {
-            product.setSlug(request.getSlug().trim().replaceAll("\\s+", "-"));
-        }
+        // اسلاگ تمیز و یکتا (اگر ورودی خالی بود از نام محصول ساخته می‌شود)
+        String slugBase = (request.getSlug() == null || request.getSlug().trim().isEmpty())
+                ? request.getName() : request.getSlug();
+        product.setSlug(generateUniqueSlug(slugBase, null));
         // ---> پایان کدهای جدید سئو <---
 
         product.setUnit(request.getUnit());
@@ -144,11 +143,9 @@ public class ProductService {
         // ---> کدهای جدید سئو <---
         product.setSeoTitle(request.getSeoTitle());
         product.setSeoDescription(request.getSeoDescription());
-        if (request.getSlug() == null || request.getSlug().trim().isEmpty()) {
-            product.setSlug(request.getName().trim().replaceAll("\\s+", "-"));
-        } else {
-            product.setSlug(request.getSlug().trim().replaceAll("\\s+", "-"));
-        }
+        String slugBase = (request.getSlug() == null || request.getSlug().trim().isEmpty())
+                ? request.getName() : request.getSlug();
+        product.setSlug(generateUniqueSlug(slugBase, product.getId()));
         // ---> پایان کدهای جدید سئو <---
 
         return productRepo.save(product);
@@ -157,6 +154,38 @@ public class ProductService {
     // متد مخصوص پنل ادمین (بدون صفحه‌بندی)
     public List<Product> getAllProductsForAdmin() {
         return productRepo.findAll();
+    }
+
+    /*
+       ساخت اسلاگ تمیز و یکتا:
+       - فاصله‌ها به خط تیره تبدیل می‌شوند
+       - کاراکترهای خاص (/ ? # % ...) حذف می‌شوند تا URL نشکند
+       - حروف/ارقام فارسی حفظ می‌شوند
+       - در صورت تکراری بودن، یک شماره به انتها اضافه می‌شود (کالای اشتباه نمایش داده نشود)
+    */
+    private String generateUniqueSlug(String base, String excludeId) {
+        String slug = slugify(base);
+        if (slug.isEmpty()) slug = "product";
+
+        String candidate = slug;
+        int i = 2;
+        while (true) {
+            Optional<Product> existing = productRepo.findBySlug(candidate);
+            if (existing.isEmpty() || existing.get().getId().equals(excludeId)) {
+                return candidate;
+            }
+            candidate = slug + "-" + i++;
+        }
+    }
+
+    private String slugify(String s) {
+        if (s == null) return "";
+        String out = s.trim().replaceAll("\\s+", "-");
+        // حذف نقطه‌گذاری اَسکی به‌جز خط تیره (شامل / ? # % & . , و ...)
+        out = out.replaceAll("[\\p{Punct}&&[^-]]", "");
+        // جمع‌کردن خط‌تیره‌های پشت‌سرهم و حذف از ابتدا/انتها
+        out = out.replaceAll("-{2,}", "-").replaceAll("^-+|-+$", "");
+        return out;
     }
 
     // متد اصلی برای فرانت‌اند (با قابلیت فیلتر، سورتینگ و صفحه‌بندی)
