@@ -1063,6 +1063,12 @@
                 جدیدترین محصولات
             </div>
             <div id="productsGrid" class="products-grid"></div>
+            <div style="text-align:center; margin:24px 0;">
+                <button id="loadMoreBtn" onclick="loadMoreProducts()"
+                        style="display:none; padding:12px 28px; background:var(--primary); color:#fff; border:none; border-radius:100px; font-weight:700; cursor:pointer; font-size:0.95rem;">
+                    نمایش محصولات بیشتر
+                </button>
+            </div>
         </main>
     </div>
 </div>
@@ -1210,7 +1216,8 @@
     // const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:8080' : location.origin;
     const API = window.location.origin;
 
-    let state = {all: [], cats: [], secs: [], current: [], cart: [], serverOrders: [], tab: 'current', phone: ''};
+    let state = {all: [], cats: [], secs: [], current: [], cart: [], serverOrders: [], tab: 'current', phone: '',
+        feed: {type: 'home', param: null, page: 0, size: 20, last: true}};
 
     try {
         state.cart = JSON.parse(localStorage.getItem('shop_cart') || '[]');
@@ -1528,7 +1535,8 @@
         } catch (e) {
             document.getElementById('landingSections').innerHTML = '';
         }
-        renderGrid(state.all.slice(0, 20));
+        // جدیدترین محصولات: صفحه‌بندی سروری با «نمایش بیشتر»
+        await startFeed('home', null);
 
         // ذخیره در تاریخچه مرورگر
         if (!isPopState) {
@@ -1544,12 +1552,8 @@
         document.getElementById('landingSections').style.display = 'none';
         document.getElementById('latestSectionHeader').innerText = 'دسته: ' + name;
 
-        const res = await fetch(`${API}/api/v1/products?categoryId=${id}&size=200`).then(r => r.json());
-        state.current = res.content || res || [];
-        // ادغام در حافظه تا باز کردن محصول نیاز به واکشی مجدد نداشته باشد
-        state.current.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
-        renderGrid(state.current);
-        setupFilters(state.current);
+        // لیست دسته: صفحه‌بندی سروری با «نمایش بیشتر» (بدون سقف ۲۰۰)
+        await startFeed('cat', id);
 
         // ذخیره لیست در تاریخچه مرورگر
         if (!isPopState) {
@@ -1563,12 +1567,8 @@
         document.getElementById('landingSections').style.display = 'none';
         document.getElementById('latestSectionHeader').innerText = title;
 
-        // لیست کامل جشنواره از سرور (مثل loadCat)
-        const res = await fetch(`${API}/api/v1/products?sectionId=${id}&size=200`).then(r => r.json()).catch(() => null);
-        state.current = (res && (res.content || res)) || [];
-        state.current.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
-        renderGrid(state.current);
-        setupFilters(state.current);
+        // لیست جشنواره: صفحه‌بندی سروری با «نمایش بیشتر»
+        await startFeed('sec', id);
 
         // ذخیره لیست جشنواره در تاریخچه مرورگر
         if (!isPopState) {
@@ -1578,6 +1578,48 @@
 
     function renderGrid(list) {
         document.getElementById('productsGrid').innerHTML = list.length ? list.map(p => renderCard(p)).join('') : '<p style="grid-column:1/-1; text-align:center; padding:50px;">محصولی یافت نشد</p>';
+    }
+
+    // ========= صفحه‌بندی گرید («نمایش بیشتر») =========
+    // type: 'home' | 'cat' | 'sec'  — از سرور صفحه‌صفحه می‌گیرد (بدون سقف)
+    async function startFeed(type, param) {
+        state.feed = {type, param, page: 0, size: 20, last: false};
+        state.current = [];
+        await loadMoreProducts(true);
+    }
+
+    async function loadMoreProducts(isFirst = false) {
+        const f = state.feed;
+        if (!isFirst) f.page++;
+
+        let url = `${API}/api/v1/products?page=${f.page}&size=${f.size}`;
+        if (f.type === 'cat') url += `&categoryId=${encodeURIComponent(f.param)}`;
+        else if (f.type === 'sec') url += `&sectionId=${encodeURIComponent(f.param)}`;
+
+        const btn = document.getElementById('loadMoreBtn');
+        if (btn) { btn.disabled = true; btn.innerText = 'در حال بارگذاری...'; }
+
+        try {
+            const res = await fetch(url).then(r => r.json());
+            const content = res.content || [];
+            content.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
+            state.current = isFirst ? content : state.current.concat(content);
+            f.last = (res.last !== undefined) ? res.last : true;
+        } catch (e) {
+            f.last = true;
+        }
+
+        if (btn) { btn.disabled = false; btn.innerText = 'نمایش محصولات بیشتر'; }
+
+        if (isFirst) {
+            // صفحه اول: پنل فیلتر مشخصات را از نو بساز و لیست را نمایش بده
+            setupFilters(state.current);
+            renderGrid(state.current);
+        } else {
+            // صفحات بعدی: فیلترهای فعال را حفظ کن (پنل را بازنساز نکن)
+            runFilter();
+        }
+        if (btn) btn.style.display = f.last ? 'none' : 'inline-block';
     }
 
     // FILTERS
