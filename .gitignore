@@ -41,3 +41,4 @@ uploads_sim/
 javacore.*.txt
 *.hprof
 heapdump.*
+data-import/
