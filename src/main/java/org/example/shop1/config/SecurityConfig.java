@@ -62,8 +62,11 @@ public class SecurityConfig {
                         // ۱. حتما صفحه خطا را کاملا باز بگذارید
                         .requestMatchers("/error", "/favicon.ico", "/robots.txt", "/sitemap.xml").permitAll()
 
-                        .requestMatchers("/", "/product/**", "/category/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
+                        .requestMatchers("/", "/product/**", "/category/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/fonts/**", "/images/**", "/uploads/**").permitAll()
+
+                        // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
+                        .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
 
                         // ۲. مسیرهای عمومی API را با دقت بیشتر باز کنید (حذف HttpMethod.GET برای تست اگر جواب نداد)
                         .requestMatchers(
@@ -71,6 +74,7 @@ public class SecurityConfig {
                                 "/api/categories/**",
                                 "/api/v1/landing-sections/**", // اینجا در لاگ خطا میداد
                                 "/api/comments/product/**",
+                                "/api/v1/articles/**",
                                 "/api/settings/**"
                         ).permitAll()
 

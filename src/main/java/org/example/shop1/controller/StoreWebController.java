@@ -1,10 +1,12 @@
 package org.example.shop1.controller;
 
 import jakarta.servlet.http.HttpServletRequest; // اضافه شد
+import org.example.shop1.model.entity.Article;
 import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.entity.Category;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.example.shop1.model.reposritory.CategoryRepository;
+import org.example.shop1.model.service.ArticleService;
 import org.example.shop1.model.service.CategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -23,6 +25,7 @@ public class StoreWebController {
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
     private final CategoryService categoryService;
+    private final ArticleService articleService;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
     @org.springframework.beans.factory.annotation.Value("${analytics.ga4.measurement-id:}")
@@ -32,10 +35,11 @@ public class StoreWebController {
     private String gscToken;
 
     public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo,
-                              CategoryService categoryService) {
+                              CategoryService categoryService, ArticleService articleService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.categoryService = categoryService;
+        this.articleService = articleService;
     }
 
     @GetMapping("/")
@@ -176,6 +180,61 @@ public class StoreWebController {
                 .replace("\n", " ").replace("\r", " ").replace("\t", " ");
     }
 
+    // ================= بلاگ (SSR کامل — قطب محتوای آموزشی) =================
+
+    @GetMapping("/blog")
+    public String blogList(Model model, HttpServletRequest request,
+                           @org.springframework.web.bind.annotation.RequestParam(name = "page", defaultValue = "0") int page) {
+        addDynamicUrls(model, request);
+        model.addAttribute("articles", articleService.getPublished(page, 12));
+        model.addAttribute("blogPage", page);
+        model.addAttribute("seoTitle", "بلاگ آموزشی میکروتیک و شبکه | داده نما");
+        model.addAttribute("seoDescription", "مقالات تخصصی آموزش، عیب‌یابی و راهنمای خرید میکروتیک، وایرلس و تجهیزات شبکه");
+        model.addAttribute("canonicalUrl", buildBaseUrl(request) + "/blog");
+        return "blog";
+    }
+
+    @GetMapping("/blog/{slugOrId}")
+    public String articlePage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+
+        Article a = articleService.getPublishedBySlugOrId(slugOrId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "مقاله یافت نشد"));
+
+        String baseUrl = buildBaseUrl(request);
+        String slug = (a.getSlug() != null && !a.getSlug().isEmpty()) ? a.getSlug() : a.getId();
+        String canonical = baseUrl + "/blog/" + slug;
+
+        String title = (a.getSeoTitle() != null && !a.getSeoTitle().isEmpty())
+                ? a.getSeoTitle() : a.getTitle() + " | آموزش تخصصی – داده نما";
+        String description = (a.getSeoDescription() != null && !a.getSeoDescription().isEmpty())
+                ? a.getSeoDescription()
+                : (a.getExcerpt() != null && !a.getExcerpt().isEmpty() ? a.getExcerpt() : a.getTitle());
+
+        model.addAttribute("article", a);
+        model.addAttribute("seoTitle", title);
+        model.addAttribute("seoDescription", description);
+        model.addAttribute("canonicalUrl", canonical);
+        if (a.getCoverImage() != null && !a.getCoverImage().isEmpty()) {
+            String img = a.getCoverImage();
+            model.addAttribute("ogImage", img.startsWith("http") ? img : baseUrl + img);
+        }
+
+        // اسکیمای Article (سروری، مثل الگوی دسته)
+        String json = "{\"@context\":\"https://schema.org/\",\"@type\":\"Article\"" +
+                ",\"headline\":\"" + esc(a.getTitle()) + "\"" +
+                ",\"description\":\"" + esc(description) + "\"" +
+                ",\"url\":\"" + esc(canonical) + "\"" +
+                (a.getCoverImage() != null && !a.getCoverImage().isEmpty()
+                        ? ",\"image\":\"" + esc(a.getCoverImage().startsWith("http") ? a.getCoverImage() : baseUrl + a.getCoverImage()) + "\"" : "") +
+                ",\"datePublished\":\"" + a.getCreatedAt() + "\"" +
+                ",\"dateModified\":\"" + a.getUpdatedAt() + "\"" +
+                ",\"publisher\":{\"@type\":\"Organization\",\"name\":\"فروشگاه داده نما\",\"url\":\"" + esc(baseUrl) + "\"}}";
+        model.addAttribute("articleJsonLd", json);
+
+        return "article";
+    }
+
     // متد اختصاصی برای ساخت آدرس‌های داینامیک بدون هاردکد کردن localhost
     private void addDynamicUrls(Model model, HttpServletRequest request) {
         String baseUrl = buildBaseUrl(request);
@@ -226,6 +285,17 @@ public class StoreWebController {
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
         xml.append("<url><loc>").append(baseUrl).append("/</loc><priority>1.0</priority></url>");
+
+        // بلاگ و مقالات منتشرشده
+        xml.append("<url><loc>").append(baseUrl).append("/blog</loc><priority>0.7</priority></url>");
+        for (Article a : articleService.getAllPublished()) {
+            String aSlug = (a.getSlug() != null && !a.getSlug().isEmpty()) ? a.getSlug() : a.getId();
+            Instant amod = a.getUpdatedAt() != null ? a.getUpdatedAt()
+                    : (a.getCreatedAt() != null ? a.getCreatedAt() : Instant.now());
+            xml.append("<url><loc>").append(baseUrl).append("/blog/").append(aSlug).append("</loc>");
+            xml.append("<lastmod>").append(amod.toString(), 0, 10).append("</lastmod>");
+            xml.append("<priority>0.7</priority></url>");
+        }
 
         // صفحات دسته‌بندی (فقط دسته‌های فروشگاه آنلاین، نه انبار)
         for (Category c : categoryRepo.findAll()) {
