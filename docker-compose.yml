@@ -44,6 +44,10 @@ services:
       - SMS_API_KEY=${SMS_API_KEY}
       - SMS_TEMPLATE_ID=${SMS_TEMPLATE_ID}
 
+      # آنالیتیکس (فاز ۰ رودمپ) — خالی = غیرفعال
+      - GA4_ID=${GA4_ID:-}
+      - GSC_VERIFICATION=${GSC_VERIFICATION:-}
+
       # اطلاعات ادمین اولیه
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PHONE=${ADMIN_PHONE}

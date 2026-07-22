@@ -1,9 +1,36 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>پنل کاربری | فروشگاه داده نما</title>
+
+    <!-- GA4 (فاز ۰ رودمپ) — فقط وقتی شناسه تنظیم شده باشد -->
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+    <script>
+        function gaEvent(name, params) {
+            try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (e) {}
+        }
+        // رویداد purchase: وقتی از درگاه با paid=1 برگشتیم (تکمیل قیف فروش)
+        (function () {
+            const sp = new URLSearchParams(location.search);
+            if (sp.get('paid') === '1' && sp.get('order')) {
+                gaEvent('purchase', {transaction_id: sp.get('order'), currency: 'IRR'});
+                // پاک کردن پارامترها تا رفرش صفحه رویداد تکراری نفرستد
+                sp.delete('paid'); sp.delete('order');
+                const qs = sp.toString();
+                history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+            }
+        })();
+    </script>
 
     <!-- منابع لوکال (آفلاین) -->
     <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">

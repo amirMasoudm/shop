@@ -162,10 +162,12 @@ public class OrderController {
     // متد جدید: هندل کردن پاسخ درگاه و بازگرداندن کاربر به پنل کاربری با اعمال وضعیت پرداخت
     @PostMapping("/mock-gateway-callback/{orderId}")
     public ResponseEntity<Void> mockCallback(@PathVariable String orderId, @RequestParam String status) {
+        boolean paid = false;
         try {
             if ("SUCCESS".equals(status)) {
                 // ۱. تغییر وضعیت سفارش به پرداخت شده — فقط برای صاحب همان سفارش
                 orderService.payOrderByCurrentUser(orderId);
+                paid = true;
                 log.info("سفارش شماره {} با موفقیت پرداخت شد و به مرحله بسته‌بندی رفت.", orderId);
             } else {
                 log.warn("پرداخت سفارش شماره {} ناموفق بود.", orderId);
@@ -174,8 +176,10 @@ public class OrderController {
             log.error("خطا در ثبت تراکنش: {}", e.getMessage());
         }
 
+        // پارامتر paid برای رویداد purchase در آنالیتیکس پنل کاربری
+        String location = paid ? ("/profile?paid=1&order=" + orderId) : "/profile";
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, "/profile") // هدایت به مسیری که در کنترلر تعریف کردیم
+                .header(HttpHeaders.LOCATION, location)
                 .build();
     }
 

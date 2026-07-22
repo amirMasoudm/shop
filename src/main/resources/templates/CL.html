@@ -10,6 +10,26 @@
     <!-- توضیح متا برای نمایش در نتایج جستجوی گوگل (SERP) -->
     <meta name="description" th:content="${seoDescription}">
 
+    <!-- تایید مالکیت Search Console (فقط وقتی مقدار دارد) -->
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <!-- GA4 — فقط وقتی شناسه تنظیم شده باشد (GA4_ID در env) -->
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+    <script>
+        // هلپر امن رویداد آنالیتیکس: اگر GA4 فعال نباشد بی‌صدا رد می‌شود
+        function gaEvent(name, params) {
+            try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (e) {}
+        }
+    </script>
+
     <!-- Open Graph برای اشتراک‌گذاری در شبکه‌های اجتماعی -->
     <meta property="og:title" th:content="${seoTitle}">
     <meta property="og:description" th:content="${seoDescription}">
@@ -1296,6 +1316,13 @@
         if (!p) p = await fetchProductBySlugOrId(productId);
         if(!p) return;
 
+        // رویداد آنالیتیکس: مشاهده محصول (قیف مرحله ۱)
+        gaEvent('view_item', {
+            currency: 'IRR',
+            value: Number(p.onlinePrice || p.price || 0),
+            items: [{item_id: p.id, item_name: p.name}]
+        });
+
         // --- بخش ۱: به‌روزرسانی سئو و آدرس (URL) ---
         if (!state.originalTitle) state.originalTitle = document.title;
         document.title = p.seoTitle || `${p.name} | فروشگاه داده نما`;
@@ -1672,6 +1699,13 @@
         if (i) i.qty++; else state.cart.push({id, name, price, img, qty: 1});
         saveCart();
         updateCartCount();
+
+        // رویداد آنالیتیکس: افزودن به سبد (قیف مرحله ۲)
+        gaEvent('add_to_cart', {
+            currency: 'IRR',
+            value: Number(price || 0),
+            items: [{item_id: id, item_name: name}]
+        });
     }
 
     function saveCart() {
@@ -1864,6 +1898,14 @@
             });
             if (res.ok) {
                 const data = await res.json();
+
+                // رویداد آنالیتیکس: شروع تسویه (قیف مرحله ۳)
+                gaEvent('begin_checkout', {
+                    currency: 'IRR',
+                    value: Number(data.itemsTotal || 0),
+                    items: (state.cart || []).map(i => ({item_id: i.id, item_name: i.name, quantity: i.qty || 1}))
+                });
+
                 state.cart = [];
                 saveCart();
                 // تغییر مهم: انتقال به مسیر profile 👇

@@ -24,6 +24,13 @@ public class StoreWebController {
     private final CategoryRepository categoryRepo;
     private final CategoryService categoryService;
 
+    // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
+    @org.springframework.beans.factory.annotation.Value("${analytics.ga4.measurement-id:}")
+    private String ga4Id;
+
+    @org.springframework.beans.factory.annotation.Value("${analytics.gsc.verification:}")
+    private String gscToken;
+
     public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo,
                               CategoryService categoryService) {
         this.productRepo = productRepo;
@@ -176,6 +183,10 @@ public class StoreWebController {
         model.addAttribute("currentUrl", request.getRequestURL().toString());
         // تصویر پیش‌فرض سئو؛ در صفحه‌ی محصول با تصویر واقعی بازنویسی می‌شود
         model.addAttribute("ogImage", baseUrl + "/logo.png");
+
+        // آنالیتیکس (GA4 + تایید Search Console) — فقط وقتی مقدار دارند رندر می‌شوند
+        model.addAttribute("ga4Id", ga4Id != null ? ga4Id.trim() : "");
+        model.addAttribute("gscToken", gscToken != null ? gscToken.trim() : "");
 
         // لینک‌های فوتر به صفحات دسته (لینک داخلی واقعی برای خزنده‌ها در همه صفحات)
         List<Category> footerCategories = categoryRepo.findAll().stream()
