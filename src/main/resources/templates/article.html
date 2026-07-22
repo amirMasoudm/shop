@@ -89,6 +89,22 @@
         <!-- محتوای HTML مقاله (سمت سرور با Safelist ریلکس پاکسازی شده) -->
         <div class="content" th:utext="${article.contentHtml}"></div>
 
+        <!-- خوشه‌ی محتوایی: لینک‌های خودکار به مقالات هم‌خوشه -->
+        <div th:if="${relatedArticles != null and !relatedArticles.isEmpty()}"
+             style="margin-top:28px; border:1px solid #dbe4f0; border-radius:12px; padding:18px; background:#fafbfe;">
+            <div style="font-weight:800; margin-bottom:12px;">
+                📚 مقالات مرتبط در
+                <a th:href="${baseUrl + '/blog/hub/' + article.hubSlug}" th:text="'«' + ${article.hub} + '»'"
+                   style="color:var(--primary);">خوشه</a>
+            </div>
+            <ul style="margin:0 18px 0 0; line-height:2.2;">
+                <li th:each="r : ${relatedArticles}">
+                    <a th:href="${baseUrl + '/blog/' + (r.slug != null and !r.slug.isEmpty() ? r.slug : r.id)}"
+                       th:text="${r.title}" style="color:var(--primary); text-decoration:none;">مقاله مرتبط</a>
+                </li>
+            </ul>
+        </div>
+
         <div class="cta">
             <div style="font-weight:700;">نیاز به تجهیزات میکروتیک و شبکه دارید؟</div>
             <a th:href="${baseUrl + '/'}">مشاهده فروشگاه داده نما</a>

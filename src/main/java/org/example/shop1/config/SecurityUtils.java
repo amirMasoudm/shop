@@ -25,7 +25,8 @@ public class SecurityUtils {
             return dirty;
         }
         Safelist safelist = Safelist.relaxed()
-                .addAttributes("img", "loading", "alt", "title")
+                // style برای حفظ سایز/چینش عکس که ادیتور تنظیم می‌کند (ورودی فقط از ادمین است)
+                .addAttributes("img", "loading", "alt", "title", "style")
                 .addAttributes("a", "rel", "target")
                 .addAttributes(":all", "class", "dir");
         return Jsoup.clean(dirty, safelist);

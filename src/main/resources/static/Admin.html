@@ -15,6 +15,14 @@
     <!-- Quill (ادیتور متن مقالات بلاگ) -->
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <!-- ماژول تغییر سایز عکس داخل ادیتور -->
+    <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
+    <style>
+        /* ادیتور مقاله: فارسی و راست‌چین به صورت پیش‌فرض */
+        #a-editor .ql-editor { direction: rtl; text-align: right; font-family: inherit; font-size: 15px; line-height: 2; min-height: 240px; }
+        #a-editor .ql-editor.ql-blank::before { right: 15px; left: auto; font-style: normal; color: #9ca3af; }
+        #articleModal .ql-toolbar { border-radius: 8px 8px 0 0; direction: ltr; }
+    </style>
 
     <!-- Leaflet Map (لوکال) -->
     <link rel="stylesheet" href="/css/leaflet.css"/>
@@ -1138,6 +1146,15 @@
                     <option value="false">پیش‌نویس (منتشر نشود)</option>
                     <option value="true">منتشرشده</option>
                 </select>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">
+                    خوشه‌ی محتوایی (Content Hub)
+                    <span class="text-[10px] text-gray-400">— مقالات هم‌خوشه خودکار به هم لینک می‌شوند و صفحه‌ی مجموعه می‌سازند</span>
+                </label>
+                <input type="text" id="a-hub" list="hub-list" placeholder="مثلاً: آموزش میکروتیک"
+                       class="w-full p-2.5 border rounded-lg outline-none">
+                <datalist id="hub-list"></datalist>
             </div>
             <div class="md:col-span-2">
                 <label class="block text-sm text-gray-600 mb-1">خلاصه (برای کارت بلاگ و توضیح متا)</label>
@@ -2418,9 +2435,14 @@
                     [{direction: 'rtl'}, {align: []}],
                     ['link', 'image', 'code-block'],
                     ['clean']
-                ]
+                ],
+                // تغییر سایز عکس با درگ گوشه‌ها + نمایش ابعاد + دکمه‌های چینش
+                imageResize: { modules: ['Resize', 'DisplaySize', 'Toolbar'] }
             }
         });
+        // جهت پیش‌فرض فارسی: راست‌چین
+        articleQuill.format('direction', 'rtl');
+        articleQuill.format('align', 'right');
         // آپلود تصویر داخل متن از طریق سرور خودمان (نه base64)
         articleQuill.getModule('toolbar').addHandler('image', () => {
             const input = document.createElement('input');
@@ -2443,6 +2465,9 @@
             const res = await axios.get(`${API}/v1/articles/admin/all`);
             state.articles = res.data || [];
             renderArticles();
+            // پر کردن پیشنهادهای خوشه از خوشه‌های موجود
+            const hubs = [...new Set(state.articles.map(a => a.hub).filter(Boolean))];
+            document.getElementById('hub-list').innerHTML = hubs.map(h => `<option value="${h}">`).join('');
         } catch (e) {
             Swal.fire('خطا', 'دریافت مقالات ناموفق بود', 'error');
         }
@@ -2501,6 +2526,7 @@
         document.getElementById('a-title').value = a.title || '';
         document.getElementById('a-slug').value = a.slug || '';
         document.getElementById('a-excerpt').value = a.excerpt || '';
+        document.getElementById('a-hub').value = a.hub || '';
         document.getElementById('a-published').value = String(!!a.published);
         document.getElementById('a-seo-title').value = a.seoTitle || '';
         document.getElementById('a-seo-desc').value = a.seoDescription || '';
@@ -2534,6 +2560,7 @@
             title: title,
             slug: document.getElementById('a-slug').value.trim() || null,
             excerpt: document.getElementById('a-excerpt').value.trim(),
+            hub: document.getElementById('a-hub').value.trim() || null,
             contentHtml: articleQuill.root.innerHTML,
             coverImage: document.getElementById('a-cover').value || null,
             seoTitle: document.getElementById('a-seo-title').value.trim() || null,

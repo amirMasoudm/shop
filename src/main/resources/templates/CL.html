@@ -1498,7 +1498,9 @@
     // RENDERERS
     function renderDesktopMenu(items) {
         const build = (list) => list.map(item => `<li class="dropdown"><a onclick="loadCat('${item.id}','${item.name.replace(/'/g, "")}')">${item.name} ${item.children?.length ? '❮' : ''}</a>${item.children?.length ? `<ul class="dropdown-menu">${build(item.children)}</ul>` : ''}</li>`).join('');
-        document.getElementById('desktopMenu').innerHTML = build(items);
+        // لینک ثابت بلاگ (لینک واقعی <a> — هم برای کاربر هم خزنده)
+        const blogLink = `<li><a href="/blog" style="color:var(--accent); font-weight:800;">📝 بلاگ آموزشی</a></li>`;
+        document.getElementById('desktopMenu').innerHTML = build(items) + blogLink;
     }
 
     function renderMobileMenu(items) {
@@ -1509,7 +1511,8 @@
                     ${hasKids ? `<div style="padding:15px 20px; border-right:1px solid #eee;" onclick="toggleSub(this)"><span style="color:#888;">▼</span></div>` : ''}</div>
                     ${hasKids ? `<div class="mob-children" style="display:none; background:#f9f9f9; padding-right:15px;">${build(item.children)}</div>` : ''}</div>`;
         }).join('');
-        document.getElementById('mobileMenuBody').innerHTML = build(items);
+        const blogRow = `<div class="mob-item"><a href="/blog" style="display:block; padding:15px 20px; font-weight:800; color:var(--accent); text-decoration:none; border-bottom:1px solid var(--border);">📝 بلاگ آموزشی</a></div>`;
+        document.getElementById('mobileMenuBody').innerHTML = blogRow + build(items);
     }
 
     function toggleSub(btn) {
@@ -2217,6 +2220,7 @@
                th:href="${baseUrl + '/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
                th:text="${fc.name}"
                style="color:#cbd5e1; text-decoration:none; font-size:13px;">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; text-decoration:none; font-size:13px; font-weight:700;">📝 بلاگ آموزشی</a>
         </nav>
         <div style="margin-top:20px; font-size:12px; color:#94a3b8;">© فروشگاه داده نما</div>
     </div>

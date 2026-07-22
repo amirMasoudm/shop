@@ -50,6 +50,16 @@ public class ArticleService {
         article.setPublished(input.isPublished());
         article.setUpdatedAt(Instant.now());
 
+        // خوشه‌ی محتوایی: اسلاگ مشترک از نام خوشه ساخته می‌شود
+        String hub = SecurityUtils.clean(input.getHub());
+        if (hub != null && !hub.trim().isEmpty()) {
+            article.setHub(hub.trim());
+            article.setHubSlug(SlugUtil.slugify(hub));
+        } else {
+            article.setHub(null);
+            article.setHubSlug(null);
+        }
+
         // اسلاگ: پایدار مثل دسته‌ها — فقط اگر صریحاً داده شود یا وجود نداشته باشد ساخته می‌شود
         if (input.getSlug() != null && !input.getSlug().trim().isEmpty()) {
             article.setSlug(generateUniqueSlug(input.getSlug(), article.getId()));
@@ -86,6 +96,11 @@ public class ArticleService {
     // برای sitemap
     public List<Article> getAllPublished() {
         return repo.findByPublishedTrue();
+    }
+
+    // مقالات یک خوشه (صفحه هاب + باکس مقالات مرتبط)
+    public List<Article> getHubArticles(String hubSlug) {
+        return repo.findByHubSlugAndPublishedTrueOrderByCreatedAtDesc(hubSlug);
     }
 
     private String generateUniqueSlug(String base, String excludeId) {

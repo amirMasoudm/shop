@@ -29,6 +29,11 @@ public class Article {
 
     private String coverImage;
 
+    // ---> خوشه‌ی محتوایی (Content Hub) <---
+    // مقالات هم‌خوشه به هم لینک می‌شوند و صفحه‌ی /blog/hub/{hubSlug} می‌سازند
+    private String hub;      // نام نمایشی خوشه، مثل: آموزش میکروتیک
+    private String hubSlug;  // اسلاگ مشترک خوشه (از hub ساخته می‌شود)
+
     // ---> سئو <---
     private String seoTitle;
     private String seoDescription;
@@ -55,6 +60,12 @@ public class Article {
 
     public String getCoverImage() { return coverImage; }
     public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
+
+    public String getHub() { return hub; }
+    public void setHub(String hub) { this.hub = hub; }
+
+    public String getHubSlug() { return hubSlug; }
+    public void setHubSlug(String hubSlug) { this.hubSlug = hubSlug; }
 
     public String getSeoTitle() { return seoTitle; }
     public void setSeoTitle(String seoTitle) { this.seoTitle = seoTitle; }

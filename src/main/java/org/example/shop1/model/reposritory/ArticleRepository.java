@@ -19,4 +19,7 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     // برای sitemap
     List<Article> findByPublishedTrue();
+
+    // مقالات یک خوشه‌ی محتوایی (برای صفحه‌ی هاب و لینک‌های مرتبط)
+    List<Article> findByHubSlugAndPublishedTrueOrderByCreatedAtDesc(String hubSlug);
 }

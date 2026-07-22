@@ -60,11 +60,15 @@
 </header>
 
 <main>
-    <h1>بلاگ آموزشی میکروتیک و شبکه</h1>
-    <p class="sub">آموزش، عیب‌یابی و راهنمای خرید — به قلم تیم فنی داده نما</p>
+    <nav th:if="${hubName != null}" style="font-size:.8rem; color:var(--mid); margin-bottom:12px;">
+        <a th:href="${baseUrl + '/blog'}" style="color:var(--primary); text-decoration:none;">بلاگ</a>
+        <span> / خوشه‌ی محتوایی</span>
+    </nav>
+    <h1 th:text="${hubName != null ? hubName : 'بلاگ آموزشی میکروتیک و شبکه'}">بلاگ آموزشی میکروتیک و شبکه</h1>
+    <p class="sub" th:text="${hubName != null ? 'مجموعه مقالات این موضوع — از مقدماتی تا پیشرفته' : 'آموزش، عیب‌یابی و راهنمای خرید — به قلم تیم فنی داده نما'}">زیرعنوان</p>
 
-    <div class="grid" th:if="${articles != null and !articles.content.isEmpty()}">
-        <a class="card" th:each="a : ${articles.content}"
+    <div class="grid" th:if="${cards != null and !cards.isEmpty()}">
+        <a class="card" th:each="a : ${cards}"
            th:href="${baseUrl + '/blog/' + (a.slug != null and !a.slug.isEmpty() ? a.slug : a.id)}">
             <img th:src="${a.coverImage != null and !a.coverImage.isEmpty() ? a.coverImage : '/logo.png'}"
                  th:alt="${a.title}" loading="lazy">
@@ -75,7 +79,7 @@
         </a>
     </div>
 
-    <div class="empty" th:if="${articles == null or articles.content.isEmpty()}">
+    <div class="empty" th:if="${cards == null or cards.isEmpty()}">
         هنوز مقاله‌ای منتشر نشده — به‌زودی!
     </div>
 

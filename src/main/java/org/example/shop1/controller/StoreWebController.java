@@ -186,7 +186,9 @@ public class StoreWebController {
     public String blogList(Model model, HttpServletRequest request,
                            @org.springframework.web.bind.annotation.RequestParam(name = "page", defaultValue = "0") int page) {
         addDynamicUrls(model, request);
-        model.addAttribute("articles", articleService.getPublished(page, 12));
+        org.springframework.data.domain.Page<Article> articles = articleService.getPublished(page, 12);
+        model.addAttribute("articles", articles);
+        model.addAttribute("cards", articles.getContent());
         model.addAttribute("blogPage", page);
         model.addAttribute("seoTitle", "بلاگ آموزشی میکروتیک و شبکه | داده نما");
         model.addAttribute("seoDescription", "مقالات تخصصی آموزش، عیب‌یابی و راهنمای خرید میکروتیک، وایرلس و تجهیزات شبکه");
@@ -232,7 +234,36 @@ public class StoreWebController {
                 ",\"publisher\":{\"@type\":\"Organization\",\"name\":\"فروشگاه داده نما\",\"url\":\"" + esc(baseUrl) + "\"}}";
         model.addAttribute("articleJsonLd", json);
 
+        // مقالات هم‌خوشه (لینک‌سازی داخلی خودکار خوشه‌ی محتوایی)
+        if (a.getHubSlug() != null && !a.getHubSlug().isEmpty()) {
+            List<Article> related = articleService.getHubArticles(a.getHubSlug()).stream()
+                    .filter(x -> !x.getId().equals(a.getId()))
+                    .limit(6).toList();
+            model.addAttribute("relatedArticles", related);
+        }
+
         return "article";
+    }
+
+    // صفحه‌ی خوشه‌ی محتوایی: /blog/hub/{hubSlug}
+    @GetMapping("/blog/hub/{hubSlug}")
+    public String hubPage(@PathVariable String hubSlug, Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+
+        List<Article> hubArticles = articleService.getHubArticles(hubSlug);
+        if (hubArticles.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "خوشه یافت نشد");
+        }
+
+        String hubName = hubArticles.get(0).getHub() != null ? hubArticles.get(0).getHub() : hubSlug;
+        String baseUrl = buildBaseUrl(request);
+
+        model.addAttribute("hubName", hubName);
+        model.addAttribute("cards", hubArticles);
+        model.addAttribute("seoTitle", hubName + " | مجموعه مقالات تخصصی – داده نما");
+        model.addAttribute("seoDescription", "مجموعه کامل مقالات «" + hubName + "» — آموزش، عیب‌یابی و راهنمای تخصصی از تیم فنی داده نما");
+        model.addAttribute("canonicalUrl", baseUrl + "/blog/hub/" + hubSlug);
+        return "blog";
     }
 
     // متد اختصاصی برای ساخت آدرس‌های داینامیک بدون هاردکد کردن localhost
@@ -288,6 +319,14 @@ public class StoreWebController {
 
         // بلاگ و مقالات منتشرشده
         xml.append("<url><loc>").append(baseUrl).append("/blog</loc><priority>0.7</priority></url>");
+        // صفحات خوشه‌های محتوایی (یکتا)
+        java.util.Set<String> hubSlugs = new java.util.HashSet<>();
+        for (Article a : articleService.getAllPublished()) {
+            if (a.getHubSlug() != null && !a.getHubSlug().isEmpty() && hubSlugs.add(a.getHubSlug())) {
+                xml.append("<url><loc>").append(baseUrl).append("/blog/hub/").append(a.getHubSlug())
+                        .append("</loc><priority>0.7</priority></url>");
+            }
+        }
         for (Article a : articleService.getAllPublished()) {
             String aSlug = (a.getSlug() != null && !a.getSlug().isEmpty()) ? a.getSlug() : a.getId();
             Instant amod = a.getUpdatedAt() != null ? a.getUpdatedAt()
