@@ -1644,7 +1644,12 @@
 
     // RENDERERS
     function renderDesktopMenu(items) {
-        const build = (list) => list.map(item => `<li class="dropdown"><a onclick="loadCat('${item.id}','${item.name.replace(/'/g, "")}')">${item.name} ${item.children?.length ? '❮' : ''}</a>${item.children?.length ? `<ul class="dropdown-menu">${build(item.children)}</ul>` : ''}</li>`).join('');
+        const build = (list) => list.map(item => {
+            const slug = item.slug || item.id;
+            const nm = item.name.replace(/'/g, "");
+            // لینک واقعی خزنده‌پذیر به صفحه‌ی SSR دسته + حفظ تجربه‌ی SPA با preventDefault
+            return `<li class="dropdown"><a href="/category/${encodeURIComponent(slug)}" onclick="event.preventDefault(); loadCat('${item.id}','${nm}')">${item.name} ${item.children?.length ? '❮' : ''}</a>${item.children?.length ? `<ul class="dropdown-menu">${build(item.children)}</ul>` : ''}</li>`;
+        }).join('');
         // لینک ثابت بلاگ (لینک واقعی <a> — هم برای کاربر هم خزنده)
         const blogLink = `<li><a href="/blog" style="color:var(--accent); font-weight:800;">📝 بلاگ آموزشی</a></li>`;
         document.getElementById('desktopMenu').innerHTML = build(items) + blogLink;
@@ -1703,8 +1708,10 @@
     function renderMobileMenu(items) {
         const build = (list) => list.map(item => {
             const hasKids = item.children && item.children.length > 0;
+            const slug = item.slug || item.id;
+            const nm = item.name.replace(/'/g, "");
             return `<div class="mob-item"><div style="display:flex; border-bottom:1px solid var(--border); align-items:stretch;">
-                    <div style="flex:1; padding:15px 20px; font-weight:700;" onclick="loadCat('${item.id}','${item.name.replace(/'/g, "")}'); closeAll();">${item.name}</div>
+                    <a href="/category/${encodeURIComponent(slug)}" style="flex:1; padding:15px 20px; font-weight:700; text-decoration:none; color:inherit;" onclick="event.preventDefault(); loadCat('${item.id}','${nm}'); closeAll();">${item.name}</a>
                     ${hasKids ? `<div style="padding:15px 20px; border-right:1px solid #eee;" onclick="toggleSub(this)"><span style="color:#888;">▼</span></div>` : ''}</div>
                     ${hasKids ? `<div class="mob-children" style="display:none; background:#f9f9f9; padding-right:15px;">${build(item.children)}</div>` : ''}</div>`;
         }).join('');
@@ -1782,9 +1789,10 @@
         // لیست دسته: صفحه‌بندی سروری با «نمایش بیشتر» (بدون سقف ۲۰۰)
         await startFeed('cat', id);
 
-        // ذخیره لیست در تاریخچه مرورگر
+        // ذخیره لیست در تاریخچه مرورگر — URL تمیز /category/{slug} تا با صفحه‌ی SSR و canonical یکی شود
         if (!isPopState) {
-            window.history.pushState({type: 'cat', id}, '', `/?cat=${id}&name=${encodeURIComponent(name)}`);
+            const slug = getCatSlug(id);
+            window.history.pushState({type: 'cat', id}, '', `/category/${encodeURIComponent(slug)}`);
         }
     }
 
@@ -2019,6 +2027,36 @@
             return null;
         };
         return find(state.cats) || 'متفرقه';
+    }
+
+    // اسلگ دسته را از درخت پیدا می‌کند (برای URL تمیز /category/{slug})؛ اگر اسلگ نبود، خودِ id
+    function getCatSlug(id) {
+        const find = (list) => {
+            for (let c of list) {
+                if (c.id === id) return c.slug || c.id;
+                if (c.children) {
+                    let r = find(c.children);
+                    if (r) return r;
+                }
+            }
+            return null;
+        };
+        return find(state.cats) || id;
+    }
+
+    // معکوس: پیدا کردن دسته بر اساس اسلگ (برای popstate روی /category/{slug})
+    function getCatBySlug(slug) {
+        const find = (list) => {
+            for (let c of list) {
+                if ((c.slug || c.id) === slug || c.id === slug) return c;
+                if (c.children) {
+                    let r = find(c.children);
+                    if (r) return r;
+                }
+            }
+            return null;
+        };
+        return find(state.cats);
     }
 
     // AUTH & ORDERS
@@ -2386,12 +2424,23 @@
                 fetchProductBySlugOrId(slug).then(fp => { if (fp) openProductDetail(fp.id, true); });
             }
         }
+        else if (path.startsWith('/category/')) {
+            // بازگشت به لیست دسته با آدرس تمیز /category/{slug}
+            if (state.originalTitle) document.title = state.originalTitle;
+            const slug = decodeURIComponent(path.split('/')[2]);
+            const cat = getCatBySlug(slug);
+            if (cat) {
+                loadCat(cat.id, cat.name, true);
+            } else {
+                loadHome(true);
+            }
+        }
         else {
             // اگر کاربر بک زد تا به لیست یا صفحه اصلی برگردد
             if (state.originalTitle) document.title = state.originalTitle;
 
             if (searchParams.has('cat')) {
-                // بازگشت به لیست دسته‌بندی
+                // بازگشت به لیست دسته‌بندی (سازگاری با آدرس‌های قدیمی ?cat=)
                 loadCat(searchParams.get('cat'), searchParams.get('name') || 'محصولات', true);
             } else if (searchParams.has('sec')) {
                 // بازگشت به لیست جشنواره
