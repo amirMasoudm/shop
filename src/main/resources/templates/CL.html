@@ -243,8 +243,7 @@
             display: none;
         }
         .menu-arrow.visible { display: flex; }
-        .menu-arrow:hover:not(:disabled) { background: rgba(255, 255, 255, 0.3); }
-        .menu-arrow:disabled { opacity: 0.25; cursor: default; }
+        .menu-arrow:hover { background: rgba(255, 255, 255, 0.3); }
         .menu-arrow-left { margin-left: 6px; }
         .menu-arrow-right { margin-right: 6px; }
 
@@ -1672,15 +1671,15 @@
         const leftBtn = document.getElementById('menuArrowLeft');
         const rightBtn = document.getElementById('menuArrowRight');
         if (!wrap || !leftBtn || !rightBtn) return;
-        const maxScroll = wrap.scrollWidth - wrap.clientWidth;
-        const overflow = maxScroll > 2;
-        leftBtn.classList.toggle('visible', overflow);
-        rightBtn.classList.toggle('visible', overflow);
-        if (!overflow) return;
-        const TOL = 3;
-        const distFromStart = Math.abs(wrap.scrollLeft); // ۰ در ابتدا (راست)، تا maxScroll در انتها (چپ)
-        rightBtn.disabled = distFromStart <= TOL;
-        leftBtn.disabled = distFromStart >= maxScroll - TOL;
+        const max = wrap.scrollWidth - wrap.clientWidth;   // مثبت
+        const overflowing = max > 2;
+        const pos = Math.abs(wrap.scrollLeft);             // 0..max در RTL کروم
+        const atStart = pos <= 1;                          // راست‌ترین (ابتدا)
+        const atEnd = pos >= max - 1;                       // چپ‌ترین (انتها)
+        // فلش راست = حرکت به سمت ابتدا (کاهش pos) → در ابتدا مخفی
+        rightBtn.classList.toggle('visible', overflowing && !atStart);
+        // فلش چپ = حرکت به سمت انتها (افزایش pos) → در انتها مخفی
+        leftBtn.classList.toggle('visible', overflowing && !atEnd);
     }
 
     function scrollMenu(dir) {
