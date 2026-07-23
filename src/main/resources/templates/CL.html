@@ -207,16 +207,46 @@
             letter-spacing: 1px;
         }
 
-        .desktop-menu-wrapper {
+        .menu-scroll-wrap {
             flex: 1;
             min-width: 0; /* اجازه‌ی جمع‌شدن تا اسکرول فعال شود */
             display: flex;
+            align-items: center;
             margin: 0 10px;
+            position: relative;
+        }
+
+        .desktop-menu-wrapper {
+            flex: 1;
+            min-width: 0;
+            display: flex;
             overflow-x: auto;      /* دسته‌های زیاد بریده نشوند — با اسکرول همه دیده شوند */
             overflow-y: visible;
             scrollbar-width: none;
         }
         .desktop-menu-wrapper::-webkit-scrollbar { display: none; }
+
+        .menu-arrow {
+            flex: 0 0 auto;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            display: none;
+        }
+        .menu-arrow.visible { display: flex; }
+        .menu-arrow:hover:not(:disabled) { background: rgba(255, 255, 255, 0.3); }
+        .menu-arrow:disabled { opacity: 0.25; cursor: default; }
+        .menu-arrow-left { margin-left: 6px; }
+        .menu-arrow-right { margin-right: 6px; }
 
         .desktop-menu {
             display: flex;
@@ -871,7 +901,7 @@
         }
 
         @media (max-width: 992px) {
-            .desktop-menu-wrapper {
+            .menu-scroll-wrap {
                 display: none;
             }
 
@@ -1096,8 +1126,12 @@
             </div>
         </a>
 
-        <div class="desktop-menu-wrapper">
-            <ul class="desktop-menu" id="desktopMenu"></ul>
+        <div class="menu-scroll-wrap" id="menuScrollWrap">
+            <button type="button" class="menu-arrow menu-arrow-right" id="menuArrowRight" onclick="scrollMenu('right')" aria-label="نمایش دسته‌های قبلی">›</button>
+            <div class="desktop-menu-wrapper" id="desktopMenuWrapper">
+                <ul class="desktop-menu" id="desktopMenu"></ul>
+            </div>
+            <button type="button" class="menu-arrow menu-arrow-left" id="menuArrowLeft" onclick="scrollMenu('left')" aria-label="نمایش دسته‌های بعدی">‹</button>
         </div>
         <div class="nav-actions">
             <div id="authWidget"></div>
@@ -1301,6 +1335,7 @@
     async function init() {
         updateAuthWidget();
         updateCartCount();
+        setupMenuScroll();
         fetch(`${API}/api/categories/tree?type=ONLINE`).then(r => r.json()).then(c => {
             state.cats = c;
             renderDesktopMenu(c);
@@ -1627,6 +1662,43 @@
                 sub.style.left = 'auto';
             });
         });
+
+        updateMenuArrows();
+    }
+
+    // دکمه‌های فلش اسکرول منوی دسته‌ها (RTL: در کروم scrollLeft از 0 در ابتدا/راست تا منفیِ ماکزیمم در انتها/چپ می‌رود)
+    function updateMenuArrows() {
+        const wrap = document.getElementById('desktopMenuWrapper');
+        const leftBtn = document.getElementById('menuArrowLeft');
+        const rightBtn = document.getElementById('menuArrowRight');
+        if (!wrap || !leftBtn || !rightBtn) return;
+        const maxScroll = wrap.scrollWidth - wrap.clientWidth;
+        const overflow = maxScroll > 2;
+        leftBtn.classList.toggle('visible', overflow);
+        rightBtn.classList.toggle('visible', overflow);
+        if (!overflow) return;
+        const TOL = 3;
+        const distFromStart = Math.abs(wrap.scrollLeft); // ۰ در ابتدا (راست)، تا maxScroll در انتها (چپ)
+        rightBtn.disabled = distFromStart <= TOL;
+        leftBtn.disabled = distFromStart >= maxScroll - TOL;
+    }
+
+    function scrollMenu(dir) {
+        const wrap = document.getElementById('desktopMenuWrapper');
+        if (!wrap) return;
+        wrap.scrollBy({left: dir === 'left' ? -200 : 200, behavior: 'smooth'});
+    }
+
+    function setupMenuScroll() {
+        const wrap = document.getElementById('desktopMenuWrapper');
+        if (!wrap) return;
+        wrap.addEventListener('scroll', updateMenuArrows);
+        window.addEventListener('resize', updateMenuArrows);
+        wrap.addEventListener('wheel', (e) => {
+            if (e.deltaY === 0) return;
+            e.preventDefault();
+            wrap.scrollBy({left: e.deltaY, behavior: 'auto'});
+        }, {passive: false});
     }
 
     function renderMobileMenu(items) {
