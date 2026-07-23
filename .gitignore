@@ -42,3 +42,4 @@ javacore.*.txt
 *.hprof
 heapdump.*
 data-import/
+content-dump/
