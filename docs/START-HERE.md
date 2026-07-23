@@ -8,6 +8,7 @@
 2. `docs/marketing-seo-roadmap.md` — استراتژی و ۷ فاز؛ خط دوم = وضعیت فعلی فازها. بدهی‌های باز با ⚠️ علامت دارند.
 3. `docs/category-structure-proposal.md` + `docs/category-migration-playbook.md` — ساختار دسته‌ی تاییدشده.
 4. `docs/competitor-analysis.md` + `docs/keyword-map.csv` — تحلیل رقبا و کلمات هدف (اسلاگ‌ها قفل‌شده).
+4.5. `docs/seo-journey.md` — **روایت کاملِ «چرا»ی همه‌ی تصمیم‌های سئو** از سایت قدیمی تا الان. اگر خواستی منطق پشت یک تصمیم را بفهمی، اینجاست.
 5. حافظه‌ی خودکار (`memory/`) که همین حالا در ابتدای این چت لود شده — business-context، seo-issues، project-overview و… .
 
 ## ۲. نقش تو (مدیر)
