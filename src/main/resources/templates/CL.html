@@ -209,15 +209,22 @@
 
         .desktop-menu-wrapper {
             flex: 1;
+            min-width: 0; /* اجازه‌ی جمع‌شدن تا اسکرول فعال شود */
             display: flex;
             margin: 0 10px;
+            overflow-x: auto;      /* دسته‌های زیاد بریده نشوند — با اسکرول همه دیده شوند */
+            overflow-y: visible;
+            scrollbar-width: none;
         }
+        .desktop-menu-wrapper::-webkit-scrollbar { display: none; }
 
         .desktop-menu {
             display: flex;
             list-style: none;
             gap: 2px;
+            flex-wrap: nowrap;
         }
+        .desktop-menu > li { flex: 0 0 auto; } /* آیتم‌ها فشرده نشوند */
 
         .dropdown {
             position: relative;
@@ -564,6 +571,16 @@
             display: grid;
             grid-template-columns: 1fr 1.5fr 0.8fr;
             gap: 30px;
+        }
+
+        /* جلوگیری از باز شدن ستون‌ها توسط محتوای عریض (اسلایدر محصولات مرتبط) */
+        .p-grid > * { min-width: 0; }
+
+        /* اسلایدر محصولات مرتبط داخل صفحه محصول: اسکرول افقی، نه شکستن layout */
+        #relatedProductsWrap .section-slider {
+            max-width: 100%;
+            padding-bottom: 8px;
+            scrollbar-width: thin;
         }
 
         .p-gallery {
