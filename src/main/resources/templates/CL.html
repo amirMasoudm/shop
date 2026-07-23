@@ -107,6 +107,9 @@
     <!-- اسکیمای صفحه دسته (JSON کامل سمت سرور ساخته شده تا خطای قالب پیش نیاید) -->
     <script type="application/ld+json" th:if="${categoryJsonLd != null}" th:utext="${categoryJsonLd}"></script>
 
+    <!-- اسکیمای FAQPage محصول (سروری) -->
+    <script type="application/ld+json" th:if="${faqJsonLd != null}" th:utext="${faqJsonLd}"></script>
+
     <script th:inline="javascript" th:if="${cat != null}">
         window.SERVER_CATEGORY_ID = [[${cat.id}]];
         window.SERVER_CATEGORY_NAME = [[${cat.name}]];
@@ -980,6 +983,29 @@
                 <p th:text="${p.description}" style="color:#374151; line-height:1.9; font-size:15px; white-space:pre-line;">توضیحات محصول</p>
             </div>
         </div>
+
+        <!-- جدول مشخصات فنی (سروری — برای خزنده) -->
+        <div th:if="${p.techSpecs != null and !p.techSpecs.isEmpty()}" style="margin-top:24px;">
+            <h2 style="font-size:18px; margin-bottom:10px; color:#1f2937;">مشخصات فنی</h2>
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <tbody>
+                <tr th:each="row : ${p.techSpecs}">
+                    <td th:text="${row.key}" style="border:1px solid #e5e7eb; padding:8px; background:#f8fafc; width:35%; font-weight:bold;">کلید</td>
+                    <td th:text="${row.value}" style="border:1px solid #e5e7eb; padding:8px;">مقدار</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- پرسش‌های متداول (سروری — هماهنگ با اسکیمای FAQPage) -->
+        <div th:if="${p.faqs != null and !p.faqs.isEmpty()}" style="margin-top:24px;">
+            <h2 style="font-size:18px; margin-bottom:10px; color:#1f2937;">پرسش‌های متداول</h2>
+            <div th:each="f : ${p.faqs}" style="margin-bottom:12px;">
+                <div th:text="${f.question}" style="font-weight:bold; color:#1f2937; margin-bottom:4px;">سوال</div>
+                <div th:text="${f.answer}" style="color:#374151; line-height:1.9; font-size:14px;">جواب</div>
+            </div>
+        </div>
+
         <p style="margin-top:24px; color:#9ca3af; font-size:13px;">در حال بارگذاری فروشگاه…</p>
     </div>
 </div>
@@ -1376,6 +1402,29 @@
             }
         }
 
+        // جدول مشخصات فنی گروه‌بندی‌شده (اگر ثبت شده باشد، جایگزین جدول ساده می‌شود)
+        let techRows = '';
+        if (p.techSpecs && p.techSpecs.length) {
+            let lastGroup = null;
+            p.techSpecs.forEach(r => {
+                if (r.group && r.group !== lastGroup) {
+                    techRows += `<tr><td colspan="2" style="background:var(--primary); color:#fff; font-weight:800; padding:8px 12px;">${escapeHTML(r.group)}</td></tr>`;
+                    lastGroup = r.group;
+                }
+                techRows += `<tr><td class="p-spec-label">${escapeHTML(r.key)}</td><td>${escapeHTML(r.value)}</td></tr>`;
+            });
+        }
+
+        // پرسش‌های متداول
+        let faqHtml = '';
+        if (p.faqs && p.faqs.length) {
+            faqHtml = `<div class="p-section-title">پرسش‌های متداول</div>` + p.faqs.map(f => `
+                <details style="border:1px solid var(--border); border-radius:10px; margin-bottom:8px; padding:10px 14px; background:#fff;">
+                    <summary style="font-weight:700; cursor:pointer;">${escapeHTML(f.question)}</summary>
+                    <div style="margin-top:8px; line-height:1.9; color:#374151; font-size:0.9rem;">${escapeHTML(f.answer)}</div>
+                </details>`).join('');
+        }
+
         // --- فرم ثبت نظر هوشمند بر اساس وضعیت لاگین ---
         const isUserLoggedIn = localStorage.getItem('userName') !== null;
         let commentFormHtml = '';
@@ -1444,9 +1493,11 @@
                 </div>
                 <h1>${p.name}</h1>
                 <div class="p-section-title">مشخصات فنی</div>
-                <table class="p-specs">${specsRows || '<tr><td>موردی ثبت نشده است</td></tr>'}</table>
+                <table class="p-specs">${techRows || specsRows || '<tr><td>موردی ثبت نشده است</td></tr>'}</table>
                 <div class="p-section-title">توضیحات</div>
                 <div class="p-desc">${p.description || 'بدون توضیحات'}</div>
+                ${faqHtml}
+                <div id="relatedProductsWrap"></div>
 
                 <!-- بخش جدید نظرات و فرم ثبت کامنت -->
                 <div class="p-section-title">نظرات و امتیازهای کاربران</div>
@@ -1469,6 +1520,40 @@
 
         // --- لود نظرات این محصول از بک‌اِند بلافاصله پس از رندر صفحه ---
         fetchAndRenderProductComments(p.id, p.averageRating, p.reviewCount);
+
+        // --- محصولات مرتبط: انتخاب دستی ادمین + هم‌دسته‌ای‌ها ---
+        loadRelatedProducts(p);
+    }
+
+    async function loadRelatedProducts(p) {
+        const wrap = document.getElementById('relatedProductsWrap');
+        if (!wrap) return;
+        try {
+            let related = [];
+
+            // ۱. انتخاب‌های دستی ادمین (مکمل‌ها) — به ترتیب انتخاب
+            if (p.relatedProductIds && p.relatedProductIds.length) {
+                for (const id of p.relatedProductIds) {
+                    let rp = state.all.find(x => x.id === id);
+                    if (!rp) rp = await fetchProductBySlugOrId(id);
+                    if (rp) related.push(rp);
+                }
+            }
+
+            // ۲. تکمیل با هم‌دسته‌ای‌ها تا سقف ۸
+            if (related.length < 8 && p.categoryId) {
+                const res = await fetch(`${API}/api/v1/products?categoryId=${p.categoryId}&size=12`).then(r => r.json()).catch(() => null);
+                const same = (res && res.content) || [];
+                for (const sp of same) {
+                    if (related.length >= 8) break;
+                    if (sp.id !== p.id && !related.some(x => x.id === sp.id)) related.push(sp);
+                }
+            }
+
+            if (!related.length) { wrap.innerHTML = ''; return; }
+            wrap.innerHTML = `<div class="p-section-title">محصولات مرتبط</div>
+                <div class="section-slider">${related.map(rp => renderCard(rp)).join('')}</div>`;
+        } catch (e) { wrap.innerHTML = ''; }
     }
     function escapeHTML(str) {
         if (!str) return '';

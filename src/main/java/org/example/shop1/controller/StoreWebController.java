@@ -94,6 +94,21 @@ public class StoreWebController {
             // canonical همیشه نسخه‌ی اسلاگ است (جلوگیری از ایندکس دوگانه‌ی /product/{id} و /product/{slug})
             model.addAttribute("canonicalUrl", baseUrl + "/product/" + slug);
 
+            // اسکیمای FAQPage (فقط وقتی پرسش متداول واقعی وجود دارد)
+            if (p.getFaqs() != null && !p.getFaqs().isEmpty()) {
+                StringBuilder fq = new StringBuilder();
+                fq.append("{\"@context\":\"https://schema.org/\",\"@type\":\"FAQPage\",\"mainEntity\":[");
+                for (int i = 0; i < p.getFaqs().size(); i++) {
+                    var f = p.getFaqs().get(i);
+                    if (i > 0) fq.append(",");
+                    fq.append("{\"@type\":\"Question\",\"name\":\"").append(esc(f.getQuestion()))
+                            .append("\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"")
+                            .append(esc(f.getAnswer())).append("\"}}");
+                }
+                fq.append("]}");
+                model.addAttribute("faqJsonLd", fq.toString());
+            }
+
             String catName = "داده نما";
             if (p.getCategoryId() != null) {
                 catName = categoryRepo.findById(p.getCategoryId())

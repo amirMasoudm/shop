@@ -84,6 +84,8 @@ public class ProductService {
         product.setSlug(generateUniqueSlug(slugBase, null));
         // ---> پایان کدهای جدید سئو <---
 
+        applyRichContent(product, request);
+
         product.setUnit(request.getUnit());
         product.setPackQuantity(request.getPackQuantity());
 
@@ -148,6 +150,8 @@ public class ProductService {
         product.setSlug(generateUniqueSlug(slugBase, product.getId()));
         // ---> پایان کدهای جدید سئو <---
 
+        applyRichContent(product, request);
+
         return productRepo.save(product);
     }
 
@@ -187,6 +191,45 @@ public class ProductService {
 
     private String slugify(String s) {
         return org.example.shop1.model.service.util.SlugUtil.slugify(s);
+    }
+
+    /*
+       جدول مشخصات فنی، پرسش‌های متداول و محصولات مرتبط (با پاکسازی متن‌ها).
+       ردیف‌های خالی حذف می‌شوند.
+    */
+    private void applyRichContent(Product product, ProductRequest request) {
+        if (request.getTechSpecs() != null) {
+            List<org.example.shop1.model.entity.TechSpecRow> rows = new java.util.ArrayList<>();
+            for (org.example.shop1.model.entity.TechSpecRow r : request.getTechSpecs()) {
+                if (r == null) continue;
+                String k = org.example.shop1.config.SecurityUtils.clean(r.getKey());
+                String v = org.example.shop1.config.SecurityUtils.clean(r.getValue());
+                if (k == null || k.isBlank() || v == null || v.isBlank()) continue;
+                rows.add(new org.example.shop1.model.entity.TechSpecRow(
+                        org.example.shop1.config.SecurityUtils.clean(r.getGroup()), k.trim(), v.trim()));
+            }
+            product.setTechSpecs(rows);
+        }
+
+        if (request.getFaqs() != null) {
+            List<org.example.shop1.model.entity.FaqItem> faqs = new java.util.ArrayList<>();
+            for (org.example.shop1.model.entity.FaqItem f : request.getFaqs()) {
+                if (f == null) continue;
+                String q = org.example.shop1.config.SecurityUtils.clean(f.getQuestion());
+                String a = org.example.shop1.config.SecurityUtils.clean(f.getAnswer());
+                if (q == null || q.isBlank() || a == null || a.isBlank()) continue;
+                faqs.add(new org.example.shop1.model.entity.FaqItem(q.trim(), a.trim()));
+            }
+            product.setFaqs(faqs);
+        }
+
+        if (request.getRelatedProductIds() != null) {
+            List<String> ids = request.getRelatedProductIds().stream()
+                    .filter(id -> id != null && !id.isBlank())
+                    .filter(id -> !id.equals(product.getId())) // خودش نباشد
+                    .distinct().limit(10).collect(Collectors.toList());
+            product.setRelatedProductIds(ids);
+        }
     }
 
     // متد اصلی برای فرانت‌اند (با قابلیت فیلتر، سورتینگ و صفحه‌بندی)

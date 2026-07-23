@@ -67,6 +67,24 @@ public class Product {
     private String seoTitle;
     private String seoDescription;
 
+    // جدول مشخصات فنی گروه‌بندی‌شده (جدا از specifications فیلترپذیر)
+    private List<TechSpecRow> techSpecs = new ArrayList<>();
+
+    // پرسش‌های متداول محصول (اسکیمای FAQPage از رویش ساخته می‌شود)
+    private List<FaqItem> faqs = new ArrayList<>();
+
+    // محصولات مکمل/مرتبط دستی (انتخاب ادمین)
+    private List<String> relatedProductIds = new ArrayList<>();
+
+    public List<TechSpecRow> getTechSpecs() { return techSpecs; }
+    public void setTechSpecs(List<TechSpecRow> techSpecs) { this.techSpecs = techSpecs; }
+
+    public List<FaqItem> getFaqs() { return faqs; }
+    public void setFaqs(List<FaqItem> faqs) { this.faqs = faqs; }
+
+    public List<String> getRelatedProductIds() { return relatedProductIds; }
+    public void setRelatedProductIds(List<String> relatedProductIds) { this.relatedProductIds = relatedProductIds; }
+
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
 

@@ -864,6 +864,37 @@
                                 کنید.</p>
                         </div>
                     </div>
+                    <!-- TECH SPECS TABLE (جدول مشخصات فنی) -->
+                    <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-blue-500">
+                        <div class="flex justify-between items-center border-b pb-2 mb-3">
+                            <h4 class="text-blue-800 font-bold flex gap-2 text-sm md:text-base"><span>📋</span> جدول مشخصات فنی</h4>
+                            <button type="button" onclick="addTechSpecRow()"
+                                    class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700">＋ ردیف</button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mb-2">جدا از فیلترهاست؛ در صفحه محصول به‌صورت جدول کامل نمایش داده می‌شود. «گروه» اختیاری است (مثلاً: مشخصات وایرلس).</p>
+                        <div id="tech-specs-rows" class="space-y-2"></div>
+                    </div>
+
+                    <!-- FAQ (پرسش‌های متداول) -->
+                    <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-amber-500">
+                        <div class="flex justify-between items-center border-b pb-2 mb-3">
+                            <h4 class="text-amber-800 font-bold flex gap-2 text-sm md:text-base"><span>❓</span> پرسش‌های متداول (FAQ)</h4>
+                            <button type="button" onclick="addFaqRow()"
+                                    class="text-xs bg-amber-600 text-white px-3 py-1 rounded-lg hover:bg-amber-700">＋ سوال</button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mb-2">اسکیمای FAQPage گوگل خودکار ساخته می‌شود — شانس نمایش سوال‌ها زیر نتیجه در گوگل.</p>
+                        <div id="faq-rows" class="space-y-2"></div>
+                    </div>
+
+                    <!-- RELATED PRODUCTS (محصولات مکمل) -->
+                    <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-emerald-500">
+                        <h4 class="text-emerald-800 font-bold border-b pb-2 mb-3 flex gap-2 text-sm md:text-base"><span>🔗</span> محصولات مکمل (انتخاب دستی)</h4>
+                        <p class="text-[10px] text-gray-400 mb-2">هم‌دسته‌ای‌ها خودکار نمایش داده می‌شوند؛ اینجا فقط مکمل‌ها را انتخاب کن (مثلاً آنتن برای رادیو). حداکثر ۱۰ مورد.</p>
+                        <input type="text" id="rel-prod-search" placeholder="جستجوی محصول..." oninput="filterRelProducts()"
+                               class="w-full p-2 mb-2 text-sm border rounded-lg outline-none">
+                        <div id="rel-prod-list" class="max-h-44 overflow-y-auto border rounded-lg p-1"></div>
+                    </div>
+
                     <!-- 4.5 SEO SETTINGS -->
                     <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-teal-500 mb-4 md:mb-5">
                         <h4 class="text-teal-800 font-bold border-b pb-2 mb-3 md:mb-4 flex gap-2 text-sm md:text-base">
@@ -1737,6 +1768,9 @@
         renderImages();
         populateSelects();
         document.getElementById('p-specs-container').innerHTML = '<p class="text-xs text-gray-400 col-span-full">لطفاً ابتدا دسته‌بندی سایت را انتخاب کنید.</p>';
+        renderTechSpecRows([]);
+        renderFaqRows([]);
+        renderRelProducts([], null);
         document.getElementById('modal-title-action').textContent = 'افزودن محصول';
         document.getElementById('modal-title-id').textContent = 'ID: NEW';
         openModal('productModal');
@@ -1771,6 +1805,11 @@
 
         currentSpecs = p.specifications || {};
         renderSpecInputs(p.categoryId);
+
+        // جدول مشخصات فنی + FAQ + محصولات مکمل
+        renderTechSpecRows(p.techSpecs || []);
+        renderFaqRows(p.faqs || []);
+        renderRelProducts(p.relatedProductIds || [], p.id);
 
         state.currentImages = p.images || [];
         renderImages();
@@ -1810,7 +1849,10 @@
             warehouseDescription: document.getElementById('p-warehouse-desc').value,
             description: document.getElementById('p-desc').value,
             images: state.currentImages,
-            specifications: specs
+            specifications: specs,
+            techSpecs: collectTechSpecs(),
+            faqs: collectFaqs(),
+            relatedProductIds: collectRelatedIds()
         };
 
         const method = id ? 'put' : 'post';
@@ -1819,6 +1861,93 @@
             closeModal('productModal');
             fetchAllData();
         });
+    }
+
+    // ==========================================
+    // جدول مشخصات فنی + FAQ + محصولات مکمل (فرم محصول)
+    // ==========================================
+    function techSpecRowHtml(r = {}) {
+        return `<div class="tech-spec-row grid grid-cols-12 gap-2">
+            <input type="text" placeholder="گروه (اختیاری)" value="${(r.group || '').replace(/"/g,'&quot;')}"
+                   class="ts-group col-span-3 p-2 text-xs border rounded-lg outline-none bg-blue-50/50">
+            <input type="text" placeholder="عنوان (مثلاً: فرکانس)" value="${(r.key || '').replace(/"/g,'&quot;')}"
+                   class="ts-key col-span-4 p-2 text-xs border rounded-lg outline-none">
+            <input type="text" placeholder="مقدار (مثلاً: 5GHz)" value="${(r.value || '').replace(/"/g,'&quot;')}"
+                   class="ts-value col-span-4 p-2 text-xs border rounded-lg outline-none">
+            <button type="button" onclick="this.parentElement.remove()"
+                    class="col-span-1 text-red-500 hover:bg-red-50 rounded-lg text-sm">✕</button>
+        </div>`;
+    }
+
+    function renderTechSpecRows(rows) {
+        document.getElementById('tech-specs-rows').innerHTML = (rows && rows.length)
+            ? rows.map(techSpecRowHtml).join('') : '';
+    }
+
+    function addTechSpecRow() {
+        document.getElementById('tech-specs-rows').insertAdjacentHTML('beforeend', techSpecRowHtml());
+    }
+
+    function collectTechSpecs() {
+        return Array.from(document.querySelectorAll('#tech-specs-rows .tech-spec-row')).map(row => ({
+            group: row.querySelector('.ts-group').value.trim() || null,
+            key: row.querySelector('.ts-key').value.trim(),
+            value: row.querySelector('.ts-value').value.trim()
+        })).filter(r => r.key && r.value);
+    }
+
+    function faqRowHtml(f = {}) {
+        return `<div class="faq-row border rounded-lg p-2 bg-amber-50/40">
+            <div class="flex gap-2 items-start">
+                <div class="flex-1 space-y-1">
+                    <input type="text" placeholder="سوال..." value="${(f.question || '').replace(/"/g,'&quot;')}"
+                           class="fq-q w-full p-2 text-xs border rounded-lg outline-none font-bold">
+                    <textarea placeholder="جواب..." rows="2"
+                              class="fq-a w-full p-2 text-xs border rounded-lg outline-none resize-none">${(f.answer || '')}</textarea>
+                </div>
+                <button type="button" onclick="this.closest('.faq-row').remove()"
+                        class="text-red-500 hover:bg-red-50 rounded-lg px-2 py-1 text-sm">✕</button>
+            </div>
+        </div>`;
+    }
+
+    function renderFaqRows(faqs) {
+        document.getElementById('faq-rows').innerHTML = (faqs && faqs.length)
+            ? faqs.map(faqRowHtml).join('') : '';
+    }
+
+    function addFaqRow() {
+        document.getElementById('faq-rows').insertAdjacentHTML('beforeend', faqRowHtml());
+    }
+
+    function collectFaqs() {
+        return Array.from(document.querySelectorAll('#faq-rows .faq-row')).map(row => ({
+            question: row.querySelector('.fq-q').value.trim(),
+            answer: row.querySelector('.fq-a').value.trim()
+        })).filter(f => f.question && f.answer);
+    }
+
+    function renderRelProducts(selectedIds, excludeId) {
+        const list = (state.products || []).filter(p => p.id !== excludeId);
+        document.getElementById('rel-prod-list').innerHTML = list.map(p => `
+            <label class="rel-prod-item flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer border-b border-gray-100 last:border-0"
+                   data-name="${(p.name || '').toLowerCase()}">
+                <input type="checkbox" value="${p.id}" class="rel-prod-chk rounded h-4 w-4"
+                       ${(selectedIds || []).includes(p.id) ? 'checked' : ''}>
+                <img src="${p.images?.[0] || FALLBACK_IMG}" class="w-6 h-6 rounded object-cover bg-gray-200" onerror="this.src='${FALLBACK_IMG}'">
+                <span class="text-xs text-gray-700">${p.name}</span>
+            </label>`).join('');
+    }
+
+    function filterRelProducts() {
+        const q = document.getElementById('rel-prod-search').value.toLowerCase();
+        document.querySelectorAll('.rel-prod-item').forEach(item => {
+            item.style.display = item.dataset.name.includes(q) ? 'flex' : 'none';
+        });
+    }
+
+    function collectRelatedIds() {
+        return Array.from(document.querySelectorAll('.rel-prod-chk:checked')).map(c => c.value).slice(0, 10);
     }
 
     async function handleImageSelect(e) {

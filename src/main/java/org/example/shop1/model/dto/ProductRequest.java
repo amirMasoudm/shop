@@ -43,6 +43,20 @@ public class ProductRequest {
     private String seoTitle;
     private String seoDescription;
 
+    // جدول مشخصات فنی + پرسش‌های متداول + محصولات مرتبط
+    private java.util.List<org.example.shop1.model.entity.TechSpecRow> techSpecs;
+    private java.util.List<org.example.shop1.model.entity.FaqItem> faqs;
+    private java.util.List<String> relatedProductIds;
+
+    public java.util.List<org.example.shop1.model.entity.TechSpecRow> getTechSpecs() { return techSpecs; }
+    public void setTechSpecs(java.util.List<org.example.shop1.model.entity.TechSpecRow> techSpecs) { this.techSpecs = techSpecs; }
+
+    public java.util.List<org.example.shop1.model.entity.FaqItem> getFaqs() { return faqs; }
+    public void setFaqs(java.util.List<org.example.shop1.model.entity.FaqItem> faqs) { this.faqs = faqs; }
+
+    public java.util.List<String> getRelatedProductIds() { return relatedProductIds; }
+    public void setRelatedProductIds(java.util.List<String> relatedProductIds) { this.relatedProductIds = relatedProductIds; }
+
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
 
