@@ -280,6 +280,17 @@
             transform: translateX(0);
         }
 
+        /* زیرمنوی سطح‌اول: fixed تا از محدوده‌ی اسکرول افقی نوار فرار کند و بریده نشود.
+           موقعیتش با JS زیر هر آیتم تنظیم می‌شود. */
+        .desktop-menu > .dropdown > .dropdown-menu {
+            position: fixed;
+            top: var(--hdr);
+            transform: translateY(10px);
+        }
+        .desktop-menu > .dropdown:hover > .dropdown-menu {
+            transform: translateY(0);
+        }
+
         .dropdown-menu a {
             display: flex;
             justify-content: space-between;
@@ -1603,6 +1614,19 @@
         // لینک ثابت بلاگ (لینک واقعی <a> — هم برای کاربر هم خزنده)
         const blogLink = `<li><a href="/blog" style="color:var(--accent); font-weight:800;">📝 بلاگ آموزشی</a></li>`;
         document.getElementById('desktopMenu').innerHTML = build(items) + blogLink;
+
+        // موقعیت‌دهی زیرمنوهای سطح‌اول (fixed) زیر هر آیتم — چون نوار اسکرول افقی دارد
+        document.querySelectorAll('#desktopMenu > .dropdown').forEach(li => {
+            const sub = li.querySelector(':scope > .dropdown-menu');
+            if (!sub) return;
+            li.addEventListener('mouseenter', () => {
+                const r = li.getBoundingClientRect();
+                sub.style.top = r.bottom + 'px';
+                // راست‌چین: لبه‌ی راست زیرمنو هم‌تراز لبه‌ی راست آیتم
+                sub.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+                sub.style.left = 'auto';
+            });
+        });
     }
 
     function renderMobileMenu(items) {
