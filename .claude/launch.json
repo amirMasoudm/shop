@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "shop-attach",
+      "url": "http://localhost",
+      "port": 80
+    },
+    {
+      "name": "shop-docker-stack",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "up", "--build"],
+      "port": 80
+    }
+  ]
+}
