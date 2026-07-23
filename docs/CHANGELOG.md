@@ -19,9 +19,14 @@
 - انتیتی‌های محتوایی: Product (با techSpecs, faqs, relatedProductIds, slug/seo)، Category (slug/seo/position)، Article (بلاگ + hub/hubSlug).
 - صفحات SSR: `/`، `/product/{slug}`، `/category/{slug}`، `/blog`، `/blog/{slug}`، `/blog/hub/{slug}`؛ + `/sitemap.xml`، `/robots.txt`.
 - آنالیتیکس: GA4 فعال (G-4XZMGKFGD4)؛ رویدادها: view_item, add_to_cart, begin_checkout, purchase.
-- امنیت: نوشتن‌های ادمین باید ROLE_ADMIN باشند. ⚠️ بدهی: `POST/PUT/DELETE /api/v1/products` هنوز permitAll است — باید ADMIN شود (کار چت الف).
+- امنیت: نوشتن‌های ادمین باید ROLE_ADMIN باشند. ✅ `POST/PUT/DELETE /api/v1/products` اکنون ADMIN است (رفع در 2026-07-23، کامیت 5d3d657).
 
 ## لاگ کارها
 - 2026-07-24 — [مدیر] زیرساخت بلاگ + خوشه محتوایی + سه‌گانه صفحه محصول (جدول مشخصات/FAQ/مرتبط) + رفع باگ‌های UI منو و اسلایدر. کامیت‌ها تا 55b809f.
 - 2026-07-25 — [مدیر] ✅ ساختار دسته‌بندی نهایی تایید شد (category-structure-proposal.md — ۶ دسته اصلی، میکروتیک قطب نوع‌محور، برند کوچک=فیلتر). گام بعد: مهاجرت دسته‌ها + قفل نقشه کلمات.
 - 2026-07-25 — [مدیر → چت فنی] تسک ۲ صادر شد: دکمه‌های فلش + اسکرول غلتک برای منوی دسته‌ها (prompt-tech-chat-task2.md). چت فنی روی تسک ۱ (امنیت products + تصاویر) فعال است.
+- 2026-07-23 — [چت فنی] ✅ تسک ۱ کامل شد (کامیت `5d3d657`، برنچ security-hardening):
+  - **امنیت (بحرانی):** `POST/PUT/DELETE /api/v1/products` → فقط `ROLE_ADMIN`؛ `POST /search` و همه‌ی GETها عمومی ماندند. باگ جانبی هم رفع شد: `/api/v1/products/admin/**` به‌خاطر ترتیب matcherها بعد از permitAll عمومی می‌آمد و عملاً عمومی بود (مثل مشکلی که برای articles/admin قبلاً رفع شده بود) — به قبل از permitAll منتقل شد.
+  - **تصاویر/CLS (متوسط):** `loading="lazy"` + `decoding="async"` روی تصاویر کارت/گالری/سبد که نداشتند؛ `aspect-ratio` روی کاور مقاله (article.html) و تصویر اصلی بلوک SSR محصول (که فقط `height:auto` داشت) برای جلوگیری از Layout Shift. تصویر اصلی SPA (`#targetPImg`) و کارت‌های SPA از قبل eager/lazy درست بودند (والدشان در CSS، aspect-ratio:1 دارد).
+  - **تست:** بیلد mvn + docker compose up موفق؛ با curl (بعد از گرفتن کوکی CSRF) تایید شد: ایجاد/ویرایش/حذف بدون لاگین → 401؛ جستجو و همه‌ی GETها → 200؛ صفحه‌ی محصول (`/product/{slug}`) با curl چک شد — JSON-LD، og:tags، title، بلوک ssr-product و aspect-ratio همه سالم.
+  - تغییر دیتابیسی نداشت.
