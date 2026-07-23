@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.SessionMan
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -67,6 +68,13 @@ public class SecurityConfig {
 
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
                         .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/products/admin/**").hasRole("ADMIN")
+
+                        // نوشتن محصول فقط ادمین؛ جستجو (POST) عمومی می‌ماند چون فرانت با آن فیلتر می‌کند
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products/search").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("ADMIN")
 
                         // ۲. مسیرهای عمومی API را با دقت بیشتر باز کنید (حذف HttpMethod.GET برای تست اگر جواب نداد)
                         .requestMatchers(
@@ -86,7 +94,6 @@ public class SecurityConfig {
                                 "/Admin.html",
                                 "/api/users/admin/**",
                                 "/api/orders/admin/**",
-                                "/api/v1/products/admin/**",
                                 "/api/comments/admin/**"
                         ).hasRole("ADMIN")
 

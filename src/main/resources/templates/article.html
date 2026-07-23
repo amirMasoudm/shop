@@ -40,7 +40,7 @@
         article { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px; }
         h1 { font-size:1.6rem; line-height:1.7; margin-bottom:10px; }
         .meta { color:var(--mid); font-size:.8rem; margin-bottom:20px; }
-        .cover { width:100%; max-height:420px; object-fit:cover; border-radius:12px; margin-bottom:24px; }
+        .cover { width:100%; max-height:420px; aspect-ratio:21/9; object-fit:cover; border-radius:12px; margin-bottom:24px; }
         .content { line-height:2.1; font-size:1rem; }
         .content h2 { font-size:1.25rem; margin:28px 0 12px; border-right:4px solid var(--accent); padding-right:10px; }
         .content h3 { font-size:1.1rem; margin:22px 0 10px; }
@@ -84,7 +84,7 @@
             <span th:text="${#temporals.format(article.updatedAt, 'yyyy/MM/dd')}">۱۴۰۵</span>
         </div>
         <img class="cover" th:if="${article.coverImage != null and !article.coverImage.isEmpty()}"
-             th:src="${article.coverImage}" th:alt="${article.title}">
+             th:src="${article.coverImage}" th:alt="${article.title}" decoding="async">
 
         <!-- محتوای HTML مقاله (سمت سرور با Safelist ریلکس پاکسازی شده) -->
         <div class="content" th:utext="${article.contentHtml}"></div>

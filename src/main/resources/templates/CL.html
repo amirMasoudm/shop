@@ -1000,8 +1000,8 @@
         </nav>
         <div style="display:flex; flex-wrap:wrap; gap:24px;">
             <img th:src="${p.images != null and !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'}"
-                 th:alt="${p.name}"
-                 style="width:320px; max-width:100%; height:auto; border-radius:12px; border:1px solid #eee; object-fit:cover;">
+                 th:alt="${p.name}" decoding="async"
+                 style="width:320px; max-width:100%; aspect-ratio:1; border-radius:12px; border:1px solid #eee; object-fit:cover;">
             <div style="flex:1; min-width:260px;">
                 <h1 th:text="${p.name}" style="font-size:24px; margin:0 0 12px; color:#1f2937;">نام محصول</h1>
                 <div style="font-size:22px; font-weight:bold; color:#059669; margin-bottom:16px;">
@@ -1056,7 +1056,7 @@
                th:href="${baseUrl + '/product/' + (prod.slug != null and !prod.slug.isEmpty() ? prod.slug : prod.id)}"
                style="display:block; border:1px solid #e5e7eb; border-radius:12px; padding:12px; text-decoration:none; color:inherit; background:#fff;">
                 <img th:src="${prod.images != null and !prod.images.isEmpty() ? prod.images[0] : baseUrl + '/logo.png'}"
-                     th:alt="${prod.name}"
+                     th:alt="${prod.name}" loading="lazy" decoding="async"
                      style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
                 <div th:text="${prod.name}" style="font-size:14px; font-weight:bold; color:#1f2937; margin-bottom:6px;">نام محصول</div>
                 <div style="font-size:14px; color:#059669; font-weight:bold;">
@@ -1411,7 +1411,7 @@
         // --- بخش ۲: تولید گالری تصاویر ---
         const thumbs = (p.images || []).map((img, i) =>
             `<div class="p-thumb ${i===0?'active':''}" onclick="changePImage(this, '${img}')">
-            <img src="${img}" alt="${p.name} - تصویر ${i+1}" title="${p.name}">
+            <img src="${img}" alt="${p.name} - تصویر ${i+1}" title="${p.name}" loading="lazy">
         </div>`
         ).join('');
 
@@ -1509,7 +1509,7 @@
         <div class="p-grid">
             <div class="p-gallery">
                 <div class="p-main-img">
-                    <img id="targetPImg" src="${mainImg}" alt="${p.seoTitle || p.name}" title="${escapeHTML(p.name)}">
+                    <img id="targetPImg" src="${mainImg}" alt="${p.seoTitle || p.name}" title="${escapeHTML(p.name)}" decoding="async">
                 </div>
                 <div class="p-thumbs">${thumbs}</div>
             </div>
@@ -1658,7 +1658,7 @@
         const activeSecs = sList.length ? sList : state.secs.filter(s => p.sectionIds && p.sectionIds.includes(s.id));
         activeSecs.forEach(s => tags += `<span class="tag" style="background:${s.stickerColor}">${s.stickerText || s.title}</span>`);
         const img = p.images?.[0] || '';
-        return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div><button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button></div>`;
+        return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div><button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button></div>`;
     }
 
     async function loadHome(isPopState = false) {
@@ -1863,7 +1863,7 @@
                 return `
     <div class="cart-item">
         <div style="width: 70px; height: 70px; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
-            <img src="${i.img}" style="width: 100%; height: 100%; object-fit: contain;">
+            <img src="${i.img}" loading="lazy" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
         <div style="flex:1">
             <div style="font-size:0.85rem; font-weight:700; color: var(--text); margin-bottom: 4px;">${i.name}</div>
