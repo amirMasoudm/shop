@@ -69,6 +69,11 @@ public class SecurityConfig {
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
                         .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/products/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/settings/admin/**").hasRole("ADMIN")
+
+                        // آستانه‌ی RFQ خواندنی و عمومی است (فرانت دکمه را شرطی می‌کند)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/settings/rfq-threshold").permitAll()
 
                         // نوشتن محصول فقط ادمین؛ جستجو (POST) عمومی می‌ماند چون فرانت با آن فیلتر می‌کند
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/search").permitAll()

@@ -22,6 +22,18 @@ public class StoreSettingsService {
 
     public StoreSettings updateSettings(StoreSettings settings) {
         settings.setId(SETTINGS_ID); // مطمئن می‌شویم که همیشه روی همان رکورد قبلی ذخیره می‌شود
+        // اگر آستانه‌ی RFQ در ورودی نیامده باشد، مقدار قبلی حفظ شود تا ذخیره‌ی موقعیت فروشگاه آن را پاک نکند
+        if (settings.getRfqThreshold() == null) {
+            settings.setRfqThreshold(getSettings().getRfqThreshold());
+        }
         return settingsRepo.save(settings);
+    }
+
+    // تنظیم فقط آستانه‌ی RFQ (بدون دست‌زدن به بقیه‌ی فیلدها)
+    public StoreSettings updateRfqThreshold(java.math.BigDecimal threshold) {
+        StoreSettings current = getSettings();
+        current.setId(SETTINGS_ID);
+        current.setRfqThreshold(threshold);
+        return settingsRepo.save(current);
     }
 }

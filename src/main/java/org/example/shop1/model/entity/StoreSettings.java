@@ -3,6 +3,8 @@ package org.example.shop1.model.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
+
 @Document(collection = "store_settings")
 public class StoreSettings {
     @Id
@@ -13,7 +15,13 @@ public class StoreSettings {
     private Double lat;
     private Double lng;
 
+    // آستانه‌ی مبلغی فعال‌شدن استعلام پیش‌فاکتور (RFQ). null یا ۰ یعنی غیرفعال.
+    private BigDecimal rfqThreshold;
+
     // Getters & Setters
+
+    public BigDecimal getRfqThreshold() { return rfqThreshold; }
+    public void setRfqThreshold(BigDecimal rfqThreshold) { this.rfqThreshold = rfqThreshold; }
 
     public String getId() {
         return id;
