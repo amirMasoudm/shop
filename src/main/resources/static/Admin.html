@@ -264,6 +264,11 @@
             <span>🛒</span> مدیریت سفارشات
         </div>
 
+        <div onclick="switchTab('rfq')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>📝</span> استعلام‌ها (RFQ)
+        </div>
+
         <div onclick="switchTab('customers')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>👥</span> مدیریت مشتریان
@@ -584,9 +589,33 @@
         </div>
     </div>
     <!-- 6. STORE SETTINGS -->
+    <div id="tab-rfq" class="hidden-section fade-in">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><span>📝</span> استعلام‌های پیش‌فاکتور (RFQ)</h2>
+        <div id="admin-rfq-list" class="space-y-4">
+            <p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>
+        </div>
+    </div>
+
     <div id="tab-settings" class="hidden-section fade-in">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><span>⚙️</span> تنظیمات فروشگاه (مبدا
             ارسال)</h2>
+
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border mb-6">
+            <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2"><span>📝</span> آستانه‌ی استعلام پیش‌فاکتور (RFQ)</h3>
+            <p class="text-xs text-gray-500 mb-3">اگر جمع سبد مشتری از این مبلغ (تومان) بیشتر شود، دکمه‌ی «درخواست پیش‌فاکتور» برایش نمایش داده می‌شود. مقدار ۰ یعنی این قابلیت غیرفعال است.</p>
+            <div class="flex gap-3 items-end">
+                <div class="flex-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">آستانه (تومان)</label>
+                    <input type="number" id="rfq-threshold" min="0" placeholder="مثلاً 50000000"
+                           class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-indigo-500">
+                </div>
+                <button onclick="saveRfqThreshold()"
+                        class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                    ذخیره آستانه
+                </button>
+            </div>
+        </div>
+
         <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="space-y-2">
                 <div id="admin-map"></div>
@@ -1427,7 +1456,9 @@
         if (id === 'comments') fetchComments();
         if (id === 'customers') fetchUsers();
         if (id === 'articles') fetchArticles();
+        if (id === 'rfq') fetchRfqsAdmin();
         if (id === 'settings') {
+            fetchRfqThreshold();
             setTimeout(() => {
                 if (!adminMap) initAdminMap();
                 else adminMap.invalidateSize();
@@ -3077,6 +3108,95 @@
         axios.post(`${API}/v1/settings/store-location`, data)
             .then(() => Swal.fire('موفق', 'آدرس مبدا فروشگاه با موفقیت ذخیره شد.', 'success'))
             .catch(() => Swal.fire('خطا', 'مشکل در ذخیره اطلاعات مبدا روی سرور.', 'error'));
+    }
+
+    // ==========================================
+    // استعلام پیش‌فاکتور (RFQ)
+    // ==========================================
+    const RFQ_FA = {
+        PENDING: 'در انتظار قیمت', QUOTED: 'قیمت داده شد', NEGOTIATING: 'در حال مذاکره',
+        ACCEPTED: 'تبدیل به سفارش', REJECTED: 'رد شده', EXPIRED: 'منقضی'
+    };
+    const RFQ_BADGE = {
+        PENDING: 'bg-amber-100 text-amber-700', QUOTED: 'bg-blue-100 text-blue-700',
+        NEGOTIATING: 'bg-purple-100 text-purple-700', ACCEPTED: 'bg-green-100 text-green-700',
+        REJECTED: 'bg-red-100 text-red-600', EXPIRED: 'bg-gray-100 text-gray-500'
+    };
+
+    async function fetchRfqsAdmin() {
+        const cont = document.getElementById('admin-rfq-list');
+        cont.innerHTML = '<p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>';
+        try {
+            const res = await axios.get(`${API}/v1/rfq/admin/all`);
+            const list = res.data || [];
+            if (!list.length) {
+                cont.innerHTML = '<p class="text-center py-10 text-gray-400">استعلامی ثبت نشده است.</p>';
+                return;
+            }
+            const fmt = n => (Number(n) || 0).toLocaleString();
+            cont.innerHTML = list.map(r => {
+                const items = (r.items || []).map(it =>
+                    `<div class="flex justify-between text-sm text-gray-600 py-1 border-b border-gray-50"><span>${it.productName} × ${it.quantity}</span><span>${fmt(it.listUnitPrice)} ت</span></div>`).join('');
+                const offers = (r.offers || []).map(o =>
+                    `<div class="flex justify-between text-xs py-0.5"><span class="${o.by === 'ADMIN' ? 'text-blue-600' : 'text-gray-500'}">${o.by === 'ADMIN' ? 'فروشگاه' : 'مشتری'}${o.note ? ' — ' + o.note : ''}</span><span class="font-bold">${fmt(o.amount)} ت</span></div>`).join('');
+                const uname = r.user ? (r.user.firstName ? (r.user.firstName + ' ' + (r.user.lastName || '')) : r.user.phoneNumber) : '—';
+                const canAct = ['PENDING', 'QUOTED', 'NEGOTIATING'].includes(r.status);
+                const actions = canAct
+                    ? `<div class="flex gap-2 mt-3">
+                        <button onclick="quoteRfq('${r.id}')" class="bg-blue-600 text-white text-sm py-2 px-4 rounded-lg font-bold hover:bg-blue-700">ثبت/اصلاح قیمت</button>
+                        <button onclick="rejectRfq('${r.id}')" class="bg-white border border-red-400 text-red-600 text-sm py-2 px-4 rounded-lg hover:bg-red-50">رد استعلام</button>
+                       </div>` : '';
+                return `<div class="bg-white p-5 rounded-xl shadow-sm border">
+                    <div class="flex justify-between items-center mb-3">
+                        <div><span class="font-black text-gray-800">کد ${r.code}</span><span class="text-xs text-gray-400 mr-2">${uname}</span></div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full ${RFQ_BADGE[r.status] || ''}">${RFQ_FA[r.status] || r.status}</span>
+                    </div>
+                    <div class="mb-2">${items}</div>
+                    <div class="text-sm text-gray-500">جمع فهرست: ${fmt(r.itemsListTotal)} ت${r.adminTotalAmount ? ' — قیمت نهایی: <b class="text-blue-700">' + fmt(r.adminTotalAmount) + ' ت</b>' : ''}</div>
+                    ${offers ? `<div class="mt-3 pt-2 border-t border-gray-100"><div class="text-xs font-bold text-gray-400 mb-1">تاریخچه مذاکره</div>${offers}</div>` : ''}
+                    ${actions}
+                </div>`;
+            }).join('');
+        } catch (e) {
+            cont.innerHTML = '<p class="text-center py-10 text-red-400">خطا در بارگذاری استعلام‌ها</p>';
+        }
+    }
+
+    async function quoteRfq(id) {
+        const {value: val} = await Swal.fire({
+            title: 'ثبت قیمت نهایی', input: 'number', inputLabel: 'مبلغ کل (تومان)',
+            showCancelButton: true, confirmButtonText: 'ثبت', cancelButtonText: 'انصراف'
+        });
+        if (!val) return;
+        const amount = Number(val);
+        if (!amount || amount <= 0) return Swal.fire('خطا', 'مبلغ نامعتبر است', 'error');
+        try {
+            await axios.post(`${API}/v1/rfq/admin/${id}/quote`, {amount, note: 'قیمت فروشگاه'});
+            fetchRfqsAdmin();
+        } catch (e) { Swal.fire('خطا', (e.response && e.response.data) || 'ثبت نشد', 'error'); }
+    }
+
+    async function rejectRfq(id) {
+        const c = await Swal.fire({title: 'رد استعلام؟', icon: 'warning', showCancelButton: true, confirmButtonText: 'بله، رد کن', cancelButtonText: 'انصراف'});
+        if (!c.isConfirmed) return;
+        try {
+            await axios.post(`${API}/v1/rfq/admin/${id}/reject`);
+            fetchRfqsAdmin();
+        } catch (e) { Swal.fire('خطا', (e.response && e.response.data) || 'انجام نشد', 'error'); }
+    }
+
+    async function fetchRfqThreshold() {
+        try {
+            const res = await axios.get(`${API}/v1/settings/rfq-threshold`);
+            document.getElementById('rfq-threshold').value = Number(res.data.threshold || 0);
+        } catch (e) { }
+    }
+
+    function saveRfqThreshold() {
+        const threshold = Number(document.getElementById('rfq-threshold').value) || 0;
+        axios.post(`${API}/v1/settings/admin/rfq-threshold`, {threshold})
+            .then(() => Swal.fire('موفق', 'آستانه‌ی استعلام ذخیره شد.', 'success'))
+            .catch(() => Swal.fire('خطا', 'مشکل در ذخیره آستانه.', 'error'));
     }
 </script>
 </body>

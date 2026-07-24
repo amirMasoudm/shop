@@ -1324,6 +1324,7 @@
     const API = window.location.origin;
 
     let state = {all: [], cats: [], secs: [], current: [], cart: [], serverOrders: [], tab: 'current', phone: '',
+        rfqThreshold: 0,
         feed: {type: 'home', param: null, page: 0, size: 20, last: true}};
 
     try {
@@ -1343,6 +1344,10 @@
         fetch(`${API}/api/v1/landing-sections/active`).then(r => r.json()).then(s => {
             state.secs = s;
         });
+        // آستانه‌ی استعلام پیش‌فاکتور (RFQ)؛ ۰ یعنی غیرفعال
+        fetch(`${API}/api/v1/settings/rfq-threshold`).then(r => r.json()).then(d => {
+            state.rfqThreshold = Number(d.threshold || 0);
+        }).catch(() => {});
         try {
             // فقط ۱۰۰ محصول اول برای صفحه اصلی؛ بقیه در لحظه از سرور واکشی می‌شوند
             const pRes = await fetch(`${API}/api/v1/products?size=100`);
@@ -1956,7 +1961,11 @@
         </div>
     </div>`;
             }).join('');
-            foot.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>جمع کل:</b><b>${total.toLocaleString()} ت</b></div><button onclick="checkout()" class="p-buy-btn" style="padding:10px; font-size:1rem;">تایید و ثبت نهایی</button>`;
+            // دکمه‌ی «درخواست پیش‌فاکتور» فقط وقتی جمع سبد از آستانه‌ی فروشگاه بگذرد (RFQ سازمانی/عمده)
+            const rfqBtn = (state.rfqThreshold > 0 && total >= state.rfqThreshold)
+                ? `<button onclick="requestRfq()" class="p-buy-btn" style="padding:10px; font-size:0.95rem; margin-top:8px; background:#fff; color:var(--primary); border:1.5px solid var(--primary);">📝 درخواست پیش‌فاکتور (خرید عمده)</button>`
+                : '';
+            foot.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>جمع کل:</b><b>${total.toLocaleString()} ت</b></div><button onclick="checkout()" class="p-buy-btn" style="padding:10px; font-size:1rem;">تایید و ثبت نهایی</button>${rfqBtn}`;
         } else {
             if (!state.serverOrders.length) {
                 body.innerHTML = '<p style="text-align:center; padding:40px; color:#999;">سفارشی نیست</p>';
@@ -2151,6 +2160,42 @@
             }
         } catch (e) {
             console.error("خطا در ایجاد فاکتور", e);
+        }
+    }
+
+    // ثبت درخواست پیش‌فاکتور (RFQ) از روی سبد فعلی
+    async function requestRfq() {
+        if (!localStorage.getItem('userName')) {
+            state.pending = {type: 'rfq'};
+            document.getElementById('authOverlay').classList.add('active');
+            return;
+        }
+        try {
+            const res = await fetch(`${API}/api/v1/rfq`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify({items: state.cart.map(i => ({productId: i.id, quantity: i.qty || 1}))})
+            });
+            if (res.ok) {
+                const rfq = await res.json();
+                // رویداد آنالیتیکس: تولید سرنخ فروش (قیف RFQ)
+                gaEvent('generate_lead', {
+                    currency: 'IRR',
+                    value: Number(rfq.itemsListTotal || 0),
+                    items: (state.cart || []).map(i => ({item_id: i.id, item_name: i.name, quantity: i.qty || 1}))
+                });
+                state.cart = [];
+                saveCart();
+                askConfirm('استعلام ثبت شد',
+                    `درخواست پیش‌فاکتور شما با کد <b>${rfq.code}</b> ثبت شد. کارشناس ما قیمت را در پنل کاربری برای شما ثبت می‌کند.`,
+                    () => { location.href = '/profile?tab=rfq'; });
+            } else {
+                const msg = await res.text();
+                askConfirm('ثبت نشد', msg || 'امکان ثبت استعلام نبود', () => {});
+            }
+        } catch (e) {
+            console.error('خطا در ثبت استعلام', e);
         }
     }
 

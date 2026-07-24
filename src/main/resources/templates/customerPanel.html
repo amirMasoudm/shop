@@ -119,6 +119,7 @@
         <nav class="flex-1">
             <button onclick="showTab('dashboard')" id="link-dashboard" class="nav-link active">📊 پیشخوان</button>
             <button onclick="showTab('orders')" id="link-orders" class="nav-link">📦 سفارش‌های من</button>
+            <button onclick="showTab('rfq')" id="link-rfq" class="nav-link">📝 استعلام‌های من</button>
             <button onclick="showTab('comments')" id="link-comments" class="nav-link">💬 نظرات من</button>
             <button onclick="showTab('addresses')" id="link-addresses" class="nav-link">📍 آدرس‌ها</button>
             <button onclick="showTab('profile')" id="link-profile" class="nav-link">👤 تنظیمات حساب</button>
@@ -185,6 +186,13 @@
                 <h2 class="text-2xl font-black text-gray-800">تاریخچه کامل سفارشات</h2>
                 <div id="all-orders-list" class="grid grid-cols-1 gap-4"></div>
             </section>
+            <!-- ── TAB: RFQ (استعلام‌های من) ── -->
+            <section id="tab-rfq" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-gray-800">استعلام‌های پیش‌فاکتور من</h2>
+                <div id="my-rfq-list" class="grid grid-cols-1 gap-4">
+                    <p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>
+                </div>
+            </section>
             <!-- ── TAB: COMMENTS ── -->
             <section id="tab-comments" class="hidden space-y-6">
                 <h2 class="text-2xl font-black text-gray-800">نظرات و پرسش‌های من</h2>
@@ -229,6 +237,7 @@
     <nav class="bottom-nav">
         <div onclick="showTab('dashboard')" class="nav-item active" id="mob-dashboard"><span class="text-xl">📊</span><span>خانه</span></div>
         <div onclick="showTab('orders')" class="nav-item" id="mob-orders"><span class="text-xl">📦</span><span>سفارشات</span></div>
+        <div onclick="showTab('rfq')" class="nav-item" id="mob-rfq"><span class="text-xl">📝</span><span>استعلام</span></div>
         <div onclick="showTab('comments')" class="nav-item" id="mob-comments"><span class="text-xl">💬</span><span>نظرات</span></div>
         <div onclick="showTab('addresses')" class="nav-item" id="mob-addresses"><span class="text-xl">📍</span><span>آدرس</span></div>
         <div onclick="showTab('profile')" class="nav-item" id="mob-profile"><span class="text-xl">👤</span><span>حساب</span></div>
@@ -392,6 +401,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('pendingOrderId')) {
             openCheckoutWizard(urlParams.get('pendingOrderId'));
+        }
+        if (urlParams.get('tab')) {
+            showTab(urlParams.get('tab'));
         }
     });
 
@@ -790,7 +802,7 @@
     // --- SHARED UI & RENDERERS ---
     function showTab(id) {
         // ۱. حتماً چک کنید کلمه 'comments' در این آرایه باشد
-        ['dashboard', 'orders', 'addresses', 'profile', 'comments'].forEach(t => {
+        ['dashboard', 'orders', 'rfq', 'addresses', 'profile', 'comments'].forEach(t => {
             const section = document.getElementById(`tab-${t}`);
             const link = document.getElementById(`link-${t}`);
             const mobLink = document.getElementById(`mob-${t}`);
@@ -812,6 +824,89 @@
         if (targetMob) targetMob.classList.add('active');
 
         if (id === 'comments') fetchMyComments();
+        if (id === 'rfq') renderRfqs();
+    }
+
+    // ── استعلام‌های پیش‌فاکتور کاربر ──
+    const RFQ_STATUS_FA = {
+        PENDING: 'در انتظار قیمت‌گذاری', QUOTED: 'قیمت‌گذاری شد', NEGOTIATING: 'در حال مذاکره',
+        ACCEPTED: 'تایید و تبدیل به سفارش', REJECTED: 'رد شده', EXPIRED: 'منقضی‌شده'
+    };
+    const RFQ_STATUS_CLASS = {
+        PENDING: 'bg-amber-100 text-amber-700', QUOTED: 'bg-blue-100 text-blue-700',
+        NEGOTIATING: 'bg-purple-100 text-purple-700', ACCEPTED: 'bg-green-100 text-green-700',
+        REJECTED: 'bg-red-100 text-red-600', EXPIRED: 'bg-gray-100 text-gray-500'
+    };
+
+    async function renderRfqs() {
+        const cont = document.getElementById('my-rfq-list');
+        cont.innerHTML = '<p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>';
+        try {
+            const res = await fetch(`${API}/v1/rfq/my`, { credentials: 'include' });
+            if (!res.ok) throw new Error('load failed');
+            const list = await res.json();
+            if (!list.length) {
+                cont.innerHTML = '<p class="text-center py-10 text-gray-400">هنوز استعلامی ثبت نکرده‌اید.</p>';
+                return;
+            }
+            cont.innerHTML = list.map(r => {
+                const fmt = n => (Number(n) || 0).toLocaleString();
+                const itemsHtml = (r.items || []).map(it =>
+                    `<div class="flex justify-between text-sm text-gray-600 py-1 border-b border-gray-50">
+                        <span>${it.productName} × ${it.quantity}</span>
+                        <span>${fmt(it.listUnitPrice)} ت</span>
+                    </div>`).join('');
+                const offersHtml = (r.offers || []).map(o =>
+                    `<div class="flex justify-between text-xs py-0.5">
+                        <span class="${o.by === 'ADMIN' ? 'text-blue-600' : 'text-gray-500'}">${o.by === 'ADMIN' ? 'فروشگاه' : 'شما'}${o.note ? ' — ' + o.note : ''}</span>
+                        <span class="font-bold">${fmt(o.amount)} ت</span>
+                    </div>`).join('');
+                const canAct = r.status === 'QUOTED' || r.status === 'NEGOTIATING';
+                const quoteBox = r.adminTotalAmount
+                    ? `<div class="mt-2 p-2 bg-blue-50 rounded-lg text-sm font-bold text-blue-800">قیمت پیشنهادی فروشگاه: ${fmt(r.adminTotalAmount)} تومان</div>` : '';
+                const actions = canAct
+                    ? `<div class="flex gap-2 mt-3">
+                        <button onclick="acceptRfq('${r.id}')" class="btn-yas flex-1 text-sm bg-green-600 border-none">تایید و ثبت سفارش</button>
+                        <button onclick="offerRfq('${r.id}')" class="flex-1 text-sm p-2 rounded-xl border border-blue-500 text-blue-600 bg-white cursor-pointer">پیشنهاد قیمت</button>
+                       </div>` : '';
+                return `<div class="yas-card p-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-black text-gray-800">کد ${r.code}</span>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full ${RFQ_STATUS_CLASS[r.status] || ''}">${RFQ_STATUS_FA[r.status] || r.status}</span>
+                    </div>
+                    <div class="mb-2">${itemsHtml}</div>
+                    <div class="text-sm text-gray-500">جمع فهرست: ${fmt(r.itemsListTotal)} ت</div>
+                    ${quoteBox}
+                    ${offersHtml ? `<div class="mt-3 pt-2 border-t border-gray-100"><div class="text-xs font-bold text-gray-400 mb-1">تاریخچه مذاکره</div>${offersHtml}</div>` : ''}
+                    ${actions}
+                </div>`;
+            }).join('');
+        } catch (e) {
+            cont.innerHTML = '<p class="text-center py-10 text-red-400">خطا در بارگذاری استعلام‌ها</p>';
+        }
+    }
+
+    async function offerRfq(id) {
+        const val = prompt('مبلغ کل پیشنهادی شما (تومان):');
+        if (!val) return;
+        const amount = Number(val.replace(/[^0-9]/g, ''));
+        if (!amount || amount <= 0) return alert('مبلغ نامعتبر است');
+        const res = await fetch(`${API}/v1/rfq/${id}/offer`, {
+            method: 'POST', credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({amount, note: 'پیشنهاد کاربر'})
+        });
+        if (res.ok) { renderRfqs(); } else { alert(await res.text()); }
+    }
+
+    async function acceptRfq(id) {
+        if (!confirm('با تایید، این استعلام به یک سفارش قابل پرداخت تبدیل می‌شود. ادامه می‌دهید؟')) return;
+        const res = await fetch(`${API}/v1/rfq/${id}/accept`, { method: 'POST', credentials: 'include' });
+        if (res.ok) {
+            const order = await res.json();
+            alert('سفارش با موفقیت ساخته شد. برای پرداخت به بخش سفارش‌ها بروید.');
+            location.href = `/profile?pendingOrderId=${order.id}`;
+        } else { alert(await res.text()); }
     }
 
     function renderOrders() {
