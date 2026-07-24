@@ -1,71 +1,73 @@
-﻿keyword,intent,target_type,target,priority,source
-خرید روتر میکروتیک,تجاری,دسته,/category/router-mikrotik,P1,GSC+رقبا
-قیمت روتر میکروتیک,تجاری,دسته,/category/router-mikrotik,P1,فرمول عنوان رقبا
-روتربرد میکروتیک,تجاری,دسته,/category/router-mikrotik,P1,دانش صنف
-خرید سوییچ میکروتیک,تجاری,دسته,/category/switch-mikrotik,P1,رقبا
-رادیو وایرلس میکروتیک,تجاری,دسته,/category/wireless-outdoor-mikrotik,P1,GSC+irmikro
-آنتن میکروتیک,تجاری,دسته,/category/wireless-outdoor-mikrotik,P1,دانش صنف
-اکسس پوینت میکروتیک,تجاری,دسته,/category/access-point-mikrotik,P1,رقبا
-مودم LTE میکروتیک,تجاری,دسته,/category/lte-mikrotik,P1,کاتالوگ ما
-لایسنس میکروتیک,تجاری+اطلاعاتی,دسته+مقاله,/category/mikrotik-license,P1,GSC اثبات‌شده
-قیمت میکروتیک,تجاری,دسته قطب,/category/mikrotik,P1,دانش صنف
-mikrotik sxt lte6 kit,تجاری-مدل,محصول,/product/sxt-lte6-kit,P1,GSC اثبات‌شده
-mikrotik lhg 60g,تجاری-مدل,محصول,/product/lhg-60g,P1,GSC اثبات‌شده
-mikrotik sxt sa5 ac,تجاری-مدل,محصول,/product/sxt-sa5-ac,P1,GSC اثبات‌شده
-mikrotik cap xl ac,تجاری-مدل,محصول,/product/cap-xl-ac,P1,کاتالوگ ما
-mikrotik hap ax3,تجاری-مدل,محصول,/product/hap-ax3,P1,کاتالوگ ما
-mikrotik netpower lite 7r,تجاری-مدل,محصول,/product/netpower-lite-7r,P1,کاتالوگ ما
-خرید رادیو وایرلس,تجاری,دسته,/category/wireless-radio,P1,mrshabake+arghavannet
-تجهیزات وایرلس,تجاری,دسته,/category/wireless-radio,P1,mrshabake
-رادیو وایرلس آتدور,تجاری,دسته,/category/wireless-outdoor-mikrotik,P1,کاتالوگ ما
-دیش وایرلس,تجاری,دسته,/category/antenna-dish,P1,کاتالوگ ما
-آنتن وایرلس,تجاری,دسته,/category/antenna-dish,P1,کاتالوگ ما
-خرید آنتن شبکه,تجاری,دسته,/category/antenna-dish,P1,رقبا
-رادیو میموسا,تجاری,دسته,/category/mimosa,P1,کاتالوگ ما
-تجهیزات میموسا,تجاری,دسته,/category/mimosa,P1,کاتالوگ ما
-لینک وایرلس نقطه به نقطه,تجاری+اطلاعاتی,دسته+مقاله,/category/wireless-radio,P1,arghavannet
-رادیو کمبیوم,تجاری,دسته/محصول,/category/cambium,P2,GSC اثبات‌شده
-cambium force 4630,تجاری-مدل,محصول,/product/force-4630,P2,GSC اثبات‌شده
-تجهیزات یوبیکیوتی,تجاری,دسته,/category/ubnt,P2,کاتالوگ ما
-خرید ubnt,تجاری,دسته,/category/ubnt,P2,irmikro
-رادیو انجنیوس,تجاری,دسته,/category/engenius,P2,کاتالوگ ما
-engenius ens500,تجاری-مدل,محصول,/product/ens500,P2,GSC
-تلفن تحت شبکه,تجاری,دسته,/category/voip,P2,imenertebat
-خرید تلفن ویپ,تجاری,دسته,/category/voip,P2,imenertebat
-مرکز تلفن تحت شبکه,تجاری,دسته,/category/voip,P2,GSC+arghavannet
-مرکز تلفن زایکو,تجاری,محصول,/product/zycoo-u50,P2,GSC اثبات‌شده
-گیتوی ویپ,تجاری,دسته,/category/voip,P2,mrshabake
-عیب یابی میکروتیک,اطلاعاتی,مقاله,/blog/عیب-یابی-میکروتیک,P2,GSC اثبات‌شده (۲۵۶ کلیک!)
-آموزش میکروتیک,اطلاعاتی,مقاله قطب,/blog/آموزش-میکروتیک,P2,irmikro+GSC
-کانفیگ میکروتیک,اطلاعاتی,مقاله,/blog,P2,دانش صنف
-محاسبه لینک وایرلس,ابزار,ابزار,/tools/link-cal,P2,GSC اثبات‌شده
-آموزش mtcna,اطلاعاتی,مقاله,/blog,P2,GSC (mtcwe)
-علت قطع شدن رادیو میکروتیک,اطلاعاتی,مقاله,/blog,P2,GSC اثبات‌شده
-مقایسه روتر میکروتیک,اطلاعاتی,مقاله,/blog,P2,شکاف رقبا
-بهترین روتر میکروتیک,اطلاعاتی+تجاری,مقاله→دسته,/blog,P2,شکاف رقبا
-میکروتیک چیست,اطلاعاتی,مقاله,/blog,P2,قیف بالا
-تنظیمات اولیه میکروتیک,اطلاعاتی,مقاله,/blog,P2,شکاف رقبا
-لینک مایکروویو,اطلاعاتی+تجاری,مقاله,/blog,P2,GSC
-رادیو مایکروویو,تجاری,دسته,/category/wireless-radio,P2,GSC (اریکسون)
-اکسسوری میکروتیک,تجاری,دسته,/category/mikrotik-license,P2,کاتالوگ ما
-پاور میکروتیک,تجاری-مدل,محصول,/product,P2,کاتالوگ ما
-خرید تجهیزات شبکه,تجاری-عریض,خانه/دسته,/,P3,رقبای بزرگ
-قیمت تجهیزات شبکه,تجاری-عریض,خانه,/,P3,رقبای بزرگ
-فروشگاه تجهیزات شبکه,تجاری-عریض,خانه,/,P3,رقبای بزرگ
-تجهیزات اکتیو شبکه,تجاری-عریض,دسته,/,P3,arghavannet
-خرید اکسس پوینت,تجاری-عریض,دسته,/category/access-point-mikrotik,P3,رقبا
-خرید روتر,تجاری-عریض,دسته,/category/router-mikrotik,P3,mrshabake
-روتر شبکه,تجاری-عریض,دسته,/category/router-mikrotik,P3,mrshabake
-سوییچ شبکه,تجاری-عریض,دسته,/category/switch-mikrotik,P3,mrshabake+arghavannet
-سوییچ POE,تجاری-عریض,دسته,/category/switch-mikrotik,P3,arghavannet
-اینترنت وایرلس روستایی,اطلاعاتی-نیچ,مقاله,/blog,P3,فرصت نیچ LTE
-آنتن تقویت اینترنت,تجاری-نیچ,دسته,/category/lte-mikrotik,P3,فرصت نیچ
-مودم روستایی,تجاری-نیچ,دسته,/category/lte-mikrotik,P3,فرصت نیچ
-رادیو ptp,تجاری,دسته,/category/wireless-radio,P3,arghavannet
-شبکه بی سیم نقطه به نقطه,اطلاعاتی,مقاله,/blog,P3,دانش صنف
-تجهیزات hotspot,تجاری-نیچ,دسته+مقاله,/category/mikrotik,P3,دانش صنف
-میکروتیک هات اسپات,اطلاعاتی,مقاله,/blog,P3,دانش صنف
-باند 60 گیگاهرتز,اطلاعاتی-نیچ,مقاله,/blog,P3,کاتالوگ ما (LHG 60G)
-وایرلس 5.8,تجاری-نیچ,دسته,/category/wireless-radio,P3,دانش صنف
-خرید cpe,تجاری-نیچ,دسته,/category/wireless-outdoor-mikrotik,P3,دانش صنف
-رادیو مبتنی بر lte,تجاری-نیچ,دسته,/category/lte-mikrotik,P3,کاتالوگ ما
+keyword,intent,target_type,target,priority,source,evidence
+خرید روتر میکروتیک,تجاری,دسته,/category/router-mikrotik,P1,GSC+رقبا,SERP:دسته می‌برد؛ ترب/دیجی بالا؛ قطب اصلی
+قیمت روتر میکروتیک,تجاری,دسته,/category/router-mikrotik,P2,فرمول عنوان رقبا,Trends:exact پایین؛ modifier قیمت در عنوان
+روتربرد میکروتیک,تجاری,دسته,/category/router-mikrotik,P3,دانش صنف,Trends:~صفر؛ کم‌استفاده
+خرید سوییچ میکروتیک,تجاری,دسته,/category/switch-mikrotik,P2,رقبا,میان‌دُم؛ Trends پایین ولی دسته معتبر
+رادیو وایرلس میکروتیک,تجاری,دسته,/category/wireless-outdoor-mikrotik,P2,GSC+irmikro,حجم روی «رادیو وایرلس» عام است نه میکروتیک‌دار
+آنتن میکروتیک,تجاری,دسته,/category/wireless-outdoor-mikrotik,P2,دانش صنف,مرتبط با رادیو وایرلس
+اکسس پوینت میکروتیک,تجاری,دسته,/category/access-point-mikrotik,P2,رقبا,SERP:پر و بردنی — تصحیح از P3 (Trends گمراه)
+مودم LTE میکروتیک,تجاری,دسته,/category/lte-mikrotik,P2,کاتالوگ ما,نیچ کاتالوگ‌محور
+لایسنس میکروتیک,تجاری+اطلاعاتی,دسته+مقاله,/category/mikrotik-license,P1,GSC اثبات‌شده,SERP:بدون مارکت‌پلیس؛ بردنی؛ طلایی — دسته+مقاله how-to
+قیمت میکروتیک,تجاری,دسته قطب,/category/mikrotik,P1,دانش صنف,SERP=روتر میکروتیک؛ قطب
+نمایندگی میکروتیک,تجاری+اعتماد,دسته قطب,/category/mikrotik,P1,SERP کشف,طلایی: بدون مارکت‌پلیس؛ نیت اعتماد/خرید بالا
+mikrotik sxt lte6 kit,تجاری-مدل,محصول,/product/sxt-lte6-kit,P1,GSC اثبات‌شده,مدل long-tail؛ GSC اثبات
+mikrotik lhg 60g,تجاری-مدل,محصول,/product/lhg-60g,P1,GSC اثبات‌شده,مدل long-tail؛ GSC اثبات
+mikrotik sxt sa5 ac,تجاری-مدل,محصول,/product/sxt-sa5-ac,P1,GSC اثبات‌شده,مدل long-tail؛ GSC اثبات
+mikrotik cap xl ac,تجاری-مدل,محصول,/product/cap-xl-ac,P2,کاتالوگ ما,مدل
+mikrotik hap ax3,تجاری-مدل,محصول,/product/hap-ax3,P1,کاتالوگ ما,مدل پرطرفدار (hap ax در related)
+mikrotik netpower lite 7r,تجاری-مدل,محصول,/product/netpower-lite-7r,P2,کاتالوگ ما,مدل
+خرید رادیو وایرلس,تجاری,دسته,/category/wireless-radio,P2,mrshabake+arghavannet,SERP:بردنی؛ غول صاحبش نیست
+تجهیزات وایرلس,تجاری,دسته,/category/wireless-radio,P3,mrshabake,Trends پایین
+رادیو وایرلس آتدور,تجاری,دسته,/category/wireless-outdoor-mikrotik,P2,کاتالوگ ما,نیچ
+دیش وایرلس,تجاری,دسته,/category/antenna-dish,P3,کاتالوگ ما,Trends پایین
+آنتن وایرلس,تجاری,دسته,/category/antenna-dish,P2,کاتالوگ ما,سرشاخه tier2
+خرید آنتن شبکه,تجاری,دسته,/category/antenna-dish,P3,رقبا,عام
+رادیو میموسا,تجاری,دسته,/category/mimosa,P3,کاتالوگ ما,Trends ~صفر؛ فیلتر نه دسته
+تجهیزات میموسا,تجاری,دسته,/category/mimosa,P3,کاتالوگ ما,~صفر
+لینک وایرلس نقطه به نقطه,تجاری+اطلاعاتی,دسته+مقاله,/category/wireless-radio,P2,arghavannet,نیچ آموزشی-تجاری
+رادیو کمبیوم,تجاری,دسته/محصول,/category/cambium,P3,GSC اثبات‌شده,Trends ~صفر؛ برند کوچک
+cambium force 4630,تجاری-مدل,محصول,/product/force-4630,P3,GSC اثبات‌شده,مدلِ برندِ ضعیف
+تجهیزات یوبیکیوتی,تجاری,دسته,/category/ubnt,P3,کاتالوگ ما,برند کوچک؛ ~صفر
+خرید ubnt,تجاری,دسته,/category/ubnt,P3,irmikro,Trends ~صفر
+رادیو انجنیوس,تجاری,دسته,/category/engenius,P3,کاتالوگ ما,Trends ~صفر
+engenius ens500,تجاری-مدل,محصول,/product/ens500,P3,GSC,مدل برند ضعیف
+تلفن تحت شبکه,تجاری,دسته,/category/voip,P2,imenertebat,SERP:رقابت با شاتل/پیشگامان
+خرید تلفن ویپ,تجاری,دسته,/category/voip,P2,imenertebat,«تلفن ویپ» قوی‌تر از «تحت شبکه»
+مرکز تلفن تحت شبکه,تجاری,دسته,/category/voip,P3,GSC+arghavannet,Related کم
+مرکز تلفن زایکو,تجاری,محصول,/product/zycoo-u50,P2,GSC اثبات‌شده,مدل اثبات‌شده
+گیتوی ویپ,تجاری,دسته,/category/voip,P3,mrshabake,~صفر
+عیب یابی میکروتیک,اطلاعاتی,مقاله,/blog/عیب-یابی-میکروتیک,P1,GSC اثبات‌شده (۲۵۶ کلیک!),🏆 ما رتبه ۱ اورگانیک — اثباتِ استراتژی محتوا
+آموزش میکروتیک,اطلاعاتی,مقاله قطب,/blog/آموزش-میکروتیک,P2,irmikro+GSC,نیت=دوره‌جو؛ رقیب=آموزشگاه (مکتب‌خونه)
+کانفیگ میکروتیک,اطلاعاتی,مقاله,/blog,P2,دانش صنف,آموزشیِ متصل‌به‌فروش
+winbox,اطلاعاتی,مقاله,/blog,P2,Trends rising breakout,کلمه‌ی داغِ خوشه بلاگ (ابزار کانفیگ)
+محاسبه لینک وایرلس,ابزار,ابزار,/tools/link-cal,P2,GSC اثبات‌شده,داراییِ سایت قدیم؛ ابزار جذب
+آموزش mtcna,اطلاعاتی,مقاله,/blog,P3,GSC (mtcwe),زیرمجموعه آموزش
+علت قطع شدن رادیو میکروتیک,اطلاعاتی,مقاله,/blog,P2,GSC اثبات‌شده,آموزشیِ متصل‌به‌فروش؛ اثبات‌شده
+مقایسه روتر میکروتیک,اطلاعاتی,مقاله,/blog,P2,شکاف رقبا,مقایسه=قیف خرید
+بهترین روتر میکروتیک,اطلاعاتی+تجاری,مقاله→دسته,/blog,P2,شکاف رقبا,نیت خرید بالا
+میکروتیک چیست,اطلاعاتی,مقاله,/blog,P3,قیف بالا,قیف بالا؛ کم‌ارزش فروش
+تنظیمات اولیه میکروتیک,اطلاعاتی,مقاله,/blog,P3,شکاف رقبا,آموزشی
+لینک مایکروویو,اطلاعاتی+تجاری,مقاله,/blog,P3,GSC,نیچ
+رادیو مایکروویو,تجاری,دسته,/category/wireless-radio,P3,GSC (اریکسون),نیچ
+اکسسوری میکروتیک,تجاری,دسته,/category/mikrotik-license,P3,کاتالوگ ما,~صفر
+پاور میکروتیک,تجاری-مدل,محصول,/product,P3,کاتالوگ ما,نیچ
+خرید تجهیزات شبکه,تجاری-عریض,خانه/دسته,/,P3,رقبای بزرگ,SERP:مارکت‌پلیس قُرق؛ سخت
+قیمت تجهیزات شبکه,تجاری-عریض,خانه,/,P3,رقبای بزرگ,عریض؛ سخت
+فروشگاه تجهیزات شبکه,تجاری-عریض,خانه,/,P3,رقبای بزرگ,عریض؛ سخت
+تجهیزات اکتیو شبکه,تجاری-عریض,دسته,/,P3,arghavannet,عریض
+خرید اکسس پوینت,تجاری-عریض,دسته,/category/access-point-mikrotik,P3,رقبا,عام
+خرید روتر,تجاری-عریض,دسته,/category/router-mikrotik,P3,mrshabake,SERP:مارکت‌پلیس+گیمینگ/vpn؛ سخت و کم‌ربط
+روتر شبکه,تجاری-عریض,دسته,/category/router-mikrotik,P3,mrshabake,عام
+سوییچ شبکه,تجاری-عریض,دسته,/category/switch-mikrotik,P3,mrshabake+arghavannet,SERP:دیجی/ترب قُرق؛ عام
+سوییچ POE,تجاری-عریض,دسته,/category/switch-mikrotik,P2,arghavannet,Trends:حجم واقعی دارد
+اینترنت وایرلس روستایی,اطلاعاتی-نیچ,مقاله,/blog,P3,فرصت نیچ LTE,نیچ
+آنتن تقویت اینترنت,تجاری-نیچ,دسته,/category/lte-mikrotik,P3,فرصت نیچ,نیچ
+مودم روستایی,تجاری-نیچ,دسته,/category/lte-mikrotik,P3,فرصت نیچ,نیچ
+رادیو ptp,تجاری,دسته,/category/wireless-radio,P3,arghavannet,نیچ
+شبکه بی سیم نقطه به نقطه,اطلاعاتی,مقاله,/blog,P3,دانش صنف,آموزشی
+تجهیزات hotspot,تجاری-نیچ,دسته+مقاله,/category/mikrotik,P3,دانش صنف,نیچ
+میکروتیک هات اسپات,اطلاعاتی,مقاله,/blog,P3,دانش صنف,آموزشی
+باند 60 گیگاهرتز,اطلاعاتی-نیچ,مقاله,/blog,P3,کاتالوگ ما (LHG 60G),نیچ
+وایرلس 5.8,تجاری-نیچ,دسته,/category/wireless-radio,P3,دانش صنف,نیچ
+خرید cpe,تجاری-نیچ,دسته,/category/wireless-outdoor-mikrotik,P3,دانش صنف,نیچ
+رادیو مبتنی بر lte,تجاری-نیچ,دسته,/category/lte-mikrotik,P3,کاتالوگ ما,نیچ
