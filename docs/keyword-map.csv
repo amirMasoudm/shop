@@ -14,8 +14,9 @@ mikrotik sxt lte6 kit,تجاری-مدل,محصول,/product/sxt-lte6-kit,P1,GSC 
 mikrotik lhg 60g,تجاری-مدل,محصول,/product/lhg-60g,P1,GSC اثبات‌شده,مدل long-tail؛ GSC اثبات
 mikrotik sxt sa5 ac,تجاری-مدل,محصول,/product/sxt-sa5-ac,P1,GSC اثبات‌شده,مدل long-tail؛ GSC اثبات
 mikrotik cap xl ac,تجاری-مدل,محصول,/product/cap-xl-ac,P2,کاتالوگ ما,مدل
-mikrotik hap ax3,تجاری-مدل,محصول,/product/hap-ax3,P1,کاتالوگ ما,مدل پرطرفدار (hap ax در related)
-mikrotik netpower lite 7r,تجاری-مدل,محصول,/product/netpower-lite-7r,P2,کاتالوگ ما,مدل
+mikrotik hap ax3,تجاری-مدل,محصول,/product/hap-ax3,P1,کاتالوگ ما,مدل پرطرفدار؛ خلاصه: hap ax3 / ax3
+mikrotik netpower lite 7r,تجاری-مدل,محصول,/product/netpower-lite-7r,P2,کاتالوگ ما,مدل؛ خلاصه: netpower 7r
+[الگو] فرم خلاصه هر مدل,تجاری-مدل,محصول,صفحه همان محصول,rule,قانون میدانی کاربر,«2004 16g»/«5009»/«lhg 60g»؛ برای همه ۱۹۴ محصول میکروتیک طبق product-content-standard.md قانون۱ تولید می‌شود — اینجا شمارش نمی‌شود
 خرید رادیو وایرلس,تجاری,دسته,/category/wireless-radio,P2,mrshabake+arghavannet,SERP:بردنی؛ غول صاحبش نیست
 تجهیزات وایرلس,تجاری,دسته,/category/wireless-radio,P3,mrshabake,Trends پایین
 رادیو وایرلس آتدور,تجاری,دسته,/category/wireless-outdoor-mikrotik,P2,کاتالوگ ما,نیچ
