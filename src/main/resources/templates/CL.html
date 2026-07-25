@@ -1082,7 +1082,7 @@
 
         <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
             <a th:each="prod : ${catProducts}"
-               th:href="${baseUrl + '/product/' + (prod.slug != null and !prod.slug.isEmpty() ? prod.slug : prod.id)}"
+               th:href="${baseUrl + '/product/' + (prod.slug != null and !prod.slug.isEmpty() ? prod.slug : prod.id) + (prod.persianTail != null and !prod.persianTail.isEmpty() ? '/' + prod.persianTail : '')}"
                style="display:block; border:1px solid #e5e7eb; border-radius:12px; padding:12px; text-decoration:none; color:inherit; background:#fff;">
                 <img th:src="${prod.images != null and !prod.images.isEmpty() ? prod.images[0] : baseUrl + '/logo.png'}"
                      th:alt="${prod.name}" loading="lazy" decoding="async"
@@ -1403,6 +1403,23 @@
         }
     }
 
+    // قانونِ سختِ دُمِ فارسی (هم‌ارزِ SlugUtil.sanitizeTail سمت سرور)
+    function sanitizeTail(s) {
+        if (!s) return '';
+        return s.trim()
+            .replace(/[\s‌]+/g, '-')
+            // فقط حرف (یونیکد)، رقمِ لاتین/فارسی و خط‌تیره؛ حذفِ ³ + # & و ...
+            .replace(/[^\p{L}0-9۰-۹-]/gu, '')
+            .replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '');
+    }
+
+    // مسیرِ هیبریدِ محصول: /product/{resolver}/{persianTail}
+    function productPath(p) {
+        const resolver = p.slug || p.id;
+        const tail = p.persianTail || sanitizeTail(p.name);
+        return tail ? '/product/' + resolver + '/' + tail : '/product/' + resolver;
+    }
+
     async function openProductDetail(productId, isInitialLoad = false) {
         let p = state.all.find(x => x.id === productId);
         // اگر محصول در حافظه نبود (خارج از ۱۰۰ تای اول)، تکی از سرور بگیر
@@ -1428,11 +1445,13 @@
         }
         metaDesc.content = p.seoDescription || (p.description ? p.description.substring(0, 150) : `خرید ${p.name} با بهترین قیمت`);
 
-        const slug = p.slug || p.id;
-        const newUrl = window.location.protocol + "//" + window.location.host + "/product/" + slug;
+        // آدرسِ هیبرید: /product/{resolver}/{persianTail} — resolver پایدار، دُم تزئینی
+        const newPath = productPath(p);
+        const newUrl = window.location.protocol + "//" + window.location.host + newPath;
 
         // تغییر مهم: جلوگیری از ثبت تاریخچه (History) فیک و اضافی هنگام لود اولیه
-        if (!isInitialLoad && window.location.pathname !== "/product/" + slug) {
+        // مقایسه‌ی decodeشده چون pathname برای فارسی percent-encode است
+        if (!isInitialLoad && decodeURIComponent(window.location.pathname) !== newPath) {
             window.history.pushState({path: newUrl}, '', newUrl);
         }
         // ------------------------------------------

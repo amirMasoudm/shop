@@ -64,6 +64,8 @@ public class Product {
     // فیلدهای جدید مربوط به SEO
     // ==========================================
     private String slug;
+    // دُمِ فارسیِ آدرسِ هیبریدِ محصول (تزئینی/سئو)؛ چت ب پرش می‌کند. اگر خالی بود fallback به نامِ محصول.
+    private String persianSlug;
     private String seoTitle;
     private String seoDescription;
 
@@ -87,6 +89,19 @@ public class Product {
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
+
+    public String getPersianSlug() { return persianSlug; }
+    public void setPersianSlug(String persianSlug) { this.persianSlug = persianSlug; }
+
+    /**
+     * دُمِ فارسیِ نهاییِ آدرس (sanitizeشده): persianSlug اگر پر باشد، وگرنه از نامِ محصول ساخته می‌شود.
+     * محاسبه‌شونده است (در دیتابیس ذخیره نمی‌شود) ولی در JSON خروجی می‌آید تا SPA هم از آن استفاده کند.
+     */
+    @org.springframework.data.annotation.Transient
+    public String getPersianTail() {
+        String base = (persianSlug != null && !persianSlug.isBlank()) ? persianSlug : name;
+        return org.example.shop1.model.service.util.SlugUtil.sanitizeTail(base);
+    }
 
     public String getSeoTitle() { return seoTitle; }
     public void setSeoTitle(String seoTitle) { this.seoTitle = seoTitle; }

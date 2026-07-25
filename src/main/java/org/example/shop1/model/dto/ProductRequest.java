@@ -40,6 +40,7 @@ public class ProductRequest {
     // فیلدهای جدید مربوط به SEO
     // ==========================================
     private String slug;
+    private String persianSlug; // دُمِ فارسیِ آدرسِ هیبرید (اختیاری)
     private String seoTitle;
     private String seoDescription;
 
@@ -59,6 +60,9 @@ public class ProductRequest {
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
+
+    public String getPersianSlug() { return persianSlug; }
+    public void setPersianSlug(String persianSlug) { this.persianSlug = persianSlug; }
 
     public String getSeoTitle() { return seoTitle; }
     public void setSeoTitle(String seoTitle) { this.seoTitle = seoTitle; }

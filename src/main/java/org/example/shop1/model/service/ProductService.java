@@ -198,6 +198,12 @@ public class ProductService {
        ردیف‌های خالی حذف می‌شوند.
     */
     private void applyRichContent(Product product, ProductRequest request) {
+        // دُمِ فارسیِ آدرسِ هیبرید (اختیاری؛ اگر خالی بماند هنگام رندر از نامِ محصول ساخته می‌شود)
+        if (request.getPersianSlug() != null) {
+            String pt = org.example.shop1.model.service.util.SlugUtil.sanitizeTail(request.getPersianSlug());
+            product.setPersianSlug(pt.isEmpty() ? null : pt);
+        }
+
         if (request.getTechSpecs() != null) {
             List<org.example.shop1.model.entity.TechSpecRow> rows = new java.util.ArrayList<>();
             for (org.example.shop1.model.entity.TechSpecRow r : request.getTechSpecs()) {

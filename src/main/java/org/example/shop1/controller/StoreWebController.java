@@ -53,74 +53,123 @@ public class StoreWebController {
         return "CL";
     }
 
+    // آدرسِ قدیمیِ تک‌بخشی — برای سازگاریِ عقب همچنان ۲۰۰ می‌دهد؛ canonical به فرمِ هیبرید هدایت می‌کند
     @GetMapping("/product/{slugOrId}")
     public String productPage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
-        // متد کمکی برای اضافه کردن آدرس‌های زنده
         addDynamicUrls(model, request);
-
-        Optional<Product> productOpt = productRepo.findBySlug(slugOrId);
-        if (productOpt.isEmpty()) {
-            productOpt = productRepo.findById(slugOrId);
-        }
-
-        if (productOpt.isPresent()) {
-            Product p = productOpt.get();
-            model.addAttribute("p", p);
-            model.addAttribute("seoTitle", p.getSeoTitle() != null ? p.getSeoTitle() : p.getName());
-            model.addAttribute("seoDescription", p.getSeoDescription() != null ? p.getSeoDescription() : "خرید آنلاین محصول " + p.getName());
-
-            // آدرس مطلق تصویر برای og:image و JSON-LD (تصاویر در دیتابیس نسبی‌اند: /uploads/..)
-            String baseUrl = buildBaseUrl(request);
-            if (p.getImages() != null && !p.getImages().isEmpty() && p.getImages().get(0) != null) {
-                String img = p.getImages().get(0);
-                model.addAttribute("ogImage", img.startsWith("http") ? img : baseUrl + img);
-            }
-
-            // اعتبار قیمت برای اسکیما: یک سال بعد (به‌جای تاریخ هاردکد)
-            model.addAttribute("priceValidUntil", java.time.LocalDate.now().plusYears(1).toString());
-
-            // aggregateRating فقط وقتی نظر واقعی وجود دارد (جلوگیری از امتیاز جعلی/جریمه گوگل)
-            String aggregateRatingJson = "";
-            if (p.getReviewCount() != null && p.getReviewCount() > 0) {
-                double rating = (p.getAverageRating() != null && p.getAverageRating() > 0) ? p.getAverageRating() : 5;
-                aggregateRatingJson = ",\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\""
-                        + rating + "\",\"reviewCount\":\"" + p.getReviewCount() + "\"}";
-            }
-            model.addAttribute("aggregateRatingJson", aggregateRatingJson);
-
-            String slug = (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
-            model.addAttribute("productSlug", slug);
-
-            // canonical همیشه نسخه‌ی اسلاگ است (جلوگیری از ایندکس دوگانه‌ی /product/{id} و /product/{slug})
-            model.addAttribute("canonicalUrl", baseUrl + "/product/" + slug);
-
-            // اسکیمای FAQPage (فقط وقتی پرسش متداول واقعی وجود دارد)
-            if (p.getFaqs() != null && !p.getFaqs().isEmpty()) {
-                StringBuilder fq = new StringBuilder();
-                fq.append("{\"@context\":\"https://schema.org/\",\"@type\":\"FAQPage\",\"mainEntity\":[");
-                for (int i = 0; i < p.getFaqs().size(); i++) {
-                    var f = p.getFaqs().get(i);
-                    if (i > 0) fq.append(",");
-                    fq.append("{\"@type\":\"Question\",\"name\":\"").append(esc(f.getQuestion()))
-                            .append("\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"")
-                            .append(esc(f.getAnswer())).append("\"}}");
-                }
-                fq.append("]}");
-                model.addAttribute("faqJsonLd", fq.toString());
-            }
-
-            String catName = "داده نما";
-            if (p.getCategoryId() != null) {
-                catName = categoryRepo.findById(p.getCategoryId())
-                        .map(Category::getName)
-                        .orElse("داده نما");
-            }
-            model.addAttribute("categoryName", catName);
-        } else {
-            // ۴۰۴ واقعی به‌جای ریدایرکت (soft 404 برای گوگل مضر است)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد");
-        }
+        Product p = resolveProduct(slugOrId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد"));
+        populateProductModel(p, model, request);
         return "CL";
+    }
+
+    // آدرسِ هیبریدِ جدید: /product/{resolver}/{persianTail}
+    // resolver محصول را قطعی resolve می‌کند؛ دُم فقط تزئینی/سئو است و برای lookup نادیده گرفته می‌شود.
+    @GetMapping("/product/{resolver}/{persianTail}")
+    public Object productPageHybrid(@PathVariable String resolver, @PathVariable String persianTail,
+                                    Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+        Product p = resolveProduct(resolver)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد"));
+
+        // اگر دُم غلط/کهنه بود، ۳۰۱ به فرمِ canonicalِ درست (تثبیتِ آدرس + جلوگیری از محتوای تکراری)
+        String correctTail = p.getPersianTail();
+        if (correctTail != null && !correctTail.isEmpty() && !correctTail.equals(persianTail)) {
+            // Location باید ASCII باشد؛ فرمِ percent-encode شده
+            String canonical = buildBaseUrl(request) + hybridPathEncoded(p);
+            org.springframework.web.servlet.view.RedirectView rv =
+                    new org.springframework.web.servlet.view.RedirectView(canonical);
+            rv.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+            return rv;
+        }
+
+        populateProductModel(p, model, request);
+        return "CL";
+    }
+
+    // resolve پایدار: اول با اسلاگ، بعد با شناسه
+    private Optional<Product> resolveProduct(String resolver) {
+        Optional<Product> productOpt = productRepo.findBySlug(resolver);
+        if (productOpt.isEmpty()) productOpt = productRepo.findById(resolver);
+        return productOpt;
+    }
+
+    // resolver پایدار برای آدرس (اسلاگِ لاتینِ موجود، وگرنه شناسه)
+    private String productResolver(Product p) {
+        return (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
+    }
+
+    // مسیرِ هیبریدِ درستِ محصول (بدونِ baseUrl). دُم خام (خوانا) — برای canonical/og در HTML.
+    private String hybridPath(Product p) {
+        String resolver = productResolver(p);
+        String tail = p.getPersianTail();
+        return (tail != null && !tail.isEmpty()) ? "/product/" + resolver + "/" + tail : "/product/" + resolver;
+    }
+
+    // نسخه‌ی percent-encode شده‌ی مسیرِ هیبرید — برای هدرِ Location (باید ASCII باشد) و sitemap.
+    private String hybridPathEncoded(Product p) {
+        String resolver = org.springframework.web.util.UriUtils.encodePathSegment(
+                productResolver(p), java.nio.charset.StandardCharsets.UTF_8);
+        String tail = p.getPersianTail();
+        if (tail == null || tail.isEmpty()) return "/product/" + resolver;
+        String encTail = org.springframework.web.util.UriUtils.encodePathSegment(
+                tail, java.nio.charset.StandardCharsets.UTF_8);
+        return "/product/" + resolver + "/" + encTail;
+    }
+
+    // پر کردن مدلِ صفحه‌ی محصول + canonical/og/productSlug روی فرمِ هیبریدِ درست
+    private void populateProductModel(Product p, Model model, HttpServletRequest request) {
+        String baseUrl = buildBaseUrl(request);
+        model.addAttribute("p", p);
+        model.addAttribute("seoTitle", p.getSeoTitle() != null ? p.getSeoTitle() : p.getName());
+        model.addAttribute("seoDescription", p.getSeoDescription() != null ? p.getSeoDescription() : "خرید آنلاین محصول " + p.getName());
+
+        // آدرس مطلق تصویر برای og:image و JSON-LD (تصاویر در دیتابیس نسبی‌اند: /uploads/..)
+        if (p.getImages() != null && !p.getImages().isEmpty() && p.getImages().get(0) != null) {
+            String img = p.getImages().get(0);
+            model.addAttribute("ogImage", img.startsWith("http") ? img : baseUrl + img);
+        }
+
+        // اعتبار قیمت برای اسکیما: یک سال بعد (به‌جای تاریخ هاردکد)
+        model.addAttribute("priceValidUntil", java.time.LocalDate.now().plusYears(1).toString());
+
+        // aggregateRating فقط وقتی نظر واقعی وجود دارد (جلوگیری از امتیاز جعلی/جریمه گوگل)
+        String aggregateRatingJson = "";
+        if (p.getReviewCount() != null && p.getReviewCount() > 0) {
+            double rating = (p.getAverageRating() != null && p.getAverageRating() > 0) ? p.getAverageRating() : 5;
+            aggregateRatingJson = ",\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\""
+                    + rating + "\",\"reviewCount\":\"" + p.getReviewCount() + "\"}";
+        }
+        model.addAttribute("aggregateRatingJson", aggregateRatingJson);
+
+        // resolver پایدار برای SPA (window.SERVER_PRODUCT_SLUG)
+        model.addAttribute("productSlug", productResolver(p));
+
+        // canonical/og:url همیشه فرمِ هیبریدِ درست (جلوگیری از ایندکس دوگانه)
+        model.addAttribute("canonicalUrl", baseUrl + hybridPath(p));
+
+        // اسکیمای FAQPage (فقط وقتی پرسش متداول واقعی وجود دارد)
+        if (p.getFaqs() != null && !p.getFaqs().isEmpty()) {
+            StringBuilder fq = new StringBuilder();
+            fq.append("{\"@context\":\"https://schema.org/\",\"@type\":\"FAQPage\",\"mainEntity\":[");
+            for (int i = 0; i < p.getFaqs().size(); i++) {
+                var f = p.getFaqs().get(i);
+                if (i > 0) fq.append(",");
+                fq.append("{\"@type\":\"Question\",\"name\":\"").append(esc(f.getQuestion()))
+                        .append("\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"")
+                        .append(esc(f.getAnswer())).append("\"}}");
+            }
+            fq.append("]}");
+            model.addAttribute("faqJsonLd", fq.toString());
+        }
+
+        String catName = "داده نما";
+        if (p.getCategoryId() != null) {
+            catName = categoryRepo.findById(p.getCategoryId())
+                    .map(Category::getName)
+                    .orElse("داده نما");
+        }
+        model.addAttribute("categoryName", catName);
     }
 
     // ================= صفحه‌ی سئوی دسته‌بندی =================
@@ -176,10 +225,9 @@ public class StoreWebController {
             int max = Math.min(products.size(), 30);
             for (int i = 0; i < max; i++) {
                 Product p = products.get(i);
-                String pSlug = (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
                 if (i > 0) sb.append(",");
                 sb.append("{\"@type\":\"ListItem\",\"position\":").append(pos++)
-                        .append(",\"url\":\"").append(esc(baseUrl + "/product/" + pSlug)).append("\"}");
+                        .append(",\"url\":\"").append(esc(baseUrl + hybridPath(p))).append("\"}");
             }
             sb.append("]}");
         }
@@ -362,11 +410,12 @@ public class StoreWebController {
         }
 
         for (Product p : products) {
-            String slug = (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
+            // آدرسِ هیبریدِ کاملاً percent-encode شده (resolver + دُمِ فارسی)
+            String loc = baseUrl + hybridPathEncoded(p);
             Instant mod = p.getUpdatedAt() != null ? p.getUpdatedAt()
                     : (p.getCreatedAt() != null ? p.getCreatedAt() : Instant.now());
             xml.append("<url>");
-            xml.append("<loc>").append(baseUrl).append("/product/").append(slug).append("</loc>");
+            xml.append("<loc>").append(loc).append("</loc>");
             xml.append("<lastmod>").append(mod.toString(), 0, 10).append("</lastmod>");
             xml.append("<priority>0.8</priority>");
             xml.append("</url>");
