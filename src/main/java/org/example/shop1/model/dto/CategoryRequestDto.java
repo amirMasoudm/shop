@@ -32,6 +32,7 @@ public class CategoryRequestDto {
     private String slug;
     private String seoTitle;
     private String seoDescription;
+    private String introText;
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
@@ -41,4 +42,7 @@ public class CategoryRequestDto {
 
     public String getSeoDescription() { return seoDescription; }
     public void setSeoDescription(String seoDescription) { this.seoDescription = seoDescription; }
+
+    public String getIntroText() { return introText; }
+    public void setIntroText(String introText) { this.introText = introText; }
 }

@@ -26,6 +26,7 @@ public class Category {
     private String slug;           // آدرس تمیز و یکتا
     private String seoTitle;       // عنوان تگ <title> و og:title
     private String seoDescription; // متن meta description
+    private String introText;      // متنِ معرفیِ ۲۰۰–۴۰۰ کلمه‌ای دسته (رندرِ SSR زیرِ لیستِ محصولات؛ nullable)
 
     // --- Constructors ---
     // اضافه کردن فیلد جدید
@@ -68,4 +69,7 @@ public class Category {
 
     public String getSeoDescription() { return seoDescription; }
     public void setSeoDescription(String seoDescription) { this.seoDescription = seoDescription; }
+
+    public String getIntroText() { return introText; }
+    public void setIntroText(String introText) { this.introText = introText; }
 }

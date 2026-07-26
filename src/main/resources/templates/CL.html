@@ -1094,6 +1094,12 @@
                 </div>
             </a>
         </div>
+
+        <!-- متنِ معرفیِ دسته (زیرِ لیستِ محصولات؛ فقط اگر موجود باشد). th:text امن است (XSS escape) -->
+        <div th:if="${cat.introText != null and !cat.introText.isEmpty()}"
+             th:text="${cat.introText}"
+             style="margin-top:32px; padding-top:20px; border-top:1px solid #e5e7eb; color:#374151; line-height:2; font-size:15px; white-space:pre-line;">متن معرفی دسته</div>
+
         <p style="margin-top:24px; color:#9ca3af; font-size:13px;">در حال بارگذاری فروشگاه…</p>
     </div>
 </div>

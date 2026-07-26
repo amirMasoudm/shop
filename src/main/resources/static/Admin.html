@@ -1042,6 +1042,12 @@
                           class="w-full p-2 text-sm border rounded-lg outline-none resize-none"
                           oninput="updateCatSeoPreview()"></textarea>
 
+                <div class="flex items-center justify-between mt-3 mb-1">
+                    <label class="text-[11px] text-gray-600">متن معرفی دسته (زیرِ لیست محصولات نمایش داده می‌شود؛ ۲۰۰ تا ۴۰۰ کلمه)</label>
+                </div>
+                <textarea id="c-intro" rows="6" placeholder="متن معرفی/راهنمای خرید این دسته برای کاربر و سئو..."
+                          class="w-full p-2 text-sm border rounded-lg outline-none resize-y"></textarea>
+
                 <!-- پیش‌نمایش نتیجه گوگل -->
                 <div class="mt-3 bg-white border rounded-lg p-3" style="direction:rtl;">
                     <div class="text-[10px] text-gray-400 mb-1">پیش‌نمایش نتیجه گوگل:</div>
@@ -2417,6 +2423,7 @@
         document.getElementById('c-slug').value = c.slug || '';
         document.getElementById('c-seo-title').value = c.seoTitle || '';
         document.getElementById('c-seo-desc').value = c.seoDescription || '';
+        document.getElementById('c-intro').value = c.introText || '';
         updateCatSeoPreview();
         document.getElementById('cat-modal-title').innerText = 'ویرایش دسته';
         openModal('categoryModal');
@@ -2449,7 +2456,8 @@
             // فیلدهای سئو (اسلاگ خالی = ساخت خودکار سمت سرور)
             slug: document.getElementById('c-slug').value.trim() || null,
             seoTitle: document.getElementById('c-seo-title').value.trim() || null,
-            seoDescription: document.getElementById('c-seo-desc').value.trim() || null
+            seoDescription: document.getElementById('c-seo-desc').value.trim() || null,
+            introText: document.getElementById('c-intro').value.trim() || null
         };
 
         const req = id

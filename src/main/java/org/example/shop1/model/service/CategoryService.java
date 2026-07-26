@@ -56,6 +56,7 @@ public class CategoryService {
         category.setSlug(generateUniqueSlug(slugBase, null));
         category.setSeoTitle(dto.getSeoTitle());
         category.setSeoDescription(dto.getSeoDescription());
+        category.setIntroText(dto.getIntroText());
 
         return repo.save(category);
     }
@@ -76,6 +77,7 @@ public class CategoryService {
         // ---> سئو <---
         category.setSeoTitle(dto.getSeoTitle());
         category.setSeoDescription(dto.getSeoDescription());
+        category.setIntroText(dto.getIntroText());
         // پایداری URL: اگر ادمین صریحاً اسلاگ داد، همان اعمال می‌شود؛
         // اگر نداد و دسته هنوز اسلاگ ندارد، از نام ساخته می‌شود؛ در غیر این صورت اسلاگ قبلی حفظ می‌شود
         if (dto.getSlug() != null && !dto.getSlug().trim().isEmpty()) {
@@ -238,6 +240,7 @@ public class CategoryService {
         dto.setSlug(c.getSlug());
         dto.setSeoTitle(c.getSeoTitle());
         dto.setSeoDescription(c.getSeoDescription());
+        dto.setIntroText(c.getIntroText());
         dto.setChildren(new ArrayList<>());
         return dto;
     }
