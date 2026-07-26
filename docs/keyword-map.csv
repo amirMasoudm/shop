@@ -7,7 +7,7 @@ keyword,intent,target_type,target,priority,source,evidence
 آنتن میکروتیک,تجاری,دسته,/category/wireless-outdoor-mikrotik,P2,دانش صنف,مرتبط با رادیو وایرلس
 اکسس پوینت میکروتیک,تجاری,دسته,/category/access-point-mikrotik,P2,رقبا,SERP:پر و بردنی — تصحیح از P3 (Trends گمراه)
 مودم LTE میکروتیک,تجاری,دسته,/category/lte-mikrotik,P2,کاتالوگ ما,نیچ کاتالوگ‌محور
-لایسنس میکروتیک,تجاری+اطلاعاتی,دسته+مقاله,/category/mikrotik-license,P1,GSC اثبات‌شده,SERP:بدون مارکت‌پلیس؛ بردنی؛ طلایی — دسته+مقاله how-to
+لایسنس میکروتیک,تجاری+اطلاعاتی,دسته+مقاله,/category/mikrotik-license,P3,GSC اثبات‌شده,SERP بردنی ولی «فعلاً محصولِ لایسنس نداریم» (کاربر ۲۶-۰۷) → تا تأمینِ موجودی معلق؛ نوشتنِ متنِ دسته‌ی خالی بی‌فایده
 قیمت میکروتیک,تجاری,دسته قطب,/category/mikrotik,P1,دانش صنف,SERP=روتر میکروتیک؛ قطب
 نمایندگی میکروتیک,تجاری+اعتماد,دسته قطب,/category/mikrotik,P1,SERP کشف,طلایی: بدون مارکت‌پلیس؛ نیت اعتماد/خرید بالا
 mikrotik sxt lte6 kit,تجاری-مدل,محصول,/product/sxt-lte6-kit,P1,GSC اثبات‌شده,مدل long-tail؛ GSC اثبات
