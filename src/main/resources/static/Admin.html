@@ -1852,10 +1852,14 @@
 
     function saveProduct() {
         const id = document.getElementById('p-id').value;
-        const specs = {};
+        // مهم: از specificationsِ کاملِ محصول شروع کن (تا دامپِ ~۵۰ فیلدیِ mikrotik.com که در فرمِ فیلتر نیست پاک نشود).
+        // فقط کلیدهای فیلتری (که .spec-input دارند) اضافه/ویرایش/حذف می‌شوند.
+        const specs = {...(currentSpecs || {})};
         document.querySelectorAll('.spec-input').forEach(input => {
+            const key = input.dataset.key;
             const val = input.value.trim();
-            if (val !== '') specs[input.dataset.key] = val;
+            if (val !== '') specs[key] = val;
+            else delete specs[key]; // پاک‌کردنِ صریحِ همان کلیدِ فیلتری اگر خالی شد
         });
 
         const data = {
