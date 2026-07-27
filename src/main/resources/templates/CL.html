@@ -1029,7 +1029,7 @@
         </nav>
         <div style="display:flex; flex-wrap:wrap; gap:24px;">
             <img th:src="${p.images != null and !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'}"
-                 th:alt="${p.name}" decoding="async"
+                 th:alt="${p.imageAlts != null and !p.imageAlts.isEmpty() and p.imageAlts[0] != null and !p.imageAlts[0].isEmpty() ? p.imageAlts[0] : p.name}" decoding="async"
                  style="width:320px; max-width:100%; aspect-ratio:1; border-radius:12px; border:1px solid #eee; object-fit:cover;">
             <div style="flex:1; min-width:260px;">
                 <h1 th:text="${p.name}" style="font-size:24px; margin:0 0 12px; color:#1f2937;">نام محصول</h1>
@@ -1471,11 +1471,16 @@
         if (ssrBlock) ssrBlock.remove();
 
         const mainImg = (p.images && p.images.length > 0) ? p.images[0] : '';
+        // altِ اختصاصیِ تصویرِ i؛ اگر نبود، fallback به alt خودکار (نام محصول)
+        const altFor = (i) => {
+            const a = (p.imageAlts && p.imageAlts[i]) ? String(p.imageAlts[i]).trim() : '';
+            return escapeHTML(a || `${p.name} - تصویر ${i + 1}`);
+        };
 
         // --- بخش ۲: تولید گالری تصاویر ---
         const thumbs = (p.images || []).map((img, i) =>
             `<div class="p-thumb ${i===0?'active':''}" onclick="changePImage(this, '${img}')">
-            <img src="${img}" alt="${p.name} - تصویر ${i+1}" title="${p.name}" loading="lazy">
+            <img src="${img}" alt="${altFor(i)}" title="${escapeHTML(p.name)}" loading="lazy">
         </div>`
         ).join('');
 
@@ -1573,7 +1578,7 @@
         <div class="p-grid">
             <div class="p-gallery">
                 <div class="p-main-img">
-                    <img id="targetPImg" src="${mainImg}" alt="${p.seoTitle || p.name}" title="${escapeHTML(p.name)}" decoding="async">
+                    <img id="targetPImg" src="${mainImg}" alt="${altFor(0)}" title="${escapeHTML(p.name)}" decoding="async">
                 </div>
                 <div class="p-thumbs">${thumbs}</div>
             </div>

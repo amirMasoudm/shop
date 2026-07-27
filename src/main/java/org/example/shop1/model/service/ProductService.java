@@ -65,6 +65,7 @@ public class ProductService {
         product.setStock(request.getStock());
         product.setDescription(request.getDescription());
         product.setImages(request.getImages());
+        if (request.getImageAlts() != null) product.setImageAlts(request.getImageAlts()); // فقط اگر ارسال شد (بدون پاک‌کردنِ ناخواسته)
         product.setSpecifications(request.getSpecifications());
         product.setBasePrice(request.getBasePrice()); // مقداردهی قیمت پایه
         product.setUpdatedAt(Instant.now()); // زمان ساخت همان زمان بروزرسانی اولیه است
@@ -135,6 +136,7 @@ public class ProductService {
         }
 
         product.setImages(request.getImages());
+        if (request.getImageAlts() != null) product.setImageAlts(request.getImageAlts()); // فقط اگر ارسال شد (بدون پاک‌کردنِ ناخواسته)
         product.setSpecifications(request.getSpecifications());
 
         // اعمال مجدد تخفیف با درصد جدید

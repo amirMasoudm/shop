@@ -1341,6 +1341,7 @@
         comments: [],
         currentCommentStatus: 'PENDING',
         currentImages: [],
+        currentImageAlts: [],
         currentFilters: [],
         currentOrderFilter: 'ALL'
     };
@@ -1413,9 +1414,9 @@
             new Sortable(document.getElementById('image-preview-container'), {
                 animation: 150,
                 onEnd: () => {
-                    const newOrder = [];
-                    document.querySelectorAll('.img-item img').forEach(img => newOrder.push(img.src));
-                    state.currentImages = newOrder;
+                    // تصاویر و altها را با هم و هم‌ترتیب از DOM بازبخوان، سپس ری‌رندر تا ایندکس‌ها تازه شوند
+                    syncImagesFromDom();
+                    renderImages();
                 }
             });
         }
@@ -1796,6 +1797,7 @@
     function openProductModal() {
         resetForm('p');
         state.currentImages = [];
+        state.currentImageAlts = [];
         currentSpecs = {};
         document.getElementById('p-weight').value = '';
         document.getElementById('p-length').value = '';
@@ -1849,6 +1851,8 @@
         renderRelProducts(p.relatedProductIds || [], p.id);
 
         state.currentImages = p.images || [];
+        // altها را هم‌ترتیب و هم‌طولِ images بساز (پدینگِ خالی برای تصاویرِ بدونِ alt)
+        state.currentImageAlts = (p.images || []).map((_, i) => (p.imageAlts && p.imageAlts[i]) ? p.imageAlts[i] : '');
         renderImages();
 
         document.getElementById('modal-title-action').textContent = 'ویرایش محصول';
@@ -1858,6 +1862,8 @@
 
     function saveProduct() {
         const id = document.getElementById('p-id').value;
+        // altهای تایپ‌شده و ترتیبِ فعلیِ تصاویر را از DOM بگیر (تضمینِ هم‌ترازیِ images↔imageAlts)
+        syncImagesFromDom();
         // مهم: از specificationsِ کاملِ محصول شروع کن (تا دامپِ ~۵۰ فیلدیِ mikrotik.com که در فرمِ فیلتر نیست پاک نشود).
         // فقط کلیدهای فیلتری (که .spec-input دارند) اضافه/ویرایش/حذف می‌شوند.
         const specs = {...(currentSpecs || {})};
@@ -1890,6 +1896,7 @@
             warehouseDescription: document.getElementById('p-warehouse-desc').value,
             description: document.getElementById('p-desc').value,
             images: state.currentImages,
+            imageAlts: state.currentImageAlts,
             specifications: specs,
             techSpecs: collectTechSpecs(),
             faqs: collectFaqs(),
@@ -2032,15 +2039,33 @@
 
     function renderImages() {
         document.getElementById('image-preview-container').innerHTML = state.currentImages.map((src, i) => `
-            <div class="img-item relative w-full h-16 md:h-24 rounded overflow-hidden shadow group">
-                <img src="${src}" onerror="this.src='${FALLBACK_IMG}'" class="w-full h-full object-cover cursor-move">
+            <div class="img-item relative w-full rounded shadow group bg-white p-1">
+                <img src="${src}" data-src="${src}" onerror="this.src='${FALLBACK_IMG}'" class="w-full h-16 md:h-24 object-cover cursor-move rounded">
                 <button onclick="removeImage(${i})" class="absolute top-1 left-1 bg-red-500 text-white rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[10px] md:text-xs md:opacity-0 md:group-hover:opacity-100 transition">✕</button>
+                <input type="text" class="img-alt-input w-full mt-1 p-1 text-[10px] border rounded outline-none" placeholder="متن جایگزین (alt)"
+                       value="${(state.currentImageAlts[i] || '').replace(/"/g, '&quot;')}">
             </div>
         `).join('');
     }
 
+    // بازخوانیِ تصاویر و altها از DOM با ترتیبِ فعلی (بعد از جابه‌جایی/تایپ) — تضمینِ هم‌ترازی و جلوگیری از دیتالاس
+    function syncImagesFromDom() {
+        const items = document.querySelectorAll('#image-preview-container .img-item');
+        const imgs = [], alts = [];
+        items.forEach(it => {
+            const im = it.querySelector('img');
+            // data-src مسیرِ اصلی است و با onerror/fallback عوض نمی‌شود (جلوگیری از جایگزینیِ مسیرِ سالم با placeholder)
+            imgs.push(im.getAttribute('data-src') || im.getAttribute('src'));
+            alts.push((it.querySelector('.img-alt-input')?.value || '').trim());
+        });
+        state.currentImages = imgs;
+        state.currentImageAlts = alts;
+    }
+
     function removeImage(i) {
+        syncImagesFromDom();               // altهای تایپ‌شده را قبل از حذف حفظ کن
         state.currentImages.splice(i, 1);
+        state.currentImageAlts.splice(i, 1);
         renderImages();
     }
 

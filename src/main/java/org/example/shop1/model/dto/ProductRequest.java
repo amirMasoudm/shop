@@ -14,6 +14,7 @@ public class ProductRequest {
     private String description;
     private Map<String, String> specifications;
     private List<String> images;
+    private List<String> imageAlts; // altِ اختصاصیِ تصاویر (هم‌ترتیبِ images)
     private Integer discountPercent; // درصد تخفیف ارسالی از پنل ادمین
 
 
@@ -126,6 +127,9 @@ public class ProductRequest {
 
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) { this.images = images; }
+
+    public List<String> getImageAlts() { return imageAlts; }
+    public void setImageAlts(List<String> imageAlts) { this.imageAlts = imageAlts; }
 
     public Integer getDiscountPercent() { return discountPercent; }
     public void setDiscountPercent(Integer discountPercent) { this.discountPercent = discountPercent; }

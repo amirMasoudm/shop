@@ -31,6 +31,8 @@ public class Product {
     // ------------------------------------------
 
     private List<String> images = new ArrayList<>();
+    // altِ اختصاصیِ تصاویر — موازی و هم‌ترتیبِ images (اختیاری؛ محصولِ قدیمی ندارد → fallback به alt خودکار)
+    private List<String> imageAlts = new ArrayList<>();
     private Map<String, String> specifications = new HashMap<>();
 
 
@@ -172,6 +174,9 @@ public class Product {
 
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) { this.images = images; }
+
+    public List<String> getImageAlts() { return imageAlts; }
+    public void setImageAlts(List<String> imageAlts) { this.imageAlts = imageAlts; }
 
     public Map<String, String> getSpecifications() { return specifications; }
     public void setSpecifications(Map<String, String> specifications) { this.specifications = specifications; }
