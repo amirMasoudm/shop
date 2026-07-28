@@ -1182,6 +1182,8 @@
                     نمایش محصولات بیشتر
                 </button>
             </div>
+            <!-- متنِ معرفیِ دسته در SPA (زیرِ محصولات؛ معادلِ SSR). فقط در نمای دسته پر می‌شود -->
+            <div id="catIntroText"></div>
         </main>
     </div>
 </div>
@@ -1346,6 +1348,8 @@
             state.cats = c;
             renderDesktopMenu(c);
             renderMobileMenu(c);
+            // اگر ورودِ مستقیمِ SSR به دسته بود و درخت دیرتر رسید، متنِ معرفی را حالا رندر کن (رفعِ ریس)
+            if (state.feed && state.feed.type === 'cat') renderCatIntro(state.feed.param);
         });
         fetch(`${API}/api/v1/landing-sections/active`).then(r => r.json()).then(s => {
             state.secs = s;
@@ -1783,6 +1787,7 @@
         document.getElementById('landingSections').style.display = 'block';
         document.getElementById('latestSectionHeader').style.display = 'block';
         document.getElementById('latestSectionHeader').innerText = 'جدیدترین محصولات';
+        renderCatIntro(null); // صفحه‌ی اصلی متنِ معرفیِ دسته ندارد
 
         // محصولات هر جشنواره از سرور گرفته می‌شود (وابسته به لود کل محصولات نیست)
         try {
@@ -1824,6 +1829,9 @@
         // لیست دسته: صفحه‌بندی سروری با «نمایش بیشتر» (بدون سقف ۲۰۰)
         await startFeed('cat', id);
 
+        // متنِ معرفیِ دسته زیرِ محصولات (از state.cats؛ بدون کالِ جدید) — معادلِ SSR
+        renderCatIntro(id);
+
         // ذخیره لیست در تاریخچه مرورگر — URL تمیز /category/{slug} تا با صفحه‌ی SSR و canonical یکی شود
         if (!isPopState) {
             const slug = getCatSlug(id);
@@ -1836,6 +1844,7 @@
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         document.getElementById('latestSectionHeader').innerText = title;
+        renderCatIntro(null); // نمای جشنواره متنِ معرفیِ دسته ندارد
 
         // لیست جشنواره: صفحه‌بندی سروری با «نمایش بیشتر»
         await startFeed('sec', id);
@@ -2066,6 +2075,34 @@
             return null;
         };
         return find(state.cats) || 'متفرقه';
+    }
+
+    // پیدا کردن آبجکتِ دسته بر اساس id در درخت (برای introText و ...)
+    function getCatById(id) {
+        const find = (list) => {
+            for (let c of list) {
+                if (c.id === id) return c;
+                if (c.children) {
+                    let r = find(c.children);
+                    if (r) return r;
+                }
+            }
+            return null;
+        };
+        return find(state.cats);
+    }
+
+    // متنِ معرفیِ دسته را در SPA زیرِ محصولات نشان بده (معادلِ SSR)؛ اگر نبود، پاک کن
+    function renderCatIntro(catId) {
+        const el = document.getElementById('catIntroText');
+        if (!el) return;
+        const cat = catId ? getCatById(catId) : null;
+        const intro = cat && cat.introText ? String(cat.introText).trim() : '';
+        if (intro) {
+            el.innerHTML = `<div style="margin-top:32px; padding-top:20px; border-top:1px solid #e5e7eb; color:#374151; line-height:2; font-size:15px; white-space:pre-line;">${escapeHTML(intro)}</div>`;
+        } else {
+            el.innerHTML = '';
+        }
     }
 
     // اسلگ دسته را از درخت پیدا می‌کند (برای URL تمیز /category/{slug})؛ اگر اسلگ نبود، خودِ id
