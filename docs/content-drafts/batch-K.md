@@ -540,3 +540,132 @@
 **rel:** ['6a5cbe1789e6bfd0ee9627ec','6a5cbe1c89e6bfd0ee9627f1']
 
 **slug:** آنتن-lte-میکروتیک-lhg-lte-kit
+
+---
+
+## K16. رادیو وایرلس میکروتیک SXT 4G kit
+**id:** `6a5cbe1489e6bfd0ee9627e9` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBSXTR&R11e-4G
+
+**name:** رادیو وایرلس میکروتیک SXT 4G kit
+
+**seoTitle:** آنتنِ 4G میکروتیک SXT 4G kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک SXT 4G kit؛ CPEِ 4G Cat 4 با آنتنِ ۱۰٫۵dBi ۶۰ درجه، دو پورتِ ۱۰/۱۰۰ و دو اسلاتِ SIM. قیمت روز با گارانتی — داده نما.
+
+**description:** رادیو وایرلس میکروتیک SXT 4G kit (کد RBSXTR&R11e-4G) یک CPEِ 4G جمع‌وجور با آنتنِ جهتیِ ۱۰٫۵dBi است. پردازنده‌ی QCA9531 با ۶۵۰MHz و ۶۴ مگابایت رم، دو پورتِ ۱۰/۱۰۰ (پورتِ دوم با PoE-out)، آنتنِ ۱۰٫۵dBi با زاویه‌ی ۶۰ درجه. مودمِ R11e-4G با دانلودِ تا ۱۵۰Mbps (Cat 4)، دو اسلاتِ Micro SIM. RouterOS لِوِل ۳. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSBE QCA9531 تک‌هسته ۶۵۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۶۴MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۳'}
+- {group:'شبکه', key:'پورت شبکه', value:'۲× ۱۰/۱۰۰ (پورتِ ۲ با PoE-out پسیو)'}
+- {group:'رادیو', key:'آنتن', value:'جهتیِ ۱۰٫۵dBi · زاویه ۶۰°'}
+- {group:'LTE', key:'مودم', value:'R11e-4G · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۲× Micro SIM'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو'}
+
+**faqs:**
+- Q: قیمتِ SXT 4G kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با LHG 4G kit چیست؟ A: SXT 4G kit زاویه‌ی ۶۰° و ۱۰٫۵dBi دارد؛ LHG 4G kit زاویه‌ی ۲۵° با ۱۷dBi برای فاصله‌های دورتر.
+- Q: پورتِ دوم PoE-out دارد؟ A: بله، پورتِ دوم PoE-out پسیو دارد.
+
+**imageAlts:** ['آنتنِ 4G میکروتیک SXT 4G kit — نمای اصلی','SXT 4G kit میکروتیک — نمای پورت‌ها']
+
+**rel:** ['6a5cbe1789e6bfd0ee9627ec']
+
+**slug:** آنتن-4g-میکروتیک-sxt-4g-kit
+
+---
+
+## K17. اکسس پوینت میکروتیک LtAP mini 4G kit
+**id:** `6a5cbe1289e6bfd0ee9627e8` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RB912R-2nD-LTm&R11e-4G
+
+**name:** اکسس پوینت میکروتیک LtAP mini 4G kit
+
+**seoTitle:** اکسس پوینت LTE میکروتیک LtAP mini 4G kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک LtAP mini 4G kit؛ AP مینیاتوریِ ضدآبِ ۲٫۴GHz با مودمِ 4G Cat 4، GPS و دو اسلاتِ SIM. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک LtAP mini 4G kit (کد RB912R-2nD-LTm&R11e-4G) نسخه‌ی فشرده‌ی سریِ LtAP با مودمِ 4G است. پردازنده‌ی QCA9531 با ۶۵۰MHz و ۶۴ مگابایت رم، پورتِ ۱۰/۱۰۰، رادیوی ۲٫۴GHz با استانداردِ 802.11n و آنتنِ ۱٫۵dBi. مودمِ R11e-4G با دانلودِ تا ۱۵۰Mbps (Cat 4)، دو اسلاتِ SIM، GPS یکپارچه. RouterOS لِوِل ۴، محفظه‌ی مینیاتوریِ ضدآب. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSBE QCA9531 تک‌هسته ۶۵۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۶۴MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× ۱۰/۱۰۰'}
+- {group:'رادیو', key:'باند WiFi', value:'۲٫۴GHz 802.11b/g/n · آنتنِ ۱٫۵dBi'}
+- {group:'LTE', key:'مودم', value:'R11e-4G · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۲× Mini SIM'}
+- {group:'موقعیت', key:'GPS', value:'یکپارچه'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو · محفظه‌ی مینیاتوریِ ضدآب'}
+
+**faqs:**
+- Q: قیمتِ LtAP mini 4G kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با LtAP 4G kit چیست؟ A: نسخه‌ی mini کوچک‌تر است و ۶۴MB رم و ۱۰/۱۰۰ دارد؛ LtAP 4G kit ۱۲۸MB رم و گیگابیت.
+- Q: GPS کاربردش چیست؟ A: برای ردیابیِ موقعیت در وسایلِ نقلیه یا تجهیزاتِ سیار.
+
+**imageAlts:** ['اکسس پوینت LTE میکروتیک LtAP mini 4G kit — نمای اصلی','LtAP mini 4G kit میکروتیک — نمای کناری']
+
+**rel:** ['6a5cbe1b89e6bfd0ee9627f0','6a5cbe1189e6bfd0ee9627e7']
+
+**slug:** اکسس-پوینت-lte-میکروتیک-ltap-mini-4g-kit
+
+---
+
+## K18. اکسس پوینت میکروتیک LtAP
+**id:** `6a5cbe1189e6bfd0ee9627e7` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBLtAP-2HnD
+
+**name:** اکسس پوینت میکروتیک LtAP
+
+**seoTitle:** اکسس پوینت میکروتیک LtAP (ltap) | قیمت و خرید — داده نما
+
+**seoDescription:** خرید اکسس پوینت میکروتیک LtAP؛ APِ آتدورِ ضدآبِ ۲٫۴GHz با پردازنده‌ی دوهسته، گیگابیت، GPS و اسلاتِ miniPCI-e برای LTE. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک LtAP (کد RBLtAP-2HnD) که با نامِ «ltap» شناخته می‌شود، یک APِ آتدورِ چندمنظوره‌ی پایه است (بدونِ مودمِ LTE). پردازنده‌ی MT7621A دوهسته‌ی ۸۸۰MHz با ۱۲۸ مگابایت رم، یک پورتِ گیگابیت، رادیوی ۲٫۴GHz با 802.11n، GPS یکپارچه، سه اسلاتِ Mini-SIM و اسلاتِ miniPCI-e برای نصبِ مودمِ LTE دلخواه. RouterOS لِوِل ۴، محفظه‌ی آتدورِ ضدآب. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSEL MT7621A دوهسته ۸۸۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۱۲۸MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× گیگابیت'}
+- {group:'رادیو', key:'باند WiFi', value:'۲٫۴GHz 802.11b/g/n'}
+- {group:'توسعه', key:'اسلاتِ مودم', value:'miniPCI-e برای نصبِ مودمِ LTE/4G دلخواه'}
+- {group:'LTE', key:'سیم‌کارت', value:'۳× Mini-SIM'}
+- {group:'موقعیت', key:'GPS', value:'یکپارچه'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو یا DC · محفظه‌ی ضدآب'}
+
+**faqs:**
+- Q: قیمتِ ltap چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: مودمِ LTE دارد؟ A: خیر، LtAP بدونِ مودم است — اسلاتِ miniPCI-e دارد و مودم باید جداگانه خریداری شود (مثلاً R11e-4G یا R11e-LTE).
+- Q: تفاوتِ با LtAP 4G kit چیست؟ A: LtAP 4G kit شاملِ مودمِ R11e-4G از کارخانه است؛ LtAP برد پایه بدونِ مودم.
+
+**imageAlts:** ['اکسس پوینت میکروتیک LtAP (ltap) — نمای اصلی','LtAP میکروتیک — نمای کناری']
+
+**rel:** ['6a5cbe1b89e6bfd0ee9627f0','6a5cbe1a89e6bfd0ee9627ef']
+
+**slug:** اکسس-پوینت-میکروتیک-ltap
+
+---
+
+## خودچکِ بستهٔ K
+
+| # | نام | ق۵ | ق۶ | ق۱۲ |
+|---|-----|----|----|------|
+| K1 | mANTBox2 12s | ✅ | ✅ AR9342·Gigabit·12dBi | — |
+| K2 | S-55DLC80D | ✅ | ✅ SM·1550nm·80km | 🚩 |
+| K3 | RB951Ui-2HnD | ✅ | ✅ 5×10/100 (نه گیگابیت) | 🚩 |
+| K4 | RBGPOE | ✅ | ✅ 18-57V·2A | — |
+| K5 | 911 Lite5 dual | ✅ | ✅ 10/100·5GHz·L3 | 🚩 |
+| K6 | RBM11G | ✅ | ✅ MT7621A·256MB | 🚩 |
+| K7 | Audience LTE6 kit | ✅ | ✅ IPQ-4019·25dBi·Cat6 | 🚩 |
+| K8 | wAP ac LTE6 kit | ✅ | ✅ IPQ-4018·2×Gigabit·Cat6 | — |
+| K9 | LHG LTE6 kit | ✅ | ✅ QCA9531·10/100·Cat6 | — |
+| K10 | LtAP 4G kit | ✅ | ✅ MT7621A·Gigabit·Cat4 | 🚩 |
+| K11 | LtAP LTE kit | ✅ | ✅ MT7621A·Gigabit·Cat4 | 🚩 |
+| K12 | wAP ac 4G kit | ✅ | ✅ IPQ-4018·2×Gigabit·Cat4 | 🚩 |
+| K13 | wAP ac LTE kit | ✅ | ✅ IPQ-4018·2×Gigabit·Cat4 | 🚩 |
+| K14 | LHG 4G kit | ✅ | ✅ QCA9531·10/100·Cat4 | 🚩 |
+| K15 | LHG LTE kit | ✅ | ✅ QCA9531·10/100·Cat4 | — |
+| K16 | SXT 4G kit | ✅ | ✅ QCA9531·2×10/100·10.5dBi | 🚩 |
+| K17 | LtAP mini 4G kit | ✅ | ✅ QCA9531·10/100·Cat4 | 🚩 |
+| K18 | LtAP | ✅ | ✅ MT7621A·Gigabit·miniPCI-e | 🚩 |
