@@ -4,24 +4,24 @@
 
 | # | id (آخر ۶) | نام | ts | fq | پنل |
 |---|------------|-----|----|----|-----|
-| K1 | 962815 | mANTBox2 12s | — | — | ⬜ |
-| K2 | 962812 | S-55DLC80D | — | — | ⬜ |
-| K3 | 96280c | RB951Ui-2HnD | — | — | ⬜ |
-| K4 | 9627fd | RBGPOE | — | — | ⬜ |
-| K5 | 9627f6 | 911 Lite5 dual | — | — | ⬜ |
-| K6 | 9627f5 | RBM11G | — | — | ⬜ |
-| K7 | 9627f4 | Audience LTE6 kit | — | — | ⬜ |
-| K8 | 9627f2 | wAP ac LTE6 kit | — | — | ⬜ |
-| K9 | 9627f1 | LHG LTE6 kit | — | — | ⬜ |
-| K10 | 9627f0 | LtAP 4G kit | — | — | ⬜ |
-| K11 | 9627ef | LtAP LTE kit | — | — | ⬜ |
-| K12 | 9627ee | wAP ac 4G kit | — | — | ⬜ |
-| K13 | 9627ed | wAP ac LTE kit | — | — | ⬜ |
-| K14 | 9627ec | LHG 4G kit | — | — | ⬜ |
-| K15 | 9627eb | LHG LTE kit | — | — | ⬜ |
-| K16 | 9627e9 | SXT 4G kit | — | — | ⬜ |
-| K17 | 9627e8 | LtAP mini 4G kit | — | — | ⬜ |
-| K18 | 9627e7 | LtAP | — | — | ⬜ |
+| K1 | 962815 | mANTBox2 12s | 8 | 3 | ✅ |
+| K2 | 962812 | S-55DLC80D | 8 | 3 | ✅ |
+| K3 | 96280c | RB951Ui-2HnD | 8 | 3 | ✅ |
+| K4 | 9627fd | RBGPOE | 5 | 3 | ✅ |
+| K5 | 9627f6 | 911 Lite5 dual | 8 | 3 | ✅ |
+| K6 | 9627f5 | RBM11G | 6 | 3 | ✅ |
+| K7 | 9627f4 | Audience LTE6 kit | 9 | 3 | ✅ |
+| K8 | 9627f2 | wAP ac LTE6 kit | 9 | 3 | ✅ |
+| K9 | 9627f1 | LHG LTE6 kit | 9 | 3 | ✅ |
+| K10 | 9627f0 | LtAP 4G kit | 9 | 3 | ✅ |
+| K11 | 9627ef | LtAP LTE kit | 9 | 3 | ✅ |
+| K12 | 9627ee | wAP ac 4G kit | 8 | 3 | ✅ |
+| K13 | 9627ed | wAP ac LTE kit | 8 | 3 | ✅ |
+| K14 | 9627ec | LHG 4G kit | 8 | 3 | ✅ |
+| K15 | 9627eb | LHG LTE kit | 8 | 3 | ✅ |
+| K16 | 9627e9 | SXT 4G kit | 8 | 3 | ✅ |
+| K17 | 9627e8 | LtAP mini 4G kit | 9 | 3 | ✅ |
+| K18 | 9627e7 | LtAP | 9 | 3 | ✅ |
 
 ## پرچم‌های مدیر (خارج از بسته — نیاز به تصمیم)
 
