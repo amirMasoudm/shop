@@ -369,3 +369,174 @@
 **rel:** ['6a5cbe1a89e6bfd0ee9627ef','6a5cbe1189e6bfd0ee9627e7']
 
 **slug:** اکسس-پوینت-lte-میکروتیک-ltap-4g-kit
+
+---
+
+## K11. اکسس پوینت میکروتیک LtAP LTE kit
+**id:** `6a5cbe1a89e6bfd0ee9627ef` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBLtAP-2HnD&R11e-LTE
+
+**name:** اکسس پوینت میکروتیک LtAP LTE kit
+
+**seoTitle:** اکسس پوینت LTE میکروتیک LtAP LTE kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک LtAP LTE kit؛ AP آتدورِ ضدآبِ ۲٫۴GHz با مودمِ LTE Cat 4، GPS و سه اسلاتِ SIM. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک LtAP LTE kit (کد RBLtAP-2HnD&R11e-LTE) نسخه‌ی LTE پایه‌ی سریِ LtAP است. پردازنده‌ی MT7621A دوهسته‌ی ۸۸۰MHz با ۱۲۸ مگابایت رم، یک پورتِ گیگابیت، رادیوی ۲٫۴GHz با 802.11n. مودمِ R11e-LTE با دانلودِ تا ۱۵۰Mbps (Cat 4)، سه اسلاتِ Mini-SIM، GPS یکپارچه. RouterOS لِوِل ۴، محفظه‌ی آتدورِ ضدآب. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSEL MT7621A دوهسته ۸۸۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۱۲۸MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× گیگابیت'}
+- {group:'رادیو', key:'باند WiFi', value:'۲٫۴GHz 802.11b/g/n'}
+- {group:'LTE', key:'مودم', value:'R11e-LTE · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۳× Mini-SIM'}
+- {group:'موقعیت', key:'GPS', value:'یکپارچه'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو یا DC · محفظه‌ی ضدآب'}
+
+**faqs:**
+- Q: قیمتِ LtAP LTE kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با LtAP 4G kit چیست؟ A: تفاوتِ در مودم — 4G kit مودمِ R11e-4G (باندهایِ گسترده‌تر)؛ LTE kit مودمِ R11e-LTE (قدیمی‌تر).
+- Q: GPS کاربردش چیست؟ A: برای ردیابیِ موقعیت در وسایلِ نقلیه یا تجهیزاتِ سیار.
+
+**imageAlts:** ['اکسس پوینت LTE میکروتیک LtAP LTE kit — نمای اصلی','LtAP LTE kit میکروتیک — نمای کناری']
+
+**rel:** ['6a5cbe1b89e6bfd0ee9627f0','6a5cbe1189e6bfd0ee9627e7']
+
+**slug:** اکسس-پوینت-lte-میکروتیک-ltap-lte-kit
+
+---
+
+## K12. اکسس پوینت میکروتیک wAP ac 4G kit
+**id:** `6a5cbe1989e6bfd0ee9627ee` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBwAPGR-5HacD2HnD&R11e-4G
+
+**name:** اکسس پوینت میکروتیک wAP ac 4G kit
+
+**seoTitle:** اکسس پوینت 4G میکروتیک wAP ac 4G kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک wAP ac 4G kit؛ AP دوباندِ ۲٫۴+۵GHz با مودمِ 4G Cat 4، دو پورتِ گیگابیت و محفظه‌ی ضدآب. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک wAP ac 4G kit (کد RBwAPGR-5HacD2HnD&R11e-4G) ترکیبِ APِ دوباندِ wAP ac R با مودمِ 4G Cat 4 است. پردازنده‌ی چهارهسته‌ی IPQ-4018 با ۷۱۶MHz و ۱۲۸ مگابایت رم، دو پورتِ گیگابیت، رادیوی همزمانِ ۲٫۴+۵GHz با استانداردِ 802.11ac. مودمِ R11e-4G با دانلودِ تا ۱۵۰Mbps (Cat 4)، دو اسلاتِ Micro SIM. RouterOS لِوِل ۴، محفظه‌ی ضدآب. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'ARM IPQ-4018 چهارهسته ۷۱۶MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۱۲۸MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۲× گیگابیت'}
+- {group:'رادیو', key:'باند WiFi', value:'۲٫۴GHz 802.11b/g/n + ۵GHz 802.11a/n/ac (همزمان)'}
+- {group:'LTE', key:'مودم', value:'R11e-4G · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۲× Micro SIM'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE 802.3af/at یا DC 10–57V · IP54'}
+
+**faqs:**
+- Q: قیمتِ wAP ac 4G kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با wAP ac LTE6 kit چیست؟ A: LTE6 kit مودمِ Cat 6 (300Mbps) دارد؛ 4G kit مودمِ Cat 4 (150Mbps).
+- Q: WiFi دوباند همزمان دارد؟ A: بله، ۲٫۴ و ۵GHz به‌صورتِ همزمان کار می‌کنند.
+
+**imageAlts:** ['اکسس پوینت 4G میکروتیک wAP ac 4G kit — نمای اصلی','wAP ac 4G kit میکروتیک — نمای پشت']
+
+**rel:** ['6a5cbe1d89e6bfd0ee9627f2','6a5cbe1889e6bfd0ee9627ed']
+
+**slug:** اکسس-پوینت-4g-میکروتیک-wap-ac-4g-kit
+
+---
+
+## K13. اکسس پوینت میکروتیک wAP ac LTE kit
+**id:** `6a5cbe1889e6bfd0ee9627ed` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBwAPGR-5HacD2HnD&R11e-LTE
+
+**name:** اکسس پوینت میکروتیک wAP ac LTE kit
+
+**seoTitle:** اکسس پوینت LTE میکروتیک wAP ac LTE kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک wAP ac LTE kit؛ AP دوباندِ ۲٫۴+۵GHz با مودمِ LTE Cat 4، دو پورتِ گیگابیت و محفظه‌ی ضدآب. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک wAP ac LTE kit (کد RBwAPGR-5HacD2HnD&R11e-LTE) نسخه‌ی LTE پایه‌ی سریِ wAP ac R است. پردازنده‌ی چهارهسته‌ی IPQ-4018 با ۷۱۶MHz و ۱۲۸ مگابایت رم، دو پورتِ گیگابیت، رادیوی همزمانِ ۲٫۴+۵GHz با استانداردِ 802.11ac. مودمِ R11e-LTE با دانلودِ تا ۱۵۰Mbps (Cat 4)، دو اسلاتِ Micro SIM. RouterOS لِوِل ۴، محفظه‌ی ضدآب. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'ARM IPQ-4018 چهارهسته ۷۱۶MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۱۲۸MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۲× گیگابیت'}
+- {group:'رادیو', key:'باند WiFi', value:'۲٫۴GHz 802.11b/g/n + ۵GHz 802.11a/n/ac (همزمان)'}
+- {group:'LTE', key:'مودم', value:'R11e-LTE · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۲× Micro SIM'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE 802.3af/at یا DC 10–57V · IP54'}
+
+**faqs:**
+- Q: قیمتِ wAP ac LTE kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با wAP ac 4G kit چیست؟ A: تفاوتِ در مودم — 4G kit R11e-4G با باندهایِ بیشتر؛ LTE kit R11e-LTE نسلِ قبلی.
+- Q: با wAP ac LTE6 kit چه تفاوتی دارد؟ A: LTE6 kit مودمِ Cat 6 (300Mbps) دارد؛ LTE kit مودمِ Cat 4 (150Mbps).
+
+**imageAlts:** ['اکسس پوینت LTE میکروتیک wAP ac LTE kit — نمای اصلی','wAP ac LTE kit میکروتیک — نمای پشت']
+
+**rel:** ['6a5cbe1d89e6bfd0ee9627f2','6a5cbe1989e6bfd0ee9627ee']
+
+**slug:** اکسس-پوینت-lte-میکروتیک-wap-ac-lte-kit
+
+---
+
+## K14. رادیو وایرلس میکروتیک LHG 4G kit
+**id:** `6a5cbe1789e6bfd0ee9627ec` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBLHGR&R11e-4G
+
+**name:** رادیو وایرلس میکروتیک LHG 4G kit
+
+**seoTitle:** آنتنِ 4G میکروتیک LHG 4G kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک LHG 4G kit؛ CPEِ 4G Cat 4 با آنتنِ جهتیِ ۱۷dBi در محفظه‌ی دیشِ آتدور. قیمت روز با گارانتی — داده نما.
+
+**description:** رادیو وایرلس میکروتیک LHG 4G kit (کد RBLHGR&R11e-4G) یک CPEِ 4G در قالبِ دیشِ آتدور با آنتنِ گینِ بالاست. پردازنده‌ی QCA9531 با ۶۵۰MHz و ۶۴ مگابایت رم، پورتِ ۱۰/۱۰۰، آنتنِ جهتیِ ۱۷dBi با زاویه‌ی ۲۵ درجه. مودمِ R11e-4G با دانلودِ تا ۱۵۰Mbps (Cat 4). RouterOS لِوِل ۳. برای دریافتِ سیگنالِ 4G از برجِ دور. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSBE QCA9531 تک‌هسته ۶۵۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۶۴MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۳'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× ۱۰/۱۰۰ (نه گیگابیت)'}
+- {group:'رادیو', key:'آنتن', value:'جهتیِ ۱۷dBi · زاویه ۲۵°'}
+- {group:'LTE', key:'مودم', value:'R11e-4G · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'اسلاتِ SIM داخلی'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو'}
+
+**faqs:**
+- Q: قیمتِ LHG 4G kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با LHG LTE kit چیست؟ A: 4G kit مودمِ R11e-4G (باندهایِ گسترده‌تر)؛ LTE kit مودمِ R11e-LTE قدیمی‌تر.
+- Q: پورتِ اترنت گیگابیت است؟ A: خیر، پورتِ ۱۰/۱۰۰ دارد.
+
+**imageAlts:** ['آنتنِ 4G میکروتیک LHG 4G kit — نمای اصلی','LHG 4G kit میکروتیک — نمای دیش']
+
+**rel:** ['6a5cbe1689e6bfd0ee9627eb','6a5cbe1c89e6bfd0ee9627f1']
+
+**slug:** آنتن-4g-میکروتیک-lhg-4g-kit
+
+---
+
+## K15. رادیو وایرلس میکروتیک LHG LTE kit
+**id:** `6a5cbe1689e6bfd0ee9627eb` | **دسته:** LTE/سلولی | **قیمت:** ۱۷٬۰۰۰٬۰۰۰ | **کد:** RBLHGR&R11e-LTE
+
+**name:** رادیو وایرلس میکروتیک LHG LTE kit
+
+**seoTitle:** آنتنِ LTE میکروتیک LHG LTE kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک LHG LTE kit؛ CPEِ LTE Cat 4 با آنتنِ جهتیِ ۱۷dBi در قالبِ دیشِ آتدور. قیمت روز با گارانتی — داده نما.
+
+**description:** رادیو وایرلس میکروتیک LHG LTE kit (کد RBLHGR&R11e-LTE) یک CPEِ LTE در قالبِ دیشِ آتدور با آنتنِ جهتیِ گینِ بالاست. پردازنده‌ی QCA9531 با ۶۵۰MHz و ۶۴ مگابایت رم، پورتِ ۱۰/۱۰۰، آنتنِ جهتیِ ۱۷dBi با زاویه‌ی ۲۵ درجه. مودمِ R11e-LTE با دانلودِ تا ۱۵۰Mbps (Cat 4). RouterOS لِوِل ۳. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSBE QCA9531 تک‌هسته ۶۵۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۶۴MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۳'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× ۱۰/۱۰۰ (نه گیگابیت)'}
+- {group:'رادیو', key:'آنتن', value:'جهتیِ ۱۷dBi · زاویه ۲۵°'}
+- {group:'LTE', key:'مودم', value:'R11e-LTE · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'اسلاتِ SIM داخلی'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو'}
+
+**faqs:**
+- Q: قیمتِ LHG LTE kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با LHG 4G kit چیست؟ A: LHG 4G kit مودمِ R11e-4G با باندهایِ گسترده‌تر دارد؛ LTE kit مودمِ R11e-LTE نسلِ قبلی.
+- Q: تفاوتِ با LHG LTE6 kit چیست؟ A: LTE6 kit مودمِ Cat 6 (300Mbps) دارد؛ LTE kit مودمِ Cat 4 (150Mbps).
+
+**imageAlts:** ['آنتنِ LTE میکروتیک LHG LTE kit — نمای اصلی','LHG LTE kit میکروتیک — نمای دیش']
+
+**rel:** ['6a5cbe1789e6bfd0ee9627ec','6a5cbe1c89e6bfd0ee9627f1']
+
+**slug:** آنتن-lte-میکروتیک-lhg-lte-kit
