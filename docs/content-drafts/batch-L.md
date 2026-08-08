@@ -4,26 +4,26 @@
 
 | # | ID (6 آخر) | نام | کد | قیمت | ts | fq | وضعیت |
 |---|-----------|-----|-----|------|----|----|--------|
-| L1 | 96282a | SXT G-2HnD | RBSXTG-2HnD | — | 0 | 0 | 🔁 dup |
-| L2 | 962829 | hAP ax lite LTE6 | L41G-2axD&FG621-EA | ✅ | 0 | 0 | ⏳ |
-| L3 | 962828 | hAP ax lite | L41G-2axD | ✅ | 0 | 0 | ⏳ |
-| L4 | 96281d | CRS125-24G-1S-2HnD-IN | CRS125-24G-1S-2HnD-IN | ✅ | 0 | 0 | ⏳ |
-| L5 | 96281b | L009UiGS-2HaxD-IN | L009UiGS-2HaxD-IN | ✅ | 0 | 0 | ⏳ |
-| L6 | 96281a | CRS125-24G-1S-RM | CRS125-24G-1S-RM | ✅ | 0 | 0 | ⏳ |
-| L7 | 962811 | S+RJ10 | ⚠️ داده اشتباه | — | 0 | 0 | ⚠️ mismatch |
-| L8 | 962809 | CRS504-4XQ-IN | CRS504-4XQ-IN | ✅ | 0 | 0 | ⏳ |
-| L9 | 962804 | SXT SQ AC | — | — | 0 | 0 | 🔁 dup? |
-| L10 | 962803 | SXT SQ LITE 2 | RBSXTsq2nD | 🚩۰ | 0 | 0 | ⏳ |
-| L11 | 962802 | SXT LITE 2 | RBSXT2nDr2 | 🚩۰ | 0 | 0 | ⏳ |
-| L12 | 962800 | SXT SA5 | RBSXTG-5HPnD-SAr2 | ✅ | 0 | 0 | ⏳ |
-| L13 | 9627ff | BASEBOX 2 | RB912UAG-2HPnD-OUT | 🚩۰ | 0 | 0 | ⏳ |
-| L14 | 9627fe | CRS317-1G-16S+RM | CRS317-1G-16S+RM | ✅ | 0 | 0 | ⏳ |
-| L15 | 9627e6 | SXT LTE kit | RBSXTR&R11e-LTE | ✅ | 0 | 0 | ⏳ |
-| L16 | 9627e4 | LtAP mini | RB912R-2nD-LTm | 🚩۰ | 0 | 0 | ⏳ |
-| L17 | 9627e3 | wAP R ac | RBwAPGR-5HacD2HnD | 🚩۰ | 0 | 0 | ⏳ |
-| L18 | 9627e2 | wAP 4G kit | RBwAPR-2nD&R11e-4G | 🚩۰ | 0 | 0 | ⏳ |
-| L19 | 9627e1 | LHG R | RBLHGR | 🚩۰ | 0 | 0 | ⏳ |
-| L20 | 9627e0 | SXT R | RBSXTR | 🚩۰ | 0 | 0 | ⏳ |
+| L1 | 96282a | SXT G-2HnD | RBSXTG-2HnD | — | — | — | 🔁 dup — منتظر مدیر |
+| L2 | 962829 | hAP ax lite LTE6 | L41G-2axD&FG621-EA | ✅ | 18 | 3 | ✅ |
+| L3 | 962828 | hAP ax lite | L41G-2axD | ✅ | 14 | 3 | ✅ |
+| L4 | 96281d | CRS125-24G-1S-2HnD-IN | CRS125-24G-1S-2HnD-IN | ✅ | 12 | 3 | ✅ |
+| L5 | 96281b | L009UiGS-2HaxD-IN | L009UiGS-2HaxD-IN | ✅ | 16 | 3 | ✅ |
+| L6 | 96281a | CRS125-24G-1S-RM | CRS125-24G-1S-RM | ✅ | 13 | 3 | ✅ |
+| L7 | 962811 | S+RJ10 | ⚠️ داده اشتباه | — | — | — | ⚠️ mismatch — منتظر مدیر |
+| L8 | 962809 | CRS504-4XQ-IN | CRS504-4XQ-IN | ✅ | 12 | 3 | ✅ |
+| L9 | 962804 | SXT SQ AC | — | — | — | — | 🔁 dup? — منتظر مدیر |
+| L10 | 962803 | SXT SQ LITE 2 | RBSXTsq2nD | 🚩۰ | 14 | 3 | ✅🚩 |
+| L11 | 962802 | SXT LITE 2 | RBSXT2nDr2 | 🚩۰ | 12 | 3 | ✅🚩 |
+| L12 | 962800 | SXT SA5 | RBSXTG-5HPnD-SAr2 | ✅ | 16 | 3 | ✅ |
+| L13 | 9627ff | BASEBOX 2 | RB912UAG-2HPnD-OUT | 🚩۰ | 14 | 3 | ✅🚩 |
+| L14 | 9627fe | CRS317-1G-16S+RM | CRS317-1G-16S+RM | ✅ | 9 | 3 | ✅ |
+| L15 | 9627e6 | SXT LTE kit | RBSXTR&R11e-LTE | ✅ | 15 | 3 | ✅ |
+| L16 | 9627e4 | LtAP mini | RB912R-2nD-LTm | 🚩۰ | 16 | 3 | ✅🚩 |
+| L17 | 9627e3 | wAP R ac | RBwAPGR-5HacD2HnD | 🚩۰ | 17 | 3 | ✅🚩 |
+| L18 | 9627e2 | wAP 4G kit | RBwAPR-2nD&R11e-4G | 🚩۰ | 14 | 3 | ✅🚩 |
+| L19 | 9627e1 | LHG R | RBLHGR | 🚩۰ | 14 | 3 | ✅🚩 |
+| L20 | 9627e0 | SXT R | RBSXTR | 🚩۰ | 13 | 3 | ✅🚩 |
 
 **🚩 قیمت صفر (ق۱۲):** L10، L11، L13، L16، L17، L18، L19، L20 — وارد می‌شوند، پرچم‌دار.
 
