@@ -197,3 +197,175 @@
 **rel:** []
 
 **slug:** روتربرد-میکروتیک-911-lite5-dual
+
+---
+
+## K6. روتربردِ میکروتیک RBM11G
+**id:** `6a5cbe2089e6bfd0ee9627f5` | **دسته:** رادیو آتدور | **قیمت:** 🚩۰ | **کد:** RBM11G
+
+**name:** روتربردِ میکروتیک RBM11G
+
+**seoTitle:** روتربردِ میکروتیک RBM11G | قیمت و خرید — داده نما
+
+**seoDescription:** خرید RouterBOARD میکروتیک RBM11G؛ برد مینیاتوریِ دوهسته‌ی ۸۸۰MHz با ۲۵۶MB رم و پورتِ گیگابیت برای ساختِ تجهیزاتِ سفارشی. قیمت روز با گارانتی — داده نما.
+
+**description:** روتربردِ میکروتیک RBM11G یک RouterBOARDِ فشرده با پردازنده‌ی دوهسته است. پردازنده‌ی MT7621A با ۸۸۰MHz دو هسته و ۲۵۶ مگابایت رم، یک پورتِ گیگابیت. برای ساختِ تجهیزاتِ سفارشی یا جایگزینیِ برد در کیس‌های Groove و مشابه. RouterOS لِوِل ۴. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSEL MT7621A دو هسته ۸۸۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۲۵۶MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× گیگابیت'}
+- {group:'محیطی', key:'فرم‌فاکتور', value:'RouterBOARD فشرده بدونِ محفظه'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو'}
+
+**faqs:**
+- Q: قیمتِ RBM11G چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: آیا محفظه دارد؟ A: خیر، فقط برد است.
+- Q: تفاوتِ با RB911-5HnD چیست؟ A: RBM11G پردازنده‌ی دوهسته‌ی MT7621A و ۲۵۶MB رم دارد؛ RB911-5HnD تک‌هسته‌ی AR9344 با ۶۴MB.
+
+**imageAlts:** ['روتربردِ میکروتیک RBM11G — نمای اصلی','RouterBOARD RBM11G میکروتیک — نمای برد']
+
+**rel:** ['6a5cbe2189e6bfd0ee9627f6']
+
+**slug:** روتربرد-میکروتیک-rbm11g
+
+---
+
+## K7. اکسس پوینت میکروتیک Audience LTE6 kit
+**id:** `6a5cbe1f89e6bfd0ee9627f4` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBD25GR-5HPacQD2HPnD&R11e-LTE6
+
+**name:** اکسس پوینت میکروتیک Audience LTE6 kit
+
+**seoTitle:** اکسس پوینت LTE6 میکروتیک Audience LTE6 kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک Audience LTE6 kit؛ دیشِ ۵GHz 25dBi با مودمِ LTE Cat 6 (300Mbps) یکپارچه، پردازنده‌ی چهارهسته‌ی ۷۱۶MHz. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک Audience LTE6 kit (کد RBD25GR-5HPacQD2HPnD&R11e-LTE6) ترکیبِ دیشِ ۵GHz Audience با مودمِ LTE Cat 6 است. پردازنده‌ی چهارهسته‌ی IPQ-4019 با ۷۱۶MHz و ۲۵۶ مگابایت رم، پورتِ گیگابیت. دیشِ ۵GHz با گینِ ۲۵dBi و استانداردِ 802.11ac، به‌علاوه‌ی مودمِ R11e-LTE6 با دانلودِ تا ۳۰۰Mbps (Cat 6) و دو اسلاتِ SIM. RouterOS لِوِل ۴. برای اتصالِ LTE سرعت‌بالا در محل‌هایِ دورافتاده. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'ARM IPQ-4019 چهارهسته ۷۱۶MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۲۵۶MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× گیگابیت'}
+- {group:'رادیو', key:'باند WiFi', value:'۵GHz 802.11a/n/ac · دیشِ ۲۵dBi'}
+- {group:'LTE', key:'مودم', value:'R11e-LTE6 · Cat 6 · ۳۰۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۲× اسلاتِ Micro SIM'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو یا آداپتور'}
+- {group:'محیطی', key:'مقاومت محیطی', value:'منفی۴۰ تا ۷۰°C'}
+
+**faqs:**
+- Q: قیمتِ Audience LTE6 kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: سرعتِ LTE چقدر است؟ A: مودمِ R11e-LTE6 تا ۳۰۰Mbps دانلود و ۵۰Mbps آپلود (Cat 6 با Carrier Aggregation).
+- Q: دو سیم‌کارت می‌تواند داشته باشد؟ A: بله، دو اسلاتِ SIM برای پشتیبانِ اتصال و تعویضِ اپراتور دارد.
+
+**imageAlts:** ['اکسس پوینت LTE6 میکروتیک Audience LTE6 kit — نمای اصلی','Audience LTE6 kit میکروتیک — نمای دیش']
+
+**rel:** ['6a5cbe1d89e6bfd0ee9627f2','6a5cbe1c89e6bfd0ee9627f1']
+
+**slug:** اکسس-پوینت-lte6-میکروتیک-audience-lte6-kit
+
+---
+
+## K8. اکسس پوینت میکروتیک wAP ac LTE6 kit
+**id:** `6a5cbe1d89e6bfd0ee9627f2` | **دسته:** LTE/سلولی | **قیمت:** ۲۰٬۰۰۰٬۰۰۰ | **کد:** RBwAPGR-5HacD2HnD&R11e-LTE6
+
+**name:** اکسس پوینت میکروتیک wAP ac LTE6 kit
+
+**seoTitle:** اکسس پوینت LTE6 میکروتیک wAP ac LTE6 kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک wAP ac LTE6 kit؛ AP دوباندِ ۲٫۴+۵GHz با مودمِ LTE Cat 6، دو پورتِ گیگابیت و محفظه‌ی ضدآب. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک wAP ac LTE6 kit (کد RBwAPGR-5HacD2HnD&R11e-LTE6) ترکیبِ APِ دوباندِ wAP ac R با مودمِ LTE Cat 6 است. پردازنده‌ی چهارهسته‌ی IPQ-4018 با ۷۱۶MHz و ۱۲۸ مگابایت رم، دو پورتِ گیگابیت، رادیوی همزمانِ ۲٫۴+۵GHz با استانداردِ 802.11ac. مودمِ R11e-LTE6 با دانلودِ تا ۳۰۰Mbps، دو اسلاتِ Micro SIM. RouterOS لِوِل ۴، محفظه‌ی ضدآب. برای AP آتدور با اتصالِ LTE سرعت‌بالا. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'ARM IPQ-4018 چهارهسته ۷۱۶MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۱۲۸MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۲× گیگابیت'}
+- {group:'رادیو', key:'باند WiFi', value:'۲٫۴GHz 802.11b/g/n + ۵GHz 802.11a/n/ac (همزمان)'}
+- {group:'LTE', key:'مودم', value:'R11e-LTE6 · Cat 6 · ۳۰۰Mbps DL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۲× Micro SIM'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE 802.3af/at یا DC 10–57V · مصرف ۱۵W'}
+- {group:'محیطی', key:'مقاومت محیطی', value:'IP54 · منفی۴۰ تا ۷۰°C'}
+
+**faqs:**
+- Q: قیمتِ wAP ac LTE6 kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با wAP ac 4G kit چیست؟ A: نسخه‌ی LTE6 مودمِ Cat 6 (300Mbps) دارد؛ 4G kit مودمِ Cat 4 (150Mbps).
+- Q: آیا دو اپراتور همزمان دارد؟ A: دو اسلاتِ SIM دارد ولی یک مودم — برای پشتیبان‌گیری یا تعویضِ اپراتور.
+
+**imageAlts:** ['اکسس پوینت LTE6 میکروتیک wAP ac LTE6 kit — نمای اصلی','wAP ac LTE6 kit میکروتیک — نمای پشت']
+
+**rel:** ['6a5cbe1f89e6bfd0ee9627f4','6a5cbe1989e6bfd0ee9627ee','6a5cbe1889e6bfd0ee9627ed']
+
+**slug:** اکسس-پوینت-lte6-میکروتیک-wap-ac-lte6-kit
+
+---
+
+## K9. رادیو وایرلس میکروتیک LHG LTE6 kit
+**id:** `6a5cbe1c89e6bfd0ee9627f1` | **دسته:** LTE/سلولی | **قیمت:** ۱۹٬۰۰۰٬۰۰۰ | **کد:** RBLHGR&R11e-LTE6
+
+**name:** رادیو وایرلس میکروتیک LHG LTE6 kit
+
+**seoTitle:** آنتنِ LTE6 میکروتیک LHG LTE6 kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک LHG LTE6 kit؛ CPEِ LTE Cat 6 با آنتنِ جهتیِ ۱۷dBi در محفظه‌ی دیشِ آتدور. قیمت روز با گارانتی — داده نما.
+
+**description:** رادیو وایرلس میکروتیک LHG LTE6 kit (کد RBLHGR&R11e-LTE6) یک CPEِ LTE در قالبِ دیشِ آتدور است. پردازنده‌ی QCA9531 با ۶۵۰MHz و ۶۴ مگابایت رم، پورتِ ۱۰/۱۰۰، آنتنِ جهتیِ ۱۷dBi با زاویه‌ی ۲۵ درجه. مودمِ R11e-LTE6 با دانلودِ تا ۳۰۰Mbps (Cat 6). RouterOS لِوِل ۳. برای دریافتِ سیگنالِ LTE از برجِ دور با آنتنِ گینِ بالا. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSBE QCA9531 تک‌هسته ۶۵۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۶۴MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۳'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× ۱۰/۱۰۰ (نه گیگابیت)'}
+- {group:'رادیو', key:'آنتن', value:'جهتیِ ۱۷dBi · زاویه ۲۵°'}
+- {group:'LTE', key:'مودم', value:'R11e-LTE6 · Cat 6 · ۳۰۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'اسلاتِ SIM داخلی'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو'}
+- {group:'محیطی', key:'مقاومت محیطی', value:'منفی۴۰ تا ۷۰°C'}
+
+**faqs:**
+- Q: قیمتِ LHG LTE6 kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: پورتِ اترنت گیگابیت است؟ A: خیر، پورتِ ۱۰/۱۰۰ دارد (نه گیگابیت).
+- Q: تفاوتِ با LHG LTE kit چیست؟ A: LHG LTE6 kit مودمِ Cat 6 (300Mbps) دارد؛ LHG LTE kit مودمِ Cat 4 (150Mbps).
+
+**imageAlts:** ['آنتنِ LTE6 میکروتیک LHG LTE6 kit — نمای اصلی','LHG LTE6 kit میکروتیک — نمای دیش']
+
+**rel:** ['6a5cbe1689e6bfd0ee9627eb','6a5cbe1789e6bfd0ee9627ec']
+
+**slug:** آنتن-lte6-میکروتیک-lhg-lte6-kit
+
+---
+
+## K10. اکسس پوینت میکروتیک LtAP 4G kit
+**id:** `6a5cbe1b89e6bfd0ee9627f0` | **دسته:** LTE/سلولی | **قیمت:** 🚩۰ | **کد:** RBLtAP-2HnD&R11e-4G
+
+**name:** اکسس پوینت میکروتیک LtAP 4G kit
+
+**seoTitle:** اکسس پوینت LTE میکروتیک LtAP 4G kit | قیمت و خرید — داده نما
+
+**seoDescription:** خرید میکروتیک LtAP 4G kit؛ AP آتدورِ ضدآبِ ۲٫۴GHz با مودمِ 4G Cat 4، GPS و سه اسلاتِ SIM. قیمت روز با گارانتی — داده نما.
+
+**description:** اکسس پوینت میکروتیک LtAP 4G kit (کد RBLtAP-2HnD&R11e-4G) یک APِ آتدورِ چندمنظوره با قابلیتِ 4G LTE است. پردازنده‌ی MT7621A دوهسته‌ی ۸۸۰MHz با ۱۲۸ مگابایت رم، یک پورتِ گیگابیت، رادیوی ۲٫۴GHz با 802.11n. مودمِ R11e-4G با دانلودِ تا ۱۵۰Mbps (Cat 4)، سه اسلاتِ Mini-SIM، GPS یکپارچه. RouterOS لِوِل ۴، محفظه‌ی آتدورِ ضدآب. قیمتِ روز روی همین صفحه درج می‌شود. همه اصل و دارای ضمانتِ اصالت.
+
+**techSpecs:**
+- {group:'پردازش', key:'پردازنده', value:'MIPSEL MT7621A دوهسته ۸۸۰MHz'}
+- {group:'پردازش', key:'رم / حافظه', value:'۱۲۸MB / ۱۶MB FLASH'}
+- {group:'پردازش', key:'سیستم‌عامل', value:'RouterOS لِوِل ۴'}
+- {group:'شبکه', key:'پورت شبکه', value:'۱× گیگابیت'}
+- {group:'رادیو', key:'باند WiFi', value:'۲٫۴GHz 802.11b/g/n'}
+- {group:'LTE', key:'مودم', value:'R11e-4G · Cat 4 · ۱۵۰Mbps DL / ۵۰Mbps UL'}
+- {group:'LTE', key:'سیم‌کارت', value:'۳× Mini-SIM'}
+- {group:'موقعیت', key:'GPS', value:'یکپارچه'}
+- {group:'تغذیه', key:'تغذیه', value:'PoE-in پسیو یا DC · محفظه‌ی ضدآب'}
+
+**faqs:**
+- Q: قیمتِ LtAP 4G kit چند است؟ A: قیمتِ روز روی همین صفحه درج می‌شود.
+- Q: تفاوتِ با LtAP LTE kit چیست؟ A: تفاوتِ اصلی در مودم است — 4G kit مودمِ R11e-4G (باندهایِ گسترده‌تر)؛ LTE kit مودمِ R11e-LTE (قدیمی‌تر).
+- Q: GPS چه کاربردی دارد؟ A: برای ردیابیِ موقعیت در وسایلِ نقلیه یا تجهیزاتِ سیار.
+
+**imageAlts:** ['اکسس پوینت LTE میکروتیک LtAP 4G kit — نمای اصلی','LtAP 4G kit میکروتیک — نمای کناری']
+
+**rel:** ['6a5cbe1a89e6bfd0ee9627ef','6a5cbe1189e6bfd0ee9627e7']
+
+**slug:** اکسس-پوینت-lte-میکروتیک-ltap-4g-kit
