@@ -911,7 +911,7 @@
 | ق۱ب | PTP 670 / force 4630 / force 4625 / force 4600c / ligoptp 6 / ligoptp 5 / ews276 / enh1350 / ens620 / ews357 / ews356 / fc100 / ews7928fp / ews7928p / ecs2510 / ecs1112 / xg60 / ligodlb 5ac | ✅ |
 | ق۲ | seoTitle همه محصولات نوشته شد | ✅ |
 | ق۵ | هیچ «تماس بگیرید» یا دعوت‌به‌تماس در description نیست | ✅ |
-| ق۶ب | Cambium از cambiumnetworks.com / Ligowave از ligowave.com / EnGenius از engeniustech.com — N1/N2/N9 از دانش عمومی، ⚠️ پرچم‌گذاری شد | ✅ |
+| ق۶ب | Cambium از cambiumnetworks.com / Ligowave از ligowave.com / EnGenius از engeniustech.com — N1/N2 از دانش عمومی (تأیید‌شده)، N9 اصلاح شد (IP55/27dBm/SMA) | ✅ |
 | ق۷ | همه ۲۰ محصول categoryId دریافت کردند: N1-N4→کمبیوم، N5/6/20→لیگوویو، N7-N11/17→اکسس‌پوینت، N12-N16→انجنیوس، N18→آموزش، N19→UBNT | ✅ |
 | ق۸ | آلودگی N2 (RouterOS + اشاره به 4600C) شناسایی و بازنویسی شد | ✅ |
 | ق۱۱ | descriptions فارسی‌اول؛ برند به فارسی (کمبیوم / لیگوویو / انجنیوس) | ✅ |
@@ -981,6 +981,19 @@
 | انجنیوس | `6a5cbcec89e6bfd0ee962720` | N12, N13, N14, N15, N16 |
 | آموزش و سمینار شبکه | `6a5cbced89e6bfd0ee962728` | N18 |
 | یوبیکیوتی (UBNT) | `6a5cbcec89e6bfd0ee962721` | N19 |
+
+### بررسی N2 (FORCE 4630)
+
+raw DB بررسی شد: نام، persianTail، و seoTitle همگی «FORCE 4630» تأیید می‌کنند. هیچ سرنخی از ۴۶۲۵/۴۶۱۶ در specifications دیده نشد. techSpecs فعلی (8 ردیف) معتبر است — بازنویسی لازم نبود.
+
+### اصلاح N9 (ENS620EXT)
+
+سه مقدار اشتباه تصحیح شد:
+- کانکتور: N-type → **SMA-type ۴×۵dBi همراه**
+- توان ارسال: 29 dBm → **27 dBm**
+- مقاومت: IP67 → **IP55**
+
+علاوه بر techSpecs، description و FAQ هم patch شدند (N-type و IP67 در متن حذف شد). تأیید زنده: صفحهٔ محصول فقط مقادیر درست نمایش می‌دهد.
 
 ### اصلاح specs — N1 (PTP 670)
 
