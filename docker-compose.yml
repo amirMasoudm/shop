@@ -32,7 +32,9 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
 
       # آدرس اتصال به مونگو بر اساس یوزر/پسورد فایل .env و اسم کانتینر mongodb
-      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/shopdb?authSource=admin
+      # نامِ دیتابیس از MONGO_DB_NAME می‌آید (پیش‌فرض shopdb)؛ برای سوییچِ نسخهٔ قدیم/جدید فقط این متغیر در .env عوض شود
+      # و `docker compose up -d` (بدون --build) — چون کد عوض نشده. authSource=admin ثابت است (کاربرِ root به هر DB دسترسی دارد).
+      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME:-shopdb}?authSource=admin
 
       # مسیر ذخیره عکس‌ها در لینوکس (کانتینر)
       - UPLOAD_DIR=/opt/shop/uploads
