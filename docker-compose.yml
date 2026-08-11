@@ -45,6 +45,8 @@ services:
       - SNAPP_TOKEN=${SNAPP_TOKEN}
       - SMS_API_KEY=${SMS_API_KEY}
       - SMS_TEMPLATE_ID=${SMS_TEMPLATE_ID}
+      # قالبِ «دوباره موجود شد»؛ اگر در .env نبود پیش‌فرضِ 791445 (نه رشتهٔ خالی)
+      - SMS_STOCK_TEMPLATE_ID=${SMS_STOCK_TEMPLATE_ID:-791445}
 
       # آنالیتیکس (فاز ۰ رودمپ) — خالی = غیرفعال
       - GA4_ID=${GA4_ID:-}

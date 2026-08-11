@@ -23,10 +23,13 @@ public class ProductService {
 
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
+    private final StockNotificationService stockNotificationService;
 
-    public ProductService(ProductRepository productRepo, CategoryRepository categoryRepo) {
+    public ProductService(ProductRepository productRepo, CategoryRepository categoryRepo,
+                          StockNotificationService stockNotificationService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
+        this.stockNotificationService = stockNotificationService;
     }
 
     // متد کمکی برای اعمال تخفیف
@@ -113,6 +116,9 @@ public class ProductService {
         // **نکته:** در آپدیت، ID اصلی نباید تغییر کند.
         // تغییرات را فقط روی سایر فیلدها اعمال می‌کنیم.
 
+        // مقدارِ قبلیِ موجودی را نگه‌دار تا گذارِ «ناموجود → موجود» را تشخیص دهیم (تریگرِ اطلاع‌رسانی)
+        int oldStock = product.getStock();
+
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         product.setStock(request.getStock());
@@ -154,7 +160,14 @@ public class ProductService {
 
         applyRichContent(product, request);
 
-        return productRepo.save(product);
+        Product saved = productRepo.save(product);
+
+        // گذارِ «ناموجود → موجود»: مشترکینِ اطلاع‌رسانی پیامک بگیرند (async؛ ذخیره را کند/شکننده نمی‌کند)
+        if (oldStock <= 0 && saved.getStock() > 0) {
+            stockNotificationService.notifyBackInStock(saved.getId(), saved.getName());
+        }
+
+        return saved;
     }
 
     // متد مخصوص پنل ادمین (بدون صفحه‌بندی)

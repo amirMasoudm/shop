@@ -27,6 +27,10 @@ public class SmsService {
     @Value("${sms.template-id:0}")
     private int templateId;
 
+    // قالبِ «دوباره موجود شد» (متغیرِ PRODUCT) — جدا از قالبِ OTP
+    @Value("${sms.stock-template-id:0}")
+    private int stockTemplateId;
+
     @Value("${sms.url:https://api.sms.ir/v1/send/verify}")
     private String url;
 
@@ -62,6 +66,34 @@ public class SmsService {
         } catch (Exception e) {
             log.error("خطا در ارسال پیامک به {}: {}", mobile, e.getMessage());
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "خطا در ارسال پیامک، لطفاً بعداً تلاش کنید");
+        }
+    }
+
+    /**
+     * پیامکِ «محصول دوباره موجود شد» (قالبِ SMS.ir با متغیرِ PRODUCT).
+     * در صورتِ خطا استثنا پرتاب می‌کند تا فراخوان (تریگرِ async) بتواند رکورد را notified نکند و بعداً دوباره تلاش کند.
+     */
+    public void sendBackInStockNotification(String mobile, String productName) {
+        if (apiKey == null || apiKey.isBlank()) {
+            log.warn("SMS API key تنظیم نشده؛ اطلاع‌رسانیِ موجودی برای {} ارسال نشد", mobile);
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "سرویس پیامک در دسترس نیست");
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-API-KEY", apiKey);
+
+        // نامِ متغیرِ قالب دقیقاً PRODUCT است (مثلِ CODE در sendOtp)
+        SmsParameter param = new SmsParameter("PRODUCT", productName);
+        SmsRequest requestBody = new SmsRequest(mobile, stockTemplateId, Collections.singletonList(param));
+        HttpEntity<SmsRequest> entity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            restTemplate.postForObject(url, entity, String.class);
+            log.info("پیامکِ موجودشدن برای شماره {} ارسال شد", mobile);
+        } catch (Exception e) {
+            log.error("خطا در ارسال پیامکِ موجودی به {}: {}", mobile, e.getMessage());
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "خطا در ارسال پیامکِ موجودی");
         }
     }
 }

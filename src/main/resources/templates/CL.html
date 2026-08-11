@@ -1608,14 +1608,18 @@
                 </div>
             </div>
             <div class="p-buy-box">
-                <div style="font-weight:700; color:#27ae60; margin-bottom:15px;">● موجود در انبار داده نما</div>
+                ${p.stock > 0
+                    ? '<div style="font-weight:700; color:#27ae60; margin-bottom:15px;">● موجود در انبار داده نما</div>'
+                    : '<div style="font-weight:700; color:#e74c3c; margin-bottom:15px;">✕ فعلاً ناموجود</div>'}
                 <div style="text-align:left; border-top:1px solid #eee; padding-top:15px;">
                     ${oldPrice}
                     <div style="font-size:1.8rem; font-weight:900; color:var(--primary)">
                         ${Math.round(price).toLocaleString()} <span style="font-size:1rem">تومان</span>
                     </div>
                 </div>
-                <button class="p-buy-btn" onclick="addToCart('${p.id}','${p.name.replace(/'/g,"")}',${price},'${mainImg}')">افزودن به سبد</button>
+                ${p.stock > 0
+                    ? `<button class="p-buy-btn" onclick="addToCart('${p.id}','${p.name.replace(/'/g,"")}',${price},'${mainImg}')">افزودن به سبد</button>`
+                    : `<button class="p-buy-btn" onclick="requestStockNotify('${p.id}')" style="background:#fff; color:var(--primary); border:1.5px solid var(--primary);">🔔 اطلاع بده وقتی موجود شد</button>`}
             </div>
         </div>`;
 
@@ -1775,7 +1779,10 @@
         const activeSecs = sList.length ? sList : state.secs.filter(s => p.sectionIds && p.sectionIds.includes(s.id));
         activeSecs.forEach(s => tags += `<span class="tag" style="background:${s.stickerColor}">${s.stickerText || s.title}</span>`);
         const img = p.images?.[0] || '';
-        return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div><button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button></div>`;
+        const buyBtn = (p.stock > 0)
+            ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button>`
+            : `<button class="add-btn" onclick="event.stopPropagation(); requestStockNotify('${p.id}')" style="background:#fff; color:var(--primary); border:1.5px solid var(--primary);">🔔 اطلاع بده</button>`;
+        return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div>${buyBtn}</div>`;
     }
 
     async function loadHome(isPopState = false) {
@@ -2266,6 +2273,31 @@
         }
     }
 
+    // ثبتِ درخواستِ «اطلاع بده وقتی موجود شد» برای یک محصولِ ناموجود (نیازمندِ ورود؛ موبایل از سشن)
+    async function requestStockNotify(productId) {
+        if (!localStorage.getItem('userName')) {
+            state.pending = {type: 'stockNotify', productId};
+            document.getElementById('authOverlay').classList.add('active');
+            return;
+        }
+        try {
+            const res = await fetch(`${API}/api/v1/products/${productId}/notify-me`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                askConfirm('ثبت شد ✅',
+                    'به‌محضِ موجودشدنِ این محصول، پیامکِ اطلاع‌رسانی برایتان ارسال می‌شود.',
+                    () => {});
+            } else {
+                const msg = await res.text();
+                askConfirm('ثبت نشد', msg || 'امکان ثبتِ درخواست نبود', () => {});
+            }
+        } catch (e) {
+            console.error('خطا در ثبتِ اطلاع‌رسانی', e);
+        }
+    }
+
     function showAuthMsg(text, ok) {
         const m = document.getElementById('authMsg');
         if (!m) return;
@@ -2402,6 +2434,23 @@
         document.getElementById('otpInput').value = '';
         document.getElementById('fName').value = '';
         document.getElementById('lName').value = '';
+
+        // 5. ادامهٔ عملیاتِ معلق بعد از لاگینِ موفق (قبلاً اجرا نمی‌شد → کاربر باید دستی دوباره می‌زد)
+        const pending = state.pending;
+        state.pending = null;
+        if (pending) {
+            switch (pending.type) {
+                case 'rfq':
+                    requestRfq();
+                    break;
+                case 'stockNotify':
+                    if (pending.productId) requestStockNotify(pending.productId);
+                    break;
+                case 'cart':
+                    checkout();
+                    break;
+            }
+        }
     }
 
     // ۱. واکشی نظرات تایید شده محصول از سرور و رندر کردن آن‌ها

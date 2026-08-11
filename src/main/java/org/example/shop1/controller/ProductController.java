@@ -23,9 +23,20 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductSearchService productSearchService;
-    public ProductController(ProductService productService, ProductSearchService productSearchService) {
+    private final org.example.shop1.model.service.StockNotificationService stockNotificationService;
+    public ProductController(ProductService productService, ProductSearchService productSearchService,
+                             org.example.shop1.model.service.StockNotificationService stockNotificationService) {
         this.productService = productService;
         this.productSearchService = productSearchService;
+        this.stockNotificationService = stockNotificationService;
+    }
+
+    // «اطلاع بده وقتی موجود شد» — نیازمندِ ورود؛ شمارهٔ موبایل از سشن خوانده می‌شود، نه بدنه.
+    // (SecurityConfig این مسیر را زیرِ permitAllِ عمومیِ products می‌گذارد؛ احرازِ هویت در سرویس با خطای 401 برای anonymous اعمال می‌شود.)
+    @PostMapping("/{id}/notify-me")
+    public ResponseEntity<Void> notifyMe(@PathVariable String id) {
+        stockNotificationService.register(id);
+        return ResponseEntity.ok().build();
     }
     // در بالای فایل:
 
