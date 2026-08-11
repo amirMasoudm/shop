@@ -15,7 +15,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class StockNotificationService {
@@ -84,6 +88,41 @@ public class StockNotificationService {
             }
         }
         log.info("اطلاع‌رسانیِ موجودشدنِ «{}»: {} موفق، {} ناموفق", productName, sent, failed);
+    }
+
+    // برای پنلِ ادمین: مشترکینِ اطلاع‌رسانی، گروه‌بندی‌شده بر اساس محصول (نامِ محصول، موجودی، شمارِ منتظر/کل، لیستِ موبایل‌ها)
+    public List<Map<String, Object>> getGroupedForAdmin() {
+        Map<String, List<StockNotification>> byProduct = repo.findAll().stream()
+                .collect(Collectors.groupingBy(StockNotification::getProductId, LinkedHashMap::new, Collectors.toList()));
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Map.Entry<String, List<StockNotification>> e : byProduct.entrySet()) {
+            Product p = productRepo.findById(e.getKey()).orElse(null);
+            List<StockNotification> subs = e.getValue();
+            long pending = subs.stream().filter(n -> !n.isNotified()).count();
+
+            List<Map<String, Object>> subscribers = subs.stream()
+                    .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt())) // جدیدترین اول
+                    .map(n -> {
+                        Map<String, Object> m = new LinkedHashMap<>();
+                        m.put("mobile", n.getMobile());
+                        m.put("notified", n.isNotified());
+                        m.put("createdAt", n.getCreatedAt());
+                        return m;
+                    }).collect(Collectors.toList());
+
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("productId", e.getKey());
+            row.put("productName", p != null ? p.getName() : "(محصول حذف‌شده)");
+            row.put("stock", p != null ? p.getStock() : null);
+            row.put("pendingCount", pending);
+            row.put("total", subs.size());
+            row.put("subscribers", subscribers);
+            rows.add(row);
+        }
+        // محصولاتی که هنوز کسی منتظرشان است بالاتر بیایند
+        rows.sort((a, b) -> Long.compare((long) b.get("pendingCount"), (long) a.get("pendingCount")));
+        return rows;
     }
 
     private String currentUserMobile() {

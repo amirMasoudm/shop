@@ -38,6 +38,12 @@ public class ProductController {
         stockNotificationService.register(id);
         return ResponseEntity.ok().build();
     }
+
+    // لیستِ مشترکینِ «اطلاع بده وقتی موجود شد» برای پنلِ ادمین (مسیرِ admin/** در SecurityConfig فقط ROLE_ADMIN)
+    @GetMapping("/admin/stock-notifications")
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> stockNotificationsForAdmin() {
+        return ResponseEntity.ok(stockNotificationService.getGroupedForAdmin());
+    }
     // در بالای فایل:
 
 

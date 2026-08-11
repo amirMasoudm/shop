@@ -31,6 +31,9 @@ public class SmsService {
     @Value("${sms.stock-template-id:0}")
     private int stockTemplateId;
 
+    // SMS.ir در اندپوینتِ verify هر مقدارِ پارامتر را حداکثر ۲۵ کاراکتر می‌پذیرد (خطای status 114 برای بیشتر).
+    private static final int SMS_PARAM_MAX_LEN = 25;
+
     @Value("${sms.url:https://api.sms.ir/v1/send/verify}")
     private String url;
 
@@ -83,8 +86,9 @@ public class SmsService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-API-KEY", apiKey);
 
-        // نامِ متغیرِ قالب دقیقاً PRODUCT است (مثلِ CODE در sendOtp)
-        SmsParameter param = new SmsParameter("PRODUCT", productName);
+        // نامِ متغیرِ قالب دقیقاً PRODUCT است (مثلِ CODE در sendOtp).
+        // نام‌های بلندِ محصول (مثلِ مدل‌های شبکه) از سقفِ ۲۵ کاراکتریِ SMS.ir رد می‌شوند → کوتاه می‌کنیم.
+        SmsParameter param = new SmsParameter("PRODUCT", truncateForSms(productName));
         SmsRequest requestBody = new SmsRequest(mobile, stockTemplateId, Collections.singletonList(param));
         HttpEntity<SmsRequest> entity = new HttpEntity<>(requestBody, headers);
 
@@ -95,5 +99,13 @@ public class SmsService {
             log.error("خطا در ارسال پیامکِ موجودی به {}: {}", mobile, e.getMessage());
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "خطا در ارسال پیامکِ موجودی");
         }
+    }
+
+    // کوتاه‌کردنِ مقدارِ پارامتر تا سقفِ مجازِ SMS.ir (۲۵ کاراکتر)؛ اگر بریده شد «…» می‌گذارد.
+    private String truncateForSms(String value) {
+        if (value == null) return "";
+        String v = value.trim();
+        if (v.length() <= SMS_PARAM_MAX_LEN) return v;
+        return v.substring(0, SMS_PARAM_MAX_LEN - 1) + "…";
     }
 }

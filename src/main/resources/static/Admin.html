@@ -269,6 +269,11 @@
             <span>📝</span> استعلام‌ها (RFQ)
         </div>
 
+        <div onclick="switchTab('stockNotify')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>🔔</span> منتظرانِ موجودی
+        </div>
+
         <div onclick="switchTab('customers')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>👥</span> مدیریت مشتریان
@@ -592,6 +597,14 @@
     <div id="tab-rfq" class="hidden-section fade-in">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><span>📝</span> استعلام‌های پیش‌فاکتور (RFQ)</h2>
         <div id="admin-rfq-list" class="space-y-4">
+            <p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>
+        </div>
+    </div>
+
+    <div id="tab-stockNotify" class="hidden-section fade-in">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>🔔</span> منتظرانِ موجودیِ محصولات</h2>
+        <p class="text-sm text-gray-500 mb-6">مشتریانی که روی «اطلاع بده وقتی موجود شد» زده‌اند. وقتی موجودیِ محصول را از پنل مثبت کنید، به منتظرانِ اطلاع‌نداده‌شده پیامک می‌رود.</p>
+        <div id="admin-stocknotify-list" class="space-y-4">
             <p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>
         </div>
     </div>
@@ -1464,6 +1477,7 @@
         if (id === 'customers') fetchUsers();
         if (id === 'articles') fetchArticles();
         if (id === 'rfq') fetchRfqsAdmin();
+        if (id === 'stockNotify') fetchStockNotifications();
         if (id === 'settings') {
             fetchRfqThreshold();
             setTimeout(() => {
@@ -3145,6 +3159,42 @@
         axios.post(`${API}/v1/settings/store-location`, data)
             .then(() => Swal.fire('موفق', 'آدرس مبدا فروشگاه با موفقیت ذخیره شد.', 'success'))
             .catch(() => Swal.fire('خطا', 'مشکل در ذخیره اطلاعات مبدا روی سرور.', 'error'));
+    }
+
+    // ==========================================
+    // منتظرانِ موجودی (Stock notifications)
+    // ==========================================
+    async function fetchStockNotifications() {
+        const cont = document.getElementById('admin-stocknotify-list');
+        cont.innerHTML = '<p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>';
+        try {
+            const res = await axios.get(`${API}/v1/products/admin/stock-notifications`);
+            const list = res.data || [];
+            if (!list.length) {
+                cont.innerHTML = '<p class="text-center py-10 text-gray-400">هنوز کسی برای اطلاع‌رسانیِ موجودی ثبت‌نام نکرده است.</p>';
+                return;
+            }
+            const fmtDate = d => { try { return new Date(d).toLocaleDateString('fa-IR'); } catch(e){ return ''; } };
+            cont.innerHTML = list.map(row => {
+                const subs = (row.subscribers || []).map(s => `
+                    <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50">
+                        <span dir="ltr" class="font-mono text-gray-700">${s.mobile}</span>
+                        <span class="text-xs ${s.notified ? 'text-green-600' : 'text-amber-600'}">${s.notified ? 'پیامک ارسال شد' : 'منتظر'} · ${fmtDate(s.createdAt)}</span>
+                    </div>`).join('');
+                const stockBadge = (row.stock !== null && row.stock > 0)
+                    ? `<span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">موجود (${row.stock})</span>`
+                    : `<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">ناموجود</span>`;
+                return `<div class="bg-white p-5 rounded-xl shadow-sm border">
+                    <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                        <div class="font-bold text-gray-800">${row.productName} ${stockBadge}</div>
+                        <div class="text-sm text-gray-500">${row.pendingCount} منتظر · ${row.total} کل</div>
+                    </div>
+                    <div>${subs}</div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            cont.innerHTML = '<p class="text-center py-10 text-red-400">خطا در بارگذاری فهرست منتظران</p>';
+        }
     }
 
     // ==========================================
