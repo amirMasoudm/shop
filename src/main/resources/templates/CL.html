@@ -1910,9 +1910,17 @@
 
     // FILTERS
     function setupFilters(prods) {
+        // فقط «فیلترهای فنیِ تعریف‌شده‌ی همین دسته» (filterKeys ادمین) نمایش داده شود،
+        // نه همه‌ی فیلدهای مشخصاتِ فنیِ محصولات. خارج از نمای دسته (خانه/جشنواره) فیلتری نشان داده نمی‌شود.
+        let allowed = [];
+        if (state.feed && state.feed.type === 'cat') {
+            const cat = getCatById(state.feed.param);
+            if (cat && Array.isArray(cat.filterKeys)) allowed = cat.filterKeys;
+        }
         let specs = {};
         prods.forEach(p => {
             if (p.specifications) for (let k in p.specifications) if (p.specifications[k]) {
+                if (!allowed.includes(k)) continue; // فقط کلیدهای فیلترِ تعریف‌شده‌ی دسته
                 if (!specs[k]) specs[k] = new Set();
                 specs[k].add(p.specifications[k]);
             }
