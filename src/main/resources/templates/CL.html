@@ -196,15 +196,16 @@
 
         .logo-text .main {
             color: #fff;
-            font-size: 1.15rem;
+            font-size: 1rem;
             font-weight: 900;
         }
 
         .logo-text .sub {
             color: var(--accent);
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
         }
 
         .menu-scroll-wrap {
@@ -1118,16 +1119,24 @@
 
         <a class="logo-container" onclick="loadHome()">
             <div class="logo-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- central hub -->
+                    <circle cx="11" cy="11" r="3" fill="#fff"/>
+                    <!-- corner nodes -->
+                    <circle cx="3" cy="3.5" r="2" fill="#fff"/>
+                    <circle cx="19" cy="3.5" r="2" fill="#fff"/>
+                    <circle cx="3" cy="18.5" r="2" fill="#fff"/>
+                    <circle cx="19" cy="18.5" r="2" fill="#fff"/>
+                    <!-- connections -->
+                    <line x1="8.4" y1="8.8" x2="4.8" y2="5.2" stroke="#fff" stroke-width="1.6"/>
+                    <line x1="13.6" y1="8.8" x2="17.2" y2="5.2" stroke="#fff" stroke-width="1.6"/>
+                    <line x1="8.4" y1="13.2" x2="4.8" y2="16.8" stroke="#fff" stroke-width="1.6"/>
+                    <line x1="13.6" y1="13.2" x2="17.2" y2="16.8" stroke="#fff" stroke-width="1.6"/>
                 </svg>
             </div>
             <div class="logo-text">
-                <span class="main">فروشگاه</span>
-                <span class="sub">داده نما</span>
+                <span class="main">فروشگاه داده‌نما</span>
+                <span class="sub">شبکه و ارتباطات</span>
             </div>
         </a>
 
@@ -1694,7 +1703,7 @@
             return `<li class="dropdown"><a href="/category/${encodeURIComponent(slug)}" onclick="event.preventDefault(); loadCat('${item.id}','${nm}')">${item.name} ${item.children?.length ? '❮' : ''}</a>${item.children?.length ? `<ul class="dropdown-menu">${build(item.children)}</ul>` : ''}</li>`;
         }).join('');
         // لینک ثابت بلاگ (لینک واقعی <a> — هم برای کاربر هم خزنده)
-        const blogLink = `<li><a href="/blog" style="color:var(--accent); font-weight:800;">📝 بلاگ آموزشی</a></li>`;
+        const blogLink = `<li style="display:flex;align-items:center;padding:0 6px;"><a href="/blog" style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,var(--accent),#ffb347);color:#fff;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:800;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(232,134,26,0.45);letter-spacing:0.3px;">✍️ بلاگ</a></li>`;
         document.getElementById('desktopMenu').innerHTML = build(items) + blogLink;
 
         // موقعیت‌دهی زیرمنوهای سطح‌اول (fixed) زیر هر آیتم — چون نوار اسکرول افقی دارد
@@ -1758,7 +1767,7 @@
                     ${hasKids ? `<div style="padding:15px 20px; border-right:1px solid #eee;" onclick="toggleSub(this)"><span style="color:#888;">▼</span></div>` : ''}</div>
                     ${hasKids ? `<div class="mob-children" style="display:none; background:#f9f9f9; padding-right:15px;">${build(item.children)}</div>` : ''}</div>`;
         }).join('');
-        const blogRow = `<div class="mob-item"><a href="/blog" style="display:block; padding:15px 20px; font-weight:800; color:var(--accent); text-decoration:none; border-bottom:1px solid var(--border);">📝 بلاگ آموزشی</a></div>`;
+        const blogRow = `<div class="mob-item"><a href="/blog" style="display:flex;align-items:center;gap:10px;padding:14px 20px;text-decoration:none;border-bottom:1px solid var(--border);"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--accent),#ffb347);color:#fff;padding:5px 14px;border-radius:20px;font-size:0.82rem;font-weight:800;box-shadow:0 2px 6px rgba(232,134,26,0.4);">✍️ بلاگ آموزشی</span></a></div>`;
         document.getElementById('mobileMenuBody').innerHTML = blogRow + build(items);
     }
 
@@ -2635,7 +2644,7 @@
                th:href="${baseUrl + '/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
                th:text="${fc.name}"
                style="color:#cbd5e1; text-decoration:none; font-size:13px;">دسته</a>
-            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; text-decoration:none; font-size:13px; font-weight:700;">📝 بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; text-decoration:none; font-size:13px; font-weight:700;">✍️ بلاگ آموزشی</a>
         </nav>
         <div style="margin-top:20px; font-size:12px; color:#94a3b8;">© فروشگاه داده نما</div>
     </div>
