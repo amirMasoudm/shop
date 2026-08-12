@@ -178,14 +178,16 @@
         }
 
         .logo-icon {
-            background: var(--accent);
+            background: #fff;
             border-radius: 10px;
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(232, 134, 26, 0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
         .logo-text {
@@ -196,8 +198,9 @@
 
         .logo-text .main {
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.87rem;
             font-weight: 900;
+            white-space: nowrap;
         }
 
         .logo-text .sub {
@@ -1119,23 +1122,10 @@
 
         <a class="logo-container" onclick="loadHome()">
             <div class="logo-icon">
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <!-- central hub -->
-                    <circle cx="11" cy="11" r="3" fill="#fff"/>
-                    <!-- corner nodes -->
-                    <circle cx="3" cy="3.5" r="2" fill="#fff"/>
-                    <circle cx="19" cy="3.5" r="2" fill="#fff"/>
-                    <circle cx="3" cy="18.5" r="2" fill="#fff"/>
-                    <circle cx="19" cy="18.5" r="2" fill="#fff"/>
-                    <!-- connections -->
-                    <line x1="8.4" y1="8.8" x2="4.8" y2="5.2" stroke="#fff" stroke-width="1.6"/>
-                    <line x1="13.6" y1="8.8" x2="17.2" y2="5.2" stroke="#fff" stroke-width="1.6"/>
-                    <line x1="8.4" y1="13.2" x2="4.8" y2="16.8" stroke="#fff" stroke-width="1.6"/>
-                    <line x1="13.6" y1="13.2" x2="17.2" y2="16.8" stroke="#fff" stroke-width="1.6"/>
-                </svg>
+                <img src="/img/logo.png" alt="LOD" width="42" height="42" style="object-fit:contain;display:block;">
             </div>
             <div class="logo-text">
-                <span class="main">فروشگاه داده‌نما</span>
+                <span class="main">فروشگاه شرکت داده نما</span>
                 <span class="sub">شبکه و ارتباطات</span>
             </div>
         </a>
