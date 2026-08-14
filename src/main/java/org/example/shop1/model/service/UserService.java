@@ -6,6 +6,7 @@ import org.example.shop1.model.entity.Address;
 import org.example.shop1.model.entity.User;
 import org.example.shop1.model.enums.Role;
 import org.example.shop1.model.reposritory.UserRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -83,7 +84,14 @@ public class UserService {
         user.setLastName(form.getLastName());
         user.setRole(role);
         user.setAddresses(new ArrayList<>());
-        return userRepository.save(user);
+
+        try {
+            return userRepository.save(user);
+        } catch (DuplicateKeyException e) {
+            // فاصلهٔ بینِ چکِ بالا و save؛ ایندکسِ unique جلویش را گرفت.
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "این نام کاربری یا شماره موبایل هم‌زمان توسط کسِ دیگری ثبت شد");
+        }
     }
 
     /** تغییرِ نقشِ یک کاربر، با محافظت در برابر قفل‌شدنِ بیرونِ پنل. */

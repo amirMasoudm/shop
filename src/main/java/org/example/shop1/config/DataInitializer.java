@@ -7,12 +7,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE) // بعد از MongoIndexInitializer اجرا شود
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
@@ -43,18 +47,35 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        // ایجاد ادمین اولیه سیستم به صورت خودکار در صورت عدم وجود
-        if (userRepository.findByUsername(adminUsername).isEmpty()) {
-            User admin = new User();
-            admin.setUsername(adminUsername);
-            admin.setFirstName("sample");
-            admin.setPhoneNumber(adminPhone);
-            admin.setPassword(passwordEncoder.encode(adminPassword));
-            admin.setRole(Role.ADMIN);
-            admin.setAddresses(new ArrayList<>());
+        // existsByUsername به‌جای findByUsername: اگر رکوردِ تکراری در دیتابیس باشد،
+        // findBy... با IncorrectResultSizeDataAccessException می‌ترکد و جلوی بالا آمدنِ
+        // برنامه را می‌گیرد — همان اتفاقی که یک‌بار سرِ ری‌استورِ دیتا افتاد.
+        if (userRepository.existsByUsername(adminUsername)) {
+            return;
+        }
 
+        // phoneNumber هم ایندکسِ unique دارد؛ اگر کاربرِ دیگری با همین شماره ثبت‌نام کرده باشد
+        // ساختِ ادمین با DuplicateKeyException رد می‌شود. زودتر و با پیامِ روشن ردش می‌کنیم.
+        if (userRepository.existsByPhoneNumber(adminPhone)) {
+            log.warn("⚠️ سوپرادمین ساخته نشد: شماره {} قبلاً به کاربرِ دیگری تعلق دارد. "
+                    + "یا آن کاربر را حذف کن یا نقشش را به ADMIN تغییر بده.", adminPhone);
+            return;
+        }
+
+        User admin = new User();
+        admin.setUsername(adminUsername);
+        admin.setFirstName("sample");
+        admin.setPhoneNumber(adminPhone);
+        admin.setPassword(passwordEncoder.encode(adminPassword));
+        admin.setRole(Role.ADMIN);
+        admin.setAddresses(new ArrayList<>());
+
+        try {
             userRepository.save(admin);
             log.info("✅ سوپر ادمین سیستم با موفقیت ایجاد شد.");
+        } catch (DuplicateKeyException e) {
+            // فاصلهٔ بینِ چکِ بالا و save؛ نمونهٔ دیگری از برنامه زودتر ساختش. بی‌خطر است.
+            log.info("سوپرادمین هم‌زمان توسط نمونهٔ دیگری ساخته شد؛ از ساختِ دوباره صرف‌نظر شد.");
         }
     }
 }

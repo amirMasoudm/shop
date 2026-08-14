@@ -16,7 +16,12 @@ public class User {
     @Id
     private String id;
 
-    @Indexed(unique = true)
+    // توجه: ساختِ واقعیِ این ایندکس‌ها با MongoIndexInitializer انجام می‌شود، نه با
+    // spring.data.mongodb.auto-index-creation (که عمداً خاموش است تا اول تکراری‌ها بررسی شوند).
+    // اگر این تعریف‌ها را عوض کردی، همان‌جا هم عوضشان کن وگرنه ساختِ ایندکس با خطای
+    // IndexOptionsConflict شکست می‌خورد.
+    @Indexed(name = "uk_users_username", unique = true,
+             partialFilter = "{ 'username': { '$type': 'string' } }")
     private String username;
 
     // هشِ رمز هرگز در پاسخِ JSON بیرون نرود (مثلاً /api/users/admin/all).
@@ -27,7 +32,12 @@ public class User {
     private String lastName;
     private String email;
     private Role role = Role.USER;
-    @Indexed(unique = true)
+    // partialFilter لازم است: همهٔ کاربران شماره ندارند (مثلاً حسابِ پشتیبان که از پنل
+    // بدونِ موبایل ساخته می‌شود). مونگو در ایندکسِ unique همهٔ رکوردهای بدون‌مقدار را
+    // «یک nullِ واحد» حساب می‌کند، پس بدونِ این فیلتر دومین کاربرِ بی‌شماره رد می‌شد.
+    // sparse کافی نیست — آن فقط فیلدِ غایب را کنار می‌گذارد، nullِ صریح را نه.
+    @Indexed(name = "uk_users_phoneNumber", unique = true,
+             partialFilter = "{ 'phoneNumber': { '$type': 'string' } }")
     private String phoneNumber;
 
     // فیلدهای منتقل شده از Customer
