@@ -300,6 +300,10 @@
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>⚙️</span> تنظیمات فروشگاه
         </div>
+        <div onclick="switchTab('staff')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>🛡️</span> مدیریت ادمین‌ها
+        </div>
 
         <!-- این قطعه کد را دقیقا قبل از بسته شدن تگ </nav> اضافه کن -->
         <div class="border-t mt-4 pt-4 px-6">
@@ -696,9 +700,109 @@
             </div>
         </div>
     </div>
+
+    <div id="tab-staff" class="hidden-section fade-in">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">مدیریت ادمین‌ها</h2>
+                <p class="text-xs text-gray-500 mt-1">
+                    ورودِ ادمین دو مرحله‌ای است: رمز + کدی که به موبایلِ همان حساب پیامک می‌شود.
+                </p>
+            </div>
+            <button onclick="openStaffModal()"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-bold shadow-sm transition">
+                ➕ ادمین جدید
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm whitespace-nowrap md:whitespace-normal">
+                    <thead class="bg-gray-100 text-gray-600">
+                    <tr>
+                        <th class="p-3 md:p-4">نام و نام خانوادگی</th>
+                        <th class="p-3 md:p-4">نام کاربری</th>
+                        <th class="p-3 md:p-4">موبایل</th>
+                        <th class="p-3 md:p-4 text-center">نقش</th>
+                        <th class="p-3 md:p-4 text-center">تاریخ ایجاد</th>
+                        <th class="p-3 md:p-4 text-center">عملیات</th>
+                    </tr>
+                    </thead>
+                    <tbody id="admin-staff-body" class="divide-y text-xs md:text-sm">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </main>
 </div>
 <!-- ================= MODALS ================= -->
+
+<!-- ساخت ادمین/پشتیبان جدید -->
+<div id="staffModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-2 md:p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col" style="max-height:88vh;">
+        <div data-drag-handle
+             class="bg-gray-800 text-white p-4 flex justify-between items-center shrink-0 select-none rounded-t-2xl">
+            <h3 class="font-bold flex items-center gap-2"><span>🛡️</span> ادمین جدید</h3>
+            <button onclick="closeModal('staffModal')"
+                    class="text-white hover:text-red-400 font-bold text-2xl outline-none leading-none px-1">✕
+            </button>
+        </div>
+
+        <div class="p-5 overflow-y-auto space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">نام کاربری *</label>
+                <input id="staff-username" type="text" dir="ltr" autocomplete="off"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">شماره موبایل *</label>
+                <input id="staff-phone" type="text" dir="ltr" placeholder="09xxxxxxxxx" autocomplete="off"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <p class="text-xs text-gray-500 mt-1">کدِ ورود به این شماره پیامک می‌شود، پس باید در دسترس باشد.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">نام</label>
+                    <input id="staff-firstname" type="text"
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">نام خانوادگی</label>
+                    <input id="staff-lastname" type="text"
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">رمز عبور *</label>
+                <input id="staff-password" type="text" dir="ltr" autocomplete="new-password"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <p class="text-xs text-gray-500 mt-1">حداقل ۸ کاراکتر. بعد از ساخت دیگر نمایش داده نمی‌شود — همین حالا جایی امن ذخیره‌اش کن.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">نقش</label>
+                <select id="staff-role"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                    <option value="ADMIN">ادمین (دسترسی کامل)</option>
+                    <option value="SUPPORT">پشتیبان (هنوز بدون دسترسی — در دست تعریف)</option>
+                </select>
+                <p class="text-xs text-amber-600 mt-1">
+                    فعلاً فقط «ادمین» دسترسی دارد؛ پشتیبان نه وارد پنل می‌شود نه به چیزی دسترسی دارد.
+                </p>
+            </div>
+        </div>
+
+        <div class="p-4 border-t flex justify-end gap-3 shrink-0">
+            <button onclick="closeModal('staffModal')"
+                    class="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 font-bold">انصراف
+            </button>
+            <button onclick="saveStaffUser()"
+                    class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-sm">ایجاد
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Customer Details Modal -->
 <!-- Customer Details Modal - اصلاح شده برای نمایش صحیح در تمام نمایشگرها -->
@@ -1360,6 +1464,7 @@
 
     let state = {
         users: [],
+        staff: [],
         products: [],
         categories: [],
         flatCategories: [],
@@ -1489,6 +1594,7 @@
 
         if (id === 'comments') fetchComments();
         if (id === 'customers') fetchUsers();
+        if (id === 'staff') fetchStaff();
         if (id === 'articles') fetchArticles();
         if (id === 'rfq') fetchRfqsAdmin();
         if (id === 'stockNotify') fetchStockNotifications();
@@ -1512,7 +1618,7 @@
     // ============================================================
     // سیستمِ مودالِ پیشرفته: backdrop-close، dirty-check، resize
     // ============================================================
-    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'articleModal']);
+    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'articleModal', 'staffModal']);
     const _modalSnap = {};
 
     function snapshotModalForm(id) {
@@ -3069,6 +3175,202 @@
     // ==========================================
     // مدیریت کاربران و مشتریان (Users & Customers)
     // ==========================================
+    // ==========================================
+    // مدیریت ادمین‌ها (کارکنان)
+    // ==========================================
+    const ROLE_LABELS = {ADMIN: 'ادمین', SUPPORT: 'پشتیبان', USER: 'کاربر عادی'};
+
+    // پیامِ خطای سرور متنِ ساده است (GlobalExceptionHandler)
+    function serverError(err, fallback) {
+        const msg = err && err.response && err.response.data;
+        return (typeof msg === 'string' && msg.trim()) ? msg : fallback;
+    }
+
+    async function fetchStaff() {
+        toggleLoader(true);
+        try {
+            const res = await axios.get(`${API}/users/admin/staff`);
+            state.staff = res.data || [];
+            renderStaff();
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'امکان واکشی لیست ادمین‌ها وجود ندارد'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    function renderStaff() {
+        const tbody = document.getElementById('admin-staff-body');
+        if (!tbody) return;
+
+        const list = state.staff || [];
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">هنوز ادمینی ثبت نشده است</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = list.map(u => {
+            const fullName = ((u.firstName || '') + ' ' + (u.lastName || '')).trim();
+            const created = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fa-IR') : 'نامشخص';
+            const isAdmin = u.role === 'ADMIN';
+            const roleBadge = isAdmin
+                ? 'bg-indigo-100 text-indigo-700'
+                : 'bg-amber-100 text-amber-700';
+            const noPhone = !u.phoneNumber
+                ? '<span class="text-red-500 text-xs block">بدون شماره — نمی‌تواند وارد شود</span>' : '';
+
+            return `
+            <tr class="hover:bg-gray-50 border-b transition">
+                <td class="p-3 md:p-4 font-bold text-gray-800">${escapeHTML(fullName || '—')}</td>
+                <td class="p-3 md:p-4 text-indigo-700 font-mono" dir="ltr">${escapeHTML(u.username || '')}</td>
+                <td class="p-3 md:p-4 font-mono" dir="ltr">${escapeHTML(u.phoneNumber || '—')}${noPhone}</td>
+                <td class="p-3 md:p-4 text-center">
+                    <span class="${roleBadge} px-3 py-1 rounded-full text-xs font-bold">${ROLE_LABELS[u.role] || u.role}</span>
+                </td>
+                <td class="p-3 md:p-4 text-center text-gray-500">${created}</td>
+                <td class="p-3 md:p-4 text-center whitespace-nowrap">
+                    <button onclick="changeStaffRole('${u.id}')"
+                            class="text-amber-600 hover:text-amber-800 font-bold px-2">نقش</button>
+                    <button onclick="resetStaffPassword('${u.id}')"
+                            class="text-blue-600 hover:text-blue-800 font-bold px-2">رمز</button>
+                    <button onclick="deleteStaff('${u.id}')"
+                            class="text-red-600 hover:text-red-800 font-bold px-2">حذف</button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function openStaffModal() {
+        ['staff-username', 'staff-phone', 'staff-firstname', 'staff-lastname', 'staff-password']
+            .forEach(id => document.getElementById(id).value = '');
+        document.getElementById('staff-role').value = 'ADMIN';
+        openModal('staffModal');
+    }
+
+    async function saveStaffUser() {
+        const payload = {
+            username: document.getElementById('staff-username').value.trim(),
+            phoneNumber: document.getElementById('staff-phone').value.trim(),
+            firstName: document.getElementById('staff-firstname').value.trim(),
+            lastName: document.getElementById('staff-lastname').value.trim(),
+            password: document.getElementById('staff-password').value,
+            role: document.getElementById('staff-role').value
+        };
+
+        if (!payload.username) return Swal.fire('خطا', 'نام کاربری الزامی است', 'warning');
+        if (!payload.phoneNumber) return Swal.fire('خطا', 'شماره موبایل الزامی است', 'warning');
+        if (!payload.password || payload.password.length < 8)
+            return Swal.fire('خطا', 'رمز عبور باید حداقل ۸ کاراکتر باشد', 'warning');
+
+        toggleLoader(true);
+        try {
+            await axios.post(`${API}/users/admin/staff`, payload);
+            closeModal('staffModal');
+            await fetchStaff();
+            Swal.fire({
+                icon: 'success',
+                title: 'ادمین ساخته شد',
+                html: `رمز را همین حالا جایی امن ذخیره کن — دیگر نمایش داده نمی‌شود.<br>
+                       <b dir="ltr" style="display:inline-block;margin-top:8px;font-family:monospace">${escapeHTML(payload.password)}</b>`
+            });
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'ساخت ادمین ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    // اسم را از حافظه می‌خوانیم تا رشته‌ی کاربر داخل onclick تزریق نشود
+    function staffById(id) {
+        return (state.staff || []).find(u => u.id === id);
+    }
+
+    async function changeStaffRole(id) {
+        const target = staffById(id);
+        if (!target) return;
+        const currentRole = target.role;
+
+        const {value: role} = await Swal.fire({
+            title: `نقش ${target.username || ''}`,
+            input: 'select',
+            inputOptions: {
+                ADMIN: 'ادمین (دسترسی کامل)',
+                SUPPORT: 'پشتیبان (هنوز بدون دسترسی)',
+                USER: 'کاربر عادی (مشتری)'
+            },
+            inputValue: currentRole,
+            showCancelButton: true,
+            confirmButtonText: 'ذخیره',
+            cancelButtonText: 'انصراف'
+        });
+        if (!role || role === currentRole) return;
+
+        toggleLoader(true);
+        try {
+            await axios.put(`${API}/users/admin/staff/${id}/role`, {role});
+            await fetchStaff();
+            Swal.fire('انجام شد', 'نقش کاربر تغییر کرد', 'success');
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'تغییر نقش ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    async function resetStaffPassword(id) {
+        const target = staffById(id);
+        if (!target) return;
+
+        const {value: password} = await Swal.fire({
+            title: `رمز جدید برای ${target.username || ''}`,
+            input: 'text',
+            inputPlaceholder: 'حداقل ۸ کاراکتر',
+            inputAttributes: {dir: 'ltr', autocomplete: 'off'},
+            showCancelButton: true,
+            confirmButtonText: 'تغییر رمز',
+            cancelButtonText: 'انصراف',
+            inputValidator: v => (!v || v.length < 8) ? 'رمز باید حداقل ۸ کاراکتر باشد' : undefined
+        });
+        if (!password) return;
+
+        toggleLoader(true);
+        try {
+            await axios.put(`${API}/users/admin/staff/${id}/password`, {password});
+            Swal.fire('انجام شد', 'رمز عبور تغییر کرد', 'success');
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'تغییر رمز ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    async function deleteStaff(id) {
+        const target = staffById(id);
+        if (!target) return;
+
+        const confirmed = await Swal.fire({
+            title: 'حذف کاربر؟',
+            text: `حساب «${target.username || ''}» برای همیشه حذف می‌شود.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'بله، حذف کن',
+            cancelButtonText: 'انصراف',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirmed.isConfirmed) return;
+
+        toggleLoader(true);
+        try {
+            await axios.delete(`${API}/users/admin/staff/${id}`);
+            await fetchStaff();
+            Swal.fire('حذف شد', 'کاربر حذف شد', 'success');
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'حذف ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
     async function fetchUsers() {
         toggleLoader(true);
         try {

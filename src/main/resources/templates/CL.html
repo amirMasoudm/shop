@@ -1358,15 +1358,17 @@
             state.rfqThreshold = Number(d.threshold || 0);
         }).catch(() => {});
         try {
-            // فقط ۱۰۰ محصول اول برای صفحه اصلی؛ بقیه در لحظه از سرور واکشی می‌شوند
-            const pRes = await fetch(`${API}/api/v1/products?size=100`);
+            // پیش‌واکشیِ سبک: این لیست فقط کشِ جست‌وجو برای openProductDetail است؛
+            // صفحهٔ اصلی محصولاتش را جدا از سرور می‌گیرد (جشنواره‌ها + startFeed).
+            // هر محصولی که اینجا نباشد تکی از سرور واکشی می‌شود (fallbackهای پایین‌تر).
+            const pRes = await fetch(`${API}/api/v1/products?size=24`);
             const pData = await pRes.json();
             state.all = pData.content || pData || [];
             document.getElementById('loadingSkeleton').style.display = 'none';
 
             if (window.SERVER_PRODUCT_SLUG) {
                 let targetProduct = state.all.find(x => x.slug === window.SERVER_PRODUCT_SLUG || x.id === window.SERVER_PRODUCT_SLUG);
-                // اگر محصول در ۱۰۰ تای اول نبود، تکی از سرور بگیر
+                // اگر محصول در لیستِ پیش‌واکشی‌شده نبود، تکی از سرور بگیر
                 if (!targetProduct) targetProduct = await fetchProductBySlugOrId(window.SERVER_PRODUCT_SLUG);
                 if (targetProduct) {
                     document.getElementById('landingSections').style.display = 'block';
@@ -1431,7 +1433,7 @@
 
     async function openProductDetail(productId, isInitialLoad = false) {
         let p = state.all.find(x => x.id === productId);
-        // اگر محصول در حافظه نبود (خارج از ۱۰۰ تای اول)، تکی از سرور بگیر
+        // اگر محصول در حافظه نبود (خارج از لیستِ پیش‌واکشی‌شده)، تکی از سرور بگیر
         if (!p) p = await fetchProductBySlugOrId(productId);
         if(!p) return;
 

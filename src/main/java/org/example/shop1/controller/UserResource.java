@@ -1,11 +1,13 @@
 package org.example.shop1.controller;
 
 import org.example.shop1.config.SecurityUtils;
-import org.example.shop1.model.dto.UserForm;
+import org.example.shop1.exeption.ApiException;
+import org.example.shop1.model.dto.AdminUserForm;
 import org.example.shop1.model.entity.Address; // ایمپورت
 import org.example.shop1.model.entity.User;
 import org.example.shop1.model.enums.Role;
 import org.example.shop1.model.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -31,12 +33,46 @@ public class UserResource {
         return userService.getAllUsers();
     }
 
-    // ... (متدهای لاگین و ساین‌آپ بدون تغییر) ...
-    @PostMapping("/signup")
+    // ===== مدیریتِ کارکنان (ادمین/پشتیبان) =====
+    // کلِ /api/users/admin/** در SecurityConfig فقط برای ROLE_ADMIN باز است.
+
+    @GetMapping("/admin/staff")
     @ResponseBody
-    public ResponseEntity<String> registerUser(@RequestBody UserForm userForm) {
-        String result = userService.registerUser(userForm.getUsername(), userForm.getPassword(), Role.USER);
-        return result.equals("SUCCESS") ? ResponseEntity.ok("ثبت‌نام با موفقیت انجام شد") : ResponseEntity.badRequest().body(result);
+    public List<User> getStaffUsers() {
+        return userService.getStaffUsers();
+    }
+
+    @PostMapping("/admin/staff")
+    @ResponseBody
+    public User createStaffUser(@RequestBody AdminUserForm form) {
+        return userService.createStaffUser(form);
+    }
+
+    @PutMapping("/admin/staff/{id}/role")
+    @ResponseBody
+    public User changeUserRole(@PathVariable("id") String id, @RequestBody Map<String, String> payload) {
+        Role role;
+        try {
+            role = Role.valueOf(String.valueOf(payload.get("role")).trim().toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "نقشِ ارسال‌شده نامعتبر است");
+        }
+        return userService.changeUserRole(id, role);
+    }
+
+    @PutMapping("/admin/staff/{id}/password")
+    @ResponseBody
+    public ResponseEntity<String> resetUserPassword(@PathVariable("id") String id,
+                                                    @RequestBody Map<String, String> payload) {
+        userService.resetUserPassword(id, payload.get("password"));
+        return ResponseEntity.ok("رمز عبور تغییر کرد");
+    }
+
+    @DeleteMapping("/admin/staff/{id}")
+    @ResponseBody
+    public ResponseEntity<String> deleteStaffUser(@PathVariable("id") String id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok("کاربر حذف شد");
     }
 
     @GetMapping("/api/current-user")

@@ -1,5 +1,6 @@
 package org.example.shop1.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.example.shop1.model.enums.Role;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -18,6 +19,9 @@ public class User {
     @Indexed(unique = true)
     private String username;
 
+    // هشِ رمز هرگز در پاسخِ JSON بیرون نرود (مثلاً /api/users/admin/all).
+    // WRITE_ONLY یعنی خواندن از JSON مجاز است ولی نوشتن در JSON نه.
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String firstName;
     private String lastName;
@@ -48,12 +52,6 @@ public class User {
         this.addresses = new ArrayList<>();
 
     }
-    public User(String username, String password, Role role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-    }
-
     // Getters and Setters
 
     public List<Address> getAddresses() { return addresses; }
