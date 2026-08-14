@@ -38,17 +38,26 @@ public class FileStorageService {
 
     public String storeFile(MultipartFile file) {
         try {
+            return storeFile(file.getBytes(), file.getOriginalFilename());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file on disk", e);
+        }
+    }
+
+    /**
+     * مسیرِ مشترکِ ذخیره‌سازی — هم از آپلودِ فرم (MultipartFile بالا) هم از دانلودِ
+     * مستقیمِ بایت (مثلاً ایمپورتِ تصاویرِ وردپرس) استفاده می‌شود.
+     */
+    public String storeFile(byte[] bytes, String originalFilename) {
+        try {
             // ساخت پوشه اگر وجود ندارد
             File directory = new File(uploadDir);
             if (!directory.exists()) {
                 directory.mkdirs();
             }
 
-            String originalFilename = file.getOriginalFilename();
             String extension = originalFilename != null && originalFilename.contains(".")
                     ? originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
-
-            byte[] bytes = file.getBytes();
 
             // فقط JPEG و PNG بهینه می‌شوند؛ SVG و GIF و بقیه دست‌نخورده ذخیره می‌شوند
             String ext = extension.toLowerCase(Locale.ROOT);
