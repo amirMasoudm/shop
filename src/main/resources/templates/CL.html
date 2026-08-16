@@ -342,6 +342,73 @@
             color: var(--primary);
         }
 
+        /* ============ نوارِ جست‌وجو (ردیفِ دومِ هدر) ============
+           جدا از .top-bar نگه داشته شده تا ارتفاعِ var(--hdr) و جایگاهِ
+           fixedِ زیرمنوها (top: var(--hdr)) دست‌نخورده بماند. */
+        .search-row {
+            position: sticky;
+            top: var(--hdr);
+            z-index: 900;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+        }
+
+        .search-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search-inner input[type="search"] {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: var(--bg);
+        }
+
+        .search-inner input[type="search"]:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .search-inner select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.85rem;
+            background: #fff;
+            cursor: pointer;
+            max-width: 190px;
+        }
+
+        .search-clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            display: none;
+        }
+
+        .search-clear-btn.visible { display: block; }
+
+        @media (max-width: 700px) {
+            .search-row { padding: 8px 12px; }
+            .search-inner select { max-width: 120px; font-size: 0.78rem; padding: 9px 6px; }
+            .search-inner input[type="search"] { font-size: 0.85rem; padding: 9px 12px; }
+        }
+
         .nav-actions {
             display: flex;
             align-items: center;
@@ -1267,6 +1334,20 @@
     </div>
 </header>
 
+<!-- نوارِ جست‌وجو — هم دسکتاپ هم موبایل -->
+<div class="search-row">
+    <div class="search-inner">
+        <input type="search" id="searchInput" placeholder="جست‌وجوی محصول… (مثلاً: CCR2116 یا رادیو وایرلس)"
+               aria-label="جست‌وجوی محصول" autocomplete="off" oninput="onSearchInput()"
+               onkeydown="if(event.key==='Enter'){event.preventDefault(); runSearch();}">
+        <button type="button" class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()"
+                aria-label="پاک‌کردن جست‌وجو">✕</button>
+        <select id="searchCatSelect" onchange="runSearch()" aria-label="محدودکردن به دسته">
+            <option value="">همه دسته‌ها</option>
+        </select>
+    </div>
+</div>
+
 <div id="homeView" class="view active">
     <div class="main-layout">
         <aside class="filter-panel" id="filterPanel">
@@ -1486,6 +1567,7 @@
             state.cats = c;
             renderDesktopMenu(c);
             renderMobileMenu(c);
+            populateSearchCats(c);
             // اگر ورودِ مستقیمِ SSR به دسته بود و درخت دیرتر رسید، متنِ معرفی را حالا رندر کن (رفعِ ریس)
             if (state.feed && state.feed.type === 'cat') renderCatIntro(state.feed.param);
         });
@@ -1525,7 +1607,14 @@
             } else {
                 // چک کردن پارامترهای آدرس برای بازیابی لیست قبلی
                 const params = new URLSearchParams(window.location.search);
-                if (params.has('cat')) {
+                if (params.has('q')) {
+                    // ورودِ مستقیم/اشتراک‌شده به آدرسِ نتایجِ جست‌وجو
+                    document.getElementById('searchInput').value = params.get('q');
+                    pendingSearchCat = params.get('cat_id') || null;
+                    document.getElementById('searchCatSelect').value = pendingSearchCat || '';
+                    document.getElementById('searchClearBtn').classList.add('visible');
+                    runSearch(true);
+                } else if (params.has('cat')) {
                     loadCat(params.get('cat'), params.get('name') || 'محصولات', true);
                 } else if (params.has('sec')) {
                     loadSection(params.get('sec'), params.get('title') || 'جشنواره', true);
@@ -2096,6 +2185,7 @@
     }
 
     async function loadHome(isPopState = false) {
+        resetSearchUi();
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
 
@@ -2138,6 +2228,7 @@
     }
 
     async function loadCat(id, name, isPopState = false) {
+        resetSearchUi();
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
@@ -2157,6 +2248,7 @@
     }
 
     async function loadSection(id, title, isPopState = false) {
+        resetSearchUi();
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
@@ -2172,12 +2264,93 @@
         }
     }
 
+    // ========= جست‌وجو =========
+    let searchDebounceTimer = null;
+    let pendingSearchCat = null; // deep-linkِ ?cat_id= که قبل از لودِ درختِ دسته‌ها رسیده
+
+    function onSearchInput() {
+        const q = document.getElementById('searchInput').value;
+        document.getElementById('searchClearBtn').classList.toggle('visible', q.trim() !== '');
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(runSearch, 350); // تا هر حرف یک ریکوئست نزند
+    }
+
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchClearBtn').classList.remove('visible');
+        clearTimeout(searchDebounceTimer);
+        loadHome();
+    }
+
+    async function runSearch(isPopState = false) {
+        clearTimeout(searchDebounceTimer);
+        const q = document.getElementById('searchInput').value.trim();
+        // pendingSearchCat: اگر deep-link زودتر از لودِ درختِ دسته‌ها اجرا شود، سلکت هنوز خالی است
+        const cat = document.getElementById('searchCatSelect').value || pendingSearchCat || '';
+
+        // خالی‌شدنِ کادر = بازگشت به خانه (نه سرچِ خالی)
+        if (!q) {
+            if (!isPopState) loadHome();
+            return;
+        }
+
+        document.getElementById('productView').classList.remove('active');
+        document.getElementById('homeView').classList.add('active');
+        document.getElementById('landingSections').style.display = 'none';
+        document.getElementById('latestSectionHeader').style.display = 'block';
+        document.getElementById('latestSectionHeader').innerText = `نتایج جست‌وجو برای: ${q}`;
+        renderCatIntro(null); // نمای سرچ متنِ معرفیِ دسته ندارد
+
+        await startFeed('search', {q, cat});
+
+        // رویدادِ استانداردِ گوگل برای سرچِ داخلیِ سایت
+        gaEvent('search', {search_term: q});
+
+        if (!isPopState) {
+            const params = new URLSearchParams({q});
+            if (cat) params.set('cat_id', cat);
+            window.history.pushState({type: 'search', q, cat}, '', `/?${params.toString()}`);
+        }
+    }
+
+    // پرکردنِ سلکتِ دسته از همان درختی که منو را می‌سازد (تخت‌شده با تورفتگی)
+    function populateSearchCats(items) {
+        const sel = document.getElementById('searchCatSelect');
+        if (!sel) return;
+        const opts = [];
+        const walk = (list, depth) => list.forEach(c => {
+            opts.push(`<option value="${c.id}">${'— '.repeat(depth)}${c.name}</option>`);
+            if (c.children && c.children.length) walk(c.children, depth + 1);
+        });
+        walk(items, 0);
+        sel.innerHTML = '<option value="">همه دسته‌ها</option>' + opts.join('');
+        // ورودِ مستقیم به /?q=..&cat_id=.. ممکن است قبل از رسیدنِ درختِ دسته‌ها اجرا شده باشد
+        if (pendingSearchCat) {
+            sel.value = pendingSearchCat;
+            pendingSearchCat = null;
+        }
+    }
+
+    // پاک‌کردنِ کادرِ سرچ وقتی کاربر با منو/لوگو به نمای دیگری می‌رود (تا متنِ کهنه نماند)
+    function resetSearchUi() {
+        const inp = document.getElementById('searchInput');
+        if (inp) inp.value = '';
+        const btn = document.getElementById('searchClearBtn');
+        if (btn) btn.classList.remove('visible');
+        clearTimeout(searchDebounceTimer);
+    }
+
     function renderGrid(list) {
-        document.getElementById('productsGrid').innerHTML = list.length ? list.map(p => renderCard(p)).join('') : '<p style="grid-column:1/-1; text-align:center; padding:50px;">محصولی یافت نشد</p>';
+        const empty = (state.feed && state.feed.type === 'search')
+            ? 'نتیجه‌ای برای این جست‌وجو پیدا نشد — املا را بررسی کنید یا عبارتِ کوتاه‌تری امتحان کنید'
+            : 'محصولی یافت نشد';
+        document.getElementById('productsGrid').innerHTML = list.length
+            ? list.map(p => renderCard(p)).join('')
+            : `<p style="grid-column:1/-1; text-align:center; padding:50px;">${empty}</p>`;
     }
 
     // ========= صفحه‌بندی گرید («نمایش بیشتر») =========
-    // type: 'home' | 'cat' | 'sec'  — از سرور صفحه‌صفحه می‌گیرد (بدون سقف)
+    // type: 'home' | 'cat' | 'sec' | 'search'  — از سرور صفحه‌صفحه می‌گیرد (بدون سقف)
     async function startFeed(type, param) {
         state.feed = {type, param, page: 0, size: 20, last: false};
         state.current = [];
@@ -2188,19 +2361,36 @@
         const f = state.feed;
         if (!isFirst) f.page++;
 
-        let url = `${API}/api/v1/products?page=${f.page}&size=${f.size}`;
-        if (f.type === 'cat') url += `&categoryId=${encodeURIComponent(f.param)}`;
-        else if (f.type === 'sec') url += `&sectionId=${encodeURIComponent(f.param)}`;
-
         const btn = document.getElementById('loadMoreBtn');
         if (btn) { btn.disabled = true; btn.innerText = 'در حال بارگذاری...'; }
 
         try {
-            const res = await fetch(url).then(r => r.json());
-            const content = res.content || [];
+            let content, last;
+            if (f.type === 'search') {
+                // سرچ: POST به اندپوینتِ سرچ. خروجی یک لایه تودرتوتر است (res.products.content)
+                const res = await fetch(`${API}/api/v1/products/search`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        searchQuery: f.param.q,
+                        categoryId: f.param.cat || null,
+                        page: f.page,
+                        size: f.size
+                    })
+                }).then(r => r.json());
+                content = (res.products && res.products.content) || [];
+                last = (res.products && res.products.last !== undefined) ? res.products.last : true;
+            } else {
+                let url = `${API}/api/v1/products?page=${f.page}&size=${f.size}`;
+                if (f.type === 'cat') url += `&categoryId=${encodeURIComponent(f.param)}`;
+                else if (f.type === 'sec') url += `&sectionId=${encodeURIComponent(f.param)}`;
+                const res = await fetch(url).then(r => r.json());
+                content = res.content || [];
+                last = (res.last !== undefined) ? res.last : true;
+            }
             content.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
             state.current = isFirst ? content : state.current.concat(content);
-            f.last = (res.last !== undefined) ? res.last : true;
+            f.last = last;
         } catch (e) {
             f.last = true;
         }
@@ -2918,7 +3108,13 @@
             // اگر کاربر بک زد تا به لیست یا صفحه اصلی برگردد
             if (state.originalTitle) document.title = state.originalTitle;
 
-            if (searchParams.has('cat')) {
+            if (searchParams.has('q')) {
+                // بازگشت به نتایجِ جست‌وجو
+                document.getElementById('searchInput').value = searchParams.get('q');
+                document.getElementById('searchCatSelect').value = searchParams.get('cat_id') || '';
+                document.getElementById('searchClearBtn').classList.add('visible');
+                runSearch(true);
+            } else if (searchParams.has('cat')) {
                 // بازگشت به لیست دسته‌بندی (سازگاری با آدرس‌های قدیمی ?cat=)
                 loadCat(searchParams.get('cat'), searchParams.get('name') || 'محصولات', true);
             } else if (searchParams.has('sec')) {

@@ -45,9 +45,10 @@ public class ProductSearchService {
             query.addCriteria(Criteria.where("categoryId").in(catIds));
         }
 
-        // فیلتر سرچ متنی (نام)
+        // فیلتر سرچ متنی (نام) — Pattern.quote چون نام‌هایِ محصولِ میکروتیک پر از کاراکترهایِ
+        // متا-regex هستند (+ در CCR2116-12G-4S+ و ...)؛ بدونِ quote، PatternSyntaxException می‌دهد
         if (request.getSearchQuery() != null && !request.getSearchQuery().isEmpty()) {
-            query.addCriteria(Criteria.where("name").regex(Pattern.compile(request.getSearchQuery(), Pattern.CASE_INSENSITIVE)));
+            query.addCriteria(Criteria.where("name").regex(Pattern.compile(Pattern.quote(request.getSearchQuery()), Pattern.CASE_INSENSITIVE)));
         }
 
         // فیلتر قیمت
