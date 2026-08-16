@@ -64,7 +64,9 @@ public class SecurityConfig {
                         .requestMatchers("/error", "/favicon.ico", "/robots.txt", "/sitemap.xml").permitAll()
 
                         .requestMatchers("/", "/product/**", "/category/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/fonts/**", "/images/**", "/uploads/**").permitAll()
+                        // پوشهٔ واقعیِ تصاویرِ ثابت `/img/` است؛ `/images/**` هرگز وجود نداشت و
+                        // به همین دلیل لوگو در کلِ سایت ۴۰۱ می‌گرفت.
+                        .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**").permitAll()
 
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
                         .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
