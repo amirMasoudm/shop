@@ -404,9 +404,23 @@
         .search-clear-btn.visible { display: block; }
 
         @media (max-width: 700px) {
-            .search-row { padding: 8px 12px; }
-            .search-inner select { max-width: 120px; font-size: 0.78rem; padding: 9px 6px; }
-            .search-inner input[type="search"] { font-size: 0.85rem; padding: 9px 12px; }
+            /* پدینگِ کمتر تا نوارِ چسبانِ هدر+سرچ ارتفاعِ زیادی از صفحه‌ی موبایل نخورد */
+            .search-row { padding: 6px 10px; }
+            .search-inner { gap: 6px; }
+
+            /* ارتفاعِ ۴۴px حداقلِ استانداردِ هدفِ لمسی است (قبلاً ۴۱px بود) */
+            .search-inner input[type="search"] {
+                font-size: 16px; /* زیرِ ۱۶px، iOS موقعِ فوکوس صفحه را زوم می‌کند */
+                padding: 11px 14px;
+                min-height: 44px;
+            }
+            .search-inner select {
+                max-width: 116px;
+                font-size: 0.78rem;
+                padding: 11px 4px;
+                min-height: 44px;
+            }
+            .search-clear-btn { padding: 4px 2px; min-width: 28px; }
         }
 
         .nav-actions {
@@ -1339,7 +1353,7 @@
     <div class="search-inner">
         <input type="search" id="searchInput" placeholder="جست‌وجوی محصول… (مثلاً: CCR2116 یا رادیو وایرلس)"
                aria-label="جست‌وجوی محصول" autocomplete="off" oninput="onSearchInput()"
-               onkeydown="if(event.key==='Enter'){event.preventDefault(); runSearch();}">
+               onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur(); runSearch();}">
         <button type="button" class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()"
                 aria-label="پاک‌کردن جست‌وجو">✕</button>
         <select id="searchCatSelect" onchange="runSearch()" aria-label="محدودکردن به دسته">
@@ -1563,6 +1577,8 @@
         updateAuthWidget();
         updateCartCount();
         setupMenuScroll();
+        syncSearchPlaceholder();
+        window.addEventListener('resize', syncSearchPlaceholder);
         fetch(`${API}/api/categories/tree?type=ONLINE`).then(r => r.json()).then(c => {
             state.cats = c;
             renderDesktopMenu(c);
@@ -2329,6 +2345,16 @@
             sel.value = pendingSearchCat;
             pendingSearchCat = null;
         }
+    }
+
+    // placeholderِ کوتاه در موبایل — متنِ بلندِ دسکتاپ در عرضِ کم بریده می‌شد و راهنماییِ
+    // نیمه‌کاره نشان می‌داد؛ اینجا به‌جای بریده‌شدن، متنِ متناسب گذاشته می‌شود.
+    function syncSearchPlaceholder() {
+        const inp = document.getElementById('searchInput');
+        if (!inp) return;
+        inp.placeholder = window.matchMedia('(max-width: 700px)').matches
+            ? 'جست‌وجوی محصول…'
+            : 'جست‌وجوی محصول… (مثلاً: CCR2116 یا رادیو وایرلس)';
     }
 
     // پاک‌کردنِ کادرِ سرچ وقتی کاربر با منو/لوگو به نمای دیگری می‌رود (تا متنِ کهنه نماند)
