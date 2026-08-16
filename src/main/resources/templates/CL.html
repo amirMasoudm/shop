@@ -1128,6 +1128,46 @@
             .drawer {
                 width: 100%;
             }
+
+            /* ⚠️ رفعِ سرریزِ افقیِ هدر بعد از لاگین.
+               نامِ کاربر + دکمه‌ی خروج، nav-actions را پهن می‌کرد و چون لوگو
+               flex-shrink:0 و متنش nowrap بود، مجموع از عرضِ صفحه رد می‌شد.
+               نتیجه‌اش فقط بهم‌ریختگیِ هدر نبود: با سرریزِ افقی، درِ کشویی سبد
+               (position:fixed) از قابِ دید بیرون می‌افتاد (چپ ‎-479px‎). */
+            .logo-container {
+                flex-shrink: 1;
+                min-width: 0;
+            }
+
+            .logo-text {
+                min-width: 0;
+            }
+
+            .logo-text .main {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .nav-actions {
+                flex-shrink: 0;
+            }
+
+            .user-box {
+                padding: 5px 8px;
+                gap: 4px;
+                max-width: 150px;
+            }
+
+            .user-name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 78px;
+            }
+
+            .logout-btn {
+                flex-shrink: 0;
+            }
         }
 
         @media (max-width: 768px) {

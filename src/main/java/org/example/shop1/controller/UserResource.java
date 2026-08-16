@@ -93,6 +93,24 @@ public class UserResource {
         return userInfo;
     }
 
+    /**
+     * ویرایشِ پروفایلِ کاربرِ لاگین‌کرده از پنلِ مشتری.
+     * قبلاً فقط GET این مسیر وجود داشت؛ دکمه‌ی «ثبت تغییرات پروفایل» PATCH می‌فرستاد
+     * و ۴۰۵ می‌گرفت — چون فرانت‌اند else نداشت، بی‌صدا شکست می‌خورد.
+     */
+    @PatchMapping("/api/current-user")
+    @ResponseBody
+    public Map<String, Object> updateCurrentUser(@RequestBody Map<String, String> payload) {
+        User updated = userService.updateCurrentUserProfile(
+                payload.get("firstName"), payload.get("lastName"));
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("username", updated.getUsername());
+        result.put("firstName", updated.getFirstName());
+        result.put("lastName", updated.getLastName());
+        return result;
+    }
+
     // --- متدهای اصلاح شده آدرس ---
 
     @GetMapping("/my/addresses")

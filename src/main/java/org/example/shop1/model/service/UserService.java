@@ -1,5 +1,6 @@
 package org.example.shop1.model.service;
 
+import org.example.shop1.config.SecurityUtils;
 import org.example.shop1.exeption.ApiException;
 import org.example.shop1.model.dto.AdminUserForm;
 import org.example.shop1.model.entity.Address;
@@ -42,6 +43,25 @@ public class UserService {
         }
         return userRepository.findByUsername(auth.getName())
                 .orElseThrow(() -> new RuntimeException("کاربر در پایگاه داده یافت نشد."));
+    }
+
+    /**
+     * ویرایشِ پروفایلِ خودِ کاربرِ لاگین‌کرده (نام و نام خانوادگی).
+     * فقط همین دو فیلد؛ نقش/شماره/رمز از این مسیر قابلِ تغییر نیستند.
+     */
+    public User updateCurrentUserProfile(String firstName, String lastName) {
+        User user = getCurrentAuthenticatedUser();
+
+        String cleanFirst = SecurityUtils.clean(firstName);
+        if (cleanFirst == null || cleanFirst.trim().isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "نام نمی‌تواند خالی باشد");
+        }
+        user.setFirstName(cleanFirst.trim());
+        // نام خانوادگی اختیاری است؛ خالی‌بودنش خطا نیست
+        String cleanLast = SecurityUtils.clean(lastName);
+        user.setLastName(cleanLast == null ? "" : cleanLast.trim());
+
+        return userRepository.save(user);
     }
 
     // ==========================================================

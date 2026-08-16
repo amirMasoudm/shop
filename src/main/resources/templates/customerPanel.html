@@ -229,7 +229,7 @@
                             <label class="text-xs font-bold text-gray-400 block mb-1">شماره موبایل (غیرقابل تغییر)</label>
                             <input type="text" id="inp-phone" readonly class="w-full p-3 bg-gray-100 border rounded-xl text-gray-500">
                         </div>
-                        <button onclick="updateProfile()" class="btn-yas w-full mt-4">ثبت تغییرات پروفایل</button>
+                        <button onclick="updateProfile(this)" class="btn-yas w-full mt-4">ثبت تغییرات پروفایل</button>
                     </div>
                 </div>
             </section>
@@ -1042,10 +1042,38 @@
         );
     }
 
-    async function updateProfile() {
-        const d = { firstName: document.getElementById('inp-fname').value, lastName: document.getElementById('inp-lname').value };
-        const res = await fetch(`${API}/users/api/current-user`, { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(d) });
-        if(res.ok) { alert('تغییرات ثبت شد'); await loadData(); }
+    async function updateProfile(btn) {
+        const d = {
+            firstName: document.getElementById('inp-fname').value.trim(),
+            lastName: document.getElementById('inp-lname').value.trim()
+        };
+        if (!d.firstName) { alert('نام نمی‌تواند خالی باشد'); return; }
+
+        const oldLabel = btn ? btn.innerText : '';
+        if (btn) { btn.disabled = true; btn.innerText = 'در حال ذخیره…'; }
+        try {
+            const res = await fetch(`${API}/users/api/current-user`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify(d)
+            });
+            if (res.ok) {
+                // نامِ نمایشیِ هدرِ فروشگاه هم از localStorage خوانده می‌شود؛ هم‌گامش کن
+                const fullName = `${d.firstName} ${d.lastName}`.trim();
+                if (fullName) localStorage.setItem('userName', fullName);
+                alert('تغییرات ثبت شد');
+                await loadData();
+            } else {
+                // قبلاً else نداشت و شکست کاملاً بی‌صدا بود
+                const msg = await res.text().catch(() => '');
+                alert('ذخیره نشد (کدِ ' + res.status + ')' + (msg ? '\n' + msg.slice(0, 200) : ''));
+            }
+        } catch (e) {
+            alert('خطا در ارتباط با سرور: ' + e.message);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerText = oldLabel; }
+        }
     }
 
     function askConfirm(title, text, onConfirm) {
