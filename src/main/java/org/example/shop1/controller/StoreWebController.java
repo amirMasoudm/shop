@@ -94,27 +94,18 @@ public class StoreWebController {
         return productOpt;
     }
 
-    // resolver پایدار برای آدرس (اسلاگِ لاتینِ موجود، وگرنه شناسه)
+    // این سه تابع به ProductUrlUtil منتقل شدند تا Torob API هم دقیقاً همان آدرسِ
+    // canonical را بسازد، نه یک آدرسِ موازی. اینجا فقط delegate می‌کنیم.
     private String productResolver(Product p) {
-        return (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
+        return org.example.shop1.model.service.util.ProductUrlUtil.productResolver(p);
     }
 
-    // مسیرِ هیبریدِ درستِ محصول (بدونِ baseUrl). دُم خام (خوانا) — برای canonical/og در HTML.
     private String hybridPath(Product p) {
-        String resolver = productResolver(p);
-        String tail = p.getPersianTail();
-        return (tail != null && !tail.isEmpty()) ? "/product/" + resolver + "/" + tail : "/product/" + resolver;
+        return org.example.shop1.model.service.util.ProductUrlUtil.hybridPath(p);
     }
 
-    // نسخه‌ی percent-encode شده‌ی مسیرِ هیبرید — برای هدرِ Location (باید ASCII باشد) و sitemap.
     private String hybridPathEncoded(Product p) {
-        String resolver = org.springframework.web.util.UriUtils.encodePathSegment(
-                productResolver(p), java.nio.charset.StandardCharsets.UTF_8);
-        String tail = p.getPersianTail();
-        if (tail == null || tail.isEmpty()) return "/product/" + resolver;
-        String encTail = org.springframework.web.util.UriUtils.encodePathSegment(
-                tail, java.nio.charset.StandardCharsets.UTF_8);
-        return "/product/" + resolver + "/" + encTail;
+        return org.example.shop1.model.service.util.ProductUrlUtil.hybridPathEncoded(p);
     }
 
     // پر کردن مدلِ صفحه‌ی محصول + canonical/og/productSlug روی فرمِ هیبریدِ درست

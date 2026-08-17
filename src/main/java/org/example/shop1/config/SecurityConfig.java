@@ -53,6 +53,12 @@ public class SecurityConfig {
                             .csrfTokenRequestHandler(requestHandler)
                             //  مسیر سفارشات را از چک کردن CSRF معاف کن
 //                            .ignoringRequestMatchers("/api/orders/**")
+
+                            // Torob API از سرورِ ترب می‌آید، نه از مرورگرِ کاربر: کوکیِ سشن و
+                            // توکنِ CSRF ندارد و اصلاً نمی‌تواند داشته باشد. احرازِ هویتش با
+                            // امضایِ ed25519 است، پس CSRF اینجا موضوعیت ندارد. بدونِ این معافیت
+                            // درخواستِ ترب قبل از رسیدن به کنترلر ۴۰۳ می‌گرفت.
+                            .ignoringRequestMatchers("/torob_api/**")
                             ;
 
                 })
@@ -92,6 +98,11 @@ public class SecurityConfig {
                                 "/api/v1/articles/**",
                                 "/api/settings/**"
                         ).permitAll()
+
+                        // Torob Product API — ترب خودش با JWTِ ed25519 احراز می‌شود، نه سشنِ ما.
+                        // بدونِ این خط، قاعده‌ی anyRequest().authenticated() پایین بلاکش می‌کند
+                        // (همان کلاسِ باگی که قبلاً روی /img/** خوردیم).
+                        .requestMatchers(HttpMethod.POST, "/torob_api/v3/products").permitAll()
 
                         // ۳. باقی مسیرها
                         .requestMatchers("/api/auth/**").permitAll()
