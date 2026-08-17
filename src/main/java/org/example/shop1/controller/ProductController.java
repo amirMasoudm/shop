@@ -5,6 +5,7 @@ import org.example.shop1.config.SecurityUtils;
 import org.example.shop1.model.dto.ProductRequest;
 import org.example.shop1.model.dto.ProductSearchRequestDto;
 import org.example.shop1.model.dto.ProductSearchResponseDto;
+import org.example.shop1.model.dto.PublicProductDto;
 import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.service.ProductSearchService;
 import org.example.shop1.model.service.ProductService;
@@ -74,8 +75,10 @@ public class ProductController {
     }
 
     // متد اصلی برای فرانت‌اند (با فیلترینگ، سورتینگ و صفحه‌بندی)
+    // خروجی از PublicProductDto رد می‌شود تا فیلدهایِ داخلی (قیمتِ خرید، یادداشتِ انبار،
+    // و فیلدهایِ قیمت‌گذاریِ در راه) به بیرون نشت نکنند.
     @GetMapping
-    public ResponseEntity<Page<Product>> getProductsForClient(
+    public ResponseEntity<Page<PublicProductDto>> getProductsForClient(
             @RequestParam(name = "categoryId", required = false) String categoryId,
             @RequestParam(name = "sectionId", required = false) String sectionId, // فیلتر جشنواره
             @RequestParam(name = "minPrice", required = false) BigDecimal minPrice, // فیلتر از سمت فرانت
@@ -86,13 +89,15 @@ public class ProductController {
             @RequestParam(name = "size", defaultValue = "20") int size) {
         Page<Product> products = productService.getProductsForClient(
                 categoryId, sectionId, minPrice, maxPrice, sortBy, sortDirection, page, size);
-        return ResponseEntity.ok(products);
+        // ساختارِ صفحه (content/last/totalElements/…) که فرانت به آن وابسته است حفظ می‌شود
+        return ResponseEntity.ok(products.map(PublicProductDto::of));
     }
 
     // دریافت یک محصول با اسلاگ یا شناسه (برای صفحه محصول، بدون لود کل لیست)
     @GetMapping("/single/{slugOrId}")
-    public ResponseEntity<Product> getSingleProduct(@PathVariable String slugOrId) {
+    public ResponseEntity<PublicProductDto> getSingleProduct(@PathVariable String slugOrId) {
         return productService.findBySlugOrId(slugOrId)
+                .map(PublicProductDto::of)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new org.example.shop1.exeption.ApiException(
                         org.springframework.http.HttpStatus.NOT_FOUND, "محصول یافت نشد"));
