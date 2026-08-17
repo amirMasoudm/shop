@@ -1,3 +1,9 @@
+# ❌ منسوخ — این تسک را انجام نده
+
+**تاریخِ لغو: ۱۷ اوت ۲۰۲۶.** فرضِ زیرِ این پرامپت غلط بود. چت ج با `nginx -T` رویِ خودِ سرور تأیید کرد `server.forward-headers-strategy=framework` **از قبل** در هر دو `application-dev.properties` و `application-prod.properties` ست بوده — من (مدیر) فقط `application.properties` (فایلِ پایه) را چک کرده بودم و فایل‌هایِ پروفایل را ندیده بودم. کاری لازم نیست. جزئیات در `docs/INFRA-CHANGELOG.md` (۱۷ اوت، ورودیِ چت ج) و `docs/launch-checklist.md`.
+
+---
+
 # پرامپتِ چت الف (در صف — بعد از تسکِ فعلی) — درست‌شدنِ baseUrl زیرِ HTTPS/پروکسی
 
 ## مسئله
