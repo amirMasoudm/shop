@@ -88,6 +88,12 @@ public class Product {
     /** «فروش به همکار تک» — ردهٔ قیمتِ تکی (ستونِ C شیت). */
     private BigDecimal partnerUnitPrice;
 
+    /** «فروش تعدادی» — ردهٔ قیمتِ عمده (خریدِ چندتایی)، جدا از قیمتِ همکارِ تک. */
+    private BigDecimal partnerBulkPrice;
+
+    /** قیمتِ خرید/مرجع به دلار — برایِ رصدِ حساسیت به نرخِ ارز، مستقل از basePriceِ ریالی. */
+    private BigDecimal dollarPrice;
+
     /** موجودیِ انبارِ اصفهان (ستونِ F). */
     private Integer stockIsfahan;
 
@@ -119,6 +125,12 @@ public class Product {
 
     public BigDecimal getPartnerUnitPrice() { return partnerUnitPrice; }
     public void setPartnerUnitPrice(BigDecimal partnerUnitPrice) { this.partnerUnitPrice = partnerUnitPrice; }
+
+    public BigDecimal getPartnerBulkPrice() { return partnerBulkPrice; }
+    public void setPartnerBulkPrice(BigDecimal partnerBulkPrice) { this.partnerBulkPrice = partnerBulkPrice; }
+
+    public BigDecimal getDollarPrice() { return dollarPrice; }
+    public void setDollarPrice(BigDecimal dollarPrice) { this.dollarPrice = dollarPrice; }
 
     public Integer getStockIsfahan() { return stockIsfahan; }
     public void setStockIsfahan(Integer stockIsfahan) { this.stockIsfahan = stockIsfahan; }

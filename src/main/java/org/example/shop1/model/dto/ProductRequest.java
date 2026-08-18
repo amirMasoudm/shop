@@ -126,6 +126,8 @@ public class ProductRequest {
     private Integer stockTehran;
     private Integer incomingStock;
     private BigDecimal partnerUnitPrice;
+    private BigDecimal partnerBulkPrice;
+    private BigDecimal dollarPrice;
     private Boolean pushSaleFlag;
     private BigDecimal torobFloorPrice;
     private String torobUrl;
@@ -143,6 +145,12 @@ public class ProductRequest {
 
     public BigDecimal getPartnerUnitPrice() { return partnerUnitPrice; }
     public void setPartnerUnitPrice(BigDecimal partnerUnitPrice) { this.partnerUnitPrice = partnerUnitPrice; }
+
+    public BigDecimal getPartnerBulkPrice() { return partnerBulkPrice; }
+    public void setPartnerBulkPrice(BigDecimal partnerBulkPrice) { this.partnerBulkPrice = partnerBulkPrice; }
+
+    public BigDecimal getDollarPrice() { return dollarPrice; }
+    public void setDollarPrice(BigDecimal dollarPrice) { this.dollarPrice = dollarPrice; }
 
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
     public void setPushSaleFlag(Boolean pushSaleFlag) { this.pushSaleFlag = pushSaleFlag; }

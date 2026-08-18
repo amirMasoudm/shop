@@ -26,7 +26,7 @@ public class PricingWorkspaceService {
 
     /** فیلدهایِ قابلِ ویرایش از میزِ کار. هر چیزِ دیگری رد می‌شود. */
     private static final List<String> EDITABLE = List.of(
-            "onlinePrice", "partnerUnitPrice",
+            "onlinePrice", "partnerUnitPrice", "partnerBulkPrice", "dollarPrice",
             "torobFloorPrice", "torobUrl",
             "digikalaFloorPrice", "digikalaUrl",
             "pushSaleFlag");
@@ -98,11 +98,14 @@ public class PricingWorkspaceService {
 
             try {
                 switch (field) {
-                    case "onlinePrice", "partnerUnitPrice", "torobFloorPrice", "digikalaFloorPrice" -> {
+                    case "onlinePrice", "partnerUnitPrice", "partnerBulkPrice", "dollarPrice",
+                         "torobFloorPrice", "digikalaFloorPrice" -> {
                         BigDecimal newVal = toDecimal(rawValue);
                         BigDecimal oldVal = switch (field) {
                             case "onlinePrice" -> p.getOnlinePrice();
                             case "partnerUnitPrice" -> p.getPartnerUnitPrice();
+                            case "partnerBulkPrice" -> p.getPartnerBulkPrice();
+                            case "dollarPrice" -> p.getDollarPrice();
                             case "torobFloorPrice" -> p.getTorobFloorPrice();
                             default -> p.getDigikalaFloorPrice();
                         };
@@ -120,6 +123,8 @@ public class PricingWorkspaceService {
                         switch (field) {
                             case "onlinePrice" -> p.setOnlinePrice(newVal);
                             case "partnerUnitPrice" -> p.setPartnerUnitPrice(newVal);
+                            case "partnerBulkPrice" -> p.setPartnerBulkPrice(newVal);
+                            case "dollarPrice" -> p.setDollarPrice(newVal);
                             case "torobFloorPrice" -> {
                                 p.setTorobFloorPrice(newVal);
                                 stampFloorCheck(p);

@@ -113,9 +113,14 @@ public class SecurityConfig {
                         // ۳. باقی مسیرها
                         .requestMatchers("/api/auth/**").permitAll()
 
+                        // صفحه‌ی پنل برای کارشناسانِ قیمت‌گذاری/فروش هم باز است، چون میزِ کارِ
+                        // قیمت‌گذاری داخلِ همین فایل است. خودِ تب‌ها و اندپوینت‌ها جداگانه
+                        // بر اساسِ نقش محدود می‌شوند (/api/v1/pricing/** و /api/users/admin/**)،
+                        // پس بازبودنِ صفحه دسترسیِ اضافه‌ای نمی‌دهد.
+                        .requestMatchers("/Admin.html").hasAnyRole("ADMIN", "PRICER", "SALES")
+
                         // ۴. مسیرهای ادمین
                         .requestMatchers(
-                                "/Admin.html",
                                 "/api/users/admin/**",
                                 "/api/orders/admin/**",
                                 "/api/comments/admin/**"

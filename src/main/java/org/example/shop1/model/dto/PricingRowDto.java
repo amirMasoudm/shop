@@ -18,6 +18,8 @@ public class PricingRowDto {
 
     private final BigDecimal onlinePrice;      // قیمتِ سایت
     private final BigDecimal partnerUnitPrice; // فروش به همکارِ تک
+    private final BigDecimal partnerBulkPrice; // فروش تعدادی (عمده)
+    private final BigDecimal dollarPrice;      // قیمتِ خرید/مرجع به دلار
     private final BigDecimal basePrice;        // قیمتِ خرید (فقط نمایش)
 
     // موجودی‌ها — در فازِ ۱ فقط-خواندنی (منبع: ورودِ دسته‌ای، بعداً هلو)
@@ -42,6 +44,8 @@ public class PricingRowDto {
         this.categoryId = p.getCategoryId();
         this.onlinePrice = p.getOnlinePrice();
         this.partnerUnitPrice = p.getPartnerUnitPrice();
+        this.partnerBulkPrice = p.getPartnerBulkPrice();
+        this.dollarPrice = p.getDollarPrice();
         this.basePrice = p.getBasePrice();
         this.stockIsfahan = p.getStockIsfahan();
         this.stockTehran = p.getStockTehran();
@@ -64,6 +68,8 @@ public class PricingRowDto {
     public String getCategoryId() { return categoryId; }
     public BigDecimal getOnlinePrice() { return onlinePrice; }
     public BigDecimal getPartnerUnitPrice() { return partnerUnitPrice; }
+    public BigDecimal getPartnerBulkPrice() { return partnerBulkPrice; }
+    public BigDecimal getDollarPrice() { return dollarPrice; }
     public BigDecimal getBasePrice() { return basePrice; }
     public Integer getStockIsfahan() { return stockIsfahan; }
     public Integer getStockTehran() { return stockTehran; }

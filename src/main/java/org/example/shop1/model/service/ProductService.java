@@ -70,6 +70,8 @@ public class ProductService {
 
         if (request.getIncomingStock() != null) product.setIncomingStock(request.getIncomingStock());
         if (request.getPartnerUnitPrice() != null) product.setPartnerUnitPrice(request.getPartnerUnitPrice());
+        if (request.getPartnerBulkPrice() != null) product.setPartnerBulkPrice(request.getPartnerBulkPrice());
+        if (request.getDollarPrice() != null) product.setDollarPrice(request.getDollarPrice());
         if (request.getPushSaleFlag() != null) product.setPushSaleFlag(request.getPushSaleFlag());
         if (request.getTorobFloorPrice() != null) product.setTorobFloorPrice(request.getTorobFloorPrice());
         if (request.getTorobUrl() != null) product.setTorobUrl(request.getTorobUrl());

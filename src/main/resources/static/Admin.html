@@ -818,18 +818,20 @@
         </div>
 
         <div class="bg-white rounded-xl border shadow-sm overflow-x-auto" style="max-height:70vh; overflow-y:auto;">
-            <table class="w-full text-right min-w-[1100px]">
+            <table class="w-full text-right min-w-[1250px]">
                 <thead class="bg-gray-50 text-gray-500 text-[11px] sticky top-0 z-10">
                 <tr>
                     <th class="p-3">نام محصول</th>
                     <th class="p-3">قیمت سایت (تومان)</th>
                     <th class="p-3">همکار تک (تومان)</th>
+                    <th class="p-3" title="قیمت عمده / خرید چندتایی">فروش تعدادی (تومان)</th>
+                    <th class="p-3" title="قیمت خرید/مرجع به دلار">قیمت دلاری ($)</th>
                     <th class="p-3" title="فقط‌خواندنی — منبع: ورود دسته‌ای">اصفهان</th>
                     <th class="p-3" title="فقط‌خواندنی — منبع: ورود دسته‌ای">تهران</th>
                     <th class="p-3" title="خریداری‌شده ولی نرسیده — در موجودی فروش شمرده نمی‌شود">در راه</th>
-                    <th class="p-3">کف ترب</th>
-                    <th class="p-3">کف دیجی‌کالا</th>
-                    <th class="p-3">فروش ویژه</th>
+                    <th class="p-3" title="کمترین قیمت رقبا در ترب (تومان)">کف ترب (تومان)</th>
+                    <th class="p-3" title="کمترین قیمت رقبا در دیجی‌کالا (تومان)">کف دیجی‌کالا (تومان)</th>
+                    <th class="p-3" title="همان ستون «خیلی بفروشید» شیت شرکت که با رنگ نارنجی مشخص شده بود">خیلی بفروشید</th>
                 </tr>
                 </thead>
                 <tbody id="pricing-body" class="divide-y text-xs"></tbody>
@@ -3404,7 +3406,9 @@
             pricingRows = res.data || [];
             pricingDirty.clear();
             updatePricingDirtyUi();
-            document.getElementById('pricing-readonly-note').classList.add('hidden');
+            // کارشناسِ فروش باید بداند چرا خانه‌ها قابلِ تایپ نیستند، وگرنه فکر می‌کند خراب است
+            const note = document.getElementById('pricing-readonly-note');
+            note.classList.toggle('hidden', pricingCanEdit);
             renderPricingRows();
         } catch (err) {
             if (err.response && err.response.status === 403) {
@@ -3432,39 +3436,42 @@
             return true;
         });
 
-        const cell = (r, field, value) => {
+        // ⚠️ فقط خودِ اینپوت را برمی‌گرداند، نه <td>. قبلاً <td> برمی‌گرداند و برای ستون‌های
+        // «کف ترب/دیجی‌کالا» داخل یک <td> دیگر پیچیده می‌شد؛ <td> تودرتو HTML نامعتبر است و
+        // مرورگر جدول را می‌شکست (ستون خالی می‌ماند و یک اینپوت بیرون از جدول می‌افتاد).
+        const priceInput = (r, field, value, width = 'w-28') => {
             if (!pricingCanEdit) {
-                return `<td class="p-2 text-left" dir="ltr">${value !== null && value !== undefined && value !== '' ? fmtMoney(value) : '—'}</td>`;
+                return `<span dir="ltr">${value !== null && value !== undefined && value !== '' ? fmtMoney(value) : '—'}</span>`;
             }
             const key = `${r.id}|${field}`;
             const pending = pricingDirty.has(key);
             const shown = pending ? pricingDirty.get(key).value : (value ?? '');
-            return `<td class="p-2">
-                <input type="text" inputmode="numeric" value="${shown === null ? '' : shown}"
+            return `<input type="text" inputmode="decimal" value="${shown === null ? '' : shown}"
                        data-id="${r.id}" data-field="${field}"
                        onchange="onPricingEdit(this)"
-                       class="w-28 p-1.5 border rounded text-left ${pending ? 'bg-yellow-50 border-yellow-400' : ''}" dir="ltr">
-            </td>`;
+                       class="${width} p-1.5 border rounded text-left ${pending ? 'bg-yellow-50 border-yellow-400' : ''}" dir="ltr">`;
         };
 
         document.getElementById('pricing-body').innerHTML = rows.length ? rows.map(r => `
             <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''}">
                 <td class="p-2 font-medium text-gray-800">${escapeHTML(r.name || '')}</td>
-                ${cell(r, 'onlinePrice', r.onlinePrice)}
-                ${cell(r, 'partnerUnitPrice', r.partnerUnitPrice)}
+                <td class="p-2">${priceInput(r, 'onlinePrice', r.onlinePrice)}</td>
+                <td class="p-2">${priceInput(r, 'partnerUnitPrice', r.partnerUnitPrice)}</td>
+                <td class="p-2">${priceInput(r, 'partnerBulkPrice', r.partnerBulkPrice)}</td>
+                <td class="p-2">${priceInput(r, 'dollarPrice', r.dollarPrice, 'w-20')}</td>
                 <td class="p-2 text-center text-gray-500">${r.stockIsfahan ?? '—'}</td>
                 <td class="p-2 text-center text-gray-500">${r.stockTehran ?? '—'}</td>
                 <td class="p-2 text-center ${r.incomingStock ? 'text-blue-600 font-bold' : 'text-gray-400'}">${r.incomingStock ?? '—'}</td>
                 <td class="p-2">
                     <div class="flex items-center gap-1">
-                        ${cell(r, 'torobFloorPrice', r.torobFloorPrice)}
-                        ${r.torobUrl ? `<a href="${escapeHTML(r.torobUrl)}" target="_blank" rel="noopener" class="text-indigo-600" title="باز کردن صفحه ترب">↗</a>` : ''}
+                        ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
+                        ${r.torobUrl ? `<a href="${escapeHTML(r.torobUrl)}" target="_blank" rel="noopener" class="text-indigo-600 shrink-0" title="باز کردن صفحه ترب">↗</a>` : ''}
                     </div>
                 </td>
                 <td class="p-2">
                     <div class="flex items-center gap-1">
-                        ${cell(r, 'digikalaFloorPrice', r.digikalaFloorPrice)}
-                        ${r.digikalaUrl ? `<a href="${escapeHTML(r.digikalaUrl)}" target="_blank" rel="noopener" class="text-indigo-600" title="باز کردن صفحه دیجی‌کالا">↗</a>` : ''}
+                        ${priceInput(r, 'digikalaFloorPrice', r.digikalaFloorPrice, 'w-24')}
+                        ${r.digikalaUrl ? `<a href="${escapeHTML(r.digikalaUrl)}" target="_blank" rel="noopener" class="text-indigo-600 shrink-0" title="باز کردن صفحه دیجی‌کالا">↗</a>` : ''}
                     </div>
                 </td>
                 <td class="p-2 text-center">
@@ -3473,7 +3480,7 @@
                            onchange="onPricingFlag(this)" class="w-4 h-4">
                 </td>
             </tr>
-        `).join('') : '<tr><td colspan="9" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
+        `).join('') : '<tr><td colspan="11" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
     }
 
     function onPricingEdit(input) {
@@ -3553,10 +3560,10 @@
     function exportPricingExcel() {
         const q = (document.getElementById('pricing-search').value || '').trim().toLowerCase();
         const rows = pricingRows.filter(r => !q || (r.name || '').toLowerCase().includes(q));
-        const head = ['نام محصول','قیمت سایت (تومان)','همکار تک (تومان)','اصفهان','تهران','در راه','موجودی فروش','کف ترب','لینک ترب','کف دیجی‌کالا','لینک دیجی‌کالا','فروش ویژه'];
+        const head = ['نام محصول','قیمت سایت (تومان)','همکار تک (تومان)','فروش تعدادی (تومان)','قیمت دلاری ($)','اصفهان','تهران','در راه','موجودی فروش','کف ترب (تومان)','لینک ترب','کف دیجی‌کالا (تومان)','لینک دیجی‌کالا','خیلی بفروشید'];
         const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
         const csv = [head.map(esc).join(',')].concat(rows.map(r => [
-            r.name, r.onlinePrice, r.partnerUnitPrice, r.stockIsfahan, r.stockTehran,
+            r.name, r.onlinePrice, r.partnerUnitPrice, r.partnerBulkPrice, r.dollarPrice, r.stockIsfahan, r.stockTehran,
             r.incomingStock, r.sellableStock, r.torobFloorPrice, r.torobUrl,
             r.digikalaFloorPrice, r.digikalaUrl, r.pushSaleFlag ? 'بله' : 'خیر'
         ].map(esc).join(','))).join('\n');
