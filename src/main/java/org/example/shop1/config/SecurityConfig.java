@@ -99,6 +99,12 @@ public class SecurityConfig {
                                 "/api/settings/**"
                         ).permitAll()
 
+                        // میزِ کارِ قیمت‌گذاری — محافظت در سطحِ مسیر، نه فقط پنهان‌کردنِ دکمه در UI.
+                        // ترتیب مهم است: قواعدِ خاص‌ترِ نوشتن/لاگ باید قبل از قاعده‌ی کلیِ خواندن بیایند.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/pricing/logs").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasAnyRole("ADMIN", "PRICER")
+                        .requestMatchers("/api/v1/pricing/**").hasAnyRole("ADMIN", "PRICER", "SALES")
+
                         // Torob Product API — ترب خودش با JWTِ ed25519 احراز می‌شود، نه سشنِ ما.
                         // بدونِ این خط، قاعده‌ی anyRequest().authenticated() پایین بلاکش می‌کند
                         // (همان کلاسِ باگی که قبلاً روی /img/** خوردیم).

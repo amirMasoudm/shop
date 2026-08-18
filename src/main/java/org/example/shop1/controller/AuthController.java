@@ -35,12 +35,16 @@ public class AuthController {
     private final UserRepository userRepository; // اینزرت مستقیم برای سادگی
     private final PasswordEncoder passwordEncoder;
 
+    private final org.example.shop1.model.service.ActivityLogService activityLogService;
+
     private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
-    public AuthController(AuthService authService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(AuthService authService, UserRepository userRepository, PasswordEncoder passwordEncoder,
+                          org.example.shop1.model.service.ActivityLogService activityLogService) {
         this.authService = authService;
         this.userRepository = userRepository;
 
         this.passwordEncoder = passwordEncoder;
+        this.activityLogService = activityLogService;
     }
 
     @GetMapping("/csrf")
@@ -58,8 +62,10 @@ public class AuthController {
         User admin = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "نام کاربری یا رمز عبور اشتباه است"));
 
-        // فقط ادمین ها مجاز به استفاده از این مسیر هستند
-        if (admin.getRole() != Role.ADMIN) {
+        // ورود به پنل: ادمین + نقش‌هایِ کارکنانِ میزِ کارِ قیمت‌گذاری.
+        // USER و SUPPORT (نقشِ قدیمیِ بلااستفاده) عمداً بلاک می‌مانند — SUPPORT طبقِ
+        // تصمیمِ صریحِ پرامپت نباید دسترسیِ ناخواسته بگیرد.
+        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.PRICER && admin.getRole() != Role.SALES) {
             return ResponseEntity.status(403).body("شما اجازه ورود از این بخش را ندارید");
         }
 
@@ -123,6 +129,9 @@ public class AuthController {
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
+
+        // لاگِ ورود (بندِ ۵ میزِ کارِ قیمت‌گذاری) — بدونِ این، «چه کسی کِی وارد شد» ثبت نمی‌شود
+        activityLogService.recordLogin(admin.getUsername());
 
         Map<String,Object> result=new HashMap<>();
 

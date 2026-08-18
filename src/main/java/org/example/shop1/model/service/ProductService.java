@@ -46,6 +46,37 @@ public class ProductService {
         }
     }
 
+    /**
+     * موجودی و فیلدهایِ میزِ کارِ قیمت‌گذاری.
+     * <p>
+     * 🔴 <b>رفعِ باگِ «در راه»:</b> اگر موجودیِ تفکیکیِ شعب ارسال شود،
+     * {@code stock} (موجودیِ فروش) <b>فقط</b> اصفهان + تهران می‌شود و «در راه»
+     * در آن شمرده نمی‌شود. همگام‌سازیِ ۱۶ اوت {@code stock = B+F+G} را اعمال کرده بود،
+     * یعنی کالایِ خریداری‌شده‌ی نرسیده «موجود» نشان داده می‌شد — و چون
+     * {@code availability}ِ ترب از {@code stock > 0} می‌آید، همان کالا به کلِ بازار
+     * «موجود» اعلام می‌شد. اگر شعبه‌ها ارسال نشوند، رفتارِ قبلی حفظ می‌شود تا
+     * مسیرهایِ قدیمی (پنلِ ادمین) نشکنند.
+     */
+    private void applyStockAndPricingFields(Product product, ProductRequest request) {
+        boolean hasBranchStock = request.getStockIsfahan() != null || request.getStockTehran() != null;
+
+        if (hasBranchStock) {
+            product.setStockIsfahan(request.getStockIsfahan());
+            product.setStockTehran(request.getStockTehran());
+            product.setStock(product.getSellableStock()); // «در راه» عمداً بیرون است
+        } else {
+            product.setStock(request.getStock());
+        }
+
+        if (request.getIncomingStock() != null) product.setIncomingStock(request.getIncomingStock());
+        if (request.getPartnerUnitPrice() != null) product.setPartnerUnitPrice(request.getPartnerUnitPrice());
+        if (request.getPushSaleFlag() != null) product.setPushSaleFlag(request.getPushSaleFlag());
+        if (request.getTorobFloorPrice() != null) product.setTorobFloorPrice(request.getTorobFloorPrice());
+        if (request.getTorobUrl() != null) product.setTorobUrl(request.getTorobUrl());
+        if (request.getDigikalaFloorPrice() != null) product.setDigikalaFloorPrice(request.getDigikalaFloorPrice());
+        if (request.getDigikalaUrl() != null) product.setDigikalaUrl(request.getDigikalaUrl());
+    }
+
     // متد ایجاد محصول - با کنترل یونیک بودن ID و پر کردن فیلدهای جدید
     public Product createProduct(ProductRequest request) {
 
@@ -65,7 +96,7 @@ public class ProductService {
         product.setName(request.getName());
         product.setCategoryId(category.getId());
         product.setPrice(request.getPrice());
-        product.setStock(request.getStock());
+        applyStockAndPricingFields(product, request);
         product.setDescription(request.getDescription());
         product.setImages(request.getImages());
         if (request.getImageAlts() != null) product.setImageAlts(request.getImageAlts()); // فقط اگر ارسال شد (بدون پاک‌کردنِ ناخواسته)
@@ -121,7 +152,7 @@ public class ProductService {
 
         product.setName(request.getName());
         product.setPrice(request.getPrice());
-        product.setStock(request.getStock());
+        applyStockAndPricingFields(product, request);
         product.setDescription(request.getDescription());
         product.setBasePrice(request.getBasePrice()); // آپدیت قیمت پایه
         product.setUpdatedAt(Instant.now()); // ثبت زمان آپدیت

@@ -80,6 +80,85 @@ public class Product {
     // محصولات مکمل/مرتبط دستی (انتخاب ادمین)
     private List<String> relatedProductIds = new ArrayList<>();
 
+    // ==========================================
+    // میزِ کارِ قیمت‌گذاریِ داخلی (جایگزینِ گوگل‌شیتِ شرکت)
+    // ⚠️ همه‌ی این‌ها داخلی‌اند و عمداً در PublicProductDto نیستند.
+    // ==========================================
+
+    /** «فروش به همکار تک» — ردهٔ قیمتِ تکی (ستونِ C شیت). */
+    private BigDecimal partnerUnitPrice;
+
+    /** موجودیِ انبارِ اصفهان (ستونِ F). */
+    private Integer stockIsfahan;
+
+    /** موجودیِ انبارِ تهران (ستونِ G). */
+    private Integer stockTehran;
+
+    /**
+     * «در راه» — خریداری‌شده ولی نرسیده (ستونِ B).
+     * <p>
+     * ⚠️ عمداً <b>در {@code stock} شمرده نمی‌شود</b>: همگام‌سازیِ ۱۶ اوت
+     * {@code stock = B+F+G} را اعمال کرده بود و کالایِ نرسیده «موجود» نشان داده می‌شد؛
+     * چون {@code availability}ِ ترب از {@code stock > 0} می‌آید، کالایِ نرسیده به کلِ
+     * بازار «موجود» اعلام می‌شد. حالا موجودیِ فروش فقط اصفهان + تهران است.
+     */
+    private Integer incomingStock;
+
+    /** «خیلی بفروشید» — در شیتِ اصلی فقط با رنگِ نارنجی کدگذاری شده بود. */
+    private Boolean pushSaleFlag;
+
+    // کفِ قیمتِ رقبا (برای تصمیمِ قیمت‌گذاری) — هرگز عمومی نشود
+    private BigDecimal torobFloorPrice;
+    private String torobUrl;
+    private BigDecimal digikalaFloorPrice;
+    private String digikalaUrl;
+
+    /** آخرین باری که کفِ قیمتِ رقبا بررسی شد و توسطِ چه کسی. */
+    private Instant floorPriceCheckedAt;
+    private String floorPriceCheckedBy;
+
+    public BigDecimal getPartnerUnitPrice() { return partnerUnitPrice; }
+    public void setPartnerUnitPrice(BigDecimal partnerUnitPrice) { this.partnerUnitPrice = partnerUnitPrice; }
+
+    public Integer getStockIsfahan() { return stockIsfahan; }
+    public void setStockIsfahan(Integer stockIsfahan) { this.stockIsfahan = stockIsfahan; }
+
+    public Integer getStockTehran() { return stockTehran; }
+    public void setStockTehran(Integer stockTehran) { this.stockTehran = stockTehran; }
+
+    public Integer getIncomingStock() { return incomingStock; }
+    public void setIncomingStock(Integer incomingStock) { this.incomingStock = incomingStock; }
+
+    public Boolean getPushSaleFlag() { return pushSaleFlag; }
+    public void setPushSaleFlag(Boolean pushSaleFlag) { this.pushSaleFlag = pushSaleFlag; }
+
+    public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }
+    public void setTorobFloorPrice(BigDecimal torobFloorPrice) { this.torobFloorPrice = torobFloorPrice; }
+
+    public String getTorobUrl() { return torobUrl; }
+    public void setTorobUrl(String torobUrl) { this.torobUrl = torobUrl; }
+
+    public BigDecimal getDigikalaFloorPrice() { return digikalaFloorPrice; }
+    public void setDigikalaFloorPrice(BigDecimal digikalaFloorPrice) { this.digikalaFloorPrice = digikalaFloorPrice; }
+
+    public String getDigikalaUrl() { return digikalaUrl; }
+    public void setDigikalaUrl(String digikalaUrl) { this.digikalaUrl = digikalaUrl; }
+
+    public Instant getFloorPriceCheckedAt() { return floorPriceCheckedAt; }
+    public void setFloorPriceCheckedAt(Instant floorPriceCheckedAt) { this.floorPriceCheckedAt = floorPriceCheckedAt; }
+
+    public String getFloorPriceCheckedBy() { return floorPriceCheckedBy; }
+    public void setFloorPriceCheckedBy(String floorPriceCheckedBy) { this.floorPriceCheckedBy = floorPriceCheckedBy; }
+
+    /**
+     * موجودیِ قابلِ فروش = اصفهان + تهران (بدونِ «در راه»).
+     * محاسبه‌شونده؛ منبعِ حقیقت برایِ ست‌کردنِ {@code stock} هنگامِ ذخیره.
+     */
+    @org.springframework.data.annotation.Transient
+    public int getSellableStock() {
+        return (stockIsfahan == null ? 0 : stockIsfahan) + (stockTehran == null ? 0 : stockTehran);
+    }
+
     public List<TechSpecRow> getTechSpecs() { return techSpecs; }
     public void setTechSpecs(List<TechSpecRow> techSpecs) { this.techSpecs = techSpecs; }
 

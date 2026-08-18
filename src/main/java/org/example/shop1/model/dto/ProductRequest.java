@@ -119,6 +119,46 @@ public class ProductRequest {
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
 
+    // ===== میزِ کارِ قیمت‌گذاری / ورودِ دسته‌ای =====
+    // موجودیِ تفکیکیِ شعب و «در راه». اگر شعبه‌ها فرستاده شوند، stock از رویشان
+    // محاسبه می‌شود (اصفهان + تهران) و «در راه» عمداً در آن شمرده نمی‌شود.
+    private Integer stockIsfahan;
+    private Integer stockTehran;
+    private Integer incomingStock;
+    private BigDecimal partnerUnitPrice;
+    private Boolean pushSaleFlag;
+    private BigDecimal torobFloorPrice;
+    private String torobUrl;
+    private BigDecimal digikalaFloorPrice;
+    private String digikalaUrl;
+
+    public Integer getStockIsfahan() { return stockIsfahan; }
+    public void setStockIsfahan(Integer stockIsfahan) { this.stockIsfahan = stockIsfahan; }
+
+    public Integer getStockTehran() { return stockTehran; }
+    public void setStockTehran(Integer stockTehran) { this.stockTehran = stockTehran; }
+
+    public Integer getIncomingStock() { return incomingStock; }
+    public void setIncomingStock(Integer incomingStock) { this.incomingStock = incomingStock; }
+
+    public BigDecimal getPartnerUnitPrice() { return partnerUnitPrice; }
+    public void setPartnerUnitPrice(BigDecimal partnerUnitPrice) { this.partnerUnitPrice = partnerUnitPrice; }
+
+    public Boolean getPushSaleFlag() { return pushSaleFlag; }
+    public void setPushSaleFlag(Boolean pushSaleFlag) { this.pushSaleFlag = pushSaleFlag; }
+
+    public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }
+    public void setTorobFloorPrice(BigDecimal torobFloorPrice) { this.torobFloorPrice = torobFloorPrice; }
+
+    public String getTorobUrl() { return torobUrl; }
+    public void setTorobUrl(String torobUrl) { this.torobUrl = torobUrl; }
+
+    public BigDecimal getDigikalaFloorPrice() { return digikalaFloorPrice; }
+    public void setDigikalaFloorPrice(BigDecimal digikalaFloorPrice) { this.digikalaFloorPrice = digikalaFloorPrice; }
+
+    public String getDigikalaUrl() { return digikalaUrl; }
+    public void setDigikalaUrl(String digikalaUrl) { this.digikalaUrl = digikalaUrl; }
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 

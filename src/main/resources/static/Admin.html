@@ -344,6 +344,14 @@
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>⚙️</span> تنظیمات فروشگاه
         </div>
+        <div onclick="switchTab('pricing')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>💹</span> میز کار قیمت‌گذاری
+        </div>
+        <div onclick="switchTab('activityLog')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>🧾</span> لاگ فعالیت
+        </div>
         <div onclick="switchTab('staff')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🛡️</span> مدیریت ادمین‌ها
@@ -778,6 +786,91 @@
             </div>
         </div>
     </div>
+
+    <!-- ================= میز کار قیمت‌گذاری ================= -->
+    <div id="tab-pricing" class="hidden-section fade-in">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">میز کار قیمت‌گذاری</h2>
+                <p class="text-xs text-gray-500 mt-1">
+                    همه مبالغ به <b>تومان</b> است. برای ویرایش روی خانه کلیک کنید؛ تغییرات با «ذخیره تغییرات» یکجا ثبت می‌شود.
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="exportPricingExcel()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold">⬇ خروجی اکسل</button>
+                <button id="pricing-save-btn" onclick="savePricingChanges()" disabled
+                        class="px-5 py-2 rounded-lg bg-green-600 text-white font-bold text-sm shadow disabled:opacity-40 disabled:cursor-not-allowed">
+                    💾 ذخیره تغییرات (<span id="pricing-dirty-count">0</span>)
+                </button>
+            </div>
+        </div>
+
+        <div id="pricing-readonly-note" class="hidden mb-3 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+            شما دسترسی «فقط مشاهده» دارید؛ ویرایش قیمت‌ها برای نقش شما فعال نیست.
+        </div>
+
+        <div class="mb-3 flex flex-col md:flex-row gap-2">
+            <input type="text" id="pricing-search" placeholder="جستجوی نام محصول…" oninput="renderPricingRows()"
+                   class="flex-1 p-2.5 border rounded-lg outline-none text-sm">
+            <label class="flex items-center gap-2 text-xs text-gray-600 bg-white border rounded-lg px-3">
+                <input type="checkbox" id="pricing-only-flagged" onchange="renderPricingRows()"> فقط «خیلی بفروشید»
+            </label>
+        </div>
+
+        <div class="bg-white rounded-xl border shadow-sm overflow-x-auto" style="max-height:70vh; overflow-y:auto;">
+            <table class="w-full text-right min-w-[1100px]">
+                <thead class="bg-gray-50 text-gray-500 text-[11px] sticky top-0 z-10">
+                <tr>
+                    <th class="p-3">نام محصول</th>
+                    <th class="p-3">قیمت سایت (تومان)</th>
+                    <th class="p-3">همکار تک (تومان)</th>
+                    <th class="p-3" title="فقط‌خواندنی — منبع: ورود دسته‌ای">اصفهان</th>
+                    <th class="p-3" title="فقط‌خواندنی — منبع: ورود دسته‌ای">تهران</th>
+                    <th class="p-3" title="خریداری‌شده ولی نرسیده — در موجودی فروش شمرده نمی‌شود">در راه</th>
+                    <th class="p-3">کف ترب</th>
+                    <th class="p-3">کف دیجی‌کالا</th>
+                    <th class="p-3">فروش ویژه</th>
+                </tr>
+                </thead>
+                <tbody id="pricing-body" class="divide-y text-xs"></tbody>
+            </table>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-2">
+            موجودی‌ها فقط‌خواندنی‌اند — منبع: ورود دسته‌ای (به‌زودی هلو). «در راه» عمداً در موجودی فروش شمرده نمی‌شود.
+        </p>
+    </div>
+
+    <!-- ================= لاگ فعالیت ================= -->
+    <div id="tab-activityLog" class="hidden-section fade-in">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-1">لاگ فعالیت</h2>
+        <p class="text-xs text-gray-500 mb-4">این لاگ حذف‌نشدنی است — حتی توسط ادمین.</p>
+
+        <div class="flex flex-col md:flex-row gap-2 mb-3">
+            <input type="text" id="log-username" placeholder="نام کاربری (خالی = همه)"
+                   class="flex-1 p-2.5 border rounded-lg outline-none text-sm">
+            <input type="date" id="log-from" class="p-2.5 border rounded-lg outline-none text-sm">
+            <input type="date" id="log-to" class="p-2.5 border rounded-lg outline-none text-sm">
+            <button onclick="fetchActivityLogs()" class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-bold text-sm">جستجو</button>
+        </div>
+
+        <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
+            <table class="w-full text-right min-w-[800px]">
+                <thead class="bg-gray-50 text-gray-500 text-[11px]">
+                <tr>
+                    <th class="p-3">زمان</th>
+                    <th class="p-3">کاربر</th>
+                    <th class="p-3">رویداد</th>
+                    <th class="p-3">محصول</th>
+                    <th class="p-3">فیلد</th>
+                    <th class="p-3">از</th>
+                    <th class="p-3">به</th>
+                    <th class="p-3">مسیر</th>
+                </tr>
+                </thead>
+                <tbody id="log-body" class="divide-y text-xs"></tbody>
+            </table>
+        </div>
+    </div>
 </main>
 </div>
 <!-- ================= MODALS ================= -->
@@ -829,10 +922,13 @@
                 <select id="staff-role"
                         class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
                     <option value="ADMIN">ادمین (دسترسی کامل)</option>
-                    <option value="SUPPORT">پشتیبان (هنوز بدون دسترسی — در دست تعریف)</option>
+                    <option value="PRICER">کارشناس قیمت‌گذاری (ویرایش قیمت‌ها و کف رقبا)</option>
+                    <option value="SALES">کارشناس فروش (فقط مشاهده میز کار)</option>
+                    <option value="SUPPORT">پشتیبان (قدیمی — بدون دسترسی)</option>
                 </select>
                 <p class="text-xs text-amber-600 mt-1">
-                    فعلاً فقط «ادمین» دسترسی دارد؛ پشتیبان نه وارد پنل می‌شود نه به چیزی دسترسی دارد.
+                    «کارشناس قیمت‌گذاری» می‌تواند قیمت‌ها، کف قیمت رقبا و پرچم فروش را تغییر دهد.
+                    «کارشناس فروش» فقط میز کار را می‌بیند و هیچ چیزی را تغییر نمی‌دهد (موجودی برای هر دو فقط‌خواندنی است).
                 </p>
             </div>
         </div>
@@ -1539,14 +1635,21 @@
             if (!res.ok) throw new Error("Unauthorized");
 
             const user = await res.json();
+            const roles = (user && user.roles) || [];
 
-            // اگر ادمین بود، دیتای پنل را لود کن
-            if (user && user.roles && user.roles.includes("ROLE_ADMIN")) {
+            if (roles.includes("ROLE_ADMIN")) {
                 document.getElementById('adminDashboard').style.display = 'flex';
                 fetchAllData(); // فراخوانی تمام اطلاعات از سرور
                 fetchStoreSettings();
+            } else if (roles.includes("ROLE_PRICER") || roles.includes("ROLE_SALES")) {
+                // کارشناسِ قیمت‌گذاری/فروش: فقط به میزِ کار دسترسی دارند، نه به
+                // کلِ داشبورد — بقیه‌ی اندپوینت‌هایِ ادمین برایشان ۴۰۳ می‌گیرند، پس
+                // fetchAllData اصلاً صدا زده نمی‌شود (فقط خطای بی‌فایده تولید می‌کرد).
+                pricingCanEdit = roles.includes("ROLE_PRICER");
+                document.getElementById('adminDashboard').style.display = 'flex';
+                restrictPanelToPricingWorkspace();
             } else {
-                // اگر ادمین نبود یا لاگین نبود، بفرستش به صفحه لاگین
+                // اگر هیچ‌کدام نبود یا لاگین نبود، بفرستش به صفحه لاگین
                 window.location.href = "/AdminLogin.html";
             }
         } catch (e) {
@@ -1656,6 +1759,8 @@
         if (id === 'comments') fetchComments();
         if (id === 'customers') fetchUsers();
         if (id === 'staff') fetchStaff();
+        if (id === 'pricing') fetchPricingRows();
+        if (id === 'activityLog') fetchActivityLogs();
         if (id === 'articles') fetchArticles();
         if (id === 'rfq') fetchRfqsAdmin();
         if (id === 'stockNotify') fetchStockNotifications();
@@ -3260,12 +3365,256 @@
     // ==========================================
     // مدیریت ادمین‌ها (کارکنان)
     // ==========================================
-    const ROLE_LABELS = {ADMIN: 'ادمین', SUPPORT: 'پشتیبان', USER: 'کاربر عادی'};
+    const ROLE_LABELS = {ADMIN: 'ادمین', PRICER: 'کارشناس قیمت‌گذاری', SALES: 'کارشناس فروش', SUPPORT: 'پشتیبان (قدیمی)', USER: 'کاربر عادی'};
 
     // پیامِ خطای سرور متنِ ساده است (GlobalExceptionHandler)
     function serverError(err, fallback) {
         const msg = err && err.response && err.response.data;
         return (typeof msg === 'string' && msg.trim()) ? msg : fallback;
+    }
+
+    // ==========================================
+    // میز کار قیمت‌گذاری
+    // ==========================================
+    let pricingRows = [];
+    let pricingCanEdit = true; // ADMIN/PRICER=true، SALES=false (فقط UI؛ مرزِ واقعی سمتِ سرور است)
+    const pricingDirty = new Map(); // key: `${id}|${field}` → {id, field, value}
+
+    // برایِ نقشِ کارشناسِ قیمت‌گذاری/فروش: فقط تبِ میزِ کار نشان داده شود، نه کلِ داشبورد
+    function restrictPanelToPricingWorkspace() {
+        document.querySelectorAll('nav .sidebar-link').forEach(el => {
+            const m = (el.getAttribute('onclick') || '').match(/switchTab\('([^']+)'\)/);
+            if ((m && m[1]) !== 'pricing') el.style.display = 'none';
+            else el.classList.add('active');
+        });
+        document.querySelectorAll('main > div[id^="tab-"]').forEach(el => el.classList.add('hidden-section'));
+        document.getElementById('tab-pricing').classList.remove('hidden-section');
+        if (!pricingCanEdit) {
+            document.getElementById('pricing-save-btn').style.display = 'none';
+        }
+        fetchPricingRows();
+    }
+
+    const fmtMoney = v => (v === null || v === undefined || v === '') ? '' : Number(v).toLocaleString('en-US');
+
+    async function fetchPricingRows() {
+        toggleLoader(true);
+        try {
+            const res = await axios.get(`${API}/v1/pricing/rows`);
+            pricingRows = res.data || [];
+            pricingDirty.clear();
+            updatePricingDirtyUi();
+            document.getElementById('pricing-readonly-note').classList.add('hidden');
+            renderPricingRows();
+        } catch (err) {
+            if (err.response && err.response.status === 403) {
+                // نقشِ بدونِ دسترسی؛ جدول را خالی و پیام را نشان بده
+                pricingRows = [];
+                renderPricingRows();
+                document.getElementById('pricing-readonly-note').classList.remove('hidden');
+                document.getElementById('pricing-readonly-note').innerText =
+                    'شما به میز کار قیمت‌گذاری دسترسی ندارید.';
+            } else {
+                Swal.fire('خطا', serverError(err, 'دریافت اطلاعات میز کار ناموفق بود'), 'error');
+            }
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    function renderPricingRows() {
+        const q = (document.getElementById('pricing-search').value || '').trim().toLowerCase();
+        const onlyFlagged = document.getElementById('pricing-only-flagged').checked;
+
+        const rows = pricingRows.filter(r => {
+            if (onlyFlagged && !r.pushSaleFlag) return false;
+            if (q && !(r.name || '').toLowerCase().includes(q)) return false;
+            return true;
+        });
+
+        const cell = (r, field, value) => {
+            if (!pricingCanEdit) {
+                return `<td class="p-2 text-left" dir="ltr">${value !== null && value !== undefined && value !== '' ? fmtMoney(value) : '—'}</td>`;
+            }
+            const key = `${r.id}|${field}`;
+            const pending = pricingDirty.has(key);
+            const shown = pending ? pricingDirty.get(key).value : (value ?? '');
+            return `<td class="p-2">
+                <input type="text" inputmode="numeric" value="${shown === null ? '' : shown}"
+                       data-id="${r.id}" data-field="${field}"
+                       onchange="onPricingEdit(this)"
+                       class="w-28 p-1.5 border rounded text-left ${pending ? 'bg-yellow-50 border-yellow-400' : ''}" dir="ltr">
+            </td>`;
+        };
+
+        document.getElementById('pricing-body').innerHTML = rows.length ? rows.map(r => `
+            <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''}">
+                <td class="p-2 font-medium text-gray-800">${escapeHTML(r.name || '')}</td>
+                ${cell(r, 'onlinePrice', r.onlinePrice)}
+                ${cell(r, 'partnerUnitPrice', r.partnerUnitPrice)}
+                <td class="p-2 text-center text-gray-500">${r.stockIsfahan ?? '—'}</td>
+                <td class="p-2 text-center text-gray-500">${r.stockTehran ?? '—'}</td>
+                <td class="p-2 text-center ${r.incomingStock ? 'text-blue-600 font-bold' : 'text-gray-400'}">${r.incomingStock ?? '—'}</td>
+                <td class="p-2">
+                    <div class="flex items-center gap-1">
+                        ${cell(r, 'torobFloorPrice', r.torobFloorPrice)}
+                        ${r.torobUrl ? `<a href="${escapeHTML(r.torobUrl)}" target="_blank" rel="noopener" class="text-indigo-600" title="باز کردن صفحه ترب">↗</a>` : ''}
+                    </div>
+                </td>
+                <td class="p-2">
+                    <div class="flex items-center gap-1">
+                        ${cell(r, 'digikalaFloorPrice', r.digikalaFloorPrice)}
+                        ${r.digikalaUrl ? `<a href="${escapeHTML(r.digikalaUrl)}" target="_blank" rel="noopener" class="text-indigo-600" title="باز کردن صفحه دیجی‌کالا">↗</a>` : ''}
+                    </div>
+                </td>
+                <td class="p-2 text-center">
+                    <input type="checkbox" ${r.pushSaleFlag ? 'checked' : ''} ${pricingCanEdit ? '' : 'disabled'}
+                           data-id="${r.id}" data-field="pushSaleFlag"
+                           onchange="onPricingFlag(this)" class="w-4 h-4">
+                </td>
+            </tr>
+        `).join('') : '<tr><td colspan="9" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
+    }
+
+    function onPricingEdit(input) {
+        const id = input.dataset.id, field = input.dataset.field;
+        const raw = input.value.trim().replace(/,/g, '');
+        const row = pricingRows.find(r => r.id === id);
+        const original = row ? (row[field] ?? '') : '';
+
+        if (String(original) === raw) {
+            pricingDirty.delete(`${id}|${field}`);
+            input.classList.remove('bg-yellow-50', 'border-yellow-400');
+        } else {
+            pricingDirty.set(`${id}|${field}`, {id, field, value: raw});
+            input.classList.add('bg-yellow-50', 'border-yellow-400');
+        }
+        updatePricingDirtyUi();
+    }
+
+    function onPricingFlag(box) {
+        const id = box.dataset.id;
+        const row = pricingRows.find(r => r.id === id);
+        const original = !!(row && row.pushSaleFlag);
+        if (original === box.checked) pricingDirty.delete(`${id}|pushSaleFlag`);
+        else pricingDirty.set(`${id}|pushSaleFlag`, {id, field: 'pushSaleFlag', value: box.checked});
+        updatePricingDirtyUi();
+    }
+
+    function updatePricingDirtyUi() {
+        document.getElementById('pricing-dirty-count').innerText = pricingDirty.size;
+        document.getElementById('pricing-save-btn').disabled = pricingDirty.size === 0;
+    }
+
+    async function savePricingChanges() {
+        if (!pricingDirty.size) return;
+        const payload = [...pricingDirty.values()];
+        toggleLoader(true);
+        try {
+            let res = await axios.post(`${API}/v1/pricing/batch`, payload);
+
+            // تلهٔ هزاربرابری: سرور ردیف‌هایِ جهش‌دار را اعمال نکرده و برگردانده
+            if (res.data.needsConfirm && res.data.needsConfirm.length) {
+                const list = res.data.needsConfirm.map(c =>
+                    `<div style="text-align:right">• <b>${escapeHTML(c.name)}</b> — ${c.field}: ${fmtMoney(c.oldValue)} → <b>${fmtMoney(c.newValue)}</b></div>`).join('');
+                const ok = await Swal.fire({
+                    icon: 'warning',
+                    title: 'تغییر قیمت غیرعادی',
+                    html: `<div style="font-size:13px">این تغییرها بیش از ۱۰ برابر (یا کمتر از یک‌دهم) مقدار قبلی‌اند.<br>واحد <b>تومان</b> است — مطمئنید؟<br><br>${list}</div>`,
+                    showCancelButton: true, confirmButtonText: 'بله، اعمال کن', cancelButtonText: 'انصراف'
+                });
+                if (ok.isConfirmed) {
+                    const confirmedPayload = res.data.needsConfirm.map(c => ({id: c.id, field: c.field, value: c.newValue, confirmed: true}));
+                    const res2 = await axios.post(`${API}/v1/pricing/batch`, confirmedPayload);
+                    res = {data: {applied: (res.data.applied || 0) + (res2.data.applied || 0), errors: [...(res.data.errors||[]), ...(res2.data.errors||[])], needsConfirm: []}};
+                }
+            }
+
+            const errs = res.data.errors || [];
+            await Swal.fire({
+                icon: errs.length ? 'warning' : 'success',
+                title: `${res.data.applied} تغییر ثبت شد`,
+                html: errs.length ? `<div style="font-size:12px;text-align:right">${errs.map(escapeHTML).join('<br>')}</div>` : undefined,
+                timer: errs.length ? undefined : 1500,
+                showConfirmButton: !!errs.length
+            });
+            await fetchPricingRows();
+        } catch (err) {
+            if (err.response && err.response.status === 403) {
+                Swal.fire('دسترسی ندارید', 'نقش شما اجازه ویرایش قیمت را ندارد.', 'error');
+            } else {
+                Swal.fire('خطا', serverError(err, 'ذخیره تغییرات ناموفق بود'), 'error');
+            }
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    function exportPricingExcel() {
+        const q = (document.getElementById('pricing-search').value || '').trim().toLowerCase();
+        const rows = pricingRows.filter(r => !q || (r.name || '').toLowerCase().includes(q));
+        const head = ['نام محصول','قیمت سایت (تومان)','همکار تک (تومان)','اصفهان','تهران','در راه','موجودی فروش','کف ترب','لینک ترب','کف دیجی‌کالا','لینک دیجی‌کالا','فروش ویژه'];
+        const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const csv = [head.map(esc).join(',')].concat(rows.map(r => [
+            r.name, r.onlinePrice, r.partnerUnitPrice, r.stockIsfahan, r.stockTehran,
+            r.incomingStock, r.sellableStock, r.torobFloorPrice, r.torobUrl,
+            r.digikalaFloorPrice, r.digikalaUrl, r.pushSaleFlag ? 'بله' : 'خیر'
+        ].map(esc).join(','))).join('\n');
+
+        // BOM تا اکسل فارسی را درست بخواند
+        const blob = new Blob(['﻿' + csv], {type: 'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `pricing-${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    // ==========================================
+    // لاگ فعالیت
+    // ==========================================
+    const LOG_ACTION_LABELS = {
+        PRICE_CHANGE: 'تغییر قیمت', FLOOR_PRICE_CHANGE: 'تغییر کف رقبا',
+        FLAG_CHANGE: 'تغییر پرچم فروش', LOGIN: 'ورود به سیستم'
+    };
+    const LOG_SOURCE_LABELS = {MANUAL: 'دستی', BATCH: 'دسته‌ای', HOLOO: 'هلو'};
+
+    async function fetchActivityLogs() {
+        toggleLoader(true);
+        try {
+            const params = new URLSearchParams();
+            const u = document.getElementById('log-username').value.trim();
+            const f = document.getElementById('log-from').value;
+            const t = document.getElementById('log-to').value;
+            if (u) params.set('username', u);
+            if (f) params.set('from', f);
+            if (t) params.set('to', t);
+            params.set('size', '200');
+
+            const res = await axios.get(`${API}/v1/pricing/logs?${params.toString()}`);
+            const items = (res.data && res.data.content) || [];
+            document.getElementById('log-body').innerHTML = items.length ? items.map(l => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-2 text-gray-500 whitespace-nowrap">${new Date(l.at).toLocaleString('fa-IR')}</td>
+                    <td class="p-2 font-medium">${escapeHTML(l.username || '')}</td>
+                    <td class="p-2">${LOG_ACTION_LABELS[l.action] || l.action || ''}</td>
+                    <td class="p-2">${escapeHTML(l.productName || '—')}</td>
+                    <td class="p-2 text-gray-500" dir="ltr">${escapeHTML(l.field || '—')}</td>
+                    <td class="p-2 text-red-600" dir="ltr">${escapeHTML(l.oldValue ?? '—')}</td>
+                    <td class="p-2 text-green-700 font-bold" dir="ltr">${escapeHTML(l.newValue ?? '—')}</td>
+                    <td class="p-2 text-gray-400">${LOG_SOURCE_LABELS[l.source] || l.source || ''}</td>
+                </tr>`).join('')
+                : '<tr><td colspan="8" class="p-8 text-center text-gray-400">رویدادی ثبت نشده است</td></tr>';
+        } catch (err) {
+            if (err.response && err.response.status === 403) {
+                document.getElementById('log-body').innerHTML =
+                    '<tr><td colspan="8" class="p-8 text-center text-amber-600 font-bold">فقط ادمین به لاگ فعالیت دسترسی دارد.</td></tr>';
+            } else {
+                Swal.fire('خطا', serverError(err, 'دریافت لاگ ناموفق بود'), 'error');
+            }
+        } finally {
+            toggleLoader(false);
+        }
     }
 
     async function fetchStaff() {
@@ -3377,7 +3726,9 @@
             input: 'select',
             inputOptions: {
                 ADMIN: 'ادمین (دسترسی کامل)',
-                SUPPORT: 'پشتیبان (هنوز بدون دسترسی)',
+                PRICER: 'کارشناس قیمت‌گذاری (ویرایش قیمت‌ها)',
+                SALES: 'کارشناس فروش (فقط مشاهده)',
+                SUPPORT: 'پشتیبان (قدیمی — بدون دسترسی)',
                 USER: 'کاربر عادی (مشتری)'
             },
             inputValue: currentRole,

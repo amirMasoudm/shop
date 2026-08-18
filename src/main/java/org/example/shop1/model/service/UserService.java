@@ -163,6 +163,9 @@ public class UserService {
     /** فقط کاربرانِ دارای نقشِ کارکنان (برای تبِ مدیریتِ ادمین‌ها). */
     public List<User> getStaffUsers() {
         List<User> staff = new ArrayList<>(userRepository.findByRole(Role.ADMIN));
+        staff.addAll(userRepository.findByRole(Role.PRICER));
+        staff.addAll(userRepository.findByRole(Role.SALES));
+        // نقشِ قدیمی؛ اگر کاربری هنوز داشته باشد از فهرستِ کارکنان نیفتد
         staff.addAll(userRepository.findByRole(Role.SUPPORT));
         return staff;
     }
