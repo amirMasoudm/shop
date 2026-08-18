@@ -3485,9 +3485,11 @@
             const key = `${r.id}|${field}`;
             const pending = pricingDirty.has(key);
             const shown = pending ? pricingDirty.get(key).value : (value ?? '');
+            // oninput نه onchange: onchange فقط موقعِ ازدست‌دادنِ فوکوس شلیک می‌شود،
+            // یعنی کاربر باید Tab بزند/جای دیگر کلیک کند تا نتیجه را ببیند.
             return `<input type="text" inputmode="decimal" value="${shown === null ? '' : shown}"
                        data-id="${r.id}" data-field="${field}"
-                       onchange="onPricingEdit(this)"
+                       oninput="onPricingEdit(this)"
                        class="${width} p-1.5 border rounded text-left ${pending ? 'bg-yellow-50 border-yellow-400' : ''}" dir="ltr">`;
         };
 
