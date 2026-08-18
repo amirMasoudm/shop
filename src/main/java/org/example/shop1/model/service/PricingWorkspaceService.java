@@ -29,22 +29,59 @@ public class PricingWorkspaceService {
             "onlinePrice", "partnerUnitPrice", "partnerBulkPrice", "dollarPrice",
             "torobFloorPrice", "torobUrl",
             "digikalaFloorPrice", "digikalaUrl",
-            "pushSaleFlag");
+            "pushSaleFlag",
+            "priceOverride"); // فقط برایِ «بازگشت به فرمول» (false کردن)
 
     /** ضریبِ «تلهٔ هزاربرابری» — بیش از این نسبت، تأییدِ دوم لازم دارد. */
     private static final BigDecimal SPIKE_FACTOR = BigDecimal.valueOf(10);
 
     private final ProductRepository productRepo;
     private final ActivityLogService activityLog;
+    private final StoreSettingsService settingsService;
 
-    public PricingWorkspaceService(ProductRepository productRepo, ActivityLogService activityLog) {
+    public PricingWorkspaceService(ProductRepository productRepo, ActivityLogService activityLog,
+                                   StoreSettingsService settingsService) {
         this.productRepo = productRepo;
         this.activityLog = activityLog;
+        this.settingsService = settingsService;
+    }
+
+    /**
+     * قیمتِ سایت مشتق از «فروش تعدادی»: {@code partnerBulkPrice × sitePriceFactor}.
+     * ضریب از تنظیمات می‌آید، نه هاردکد — تا دو منبعِ حقیقت نداشته باشیم.
+     *
+     * @return مقدارِ محاسبه‌شده، یا {@code null} اگر «فروش تعدادی» خالی باشد
+     */
+    public BigDecimal derivedOnlinePrice(Product p, BigDecimal factor) {
+        BigDecimal bulk = p.getPartnerBulkPrice();
+        if (bulk == null || bulk.compareTo(BigDecimal.ZERO) <= 0) return null;
+        return bulk.multiply(factor).setScale(0, java.math.RoundingMode.HALF_UP);
+    }
+
+    /**
+     * بعد از تغییرِ «فروش تعدادی»، قیمتِ سایت را بازمحاسبه می‌کند —
+     * مگر اینکه قیمت دستی ست شده باشد ({@code priceOverride})، که در آن صورت
+     * عمداً دست نمی‌خورد و کارشناس در UI می‌بیند چقدر با فرمول فاصله دارد.
+     */
+    private void recalcOnlinePriceIfDerived(Product p, BigDecimal factor) {
+        if (Boolean.TRUE.equals(p.getPriceOverride())) return;
+
+        BigDecimal derived = derivedOnlinePrice(p, factor);
+        if (derived == null) return;
+
+        BigDecimal before = p.getOnlinePrice();
+        if (before != null && before.compareTo(derived) == 0) return; // تغییری نکرده
+
+        p.setOnlinePrice(derived);
+        // منبعِ متفاوت تا در لاگ معلوم باشد این تغییر خودکار بوده نه دستی
+        activityLog.recordProduct(ActivityLog.Action.PRICE_CHANGE, ActivityLog.Source.DERIVED,
+                p.getId(), p.getName(), "onlinePrice", before, derived);
     }
 
     public List<PricingRowDto> rows(String query) {
         List<Product> all = productRepo.findAll();
         String q = query == null ? "" : query.trim().toLowerCase();
+        BigDecimal factor = settingsService.getSitePriceFactor();
 
         List<PricingRowDto> out = new ArrayList<>();
         for (Product p : all) {
@@ -52,7 +89,7 @@ public class PricingWorkspaceService {
                 String name = p.getName() == null ? "" : p.getName().toLowerCase();
                 if (!name.contains(q)) continue;
             }
-            out.add(PricingRowDto.of(p));
+            out.add(PricingRowDto.of(p, derivedOnlinePrice(p, factor)));
         }
         out.sort(Comparator.comparing(PricingRowDto::getName, Comparator.nullsLast(String::compareTo)));
         return out;
@@ -73,6 +110,8 @@ public class PricingWorkspaceService {
         List<Map<String, Object>> needsConfirm = new ArrayList<>();
         List<String> errors = new ArrayList<>();
         int applied = 0;
+        // یک‌بار خوانده می‌شود، نه به‌ازایِ هر ردیف
+        final BigDecimal factor = settingsService.getSitePriceFactor();
 
         for (Map<String, Object> ch : changes) {
             String id = str(ch.get("id"));
@@ -121,9 +160,17 @@ public class PricingWorkspaceService {
                         }
 
                         switch (field) {
-                            case "onlinePrice" -> p.setOnlinePrice(newVal);
+                            case "onlinePrice" -> {
+                                p.setOnlinePrice(newVal);
+                                // ویرایشِ مستقیمِ قیمتِ سایت = تصمیمِ آگاهانه‌ی انسان؛
+                                // از این به بعد فرمول بازنویسی‌اش نمی‌کند
+                                p.setPriceOverride(true);
+                            }
                             case "partnerUnitPrice" -> p.setPartnerUnitPrice(newVal);
-                            case "partnerBulkPrice" -> p.setPartnerBulkPrice(newVal);
+                            case "partnerBulkPrice" -> {
+                                p.setPartnerBulkPrice(newVal);
+                                recalcOnlinePriceIfDerived(p, factor);
+                            }
                             case "dollarPrice" -> p.setDollarPrice(newVal);
                             case "torobFloorPrice" -> {
                                 p.setTorobFloorPrice(newVal);
@@ -137,7 +184,7 @@ public class PricingWorkspaceService {
 
                         p.setUpdatedAt(Instant.now());
                         productRepo.save(p);
-                        activityLog.record(
+                        activityLog.recordProduct(
                                 field.contains("Floor") ? ActivityLog.Action.FLOOR_PRICE_CHANGE
                                         : ActivityLog.Action.PRICE_CHANGE,
                                 ActivityLog.Source.MANUAL,
@@ -150,7 +197,7 @@ public class PricingWorkspaceService {
                         if ("torobUrl".equals(field)) p.setTorobUrl(newVal); else p.setDigikalaUrl(newVal);
                         p.setUpdatedAt(Instant.now());
                         productRepo.save(p);
-                        activityLog.record(ActivityLog.Action.FLOOR_PRICE_CHANGE, ActivityLog.Source.MANUAL,
+                        activityLog.recordProduct(ActivityLog.Action.FLOOR_PRICE_CHANGE, ActivityLog.Source.MANUAL,
                                 p.getId(), p.getName(), field, oldVal, newVal);
                         applied++;
                     }
@@ -161,8 +208,26 @@ public class PricingWorkspaceService {
                         p.setPushSaleFlag(newVal);
                         p.setUpdatedAt(Instant.now());
                         productRepo.save(p);
-                        activityLog.record(ActivityLog.Action.FLAG_CHANGE, ActivityLog.Source.MANUAL,
+                        activityLog.recordProduct(ActivityLog.Action.FLAG_CHANGE, ActivityLog.Source.MANUAL,
                                 p.getId(), p.getName(), field, oldVal, newVal);
+                        applied++;
+                    }
+                    // «بازگشت به فرمول»: پرچمِ دستی برداشته و قیمت دوباره مشتق می‌شود.
+                    // فقط برداشتنِ پرچم پذیرفته است؛ روشن‌کردنش با ویرایشِ مستقیمِ قیمت انجام می‌شود.
+                    case "priceOverride" -> {
+                        boolean requested = Boolean.TRUE.equals(rawValue)
+                                || "true".equalsIgnoreCase(String.valueOf(rawValue));
+                        if (requested) {
+                            errors.add("روشن‌کردنِ «قیمتِ دستی» مستقیم ممکن نیست؛ کافیست قیمتِ سایت را ویرایش کنی");
+                            continue;
+                        }
+                        Boolean oldVal = p.getPriceOverride();
+                        p.setPriceOverride(false);
+                        recalcOnlinePriceIfDerived(p, factor);
+                        p.setUpdatedAt(Instant.now());
+                        productRepo.save(p);
+                        activityLog.recordProduct(ActivityLog.Action.FLAG_CHANGE, ActivityLog.Source.MANUAL,
+                                p.getId(), p.getName(), field, oldVal, false);
                         applied++;
                     }
                     default -> errors.add("فیلدِ ناشناخته: " + field);

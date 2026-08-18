@@ -18,10 +18,32 @@ public class StoreSettings {
     // آستانه‌ی مبلغی فعال‌شدن استعلام پیش‌فاکتور (RFQ). null یا ۰ یعنی غیرفعال.
     private BigDecimal rfqThreshold;
 
+    /**
+     * ضریبِ قیمتِ سایت: {@code onlinePrice = partnerBulkPrice × sitePriceFactor}.
+     * <p>
+     * پیش‌فرض ۱.۰۸ = ۵٪ سودِ فروشنده + ۳٪ سودِ کارگزار.
+     * عمداً اینجاست و در کد هاردکد نشده — قبلاً فقط داخلِ اسکریپتِ یک‌بارمصرفِ ایمپورت بود
+     * و اگر در اپ هم تکرار می‌شد، دو منبعِ حقیقت می‌شد و دیر یا زود واگرا می‌شدند.
+     * یک قراردادِ تجاری است، پس فقط ADMIN تغییرش می‌دهد نه PRICER.
+     */
+    private BigDecimal sitePriceFactor;
+
+    /** ضریبِ پیش‌فرض وقتی هنوز در تنظیمات ست نشده است. */
+    public static final BigDecimal DEFAULT_SITE_PRICE_FACTOR = new BigDecimal("1.08");
+
     // Getters & Setters
 
     public BigDecimal getRfqThreshold() { return rfqThreshold; }
     public void setRfqThreshold(BigDecimal rfqThreshold) { this.rfqThreshold = rfqThreshold; }
+
+    public BigDecimal getSitePriceFactor() { return sitePriceFactor; }
+    public void setSitePriceFactor(BigDecimal sitePriceFactor) { this.sitePriceFactor = sitePriceFactor; }
+
+    /** ضریبِ مؤثر — اگر ست نشده یا نامعتبر بود، پیش‌فرض. */
+    public BigDecimal effectiveSitePriceFactor() {
+        return (sitePriceFactor != null && sitePriceFactor.compareTo(BigDecimal.ZERO) > 0)
+                ? sitePriceFactor : DEFAULT_SITE_PRICE_FACTOR;
+    }
 
     public String getId() {
         return id;

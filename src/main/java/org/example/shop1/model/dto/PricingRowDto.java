@@ -38,7 +38,19 @@ public class PricingRowDto {
 
     private final Boolean pushSaleFlag;
 
+    /** قیمتِ سایت دستی ست شده و فرمول بازنویسی‌اش نمی‌کند. */
+    private final Boolean priceOverride;
+
+    /** مقدارِ پیشنهادیِ فرمول — تا کارشناس ببیند قیمتِ دستی چقدر از فرمول عقب افتاده. */
+    private final BigDecimal suggestedOnlinePrice;
+
     public PricingRowDto(Product p) {
+        this(p, null);
+    }
+
+    public PricingRowDto(Product p, BigDecimal suggestedOnlinePrice) {
+        this.suggestedOnlinePrice = suggestedOnlinePrice;
+        this.priceOverride = p.getPriceOverride();
         this.id = p.getId();
         this.name = p.getName();
         this.categoryId = p.getCategoryId();
@@ -63,6 +75,10 @@ public class PricingRowDto {
 
     public static PricingRowDto of(Product p) { return new PricingRowDto(p); }
 
+    public static PricingRowDto of(Product p, BigDecimal suggestedOnlinePrice) {
+        return new PricingRowDto(p, suggestedOnlinePrice);
+    }
+
     public String getId() { return id; }
     public String getName() { return name; }
     public String getCategoryId() { return categoryId; }
@@ -83,4 +99,6 @@ public class PricingRowDto {
     public String getFloorPriceCheckedAt() { return floorPriceCheckedAt; }
     public String getFloorPriceCheckedBy() { return floorPriceCheckedBy; }
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
+    public Boolean getPriceOverride() { return priceOverride; }
+    public BigDecimal getSuggestedOnlinePrice() { return suggestedOnlinePrice; }
 }

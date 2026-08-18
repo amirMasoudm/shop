@@ -91,6 +91,15 @@ public class Product {
     /** «فروش تعدادی» — ردهٔ قیمتِ عمده (خریدِ چندتایی)، جدا از قیمتِ همکارِ تک. */
     private BigDecimal partnerBulkPrice;
 
+    /**
+     * قیمتِ سایت دستی ست شده و نباید از فرمول بازنویسی شود.
+     * <p>
+     * بدونِ این پرچم، همان کلاسِ مشکلِ «مشتق‌شده در برابرِ دستی» رخ می‌دهد: کارشناس
+     * برایِ کالایی عمداً قیمتِ ویژه می‌گذارد، فردا کسی «فروش تعدادی» را عوض می‌کند و
+     * قیمتِ ویژه <b>بی‌صدا</b> پاک می‌شود.
+     */
+    private Boolean priceOverride;
+
     /** قیمتِ خرید/مرجع به دلار — برایِ رصدِ حساسیت به نرخِ ارز، مستقل از basePriceِ ریالی. */
     private BigDecimal dollarPrice;
 
@@ -128,6 +137,9 @@ public class Product {
 
     public BigDecimal getPartnerBulkPrice() { return partnerBulkPrice; }
     public void setPartnerBulkPrice(BigDecimal partnerBulkPrice) { this.partnerBulkPrice = partnerBulkPrice; }
+
+    public Boolean getPriceOverride() { return priceOverride; }
+    public void setPriceOverride(Boolean priceOverride) { this.priceOverride = priceOverride; }
 
     public BigDecimal getDollarPrice() { return dollarPrice; }
     public void setDollarPrice(BigDecimal dollarPrice) { this.dollarPrice = dollarPrice; }

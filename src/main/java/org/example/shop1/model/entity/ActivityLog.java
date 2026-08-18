@@ -27,6 +27,7 @@ public class ActivityLog {
     /** مسیرِ انجامِ تغییر — برایِ تفکیکِ کارِ دستی از ورودِ دسته‌ای و (بعداً) هلو. */
     public enum Source {
         MANUAL,   // ویرایشِ دستی در میزِ کار
+        DERIVED,  // محاسبه‌ی خودکار از فرمول (قیمتِ سایت از «فروش تعدادی»)
         BATCH,    // ورودِ دسته‌ای / ایمپورت
         HOLOO     // آینده: همگام‌سازیِ هلو
     }
@@ -43,23 +44,37 @@ public class ActivityLog {
     private Action action;
     private Source source = Source.MANUAL;
 
+    /**
+     * نوعِ موجودیت: {@code PRODUCT}، {@code SETTINGS}، و بعداً {@code CATEGORY}،
+     * {@code ARTICLE}، {@code USER} و…
+     * <p>
+     * عمداً عام است: قسمتِ (ب) لاگِ پنلِ ادمین قرار است رویدادهایی را ثبت کند که اصلاً
+     * محصول نیستند. اگر schema محصول‌محور می‌ماند، آن تسک مجبور می‌شد یا مهاجرتِ دیتا
+     * بزند یا کالکشنِ دومِ موازی بسازد (= دو صفحهٔ لاگ و دو منطقِ فیلتر).
+     */
     @Indexed
-    private String productId;     // چه محصولی (برایِ LOGIN نال است)
-    private String productName;   // اسنپ‌شاتِ نام، تا اگر محصول بعداً حذف شد لاگ خوانا بماند
+    private String entityType;
 
-    private String field;         // کدام فیلد (onlinePrice, partnerUnitPrice, ...)
+    @Indexed
+    private String entityId;      // شناسه‌ی موجودیت (برایِ LOGIN نال است)
+
+    /** اسنپ‌شاتِ نامِ نمایشی، تا اگر موجودیت بعداً حذف شد لاگ همچنان خوانا بماند. */
+    private String productName;
+
+    private String field;         // کدام فیلد (onlinePrice, partnerBulkPrice, sitePriceFactor, ...)
     private String oldValue;      // از چه مقدار
     private String newValue;      // به چه مقدار
 
     public ActivityLog() {}
 
     public ActivityLog(String username, Action action, Source source,
-                       String productId, String productName,
+                       String entityType, String entityId, String productName,
                        String field, String oldValue, String newValue) {
         this.username = username;
         this.action = action;
         this.source = source;
-        this.productId = productId;
+        this.entityType = entityType;
+        this.entityId = entityId;
         this.productName = productName;
         this.field = field;
         this.oldValue = oldValue;
@@ -82,8 +97,11 @@ public class ActivityLog {
     public Source getSource() { return source; }
     public void setSource(Source source) { this.source = source; }
 
-    public String getProductId() { return productId; }
-    public void setProductId(String productId) { this.productId = productId; }
+    public String getEntityType() { return entityType; }
+    public void setEntityType(String entityType) { this.entityType = entityType; }
+
+    public String getEntityId() { return entityId; }
+    public void setEntityId(String entityId) { this.entityId = entityId; }
 
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }

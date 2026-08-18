@@ -50,6 +50,7 @@ public class PricingWorkspaceController {
     @GetMapping("/logs")
     public ResponseEntity<Page<ActivityLog>> logs(
             @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "entityType", required = false) String entityType,
             @RequestParam(name = "from", required = false) String from,
             @RequestParam(name = "to", required = false) String to,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -57,7 +58,7 @@ public class PricingWorkspaceController {
 
         Instant f = parseInstant(from);
         Instant t = parseInstant(to);
-        return ResponseEntity.ok(activityLog.search(username, f, t, page, size));
+        return ResponseEntity.ok(activityLog.search(username, entityType, f, t, page, size));
     }
 
     /** تاریخِ ورودی می‌تواند ISO کامل یا فقط yyyy-MM-dd باشد. */

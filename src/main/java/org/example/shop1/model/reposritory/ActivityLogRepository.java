@@ -19,4 +19,11 @@ public interface ActivityLogRepository extends MongoRepository<ActivityLog, Stri
 
     Page<ActivityLog> findByUsernameAndAtBetweenOrderByAtDesc(
             String username, Instant from, Instant to, Pageable pageable);
+
+    // فیلترِ نوعِ موجودیت — پایه‌ی دوقسمتی‌شدنِ صفحه‌ی لاگ
+    Page<ActivityLog> findByEntityTypeAndAtBetweenOrderByAtDesc(
+            String entityType, Instant from, Instant to, Pageable pageable);
+
+    Page<ActivityLog> findByUsernameAndEntityTypeAndAtBetweenOrderByAtDesc(
+            String username, String entityType, Instant from, Instant to, Pageable pageable);
 }

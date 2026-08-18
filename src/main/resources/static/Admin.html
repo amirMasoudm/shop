@@ -685,6 +685,30 @@
             </div>
         </div>
 
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border mb-6">
+            <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2"><span>💹</span> ضریب قیمت سایت</h3>
+            <p class="text-xs text-gray-500 mb-3">
+                قیمت سایت هر محصول از روی «فروش تعدادی» ضربدر این ضریب محاسبه می‌شود.
+                <b>پیش‌فرض ۱.۰۸ = ۵٪ سود فروشنده + ۳٪ سود کارگزار.</b>
+                این یک قرارداد تجاری است، پس فقط ادمین می‌تواند تغییرش دهد (نه کارشناس قیمت‌گذاری) و هر تغییرش در لاگ ثبت می‌شود.
+            </p>
+            <div class="flex gap-3 items-end">
+                <div class="flex-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">ضریب</label>
+                    <input type="number" id="site-price-factor" step="0.01" min="0.01" placeholder="1.08" dir="ltr"
+                           class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-indigo-500 text-left">
+                </div>
+                <button onclick="saveSitePriceFactor()"
+                        class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                    ذخیره ضریب
+                </button>
+            </div>
+            <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mt-3">
+                ⚠️ تغییر این ضریب قیمت سایت محصولات را در ویرایش بعدی «فروش تعدادی» تحت تأثیر قرار می‌دهد.
+                محصولاتی که قیمت دستی دارند (نشان «✋ دستی») دست‌نخورده می‌مانند.
+            </p>
+        </div>
+
         <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="space-y-2">
                 <div id="admin-map"></div>
@@ -848,6 +872,12 @@
         <p class="text-xs text-gray-500 mb-4">این لاگ حذف‌نشدنی است — حتی توسط ادمین.</p>
 
         <div class="flex flex-col md:flex-row gap-2 mb-3">
+            <select id="log-entity-type" onchange="fetchActivityLogs()"
+                    class="p-2.5 border rounded-lg outline-none text-sm bg-white">
+                <option value="">همه رویدادها</option>
+                <option value="PRODUCT">قیمت‌گذاری محصولات</option>
+                <option value="SETTINGS">تنظیمات فروشگاه</option>
+            </select>
             <input type="text" id="log-username" placeholder="نام کاربری (خالی = همه)"
                    class="flex-1 p-2.5 border rounded-lg outline-none text-sm">
             <input type="date" id="log-from" class="p-2.5 border rounded-lg outline-none text-sm">
@@ -1768,6 +1798,7 @@
         if (id === 'stockNotify') fetchStockNotifications();
         if (id === 'settings') {
             fetchRfqThreshold();
+            fetchSitePriceFactor();
             setTimeout(() => {
                 if (!adminMap) initAdminMap();
                 else adminMap.invalidateSize();
@@ -3455,7 +3486,15 @@
         document.getElementById('pricing-body').innerHTML = rows.length ? rows.map(r => `
             <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''}">
                 <td class="p-2 font-medium text-gray-800">${escapeHTML(r.name || '')}</td>
-                <td class="p-2">${priceInput(r, 'onlinePrice', r.onlinePrice)}</td>
+                <td class="p-2">
+                    ${priceInput(r, 'onlinePrice', r.onlinePrice)}
+                    ${r.priceOverride ? `
+                        <div class="flex items-center gap-1 mt-1">
+                            <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold" title="این قیمت دستی ثبت شده و با تغییر «فروش تعدادی» بازنویسی نمی‌شود">✋ دستی</span>
+                            ${r.suggestedOnlinePrice ? `<span class="text-[9px] text-gray-400" dir="ltr" title="مقدار پیشنهادی فرمول">≈${fmtMoney(r.suggestedOnlinePrice)}</span>` : ''}
+                            ${pricingCanEdit ? `<button onclick="revertToFormula('${r.id}')" class="text-[9px] text-indigo-600 hover:underline shrink-0" title="پرچم دستی برداشته و قیمت دوباره از فرمول محاسبه شود">بازگشت به فرمول</button>` : ''}
+                        </div>` : ''}
+                </td>
                 <td class="p-2">${priceInput(r, 'partnerUnitPrice', r.partnerUnitPrice)}</td>
                 <td class="p-2">${priceInput(r, 'partnerBulkPrice', r.partnerBulkPrice)}</td>
                 <td class="p-2">${priceInput(r, 'dollarPrice', r.dollarPrice, 'w-20')}</td>
@@ -3506,6 +3545,32 @@
         if (original === box.checked) pricingDirty.delete(`${id}|pushSaleFlag`);
         else pricingDirty.set(`${id}|pushSaleFlag`, {id, field: 'pushSaleFlag', value: box.checked});
         updatePricingDirtyUi();
+    }
+
+    // «بازگشت به فرمول»: پرچمِ دستی برداشته می‌شود و قیمتِ سایت دوباره از
+    // «فروش تعدادی × ضریب» محاسبه می‌شود.
+    async function revertToFormula(id) {
+        const row = pricingRows.find(r => r.id === id);
+        const ok = await Swal.fire({
+            icon: 'question',
+            title: 'بازگشت به فرمول؟',
+            html: `<div style="font-size:13px;text-align:right">قیمت دستیِ <b>${escapeHTML(row ? row.name : '')}</b> برداشته می‌شود و
+                   قیمت سایت دوباره از «فروش تعدادی × ضریب» محاسبه خواهد شد.
+                   ${row && row.suggestedOnlinePrice ? `<br><br>مقدار جدید: <b>${fmtMoney(row.suggestedOnlinePrice)}</b> تومان` : ''}</div>`,
+            showCancelButton: true, confirmButtonText: 'بله', cancelButtonText: 'انصراف'
+        });
+        if (!ok.isConfirmed) return;
+
+        toggleLoader(true);
+        try {
+            await axios.post(`${API}/v1/pricing/batch`, [{id, field: 'priceOverride', value: false}]);
+            await fetchPricingRows();
+            Swal.fire({icon: 'success', title: 'به فرمول برگشت', timer: 1200, showConfirmButton: false});
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'بازگشت به فرمول ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
     }
 
     function updatePricingDirtyUi() {
@@ -3584,7 +3649,9 @@
         PRICE_CHANGE: 'تغییر قیمت', FLOOR_PRICE_CHANGE: 'تغییر کف رقبا',
         FLAG_CHANGE: 'تغییر پرچم فروش', LOGIN: 'ورود به سیستم'
     };
-    const LOG_SOURCE_LABELS = {MANUAL: 'دستی', BATCH: 'دسته‌ای', HOLOO: 'هلو'};
+    const LOG_SOURCE_LABELS = {MANUAL: 'دستی', DERIVED: 'خودکار (فرمول)', BATCH: 'دسته‌ای', HOLOO: 'هلو'};
+    // نوعِ موجودیت — پایه‌ی دوقسمتی‌شدنِ لاگ؛ نوعِ جدید فقط یک ردیف اینجا می‌خواهد
+    const LOG_ENTITY_LABELS = {PRODUCT: 'محصول', SETTINGS: 'تنظیمات', CATEGORY: 'دسته', ARTICLE: 'مقاله', USER: 'کاربر'};
 
     async function fetchActivityLogs() {
         toggleLoader(true);
@@ -3593,7 +3660,9 @@
             const u = document.getElementById('log-username').value.trim();
             const f = document.getElementById('log-from').value;
             const t = document.getElementById('log-to').value;
+            const et = document.getElementById('log-entity-type').value;
             if (u) params.set('username', u);
+            if (et) params.set('entityType', et);
             if (f) params.set('from', f);
             if (t) params.set('to', t);
             params.set('size', '200');
@@ -3605,7 +3674,10 @@
                     <td class="p-2 text-gray-500 whitespace-nowrap">${new Date(l.at).toLocaleString('fa-IR')}</td>
                     <td class="p-2 font-medium">${escapeHTML(l.username || '')}</td>
                     <td class="p-2">${LOG_ACTION_LABELS[l.action] || l.action || ''}</td>
-                    <td class="p-2">${escapeHTML(l.productName || '—')}</td>
+                    <td class="p-2">
+                        ${escapeHTML(l.productName || '—')}
+                        ${l.entityType ? `<span class="text-[9px] text-gray-400 mr-1">(${LOG_ENTITY_LABELS[l.entityType] || l.entityType})</span>` : ''}
+                    </td>
                     <td class="p-2 text-gray-500" dir="ltr">${escapeHTML(l.field || '—')}</td>
                     <td class="p-2 text-red-600" dir="ltr">${escapeHTML(l.oldValue ?? '—')}</td>
                     <td class="p-2 text-green-700 font-bold" dir="ltr">${escapeHTML(l.newValue ?? '—')}</td>
@@ -4165,6 +4237,40 @@
         axios.post(`${API}/v1/settings/admin/rfq-threshold`, {threshold})
             .then(() => Swal.fire('موفق', 'آستانه‌ی استعلام ذخیره شد.', 'success'))
             .catch(() => Swal.fire('خطا', 'مشکل در ذخیره آستانه.', 'error'));
+    }
+
+    async function fetchSitePriceFactor() {
+        try {
+            const res = await axios.get(`${API}/v1/settings/site-price-factor`);
+            document.getElementById('site-price-factor').value = Number(res.data.factor || 1.08);
+        } catch (e) { }
+    }
+
+    async function saveSitePriceFactor() {
+        const factor = Number(document.getElementById('site-price-factor').value);
+        if (!factor || factor <= 0) {
+            Swal.fire('خطا', 'ضریب باید عددی بزرگ‌تر از صفر باشد.', 'error');
+            return;
+        }
+        // ضریبِ خیلی دور از ۱ معمولاً اشتباهِ تایپی است (مثلاً ۱۰۸ به‌جای ۱.۰۸)
+        if (factor > 3 || factor < 0.5) {
+            const ok = await Swal.fire({
+                icon: 'warning', title: 'ضریب غیرعادی',
+                html: `<div style="font-size:13px">ضریب <b>${factor}</b> یعنی قیمت سایت ${factor} برابرِ «فروش تعدادی» می‌شود.<br>مطمئنی؟ (مقدار معمول حدود ۱.۰۸ است)</div>`,
+                showCancelButton: true, confirmButtonText: 'بله، ذخیره کن', cancelButtonText: 'انصراف'
+            });
+            if (!ok.isConfirmed) return;
+        }
+        try {
+            await axios.post(`${API}/v1/settings/admin/site-price-factor`, {factor});
+            Swal.fire('موفق', 'ضریب قیمت سایت ذخیره شد.', 'success');
+        } catch (err) {
+            if (err.response && err.response.status === 403) {
+                Swal.fire('دسترسی ندارید', 'فقط ادمین می‌تواند ضریب قیمت را تغییر دهد.', 'error');
+            } else {
+                Swal.fire('خطا', serverError(err, 'مشکل در ذخیره ضریب.'), 'error');
+            }
+        }
     }
 </script>
 </body>
