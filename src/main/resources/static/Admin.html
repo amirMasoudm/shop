@@ -821,6 +821,7 @@
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
+                <button onclick="refreshAllDigikala()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold" title="فقط محصولاتی که قبلاً به دیجی‌کالا وصل شده‌اند">↻ به‌روزرسانی کف دیجی‌کالا</button>
                 <button onclick="exportPricingExcel()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold">⬇ خروجی اکسل</button>
                 <button id="pricing-save-btn" onclick="savePricingChanges()" disabled
                         class="px-5 py-2 rounded-lg bg-green-600 text-white font-bold text-sm shadow disabled:opacity-40 disabled:cursor-not-allowed">
@@ -3514,14 +3515,18 @@
                 <td class="p-2">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
-                        ${r.torobUrl ? `<a href="${escapeHTML(r.torobUrl)}" target="_blank" rel="noopener" class="text-indigo-600 shrink-0" title="باز کردن صفحه ترب">↗</a>` : ''}
+                        ${pricingCanEdit ? `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="صفحه جست‌وجوی ترب را باز می‌کند؛ کمترین قیمت را ببین و اینجا وارد کن">🔍 ترب</button>` : ''}
                     </div>
                 </td>
                 <td class="p-2">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'digikalaFloorPrice', r.digikalaFloorPrice, 'w-24')}
                         ${r.digikalaUrl ? `<a href="${escapeHTML(r.digikalaUrl)}" target="_blank" rel="noopener" class="text-indigo-600 shrink-0" title="باز کردن صفحه دیجی‌کالا">↗</a>` : ''}
+                        ${pricingCanEdit ? (r.digikalaDkp
+                            ? `<button onclick="refreshDigikala('${r.id}')" class="text-[10px] bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-300 rounded px-1.5 py-1 shrink-0" title="محصول متناظر قبلاً تأیید شده (DKP ${escapeHTML(r.digikalaDkp)}) — قیمت را به‌روز کن">↻ به‌روز</button>`
+                            : `<button onclick="findDigikala('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="جست‌وجو و انتخاب محصول متناظر در دیجی‌کالا">🔗 پیداکردن</button>`) : ''}
                     </div>
+                    ${r.floorPriceCheckedAt ? `<div class="text-[9px] text-gray-400 mt-0.5">${daysAgoLabel(r.floorPriceCheckedAt)}</div>` : ''}
                 </td>
                 <td class="p-2 text-center">
                     <input type="checkbox" ${r.pushSaleFlag ? 'checked' : ''} ${pricingCanEdit ? '' : 'disabled'}
@@ -3584,6 +3589,184 @@
         if (original === box.checked) pricingDirty.delete(`${id}|pushSaleFlag`);
         else pricingDirty.set(`${id}|pushSaleFlag`, {id, field: 'pushSaleFlag', value: box.checked});
         updatePricingDirtyUi();
+    }
+
+    // ==========================================================
+    // کفِ قیمتِ رقبا — دو بازار، دو رفتار
+    // دیجی‌کالا: خودکار (پیداکردن → تأییدِ انسان → به‌روزرسانیِ یک‌کلیکی)
+    // ترب: نیمه‌خودکار (فقط بازکردنِ صفحه؛ سدّ ضدرباتش دور زده نمی‌شود)
+    // ==========================================================
+
+    function daysAgoLabel(iso) {
+        const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+        if (d <= 0) return 'بررسی: امروز';
+        if (d === 1) return 'بررسی: دیروز';
+        return `بررسی: ${d} روز پیش`;
+    }
+
+    /** ترب — فقط صفحه را با کوئریِ آماده باز می‌کند. */
+    async function openTorobSearch(id) {
+        const row = pricingRows.find(r => r.id === id);
+        if (!row) return;
+        const {value: query} = await Swal.fire({
+            title: 'جست‌وجو در ترب',
+            input: 'text',
+            inputValue: row.name || '',
+            inputLabel: 'متن جست‌وجو (معمولاً فقط مدل بهتر جواب می‌دهد)',
+            html: '<div style="font-size:12px;text-align:right;color:#666">ترب دسترسی خودکار را می‌بندد، پس صفحه برایت باز می‌شود؛ کمترین قیمت را ببین و در همان فیلد وارد کن.</div>',
+            showCancelButton: true, confirmButtonText: 'باز کن', cancelButtonText: 'انصراف'
+        });
+        if (!query) return;
+        try {
+            const res = await axios.get(`${API}/v1/pricing/marketplace/search-url`,
+                {params: {market: 'torob', query}});
+            window.open(res.data.url, '_blank', 'noopener');
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'ساخت آدرس ناموفق بود'), 'error');
+        }
+    }
+
+    /** دیجی‌کالا مرحلهٔ A — نامزدها با تأییدِ انسان. هرگز خودکار انتخاب نمی‌شود. */
+    async function findDigikala(id) {
+        const row = pricingRows.find(r => r.id === id);
+        if (!row) return;
+
+        const {value: query} = await Swal.fire({
+            title: 'پیدا کردن در دیجی‌کالا',
+            input: 'text',
+            inputValue: row.name || '',
+            inputLabel: 'متن جست‌وجو — قابل ویرایش (نام کامل فارسی معمولاً نتیجه بد می‌دهد؛ فقط مدل را بزن)',
+            showCancelButton: true, confirmButtonText: 'جست‌وجو', cancelButtonText: 'انصراف'
+        });
+        if (!query) return;
+
+        toggleLoader(true);
+        let candidates = [];
+        try {
+            const res = await axios.post(`${API}/v1/pricing/marketplace/candidates`, {market: 'digikala', query});
+            candidates = res.data.candidates || [];
+        } catch (err) {
+            toggleLoader(false);
+            Swal.fire('خطا', serverError(err, 'جست‌وجو ناموفق بود'), 'error');
+            return;
+        }
+        toggleLoader(false);
+
+        if (!candidates.length) {
+            Swal.fire('نتیجه‌ای نبود', 'با متن دیگری امتحان کن (مثلاً فقط شماره مدل).', 'info');
+            return;
+        }
+
+        // ⚠️ حتی اگر یک نتیجه باشد، انتخاب با انسان است
+        const html = `
+            <div style="text-align:right;font-size:12px;color:#666;margin-bottom:8px">
+                محصول ما: <b>${escapeHTML(row.name || '')}</b>${row.onlinePrice ? ` — قیمت ما: ${fmtMoney(row.onlinePrice)} تومان` : ''}
+            </div>
+            <div style="text-align:right">
+            ${candidates.map((c, i) => `
+                <label style="display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid #eee;border-radius:8px;margin-bottom:6px;cursor:pointer">
+                    <input type="radio" name="dkcand" value="${i}" style="margin-top:4px">
+                    <span style="flex:1">
+                        <span style="font-size:12px;font-weight:700">${escapeHTML(c.title || '')}</span><br>
+                        <span style="font-size:11px;color:#16a34a">${c.priceToman ? fmtMoney(c.priceToman) + ' تومان' : 'ناموجود'}</span>
+                        <span style="font-size:10px;color:#999"> — DKP ${escapeHTML(c.externalId)}</span>
+                        <a href="${escapeHTML(c.url)}" target="_blank" rel="noopener" style="font-size:10px;margin-right:6px">مشاهده ↗</a>
+                    </span>
+                </label>`).join('')}
+            </div>`;
+
+        const pick = await Swal.fire({
+            title: 'کدام محصول درست است؟',
+            html, width: 620, showCancelButton: true,
+            confirmButtonText: 'همین است، ذخیره کن', cancelButtonText: 'هیچ‌کدام',
+            preConfirm: () => {
+                const sel = document.querySelector('input[name="dkcand"]:checked');
+                if (!sel) { Swal.showValidationMessage('یکی را انتخاب کن'); return false; }
+                return Number(sel.value);
+            }
+        });
+        if (!pick.isConfirmed) return;
+
+        const chosen = candidates[pick.value];
+        toggleLoader(true);
+        try {
+            await axios.post(`${API}/v1/pricing/marketplace/link`,
+                {productId: id, market: 'digikala', externalId: chosen.externalId, url: chosen.url});
+            await refreshDigikala(id, true); // بلافاصله قیمت را هم بگیر
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'ذخیره شناسه ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    /** دیجی‌کالا مرحلهٔ B — به‌روزرسانیِ یک‌کلیکی برایِ محصولِ تأییدشده. */
+    async function refreshDigikala(id, silent) {
+        toggleLoader(true);
+        try {
+            const res = await axios.post(`${API}/v1/pricing/marketplace/refresh`,
+                {productId: id, market: 'digikala', force: true});
+            const d = res.data;
+            await fetchPricingRows();
+
+            if (d.status === 'ok' || d.status === 'unchanged') {
+                const warn = d.weAreAboveMarket
+                    ? '<div style="color:#b45309;font-size:12px;margin-top:6px">⚠️ قیمت ما از کف بازار بالاتر است — تصمیم با شماست، چیزی خودکار تغییر نکرد.</div>'
+                    : '';
+                Swal.fire({icon: 'success', title: 'کف قیمت به‌روز شد',
+                    html: `<div style="font-size:13px">${fmtMoney(d.price)} تومان${warn}</div>`,
+                    timer: warn ? undefined : 1600, showConfirmButton: !!warn});
+            } else if (d.status === 'out-of-range') {
+                Swal.fire('ذخیره نشد', d.message, 'warning');
+            } else if (d.status === 'not-found') {
+                Swal.fire('قیمتی برگردانده نشد', d.message, 'info');
+            } else if (!silent) {
+                Swal.fire('توجه', d.message || d.status, 'info');
+            }
+        } catch (err) {
+            if (err.response && err.response.status === 403) {
+                Swal.fire('دسترسی ندارید', 'نقش شما اجازه به‌روزرسانی کف قیمت را ندارد.', 'error');
+            } else {
+                Swal.fire('خطا', serverError(err, 'به‌روزرسانی ناموفق بود'), 'error');
+            }
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    /** به‌روزرسانیِ همه — فقط محصولاتی که هویتشان قبلاً تأیید شده. */
+    async function refreshAllDigikala() {
+        const linked = pricingRows.filter(r => r.digikalaDkp).length;
+        if (!linked) {
+            Swal.fire('محصول متصلی نیست', 'اول با دکمه «پیداکردن» چند محصول را به دیجی‌کالا وصل کن.', 'info');
+            return;
+        }
+        const ok = await Swal.fire({
+            icon: 'question', title: `به‌روزرسانی ${linked} محصول؟`,
+            html: '<div style="font-size:13px;text-align:right">فقط محصولاتی که قبلاً تأیید شده‌اند به‌روز می‌شوند.<br>بین درخواست‌ها فاصله گذاشته می‌شود، پس ممکن است طول بکشد.</div>',
+            showCancelButton: true, confirmButtonText: 'شروع', cancelButtonText: 'انصراف'
+        });
+        if (!ok.isConfirmed) return;
+
+        toggleLoader(true);
+        try {
+            const res = await axios.post(`${API}/v1/pricing/marketplace/refresh-all`, {market: 'digikala'});
+            const d = res.data;
+            await fetchPricingRows();
+            const problems = (d.problems || []).slice(0, 8)
+                .map(p => `• ${escapeHTML(p.name)}: ${escapeHTML(p.message || p.status)}`).join('<br>');
+            Swal.fire({
+                icon: d.failed ? 'warning' : 'success',
+                title: `${d.ok} به‌روز شد`,
+                html: `<div style="font-size:12px;text-align:right">
+                        کل: ${d.total} | موفق: ${d.ok} | ردشده: ${d.skipped} | مشکل‌دار: ${d.failed}
+                        ${problems ? '<hr style="margin:8px 0">' + problems : ''}</div>`
+            });
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'به‌روزرسانی گروهی ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
     }
 
     // «بازگشت به فرمول»: پرچمِ دستی برداشته می‌شود و قیمتِ سایت دوباره از

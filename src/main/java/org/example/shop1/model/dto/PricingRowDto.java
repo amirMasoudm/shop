@@ -33,6 +33,7 @@ public class PricingRowDto {
     private final String torobUrl;
     private final BigDecimal digikalaFloorPrice;
     private final String digikalaUrl;
+    private final String digikalaDkp;   // هویتِ تأییدشده در دیجی‌کالا (خالی = هنوز وصل نشده)
     private final String floorPriceCheckedAt;
     private final String floorPriceCheckedBy;
 
@@ -68,6 +69,7 @@ public class PricingRowDto {
         this.torobUrl = p.getTorobUrl();
         this.digikalaFloorPrice = p.getDigikalaFloorPrice();
         this.digikalaUrl = p.getDigikalaUrl();
+        this.digikalaDkp = p.getDigikalaDkp();
         this.floorPriceCheckedAt = p.getFloorPriceCheckedAt() == null ? null : p.getFloorPriceCheckedAt().toString();
         this.floorPriceCheckedBy = p.getFloorPriceCheckedBy();
         this.pushSaleFlag = p.getPushSaleFlag();
@@ -96,6 +98,7 @@ public class PricingRowDto {
     public String getTorobUrl() { return torobUrl; }
     public BigDecimal getDigikalaFloorPrice() { return digikalaFloorPrice; }
     public String getDigikalaUrl() { return digikalaUrl; }
+    public String getDigikalaDkp() { return digikalaDkp; }
     public String getFloorPriceCheckedAt() { return floorPriceCheckedAt; }
     public String getFloorPriceCheckedBy() { return floorPriceCheckedBy; }
     public Boolean getPushSaleFlag() { return pushSaleFlag; }

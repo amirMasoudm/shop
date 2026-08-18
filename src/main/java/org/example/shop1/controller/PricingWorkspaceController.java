@@ -30,10 +30,62 @@ public class PricingWorkspaceController {
 
     private final PricingWorkspaceService service;
     private final ActivityLogService activityLog;
+    private final org.example.shop1.model.service.marketplace.FloorPriceService floorPriceService;
 
-    public PricingWorkspaceController(PricingWorkspaceService service, ActivityLogService activityLog) {
+    public PricingWorkspaceController(PricingWorkspaceService service, ActivityLogService activityLog,
+                                      org.example.shop1.model.service.marketplace.FloorPriceService floorPriceService) {
         this.service = service;
         this.activityLog = activityLog;
+        this.floorPriceService = floorPriceService;
+    }
+
+    // ==========================================================
+    // کفِ قیمتِ رقبا (بخشِ ۲)
+    // همه زیرِ /api/v1/pricing/** هستند، پس فقط ADMIN/PRICER/SALES می‌بینند؛
+    // نوشتن‌ها (POST) طبقِ قاعده‌ی SecurityConfig فقط ADMIN/PRICER.
+    // ==========================================================
+
+    /** آدرسِ جست‌وجویِ آماده — برایِ دکمهٔ «بازکردن در ترب» (نیمه‌خودکار). */
+    @GetMapping("/marketplace/search-url")
+    public ResponseEntity<Map<String, String>> searchUrl(@RequestParam String market,
+                                                        @RequestParam String query) {
+        return ResponseEntity.ok(Map.of("url", floorPriceService.searchPageUrl(market, query)));
+    }
+
+    /** مرحلهٔ A — نامزدها برایِ تأییدِ انسان. هرگز خودکار پذیرفته نمی‌شوند. */
+    @PostMapping("/marketplace/candidates")
+    public ResponseEntity<Map<String, Object>> candidates(@RequestBody Map<String, Object> body) {
+        String market = String.valueOf(body.getOrDefault("market", "digikala"));
+        String query = String.valueOf(body.getOrDefault("query", "")).trim();
+        return ResponseEntity.ok(Map.of(
+                "candidates", floorPriceService.searchCandidates(market, query, 5)));
+    }
+
+    /** ذخیرهٔ هویتِ تأییدشده (DKP). */
+    @PostMapping("/marketplace/link")
+    public ResponseEntity<Map<String, Object>> link(@RequestBody Map<String, String> body) {
+        floorPriceService.linkProduct(
+                body.get("productId"), body.getOrDefault("market", "digikala"),
+                body.get("externalId"), body.get("url"));
+        return ResponseEntity.ok(Map.of("status", "linked"));
+    }
+
+    /** مرحلهٔ B — به‌روزرسانیِ یک محصول. */
+    @PostMapping("/marketplace/refresh")
+    public ResponseEntity<Map<String, Object>> refresh(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(floorPriceService.refresh(
+                String.valueOf(body.get("productId")),
+                String.valueOf(body.getOrDefault("market", "digikala")),
+                Boolean.TRUE.equals(body.get("force"))));
+    }
+
+    /** به‌روزرسانیِ همه — فقط محصولاتی که هویتشان تأیید شده. */
+    @PostMapping("/marketplace/refresh-all")
+    public ResponseEntity<Map<String, Object>> refreshAll(@RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> b = body == null ? Map.of() : body;
+        return ResponseEntity.ok(floorPriceService.refreshAllLinked(
+                String.valueOf(b.getOrDefault("market", "digikala")),
+                Boolean.TRUE.equals(b.get("force"))));
     }
 
     @GetMapping("/rows")

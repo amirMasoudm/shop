@@ -128,6 +128,15 @@ public class Product {
     private BigDecimal digikalaFloorPrice;
     private String digikalaUrl;
 
+    /**
+     * شناسهٔ محصول در دیجی‌کالا (DKP) — بعد از تأییدِ انسان ذخیره می‌شود.
+     * <p>
+     * وجودش یعنی هویتِ کالا یک‌بار تأیید شده و از این به بعد به‌روزرسانیِ قیمت
+     * یک‌کلیکی است. بدونِ آن نمی‌شود خودکار قیمت گرفت، چون جست‌وجویِ دیجی‌کالا
+     * محصولاتِ نامرتبط هم برمی‌گرداند و «قیمتِ کالایِ اشتباه بدتر از نداشتنِ قیمت است».
+     */
+    private String digikalaDkp;
+
     /** آخرین باری که کفِ قیمتِ رقبا بررسی شد و توسطِ چه کسی. */
     private Instant floorPriceCheckedAt;
     private String floorPriceCheckedBy;
@@ -167,6 +176,9 @@ public class Product {
 
     public String getDigikalaUrl() { return digikalaUrl; }
     public void setDigikalaUrl(String digikalaUrl) { this.digikalaUrl = digikalaUrl; }
+
+    public String getDigikalaDkp() { return digikalaDkp; }
+    public void setDigikalaDkp(String digikalaDkp) { this.digikalaDkp = digikalaDkp; }
 
     public Instant getFloorPriceCheckedAt() { return floorPriceCheckedAt; }
     public void setFloorPriceCheckedAt(Instant floorPriceCheckedAt) { this.floorPriceCheckedAt = floorPriceCheckedAt; }

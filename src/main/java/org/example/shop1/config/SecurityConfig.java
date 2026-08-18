@@ -103,6 +103,9 @@ public class SecurityConfig {
                         // ترتیب مهم است: قواعدِ خاص‌ترِ نوشتن/لاگ باید قبل از قاعده‌ی کلیِ خواندن بیایند.
                         .requestMatchers(HttpMethod.GET, "/api/v1/pricing/logs").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasAnyRole("ADMIN", "PRICER")
+                        // نوشتن‌هایِ کفِ قیمت (اتصالِ شناسه/به‌روزرسانی) هم نوشتن‌اند:
+                        // بدونِ این خط، قاعده‌ی کلیِ پایین SALES را هم مجاز می‌کرد.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/marketplace/**").hasAnyRole("ADMIN", "PRICER")
                         .requestMatchers("/api/v1/pricing/**").hasAnyRole("ADMIN", "PRICER", "SALES")
 
                         // Torob Product API — ترب خودش با JWTِ ed25519 احراز می‌شود، نه سشنِ ما.
