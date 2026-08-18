@@ -3411,6 +3411,9 @@
     // ==========================================
     let pricingRows = [];
     let pricingCanEdit = true; // ADMIN/PRICER=true، SALES=false (فقط UI؛ مرزِ واقعی سمتِ سرور است)
+    // ضریبِ قیمتِ سایت برای پیش‌نمایشِ لحظه‌ای. محاسبهٔ معتبر همچنان سمتِ سرور است؛
+    // این فقط برای این است که کارشناس قبل از «ذخیره» هم نتیجه را ببیند.
+    let pricingFactor = 1.08;
     const pricingDirty = new Map(); // key: `${id}|${field}` → {id, field, value}
 
     // برایِ نقشِ کارشناسِ قیمت‌گذاری/فروش: فقط تبِ میزِ کار نشان داده شود، نه کلِ داشبورد
@@ -3433,7 +3436,12 @@
     async function fetchPricingRows() {
         toggleLoader(true);
         try {
-            const res = await axios.get(`${API}/v1/pricing/rows`);
+            // ضریب را هم بگیر تا پیش‌نمایشِ لحظه‌ای با همان چیزی که سرور حساب می‌کند یکی باشد
+            const [res, fRes] = await Promise.all([
+                axios.get(`${API}/v1/pricing/rows`),
+                axios.get(`${API}/v1/settings/site-price-factor`).catch(() => null)
+            ]);
+            if (fRes && fRes.data && fRes.data.factor) pricingFactor = Number(fRes.data.factor);
             pricingRows = res.data || [];
             pricingDirty.clear();
             updatePricingDirtyUi();
@@ -3491,7 +3499,7 @@
                     ${r.priceOverride ? `
                         <div class="flex items-center gap-1 mt-1">
                             <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold" title="این قیمت دستی ثبت شده و با تغییر «فروش تعدادی» بازنویسی نمی‌شود">✋ دستی</span>
-                            ${r.suggestedOnlinePrice ? `<span class="text-[9px] text-gray-400" dir="ltr" title="مقدار پیشنهادی فرمول">≈${fmtMoney(r.suggestedOnlinePrice)}</span>` : ''}
+                            <span class="text-[9px] text-gray-400" dir="ltr" data-suggested-for="${r.id}" title="مقدار پیشنهادی فرمول">${r.suggestedOnlinePrice ? '≈' + fmtMoney(r.suggestedOnlinePrice) : ''}</span>
                             ${pricingCanEdit ? `<button onclick="revertToFormula('${r.id}')" class="text-[9px] text-indigo-600 hover:underline shrink-0" title="پرچم دستی برداشته و قیمت دوباره از فرمول محاسبه شود">بازگشت به فرمول</button>` : ''}
                         </div>` : ''}
                 </td>
@@ -3535,6 +3543,35 @@
             pricingDirty.set(`${id}|${field}`, {id, field, value: raw});
             input.classList.add('bg-yellow-50', 'border-yellow-400');
         }
+
+        // پیش‌نمایشِ لحظه‌ایِ قیمتِ سایت وقتی «فروش تعدادی» عوض می‌شود —
+        // بدونِ این، کارشناس تا نزدنِ «ذخیره» نتیجه‌ی فرمول را نمی‌دید.
+        // فقط وقتی قیمت دستی ست نشده باشد (همان قاعده‌ی سمتِ سرور).
+        if (field === 'partnerBulkPrice' && row && !row.priceOverride) {
+            const bulk = Number(raw);
+            const onlineInput = document.querySelector(
+                `#pricing-body input[data-id="${id}"][data-field="onlinePrice"]`);
+            if (onlineInput && bulk > 0) {
+                const derived = Math.round(bulk * pricingFactor);
+                onlineInput.value = derived;
+                // همان نشانِ زردِ «تغییرِ ذخیره‌نشده»، ولی به‌عنوانِ مشتق‌شده نه ویرایشِ دستی
+                onlineInput.classList.add('bg-green-50', 'border-green-400');
+                onlineInput.title = `محاسبه‌شده از فروش تعدادی × ${pricingFactor} — با ذخیره ثبت می‌شود`;
+            } else if (onlineInput && !raw) {
+                // «فروش تعدادی» پاک شد → پیش‌نمایش برداشته شود
+                onlineInput.value = row.onlinePrice ?? '';
+                onlineInput.classList.remove('bg-green-50', 'border-green-400');
+                onlineInput.title = '';
+            }
+        }
+
+        // اگر قیمت دستی است، خودِ قیمت دست نمی‌خورد ولی عددِ «پیشنهادی» باید تازه بماند
+        if (field === 'partnerBulkPrice' && row && row.priceOverride) {
+            const sug = document.querySelector(`#pricing-body [data-suggested-for="${id}"]`);
+            const bulk = Number(raw);
+            if (sug) sug.textContent = bulk > 0 ? `≈${fmtMoney(Math.round(bulk * pricingFactor))}` : '';
+        }
+
         updatePricingDirtyUi();
     }
 
