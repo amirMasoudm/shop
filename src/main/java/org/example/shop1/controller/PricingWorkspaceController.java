@@ -113,6 +113,26 @@ public class PricingWorkspaceController {
         return ResponseEntity.ok(activityLog.search(username, entityType, f, t, page, size));
     }
 
+    /**
+     * لاگِ فقط-محصولات — برایِ پنلِ فروشِ حضوری (ADMIN/PRICER/SALES).
+     * <p>
+     * {@code entityType} سمتِ <b>سرور</b> به PRODUCT قفل می‌شود، نه فیلترِ UI:
+     * فروشنده باید بفهمد چرا قیمتِ کالایی عوض شده، ولی رویدادهایِ مدیریتی
+     * (تغییرِ ضریب، ساخت/حذفِ کاربر) نباید در آن پنل دیده شوند.
+     */
+    @GetMapping("/logs/products")
+    public ResponseEntity<Page<ActivityLog>> productLogs(
+            @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "from", required = false) String from,
+            @RequestParam(name = "to", required = false) String to,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "50") int size) {
+
+        return ResponseEntity.ok(activityLog.search(
+                username, ActivityLogService.ENTITY_PRODUCT,
+                parseInstant(from), parseInstant(to), page, size));
+    }
+
     /** تاریخِ ورودی می‌تواند ISO کامل یا فقط yyyy-MM-dd باشد. */
     private Instant parseInstant(String raw) {
         if (raw == null || raw.isBlank()) return null;

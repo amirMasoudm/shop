@@ -220,7 +220,12 @@ public class AuthController {
         return ResponseEntity.ok("پروفایل با موفقیت تکمیل شد");
     }
     // استفاده از RequestMapping تا هم با GET و هم POST کار کند و درگیر CSRF نشود
-    @RequestMapping(value = "/api/auth/logout", method = {RequestMethod.GET, RequestMethod.POST})
+    //
+    // 🔴 مسیر اصلاح شد: نگاشتِ کلاس از قبل /api/auth است، پس "/api/auth/logout" اینجا
+    // مسیر را به /api/auth/api/auth/logout تبدیل می‌کرد. Admin.html آن مسیرِ عجیب را
+    // صدا می‌زد و کار می‌کرد، ولی customerPanel و پنلِ فروش ۴۰۴ می‌گرفتند و در عمل
+    // خروجِ سمتِ سرور انجام نمی‌شد (فقط localStorage پاک می‌شد و سشن زنده می‌ماند).
+    @RequestMapping(value = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
 
         // ۱. نابود کردن Security Context

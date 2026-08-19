@@ -122,6 +122,11 @@ public class SecurityConfig {
                         // پس بازبودنِ صفحه دسترسیِ اضافه‌ای نمی‌دهد.
                         .requestMatchers("/Admin.html").hasAnyRole("ADMIN", "PRICER", "SALES")
 
+                        // پنلِ فروشِ حضوری — مسیرِ صفحه از همان اول تعریف می‌شود.
+                        // ⚠️ دوبار در همین پروژه API محافظت شد ولی مسیرِ صفحه جا ماند
+                        // (/img/** و ورودِ نقش‌هایِ جدید به Admin.html). تکرارش نمی‌کنیم.
+                        .requestMatchers("/SalesPanel.html").hasAnyRole("ADMIN", "PRICER", "SALES")
+
                         // ۴. مسیرهای ادمین
                         .requestMatchers(
                                 "/api/users/admin/**",
