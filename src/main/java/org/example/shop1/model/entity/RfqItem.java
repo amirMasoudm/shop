@@ -1,5 +1,8 @@
 package org.example.shop1.model.entity;
 
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+
 import java.math.BigDecimal;
 
 // اسنپ‌شات یک قلم از سبد در لحظه‌ی ثبت استعلام (Embedded در Rfq، مثل OrderItem)
@@ -9,7 +12,9 @@ public class RfqItem {
     private String productName;
     private String productImage;
     private int quantity;
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal listUnitPrice;      // قیمت واحد فروشگاه در لحظه‌ی ثبت (مرجع سروری)
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal proposedUnitPrice;  // قیمت پیشنهادی کاربر (اختیاری)
 
     public RfqItem() {}

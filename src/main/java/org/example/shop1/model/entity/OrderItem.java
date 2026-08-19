@@ -1,5 +1,8 @@
 package org.example.shop1.model.entity;
 
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+
 import java.math.BigDecimal;
 
 // این کلاس به عنوان یک کلاس داخلی (Embedded) در Order ذخیره می‌شود و Entity جدا نیست
@@ -8,6 +11,7 @@ public class OrderItem {
     private String productId;
     private String productName;
     private String productImage; // برای نمایش در تاریخچه سفارشات بدون نیاز به جوین
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal unitPrice; // قیمت واحد در لحظه خرید
     private int quantity; // تعداد سفارش داده شده
 

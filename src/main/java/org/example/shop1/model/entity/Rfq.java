@@ -3,6 +3,8 @@ package org.example.shop1.model.entity;
 import org.example.shop1.model.enums.RfqStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.math.BigDecimal;
@@ -25,11 +27,13 @@ public class Rfq {
     private List<RfqItem> items = new ArrayList<>();
 
     // جمع مرجع سروری اقلام در لحظه‌ی ثبت (بر اساس قیمت فروشگاه) — برای اعتبارسنجی آستانه
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal itemsListTotal = BigDecimal.ZERO;
 
     private RfqStatus status = RfqStatus.PENDING;
 
     // مبلغ کل نهاییِ پیشنهادیِ ادمین (آخرین quote)
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal adminTotalAmount;
 
     // تاریخچه‌ی چانه‌زنی

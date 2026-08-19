@@ -2,6 +2,8 @@ package org.example.shop1.model.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 
@@ -16,6 +18,7 @@ public class StoreSettings {
     private Double lng;
 
     // آستانه‌ی مبلغی فعال‌شدن استعلام پیش‌فاکتور (RFQ). null یا ۰ یعنی غیرفعال.
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal rfqThreshold;
 
     /**
@@ -26,6 +29,7 @@ public class StoreSettings {
      * و اگر در اپ هم تکرار می‌شد، دو منبعِ حقیقت می‌شد و دیر یا زود واگرا می‌شدند.
      * یک قراردادِ تجاری است، پس فقط ADMIN تغییرش می‌دهد نه PRICER.
      */
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal sitePriceFactor;
 
     /** ضریبِ پیش‌فرض وقتی هنوز در تنظیمات ست نشده است. */

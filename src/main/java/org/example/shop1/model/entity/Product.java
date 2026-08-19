@@ -2,6 +2,8 @@ package org.example.shop1.model.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -17,11 +19,13 @@ public class Product {
     private String id; // شناسه محصول که می‌تواند توسط ادمین وارد شود و باید یونیک باشد
     private String name;
     private String description;
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal price;
     private Integer stock;
     private String categoryId;
 
     // --- فیلدهای سورتینگ و نمایش در فرانت‌اند ---
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal discountedPrice; // قیمت پس از اعمال تخفیف
     private Integer discountPercent = 0; // درصد تخفیف (0 تا 100)
     private Double averageRating = 0.0; // میانگین امتیاز
@@ -39,6 +43,7 @@ public class Product {
     // در کلاس Product این فیلد را اضافه کنید
     private String warehouseCategoryId; // دسته‌بندی مختص انبار/فروشگاه فیزیکی
     // اضافه کردن قیمت پایه (فی)
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal basePrice;
 
     // اضافه کردن زمان آخرین بروزرسانی
@@ -53,6 +58,7 @@ public class Product {
     // استیکرها / سکشن‌های متصل به این محصول برای نمایش در لندینگ
     private List<String> sectionIds = new ArrayList<>();
 
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal onlinePrice; // قیمت فروش سایت
 
     // در فایل Product.java این فیلدها را به بدنه کلاس اضافه کنید:
@@ -86,9 +92,11 @@ public class Product {
     // ==========================================
 
     /** «فروش به همکار تک» — ردهٔ قیمتِ تکی (ستونِ C شیت). */
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal partnerUnitPrice;
 
     /** «فروش تعدادی» — ردهٔ قیمتِ عمده (خریدِ چندتایی)، جدا از قیمتِ همکارِ تک. */
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal partnerBulkPrice;
 
     /**
@@ -101,6 +109,7 @@ public class Product {
     private Boolean priceOverride;
 
     /** قیمتِ خرید/مرجع به دلار — برایِ رصدِ حساسیت به نرخِ ارز، مستقل از basePriceِ ریالی. */
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal dollarPrice;
 
     /** موجودیِ انبارِ اصفهان (ستونِ F). */
@@ -123,8 +132,10 @@ public class Product {
     private Boolean pushSaleFlag;
 
     // کفِ قیمتِ رقبا (برای تصمیمِ قیمت‌گذاری) — هرگز عمومی نشود
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal torobFloorPrice;
     private String torobUrl;
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal digikalaFloorPrice;
     private String digikalaUrl;
 

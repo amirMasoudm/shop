@@ -3,6 +3,8 @@ package org.example.shop1.model.entity;
 import org.example.shop1.model.enums.OrderStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.math.BigDecimal;
@@ -24,12 +26,15 @@ public class Order {
     private List<OrderItem> items = new ArrayList<>();
 
     // مبلغ کالاها بدون پست
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal itemsTotal = BigDecimal.ZERO;
 
     // هزینه ارسال
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal shippingCost = BigDecimal.ZERO;
 
     // مبلغ نهایی
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal totalAmount = BigDecimal.ZERO;
     private OrderStatus status; // تغییر از String به OrderStatus
 

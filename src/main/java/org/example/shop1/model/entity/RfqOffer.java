@@ -1,5 +1,8 @@
 package org.example.shop1.model.entity;
 
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -7,6 +10,7 @@ import java.time.Instant;
 public class RfqOffer {
 
     private String by;        // "USER" یا "ADMIN"
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal amount; // مبلغ کل پیشنهادی این گام
     private String note;       // توضیح اختیاری
     private Instant at = Instant.now();
