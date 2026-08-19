@@ -138,8 +138,9 @@
             const allowed = ['ROLE_ADMIN', 'ROLE_PRICER', 'ROLE_SALES'].some(r => roles.includes(r));
             if (!allowed) throw new Error('forbidden');
 
-            // همان قاعده‌ی پنلِ ادمین — مرزِ واقعی سمتِ سرور است (۴۰۳)
-            window.pricingCanEdit = roles.includes('ROLE_ADMIN') || roles.includes('ROLE_PRICER');
+            // هر سه نقشِ کارکنان ویرایش دارند؛ تنها تفاوت ستونِ «فروش تعدادی» است
+            // که خودِ ماژول از /pricing/capabilities تشخیص می‌دهد.
+            window.pricingCanEdit = true;
 
             document.getElementById('sales-username').innerText = user.firstName || user.username || '';
             document.getElementById('salesPanel').style.display = 'block';
@@ -148,10 +149,6 @@
             // پنلِ فروش: لاگِ فقط-محصولات (رویدادهایِ مدیریتی دیده نشود)
             PricingWorkspace.mountLog(document.getElementById('tab-activityLog'), {productsOnly: true});
 
-            if (!window.pricingCanEdit) {
-                const btn = document.getElementById('pricing-save-btn');
-                if (btn) btn.style.display = 'none';
-            }
             fetchPricingRows();
         } catch (e) {
             window.location.href = '/AdminLogin.html';

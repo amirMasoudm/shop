@@ -116,7 +116,11 @@
             });
 
             if (response.ok) {
-                window.location.href = "/Admin.html";
+                // هدایت بر اساسِ نقش: فقط ادمین به پنلِ کاملِ مدیریت می‌رود؛
+                // کارشناسانِ قیمت‌گذاری/فروش مستقیم به میزِ کارِ خودشان.
+                let role = null;
+                try { role = (await response.json()).role; } catch (e) {}
+                window.location.href = (role === 'ADMIN') ? "/Admin.html" : "/SalesPanel.html";
             } else {
                 const msg = await response.text();
                 errorDiv.innerText = msg;

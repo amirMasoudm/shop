@@ -84,10 +84,12 @@ public class UserService {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "رمز عبور باید حداقل " + MIN_PASSWORD_LENGTH + " کاراکتر باشد");
         }
-        // ورودِ ادمین دو مرحله‌ای است و کد تایید پیامک می‌شود؛ بدون شماره اصلاً نمی‌تواند وارد شود
-        if (role == Role.ADMIN && phone.isEmpty()) {
+        // ورودِ پنل دو مرحله‌ای است و کد تایید پیامک می‌شود؛ بدون شماره اصلاً نمی‌تواند وارد شود.
+        // این برایِ هر سه نقشِ کارکنان صدق می‌کند، نه فقط ادمین — قبلاً فقط ADMIN چک
+        // می‌شد و کارشناسِ بدونِ شماره موقعِ ورود با خطای نامفهومِ «شماره معتبر نیست» گیر می‌کرد.
+        if ((role == Role.ADMIN || role == Role.PRICER || role == Role.SALES) && phone.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
-                    "برای ادمین شماره موبایل الزامی است، چون کد ورود پیامک می‌شود");
+                    "برای این نقش شماره موبایل الزامی است، چون کد ورود پیامک می‌شود");
         }
         if (userRepository.existsByUsername(username)) {
             throw new ApiException(HttpStatus.CONFLICT, "این نام کاربری قبلاً ثبت شده است");

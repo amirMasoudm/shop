@@ -35,6 +35,15 @@ public class PricingWorkspaceService {
     /** ضریبِ «تلهٔ هزاربرابری» — بیش از این نسبت، تأییدِ دوم لازم دارد. */
     private static final BigDecimal SPIKE_FACTOR = BigDecimal.valueOf(10);
 
+    /**
+     * فیلدهایی که کارشناسِ فروش ({@code SALES}) اجازهٔ تغییرشان را ندارد.
+     * <p>
+     * «فروش تعدادی» ردهٔ قیمتِ عمده است و قیمتِ سایت از رویش مشتق می‌شود، پس
+     * تغییرش اثرِ زنجیره‌ای روی قیمتِ عمومی دارد — تصمیمش مالِ کارشناسِ قیمت‌گذاری
+     * است. بقیهٔ فیلدها برای هر دو نقش باز است.
+     */
+    private static final List<String> PRICER_ONLY_FIELDS = List.of("partnerBulkPrice");
+
     private final ProductRepository productRepo;
     private final ActivityLogService activityLog;
     private final StoreSettingsService settingsService;
@@ -126,6 +135,11 @@ public class PricingWorkspaceService {
             }
             if (!EDITABLE.contains(field)) {
                 errors.add("فیلدِ غیرمجاز برایِ ویرایش: " + field);
+                continue;
+            }
+            // مرزِ فیلدیِ نقش‌ها — سمتِ سرور، نه فقط readonly در UI
+            if (PRICER_ONLY_FIELDS.contains(field) && !canEditPricerOnlyFields()) {
+                errors.add("«فروش تعدادی» فقط توسطِ کارشناسِ قیمت‌گذاری قابلِ تغییر است");
                 continue;
             }
 
@@ -243,6 +257,16 @@ public class PricingWorkspaceService {
     private void stampFloorCheck(Product p) {
         p.setFloorPriceCheckedAt(Instant.now());
         p.setFloorPriceCheckedBy(activityLog.currentUsername());
+    }
+
+    /** فقط ADMIN و PRICER می‌توانند فیلدهایِ ویژهٔ قیمت‌گذاری را تغییر دهند. */
+    public boolean canEditPricerOnlyFields() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .map(Object::toString)
+                .anyMatch(r -> r.equals("ROLE_ADMIN") || r.equals("ROLE_PRICER"));
     }
 
     /** جهشِ مشکوک: بیش از ۱۰ برابر یا کمتر از یک‌دهم. مقدارِ قبلیِ خالی/صفر جهش حساب نمی‌شود. */

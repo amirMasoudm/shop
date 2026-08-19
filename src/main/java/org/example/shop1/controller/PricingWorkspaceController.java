@@ -94,6 +94,16 @@ public class PricingWorkspaceController {
         return ResponseEntity.ok(service.rows(q));
     }
 
+    /**
+     * توانایی‌هایِ نقشِ کاربرِ فعلی — تا UI بداند کدام ستون را قفل کند.
+     * مرزِ واقعی همچنان سمتِ سرور است؛ این فقط برایِ نمایش است.
+     */
+    @GetMapping("/capabilities")
+    public ResponseEntity<Map<String, Object>> capabilities() {
+        return ResponseEntity.ok(Map.of(
+                "canEditBulkPrice", service.canEditPricerOnlyFields()));
+    }
+
     @PostMapping("/batch")
     public ResponseEntity<Map<String, Object>> batch(@RequestBody List<Map<String, Object>> changes) {
         return ResponseEntity.ok(service.applyBatch(changes));

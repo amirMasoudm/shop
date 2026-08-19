@@ -128,7 +128,11 @@
     // میز کار قیمت‌گذاری
     // ==========================================
     let pricingRows = [];
-    let pricingCanEdit = true; // ADMIN/PRICER=true، SALES=false (فقط UI؛ مرزِ واقعی سمتِ سرور است)
+    // همه‌ی نقش‌هایِ کارکنان (ADMIN/PRICER/SALES) ویرایش دارند؛ فقط UI است،
+    // مرزِ واقعی سمتِ سرور است.
+    let pricingCanEdit = true;
+    // «فروش تعدادی» فقط برایِ ADMIN/PRICER — از /pricing/capabilities خوانده می‌شود
+    let canEditBulkPrice = true;
     // ضریبِ قیمتِ سایت برای پیش‌نمایشِ لحظه‌ای. محاسبهٔ معتبر همچنان سمتِ سرور است؛
     // این فقط برای این است که کارشناس قبل از «ذخیره» هم نتیجه را ببیند.
     let pricingFactor = 1.08;
@@ -158,17 +162,29 @@
         toggleLoader(true);
         try {
             // ضریب را هم بگیر تا پیش‌نمایشِ لحظه‌ای با همان چیزی که سرور حساب می‌کند یکی باشد
-            const [res, fRes] = await Promise.all([
+            const [res, fRes, capRes] = await Promise.all([
                 axios.get(`${API}/v1/pricing/rows`),
-                axios.get(`${API}/v1/settings/site-price-factor`).catch(() => null)
+                axios.get(`${API}/v1/settings/site-price-factor`).catch(() => null),
+                axios.get(`${API}/v1/pricing/capabilities`).catch(() => null)
             ]);
             if (fRes && fRes.data && fRes.data.factor) pricingFactor = Number(fRes.data.factor);
+            if (capRes && capRes.data) canEditBulkPrice = !!capRes.data.canEditBulkPrice;
             pricingRows = res.data || [];
             pricingDirty.clear();
             updatePricingDirtyUi();
             // کارشناسِ فروش باید بداند چرا خانه‌ها قابلِ تایپ نیستند، وگرنه فکر می‌کند خراب است
+            // کارشناسِ فروش هم ویرایش دارد؛ فقط یک ستون برایش قفل است، پس به‌جایِ
+            // «فقط مشاهده» همان محدودیتِ واقعی نوشته می‌شود.
             const note = document.getElementById('pricing-readonly-note');
-            note.classList.toggle('hidden', pricingCanEdit);
+            if (!pricingCanEdit) {
+                note.innerText = 'شما دسترسی «فقط مشاهده» دارید؛ ویرایش قیمت‌ها برای نقش شما فعال نیست.';
+                note.classList.remove('hidden');
+            } else if (!canEditBulkPrice) {
+                note.innerText = 'ستون «فروش تعدادی» فقط توسط کارشناس قیمت‌گذاری قابل تغییر است؛ بقیه ستون‌ها برای شما باز است.';
+                note.classList.remove('hidden');
+            } else {
+                note.classList.add('hidden');
+            }
             renderPricingRows();
         } catch (err) {
             if (err.response && err.response.status === 403) {
@@ -200,8 +216,14 @@
         // «کف ترب/دیجی‌کالا» داخل یک <td> دیگر پیچیده می‌شد؛ <td> تودرتو HTML نامعتبر است و
         // مرورگر جدول را می‌شکست (ستون خالی می‌ماند و یک اینپوت بیرون از جدول می‌افتاد).
         const priceInput = (r, field, value, width = 'w-28') => {
-            if (!pricingCanEdit) {
-                return `<span dir="ltr">${value !== null && value !== undefined && value !== '' ? fmtMoney(value) : '—'}</span>`;
+            // «فروش تعدادی» برایِ کارشناسِ فروش قفل است (بقیه‌ی ستون‌ها باز)
+            const fieldLocked = !pricingCanEdit
+                || (field === 'partnerBulkPrice' && !canEditBulkPrice);
+            if (fieldLocked) {
+                const shownVal = value !== null && value !== undefined && value !== '' ? fmtMoney(value) : '—';
+                const why = (field === 'partnerBulkPrice' && !canEditBulkPrice)
+                    ? ' title="فقط کارشناس قیمت‌گذاری می‌تواند این را تغییر دهد"' : '';
+                return `<span dir="ltr" class="text-gray-500"${why}>${shownVal}</span>`;
             }
             const key = `${r.id}|${field}`;
             const pending = pricingDirty.has(key);
