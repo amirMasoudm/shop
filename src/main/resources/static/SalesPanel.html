@@ -7,6 +7,8 @@
 
     <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">
     <link rel="stylesheet" href="/css/fonts/Vazirmatn-font-face.css">
+    <!-- بدونِ این، دکمه‌هایِ دیالوگ (جستجو/انصراف) بی‌رنگ و نامرئی می‌شوند -->
+    <link rel="stylesheet" href="/css/swal-fix.css">
 
     <style>
         body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
@@ -80,6 +82,22 @@
             return cfg;
         });
     }
+
+    // همان رَپرِ fetch که Admin.html و customerPanel دارند.
+    // بدونِ این، هر POSTِ مستقیم با fetch (مثلاً خروج) ۴۰۳ی CSRF می‌گرفت و
+    // در عمل سشن بسته نمی‌شد — فقط localStorage پاک می‌شد.
+    const _origFetch = window.fetch;
+    window.fetch = function (url, options = {}) {
+        options = Object.assign({}, options);
+        options.headers = options.headers ? new Headers(options.headers) : new Headers();
+        const method = (options.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+            const t = getCsrfToken();
+            if (t) options.headers.set('X-XSRF-TOKEN', t);
+        }
+        options.credentials = options.credentials || 'include';
+        return _origFetch(url, options);
+    };
 
     // ---- کمکی‌هایی که ماژولِ میزِ کار انتظار دارد ----
     function toggleLoader(show) {

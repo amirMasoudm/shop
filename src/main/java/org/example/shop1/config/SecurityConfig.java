@@ -139,15 +139,18 @@ public class SecurityConfig {
                 // ۴. این بخش را اضافه کن: اگر کاربر لاگین نبود و خواست وارد Admin.html شود، به AdminLogin.html هدایت شود
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
-                            if (request.getRequestURI().startsWith("/Admin.html")) {
+                            // صفحه‌هایِ پنل (نه APIها) باید به لاگین هدایت شوند، نه ۴۰۱ خام.
+                            // قبلاً فقط Admin.html بود و SalesPanel.html جا مانده بود: کاربر
+                            // بعد از خروج، به‌جایِ صفحه‌ی ورود یک ۴۰۱ خالی می‌دید.
+                            if (isPanelPage(request.getRequestURI())) {
                                 response.sendRedirect("/AdminLogin.html");
                             } else {
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
                             }
                         })
-                        // این بخش جدید است: وقتی شخص لاگین کرده اما ادمین نیست (ROLE_USER دارد)
+                        // وقتی شخص لاگین کرده ولی نقشش اجازه‌ی این صفحه را ندارد
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            if (request.getRequestURI().startsWith("/Admin.html")) {
+                            if (isPanelPage(request.getRequestURI())) {
                                 response.sendRedirect("/AdminLogin.html");
                             } else {
                                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
@@ -188,5 +191,14 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
+    }
+
+    /**
+     * صفحه‌هایِ پنلِ داخلی که کاربرِ بدونِ دسترسی باید به صفحه‌ی ورود هدایت شود،
+     * نه اینکه ۴۰۱/۴۰۳ خام ببیند. APIها عمداً اینجا نیستند (کلاینتشان باید کدِ
+     * وضعیت را بگیرد، نه صفحه‌ی HTML).
+     */
+    private static boolean isPanelPage(String uri) {
+        return uri.startsWith("/Admin.html") || uri.startsWith("/SalesPanel.html");
     }
 }

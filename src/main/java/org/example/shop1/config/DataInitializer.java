@@ -64,7 +64,9 @@ public class DataInitializer implements CommandLineRunner {
 
         User admin = new User();
         admin.setUsername(adminUsername);
-        admin.setFirstName("sample");
+        // نامِ نمایشی؛ قبلاً "sample" هاردکد بود و در هدرِ پنل‌ها همان دیده می‌شد.
+        // کاربر می‌تواند از «تنظیمات حساب» تغییرش دهد.
+        admin.setFirstName("مدیر سیستم");
         admin.setPhoneNumber(adminPhone);
         admin.setPassword(passwordEncoder.encode(adminPassword));
         admin.setRole(Role.ADMIN);
