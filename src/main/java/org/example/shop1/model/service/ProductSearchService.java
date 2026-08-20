@@ -1,5 +1,6 @@
 package org.example.shop1.model.service;
 
+import org.bson.types.Decimal128;
 import org.example.shop1.model.dto.FilterResponseDto;
 import org.example.shop1.model.dto.ProductSearchRequestDto;
 import org.example.shop1.model.dto.ProductSearchResponseDto;
@@ -52,10 +53,17 @@ public class ProductSearchService {
         }
 
         // فیلتر قیمت
+        //
+        // ⚠️ تبدیلِ صریح به Decimal128، نه اتکا به تبدیلِ خودکارِ QueryMapper.
+        // باگِ واقعی که در تست پیدا شد: وقتی gte و lte هر دو رویِ یک آبجکتِ Criteria
+        // می‌آیند، Spring Data مقدار را به رشتهٔ خام برمی‌گرداند (نه Decimal128) و
+        // فیلترِ بازه هیچ‌چیز مچ نمی‌کند — با gte یا lte به‌تنهایی درست کار می‌کرد،
+        // فقط وقتی هر دو با هم بودند می‌شکست. با ساختِ صریحِ Decimal128 این حدسِ
+        // داخلی و شکننده کاملاً دور زده می‌شود.
         if (request.getMinPrice() != null || request.getMaxPrice() != null) {
-            Criteria priceCriteria = Criteria.where("onlinePrice"); // یا price بسته به منطق شما
-            if (request.getMinPrice() != null) priceCriteria.gte(request.getMinPrice());
-            if (request.getMaxPrice() != null) priceCriteria.lte(request.getMaxPrice());
+            Criteria priceCriteria = Criteria.where("onlinePrice");
+            if (request.getMinPrice() != null) priceCriteria.gte(new Decimal128(request.getMinPrice()));
+            if (request.getMaxPrice() != null) priceCriteria.lte(new Decimal128(request.getMaxPrice()));
             query.addCriteria(priceCriteria);
         }
 
