@@ -22,4 +22,8 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     // مقالات یک خوشه‌ی محتوایی (برای صفحه‌ی هاب و لینک‌های مرتبط)
     List<Article> findByHubSlugAndPublishedTrueOrderByCreatedAtDesc(String hubSlug);
+
+    // شمارشِ سبکِ یک خوشه — برای بلاکِ «سابقه و اعتبار» در صفحه‌ی اصلی، تا هوم
+    // مجبور نشود ۴۹ سندِ کامل (با contentHtml) را فقط برای گرفتنِ یک عدد بخواند.
+    long countByHubSlugAndPublishedTrue(String hubSlug);
 }

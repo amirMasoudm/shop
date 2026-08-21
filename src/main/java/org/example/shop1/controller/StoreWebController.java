@@ -50,6 +50,14 @@ public class StoreWebController {
         model.addAttribute("seoTitle", "داده نما | اتصال آسان است");
         model.addAttribute("seoDescription", "فروشگاه اینترنتی یاس، عرضه کننده بهترین محصولات با گارانتی معتبر و ارسال فوری");
         model.addAttribute("canonicalUrl", buildBaseUrl(request) + "/");
+
+        // بلاکِ خلاصه‌ی «سابقه و اعتبار» (SSR؛ لینک به /about). شمارشِ سبک است تا
+        // صفحه‌ی اصلی برای یک عدد، ۴۹ سندِ کامل نخواند.
+        model.addAttribute("trustCourseCountFa",
+                faDigits(String.valueOf(articleService.countHubArticles(COURSES_HUB_SLUG))));
+        model.addAttribute("trustSinceFa", ONLINE_SINCE_JALALI);
+        model.addAttribute("trustYearsFa", faDigits(String.valueOf(
+                java.time.Period.between(ONLINE_SINCE, java.time.LocalDate.now()).getYears())));
         return "CL";
     }
 
@@ -320,6 +328,146 @@ public class StoreWebController {
         return "blog";
     }
 
+    // ================= صفحه‌ی «سابقه و اعتبار» (SSR کامل) =================
+    // چرا صفحه‌ی مستقل و نه فقط بلاکِ هوم: طبق فاز ۱ رودمپ، ۷۹٪ کلیک‌های سایت قدیم
+    // برندی بود («داده نما») و هیچ صفحه‌ای برای گرفتنِ آن ترافیک وجود نداشت.
+    //
+    // 🔴 قانونِ ضد-دور-زدنِ پروژه: این صفحه هیچ راه تماس مستقیمی نمی‌دهد —
+    // نه تلفن/ایمیل در متن، نه فیلد تماس در اسکیمای Organization، نه هیچ شبکه‌ی
+    // اجتماعی/کانال. همه‌ی CTAها به داخل سایت‌اند.
+
+    static final String COURSES_HUB_SLUG = "دوره‌های-آموزشی";
+
+    // تاریخ ثبت دامنه‌ی dadehnama.com در رجیستری Verisign (راستی‌آزمایی با RDAP).
+    // ⚠️ این «حضور آنلاین» است نه «تاسیس شرکت» — سند ثبت شرکت نداریم، پس متن صفحه
+    // هم دقیقاً همین را می‌گوید. ۲۰۰۳-۰۴-۰۷ ≈ ۱۳۸۲.
+    private static final java.time.LocalDate ONLINE_SINCE = java.time.LocalDate.of(2003, 4, 7);
+    private static final String ONLINE_SINCE_JALALI = "۱۳۸۲";
+
+    // خط‌زمانِ دوره‌ها: عمداً داده‌ی ثابتِ درون‌کد است، نه کوئری.
+    // ⚠️ چرا از دیتابیس خوانده نمی‌شود: createdAtِ هر ۴۹ مقاله 2026-08-14 است
+    // (تاریخ ایمپورت وردپرس)؛ تاریخ‌های واقعی برگزاری فقط داخل متنِ مقاله‌اند و
+    // فیلد ساخت‌یافته ندارند. منبع: docs/reports/trust-page-articles-2026-08-19.md
+    // تعدادِ کل ولی زنده از دیتابیس خوانده می‌شود (نه جمعِ دستی همین جدول).
+    public static class CourseTrack {
+        private final String code, title, firstHeld, lastHeld, slug;
+        private final int count;
+
+        CourseTrack(String code, String title, int count, String firstHeld, String lastHeld, String slug) {
+            this.code = code; this.title = title; this.count = count;
+            this.firstHeld = firstHeld; this.lastHeld = lastHeld; this.slug = slug;
+        }
+
+        public String getCode() { return code; }
+        public String getTitle() { return title; }
+        public int getCount() { return count; }
+        public String getCountFa() { return faDigits(String.valueOf(count)); }
+        public String getFirstHeld() { return firstHeld; }
+        public String getLastHeld() { return lastHeld; }
+        public String getSlug() { return slug; }
+    }
+
+    // مرتب بر اساس تعداد برگزاری. جمعِ ستون تعداد = ۴۹ (برابرِ شمارشِ زنده‌ی خوشه).
+    // ادغام‌ها: سمینار میموسا زیر «مایکروویو و رادیوی پرظرفیت»، و «دوره تخصصی
+    // وایرلس و آنالیز پیشرفته»ی بدون‌تاریخ زیر CWNA — چون هم‌خانواده‌اند.
+    private static final List<CourseTrack> COURSE_TRACKS = List.of(
+            new CourseTrack("MTCNA", "مقدماتی میکروتیک", 13, "شهریور ۱۳۹۴", "مرداد ۱۳۹۷", "mtcna-23-05-97"),
+            new CourseTrack("MTCWE", "وایرلس میکروتیک", 8, "شهریور ۱۳۹۴", "بهمن ۱۳۹۵", "mtcwe-11-95"),
+            new CourseTrack("MTCTCE", "کنترل ترافیک میکروتیک", 6, "شهریور ۱۳۹۴", "شهریور ۱۳۹۷", "mtctce-06-97"),
+            new CourseTrack("VoIP", "مراکز تلفنی تحت شبکه (زایکو)", 6, "شهریور ۱۳۹۴", "تیر ۱۳۹۷", "zycoo-voip-04-97"),
+            new CourseTrack("CWNA", "وایرلس تخصصی و آنالیز پیشرفته", 5, "مهر ۱۳۹۴", "مرداد ۱۳۹۶", "cwna-analysis-course-05-96"),
+            new CourseTrack("مایکروویو", "ارتباطات پرظرفیت مایکروویو و رادیو", 5, "تیر ۱۳۹۵", "تیر ۱۴۰۱", "analysis-microwave-13-12-99"),
+            new CourseTrack("MTCRE", "مسیریابی میکروتیک", 4, "دی ۱۳۹۴", "شهریور ۱۳۹۷", "mtcre-06-97"),
+            new CourseTrack("MTCUME", "مدیریت کاربران میکروتیک", 2, "شهریور ۱۳۹۴", "دی ۱۳۹۴", "mtcume-course")
+    );
+
+    @GetMapping("/about")
+    public String aboutPage(Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+
+        String baseUrl = buildBaseUrl(request);
+        String canonical = baseUrl + "/about";
+
+        // یک کوئری، دو کار: شمارشِ زنده‌ی دوره‌ها + اعتبارسنجی اسلاگ‌های جدول بالا
+        List<Article> courseArticles = articleService.getHubArticles(COURSES_HUB_SLUG);
+        java.util.Set<String> liveSlugs = new java.util.HashSet<>();
+        for (Article a : courseArticles) {
+            if (a.getSlug() != null && !a.getSlug().isEmpty()) liveSlugs.add(a.getSlug());
+        }
+        // اگر مقاله‌ای بعداً حذف شود یا اسلاگش عوض شود، آن سطر از جدول می‌افتد —
+        // بهتر از این‌که لینکِ ۴۰۴ روی صفحه‌ی اعتبار بماند.
+        List<CourseTrack> tracks = COURSE_TRACKS.stream()
+                .filter(t -> liveSlugs.contains(t.getSlug()))
+                .toList();
+
+        int years = java.time.Period.between(ONLINE_SINCE, java.time.LocalDate.now()).getYears();
+        String yearsFa = faDigits(String.valueOf(years));
+        String courseCountFa = faDigits(String.valueOf(courseArticles.size()));
+
+        model.addAttribute("courseTracks", tracks);
+        model.addAttribute("courseCountFa", courseCountFa);
+        model.addAttribute("trackCountFa", faDigits(String.valueOf(tracks.size())));
+        model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.count())));
+        model.addAttribute("onlineYearsFa", yearsFa);
+        model.addAttribute("onlineSinceFa", ONLINE_SINCE_JALALI);
+        model.addAttribute("coursesHubUrl", baseUrl + "/blog/hub/" + encodePathSegment(COURSES_HUB_SLUG));
+
+        String title = "سابقه و اعتبار داده نما | بیش از " + yearsFa + " سال در شبکه و میکروتیک";
+        String description = "سابقه‌ی داده نما: حضور آنلاین از سال " + ONLINE_SINCE_JALALI + " و " + courseCountFa
+                + " دوره‌ی رسمی برگزارشده‌ی میکروتیک (MTCNA، MTCWE، MTCRE، MTCTCE، MTCUME)، "
+                + "وایرلس CWNA، مایکروویو پرظرفیت و VoIP در بازه‌ی ۱۳۹۴ تا ۱۴۰۱.";
+
+        model.addAttribute("seoTitle", title);
+        model.addAttribute("seoDescription", description);
+        model.addAttribute("canonicalUrl", canonical);
+        model.addAttribute("aboutJsonLd", buildAboutJsonLd(baseUrl, canonical, description));
+
+        return "about";
+    }
+
+    // اسکیمای صفحه‌ی اعتبار (سروری، مثل الگوی categoryJsonLd — گاتچای Thymeleaf
+    // در ld+json قبلاً در این پروژه دردسر ساخته بود).
+    // ⚠️ عمداً بدون telephone/email/sameAs (قانون ضد-دور-زدن) و بدون foundingDate
+    // (تاریخِ ثبتِ دامنه سندِ تاسیسِ شرکت نیست).
+    private String buildAboutJsonLd(String baseUrl, String canonical, String description) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[");
+
+        sb.append("{\"@type\":\"Organization\",\"name\":\"داده نما\"")
+                .append(",\"alternateName\":\"فروشگاه داده نما\"")
+                .append(",\"url\":\"").append(esc(baseUrl)).append("/\"")
+                .append(",\"logo\":\"").append(esc(baseUrl)).append("/logo.png\"")
+                .append(",\"description\":\"").append(esc(description)).append("\"}");
+
+        sb.append(",{\"@type\":\"AboutPage\",\"name\":\"سابقه و اعتبار داده نما\"")
+                .append(",\"url\":\"").append(esc(canonical)).append("\"")
+                .append(",\"description\":\"").append(esc(description)).append("\"}");
+
+        sb.append(",{\"@type\":\"BreadcrumbList\",\"itemListElement\":[")
+                .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"خانه\",\"item\":\"")
+                .append(esc(baseUrl)).append("/\"},")
+                .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"سابقه و اعتبار\",\"item\":\"")
+                .append(esc(canonical)).append("\"}]}");
+
+        sb.append("]}");
+        return sb.toString();
+    }
+
+    // ارقام لاتین → فارسی (عددهای داخل متنِ فارسیِ صفحه باید فارسی باشند)
+    static String faDigits(String s) {
+        if (s == null) return "";
+        StringBuilder sb = new StringBuilder(s.length());
+        for (char c : s.toCharArray()) {
+            sb.append(c >= '0' && c <= '9' ? (char) ('۰' + (c - '0')) : c);
+        }
+        return sb.toString();
+    }
+
+    // percent-encode یک سگمنتِ مسیر (اسلاگ فارسی) — URLEncoder فاصله را + می‌کند
+    private static String encodePathSegment(String s) {
+        return java.net.URLEncoder.encode(s, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
     // متد اختصاصی برای ساخت آدرس‌های داینامیک بدون هاردکد کردن localhost
     private void addDynamicUrls(Model model, HttpServletRequest request) {
         String baseUrl = buildBaseUrl(request);
@@ -370,6 +518,9 @@ public class StoreWebController {
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
         xml.append("<url><loc>").append(baseUrl).append("/</loc><priority>1.0</priority></url>");
+
+        // صفحه‌ی سابقه و اعتبار (هدفِ جست‌وجوی برندی — ۷۹٪ کلیک‌های سایت قدیم)
+        xml.append("<url><loc>").append(baseUrl).append("/about</loc><priority>0.8</priority></url>");
 
         // بلاگ و مقالات منتشرشده
         xml.append("<url><loc>").append(baseUrl).append("/blog</loc><priority>0.7</priority></url>");

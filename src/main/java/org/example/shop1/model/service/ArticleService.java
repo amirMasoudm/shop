@@ -103,6 +103,11 @@ public class ArticleService {
         return repo.findByHubSlugAndPublishedTrueOrderByCreatedAtDesc(hubSlug);
     }
 
+    // فقط تعدادِ مقالاتِ یک خوشه (بدون واکشیِ خودِ اسناد)
+    public long countHubArticles(String hubSlug) {
+        return repo.countByHubSlugAndPublishedTrue(hubSlug);
+    }
+
     private String generateUniqueSlug(String base, String excludeId) {
         String slug = SlugUtil.slugify(base);
         if (slug.isEmpty()) slug = "article";

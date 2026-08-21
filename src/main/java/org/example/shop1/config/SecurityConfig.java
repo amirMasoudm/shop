@@ -69,7 +69,7 @@ public class SecurityConfig {
                         // ۱. حتما صفحه خطا را کاملا باز بگذارید
                         .requestMatchers("/error", "/favicon.ico", "/robots.txt", "/sitemap.xml").permitAll()
 
-                        .requestMatchers("/", "/product/**", "/category/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
+                        .requestMatchers("/", "/about", "/product/**", "/category/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         // پوشهٔ واقعیِ تصاویرِ ثابت `/img/` است؛ `/images/**` هرگز وجود نداشت و
                         // به همین دلیل لوگو در کلِ سایت ۴۰۱ می‌گرفت.
                         .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**").permitAll()

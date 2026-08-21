@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${seoTitle}">سابقه و اعتبار | داده نما</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta property="og:site_name" content="فروشگاه داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <!-- اسکیما سروری ساخته می‌شود (الگوی categoryJsonLd) — نه درون‌قالبی -->
+    <script type="application/ld+json" th:if="${aboutJsonLd != null}" th:utext="${aboutJsonLd}"></script>
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; --border:#e5e7eb; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
+        .topbar { background:var(--primary); color:#fff; padding:14px 16px; }
+        .topbar .in { max-width:1000px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; }
+        .topbar a { color:#fff; text-decoration:none; font-weight:700; }
+        main { max-width:1000px; margin:0 auto; padding:28px 16px 8px; }
+        .crumb { font-size:.8rem; color:var(--mid); margin-bottom:12px; }
+        .crumb a { color:var(--primary); text-decoration:none; }
+        h1 { font-size:1.55rem; line-height:1.7; margin-bottom:10px; }
+        .lead { color:var(--text); font-size:.98rem; line-height:2.1; margin-bottom:8px; }
+        p { line-height:2.1; font-size:.93rem; }
+        section { background:#fff; border:1px solid var(--border); border-radius:16px; padding:22px; margin-top:22px; }
+        section h2 { font-size:1.12rem; margin-bottom:12px; border-right:4px solid var(--accent); padding-right:10px; }
+        section h3 { font-size:.98rem; margin:18px 0 8px; color:var(--primary); }
+
+        .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:20px; }
+        .stat { background:#fff; border:1px solid var(--border); border-radius:16px; padding:18px 14px; text-align:center; }
+        .stat b { display:block; font-size:1.7rem; color:var(--primary); line-height:1.5; }
+        .stat span { font-size:.8rem; color:var(--mid); line-height:1.9; }
+
+        .tbl-wrap { overflow-x:auto; margin-top:6px; }
+        table { width:100%; border-collapse:collapse; font-size:.86rem; min-width:520px; }
+        th, td { padding:11px 10px; text-align:right; border-bottom:1px solid var(--border); }
+        thead th { background:#f3f6fb; color:var(--mid); font-weight:700; font-size:.8rem; white-space:nowrap; }
+        tbody tr:last-child td { border-bottom:none; }
+        td .code { font-weight:800; color:var(--primary); }
+        td .t { color:var(--mid); font-size:.82rem; }
+        td a { color:var(--primary); text-decoration:none; font-weight:700; white-space:nowrap; }
+        td a:hover { text-decoration:underline; }
+
+        .note { background:#fff8ee; border:1px solid #f3ddba; border-radius:12px; padding:13px 15px;
+                font-size:.85rem; line-height:2; color:#7a5316; margin-top:16px; }
+        .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .tags span { background:#eef3fa; color:var(--primary); border-radius:100px; padding:5px 13px; font-size:.8rem; font-weight:700; }
+
+        .cta { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
+        .cta a { padding:12px 22px; border-radius:100px; text-decoration:none; font-weight:700; font-size:.9rem; }
+        .cta .fill { background:var(--primary); color:#fff; }
+        .cta .out { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+
+        footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
+        footer .in { max-width:1000px; margin:0 auto; }
+        footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+        @media (max-width:600px) { h1 { font-size:1.3rem; } .stat b { font-size:1.45rem; } }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="in">
+        <a th:href="${baseUrl + '/'}">🛒 فروشگاه داده نما</a>
+        <span style="font-size:.85rem;">سابقه و اعتبار</span>
+    </div>
+</header>
+
+<main>
+    <nav class="crumb">
+        <a th:href="${baseUrl + '/'}">خانه</a> <span>/ سابقه و اعتبار</span>
+    </nav>
+
+    <h1>سابقه و اعتبار داده نما</h1>
+
+    <p class="lead">
+        داده نما از سال <span th:text="${onlineSinceFa}">۱۳۸۲</span> روی همین دامنه فعال بوده است؛
+        <span th:text="${onlineYearsFa}">۲۳</span> سال حضور پیوسته در حوزه‌ی تجهیزات شبکه، میکروتیک و
+        ارتباطات بی‌سیم. آنچه در این صفحه می‌بینید ادعا نیست — هر موردش روی همین سایت قابل بررسی است.
+    </p>
+
+    <div class="stats">
+        <div class="stat">
+            <b th:text="'از ' + ${onlineSinceFa}">از ۱۳۸۲</b>
+            <span th:text="${onlineYearsFa} + ' سال حضور آنلاین روی دامنه‌ی dadehnama.com'">حضور آنلاین</span>
+        </div>
+        <div class="stat">
+            <b th:text="${courseCountFa}">۴۹</b>
+            <span>دوره و سمینار تخصصی برگزارشده</span>
+        </div>
+        <div class="stat">
+            <b>۷ سال</b>
+            <span>سابقه‌ی مستند آموزشی، از ۱۳۹۴ تا ۱۴۰۱</span>
+        </div>
+        <div class="stat">
+            <b th:text="${productCountFa}">۲۶۷</b>
+            <span>محصول با مشخصات فنی و پرسش‌های متداول</span>
+        </div>
+    </div>
+
+    <!-- ================= سابقه‌ی آموزشی ================= -->
+    <section>
+        <h2>سابقه‌ی آموزشی</h2>
+        <p>
+            بین سال‌های ۱۳۹۴ تا ۱۴۰۱، داده نما <span th:text="${courseCountFa}">۴۹</span> دوره و سمینار
+            تخصصی برگزار کرد. بخش اصلی این دوره‌ها، دوره‌های رسمی میکروتیک بودند:
+            <b>MTCNA</b> (مقدماتی)، <b>MTCWE</b> (وایرلس)، <b>MTCRE</b> (مسیریابی)،
+            <b>MTCTCE</b> (کنترل ترافیک) و <b>MTCUME</b> (مدیریت کاربران) — دوره‌هایی که برگزاری‌شان
+            مربی دارای مدرک رسمی میکروتیک لازم دارد. در کنار آن‌ها دوره‌های <b>CWNA</b> و آنالیز پیشرفته‌ی
+            وایرلس، ارتباطات پرظرفیت مایکروویو، و مراکز تلفنی تحت شبکه (VoIP زایکو) هم برگزار شد.
+        </p>
+        <p style="margin-top:10px;">
+            پرتکرارترین عنوان، <b>MTCNA</b> با ۱۳ دوره بود — یعنی نقطه‌ی ورود بیشتر کسانی که با
+            میکروتیک کار می‌کنند، از همین‌جا گذشته است.
+        </p>
+
+        <h3>خط‌زمان دوره‌های برگزارشده</h3>
+        <div class="tbl-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>عنوان دوره</th>
+                    <th>تعداد برگزاری</th>
+                    <th>نخستین</th>
+                    <th>آخرین</th>
+                    <th>گزارش آخرین دوره</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${courseTracks}">
+                    <td>
+                        <span class="code" th:text="${t.code}">MTCNA</span><br>
+                        <span class="t" th:text="${t.title}">مقدماتی میکروتیک</span>
+                    </td>
+                    <td th:text="${t.countFa}">۱۳</td>
+                    <td th:text="${t.firstHeld}">شهریور ۱۳۹۴</td>
+                    <td th:text="${t.lastHeld}">مرداد ۱۳۹۷</td>
+                    <td><a th:href="${baseUrl + '/blog/' + t.slug}">مشاهده ❯</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="note">
+            این جدول <b>سابقه‌ی برگزاری</b> است، نه فهرست دوره‌های در حال ثبت‌نام. آخرین دوره‌ی مستند
+            مربوط به سال ۱۴۰۱ است و در حال حاضر دوره‌ای برای ثبت‌نام باز نیست.
+        </div>
+
+        <div class="cta">
+            <a class="out" th:href="${coursesHubUrl}">همه‌ی <span th:text="${courseCountFa}">۴۹</span> دوره‌ی برگزارشده ❯</a>
+        </div>
+    </section>
+
+    <!-- ================= عمق فنی ================= -->
+    <section>
+        <h2>حوزه‌ی تخصصی</h2>
+        <p>
+            تمرکز داده نما روی زیرساخت شبکه و لینک‌های بی‌سیم است: روترها و سوییچ‌های
+            <b>میکروتیک</b>، رادیوهای وایرلس و لینک‌های <b>مایکروویو پرظرفیت</b>، تجهیزات
+            اکسس‌پوینت داخلی، و مراکز تلفنی تحت شبکه. همان تخصصی که پشت دوره‌های بالا بود،
+            پشت انتخاب کالاهای فروشگاه هم هست.
+        </p>
+        <p style="margin-top:10px;">
+            برای <span th:text="${productCountFa}">۲۶۷</span> محصول کاتالوگ، مشخصات فنی و پرسش‌های
+            متداول به‌صورت جداگانه نوشته شده — نه کپی از برگه‌ی کاتالوگ سازنده. مقالات آموزشی و
+            راهنمای عیب‌یابی هم در بلاگ سایت منتشر می‌شود.
+        </p>
+        <div class="tags">
+            <span>MikroTik</span><span>MTCNA</span><span>MTCWE</span><span>MTCRE</span>
+            <span>MTCTCE</span><span>MTCUME</span><span>CWNA</span>
+            <span>مایکروویو پرظرفیت</span><span>VoIP</span><span>وایرلس</span>
+        </div>
+    </section>
+
+    <div class="cta">
+        <a class="fill" th:href="${baseUrl + '/'}">مشاهده‌ی محصولات ❯</a>
+        <a class="out" th:href="${baseUrl + '/blog'}">بلاگ آموزشی ❯</a>
+    </div>
+</main>
+
+<footer th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© فروشگاه داده نما</div>
+    </div>
+</footer>
+</body>
+</html>

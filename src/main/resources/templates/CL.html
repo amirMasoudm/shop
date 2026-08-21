@@ -559,6 +559,87 @@
             flex: 0 0 200px;
         }
 
+        /* بلاکِ خلاصه‌ی «سابقه و اعتبار» در خانه (لینک به /about) */
+        #trustStrip {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .trust-strip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            border-right: 4px solid var(--accent);
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            align-items: center;
+            justify-content: space-between;
+            transition: .15s;
+        }
+
+        #trustStrip:hover .trust-strip {
+            border-color: var(--primary);
+            border-right-color: var(--accent);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+        }
+
+        .trust-facts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 28px;
+        }
+
+        .trust-fact b {
+            color: var(--primary);
+            font-size: 1.15rem;
+            font-weight: 900;
+            margin-left: 6px;
+        }
+
+        .trust-fact span {
+            color: var(--text-mid);
+            font-size: .85rem;
+        }
+
+        .trust-cta {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: .88rem;
+            white-space: nowrap;
+        }
+
+        /* موبایل: نوار باید فشرده بماند و ریتمِ صفحه‌ی اصلی را نشکند */
+        @media (max-width: 700px) {
+            .trust-strip {
+                padding: 12px 14px;
+                gap: 8px 14px;
+            }
+
+            .trust-facts {
+                gap: 4px 16px;
+            }
+
+            .trust-fact {
+                white-space: nowrap;
+            }
+
+            .trust-fact b {
+                font-size: 1rem;
+                margin-left: 4px;
+            }
+
+            .trust-fact span {
+                font-size: .78rem;
+            }
+
+            .trust-cta {
+                font-size: .82rem;
+            }
+        }
+
         .products-grid {
             display: grid;
             grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
@@ -1427,6 +1508,31 @@
                 </div>
             </div>
             <div id="landingSections" style="display:none;"></div>
+
+            <!-- بلاکِ خلاصه‌ی «سابقه و اعتبار» — SSR (نه SPA) تا خزنده هم ببیندش.
+                 فقط در نمای خانه دیده می‌شود؛ نمایشش دقیقاً با landingSections همگام است.
+                 🔴 هیچ راه تماس مستقیم/شبکه‌ی اجتماعی — قانون ضد-دور-زدن. -->
+            <a id="trustStrip" th:if="${trustCourseCountFa != null}"
+               th:href="${baseUrl + '/about'}" style="display:none;">
+                <div class="trust-strip">
+                    <div class="trust-facts">
+                        <div class="trust-fact">
+                            <b th:text="'از ' + ${trustSinceFa}">از ۱۳۸۲</b>
+                            <span th:text="${trustYearsFa} + ' سال حضور آنلاین'">سال حضور آنلاین</span>
+                        </div>
+                        <div class="trust-fact">
+                            <b th:text="${trustCourseCountFa}">۴۹</b>
+                            <span>دوره‌ی تخصصی برگزارشده</span>
+                        </div>
+                        <div class="trust-fact">
+                            <b>۷ سال</b>
+                            <span>سابقه‌ی مستند آموزشی</span>
+                        </div>
+                    </div>
+                    <span class="trust-cta">سابقه و اعتبار داده نما ❯</span>
+                </div>
+            </a>
+
             <div id="latestSectionHeader"
                  style="font-weight:900; font-size:1.2rem; margin-top:30px; border-right:4px solid var(--primary); padding-right:10px; color:var(--text); display:none;">
                 جدیدترین محصولات
@@ -1649,6 +1755,7 @@
                 if (!targetProduct) targetProduct = await fetchProductBySlugOrId(window.SERVER_PRODUCT_SLUG);
                 if (targetProduct) {
                     document.getElementById('landingSections').style.display = 'block';
+                    setTrustStrip(true);
                     document.getElementById('latestSectionHeader').style.display = 'block';
                     renderGrid(state.all.slice(0, 20));
                     openProductDetail(targetProduct.id, true);
@@ -2240,6 +2347,13 @@
         return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div>${buyBtn}</div>`;
     }
 
+    // نوارِ «سابقه و اعتبار» فقط در نمای خانه دیده می‌شود (مثل landingSections).
+    // در صفحه‌های SSRِ محصول/دسته اصلاً رندر نمی‌شود، پس null-guard لازم است.
+    function setTrustStrip(show) {
+        const el = document.getElementById('trustStrip');
+        if (el) el.style.display = show ? 'block' : 'none';
+    }
+
     async function loadHome(isPopState = false) {
         resetSearchUi();
         document.getElementById('productView').classList.remove('active');
@@ -2248,6 +2362,7 @@
         document.getElementById('filterPanel').classList.remove('visible');
         document.getElementById('filterFab').classList.remove('visible');
         document.getElementById('landingSections').style.display = 'block';
+        setTrustStrip(true);
         document.getElementById('latestSectionHeader').style.display = 'block';
         document.getElementById('latestSectionHeader').innerText = 'جدیدترین محصولات';
         renderCatIntro(null); // صفحه‌ی اصلی متنِ معرفیِ دسته ندارد
@@ -2288,6 +2403,7 @@
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
+        setTrustStrip(false);
         document.getElementById('latestSectionHeader').innerText = 'دسته: ' + name;
 
         // لیست دسته: صفحه‌بندی سروری با «نمایش بیشتر» (بدون سقف ۲۰۰)
@@ -2308,6 +2424,7 @@
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
+        setTrustStrip(false);
         document.getElementById('latestSectionHeader').innerText = title;
         renderCatIntro(null); // نمای جشنواره متنِ معرفیِ دسته ندارد
 
@@ -2353,6 +2470,7 @@
         document.getElementById('productView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
+        setTrustStrip(false);
         document.getElementById('latestSectionHeader').style.display = 'block';
         document.getElementById('latestSectionHeader').innerText = `نتایج جست‌وجو برای: ${q}`;
         renderCatIntro(null); // نمای سرچ متنِ معرفیِ دسته ندارد
@@ -3208,6 +3326,7 @@
                th:text="${fc.name}"
                style="color:#cbd5e1; text-decoration:none; font-size:13px;">دسته</a>
             <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; text-decoration:none; font-size:13px; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; text-decoration:none; font-size:13px; font-weight:700;">🏛️ سابقه و اعتبار</a>
         </nav>
         <div style="margin-top:20px; font-size:12px; color:#94a3b8;">© فروشگاه داده نما</div>
     </div>
