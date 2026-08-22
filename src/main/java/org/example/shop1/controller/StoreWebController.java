@@ -26,6 +26,7 @@ public class StoreWebController {
     private final CategoryRepository categoryRepo;
     private final CategoryService categoryService;
     private final ArticleService articleService;
+    private final org.example.shop1.model.service.ProductRedirectService productRedirectService;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
     @org.springframework.beans.factory.annotation.Value("${analytics.ga4.measurement-id:}")
@@ -35,11 +36,13 @@ public class StoreWebController {
     private String gscToken;
 
     public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo,
-                              CategoryService categoryService, ArticleService articleService) {
+                              CategoryService categoryService, ArticleService articleService,
+                              org.example.shop1.model.service.ProductRedirectService productRedirectService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.categoryService = categoryService;
         this.articleService = articleService;
+        this.productRedirectService = productRedirectService;
     }
 
     @GetMapping("/")
@@ -63,12 +66,36 @@ public class StoreWebController {
 
     // آدرسِ قدیمیِ تک‌بخشی — برای سازگاریِ عقب همچنان ۲۰۰ می‌دهد؛ canonical به فرمِ هیبرید هدایت می‌کند
     @GetMapping("/product/{slugOrId}")
-    public String productPage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
+    public Object productPage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
-        Product p = resolveProduct(slugOrId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد"));
-        populateProductModel(p, model, request);
+        Optional<Product> found = resolveProduct(slugOrId);
+        if (found.isEmpty()) {
+            // محصول نیست: شاید اسلاگش بعدِ ادغام ریدایرکت شده باشد (۳۰۱ به‌جایِ ۴۰۴)
+            Object redirect = redirectOrNull(slugOrId, request);
+            if (redirect != null) return redirect;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد");
+        }
+        populateProductModel(found.get(), model, request);
         return "CL";
+    }
+
+    /**
+     * اگر اسلاگ در {@code product_redirects} مقصدِ زنده داشته باشد، ۳۰۱ به آدرسِ
+     * canonicalِ مقصد؛ وگرنه {@code null} تا فراخوان ۴۰۴ واقعی بدهد.
+     * <p>
+     * ⚠️ فقط بعد از شکستِ {@code resolveProduct} صدا زده می‌شود — یعنی محصولِ زنده همیشه
+     * مقدم است و یک ریدایرکتِ اشتباه نمی‌تواند صفحهٔ سالمی را بدزدد.
+     */
+    private Object redirectOrNull(String slug, HttpServletRequest request) {
+        Optional<Product> target = productRedirectService.resolveTarget(slug);
+        if (target.isEmpty()) return null;
+
+        // Location باید ASCII باشد؛ همان فرمِ percent-encodeِ ریدایرکتِ دُمِ فارسی
+        String canonical = buildBaseUrl(request) + hybridPathEncoded(target.get());
+        org.springframework.web.servlet.view.RedirectView rv =
+                new org.springframework.web.servlet.view.RedirectView(canonical);
+        rv.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+        return rv;
     }
 
     // آدرسِ هیبریدِ جدید: /product/{resolver}/{persianTail}
@@ -77,8 +104,15 @@ public class StoreWebController {
     public Object productPageHybrid(@PathVariable String resolver, @PathVariable String persianTail,
                                     Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
-        Product p = resolveProduct(resolver)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد"));
+        Optional<Product> found = resolveProduct(resolver);
+        if (found.isEmpty()) {
+            // همان منطقِ مسیرِ تک‌بخشی: اسلاگِ ادغام‌شده ۳۰۱ می‌گیرد، نه ۴۰۴.
+            // دُمِ فارسیِ آدرسِ قدیمی عمداً دور ریخته می‌شود — مقصد دُمِ خودش را دارد.
+            Object redirect = redirectOrNull(resolver, request);
+            if (redirect != null) return redirect;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد");
+        }
+        Product p = found.get();
 
         // اگر دُم غلط/کهنه بود، ۳۰۱ به فرمِ canonicalِ درست (تثبیتِ آدرس + جلوگیری از محتوای تکراری)
         String correctTail = p.getPersianTail();
@@ -407,7 +441,10 @@ public class StoreWebController {
         model.addAttribute("courseTracks", tracks);
         model.addAttribute("courseCountFa", courseCountFa);
         model.addAttribute("trackCountFa", faDigits(String.valueOf(tracks.size())));
-        model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.count())));
+        // ⚠️ countComplete، نه count: متنِ صفحه ادعا می‌کند این محصولات مشخصاتِ فنی و
+        // پرسشِ متداول دارند. شمارشِ خام همهٔ اسناد را می‌شمرد و ادعا را رو به بالا
+        // از واقعیت جدا می‌کرد (قاعدهٔ ثبت‌شدهٔ «شمارش از DB»).
+        model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.countComplete())));
         model.addAttribute("onlineYearsFa", yearsFa);
         model.addAttribute("onlineSinceFa", ONLINE_SINCE_JALALI);
         model.addAttribute("coursesHubUrl", baseUrl + "/blog/hub/" + encodePathSegment(COURSES_HUB_SLUG));

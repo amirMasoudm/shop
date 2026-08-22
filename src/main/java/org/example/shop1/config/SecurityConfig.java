@@ -75,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**").permitAll()
 
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
+                        .requestMatchers("/api/v1/product-redirects/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/products/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")

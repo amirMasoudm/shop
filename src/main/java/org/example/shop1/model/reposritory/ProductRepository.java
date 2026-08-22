@@ -4,6 +4,7 @@ import org.example.shop1.model.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -33,6 +34,19 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     boolean existsById(String id);
     // پیدا کردن محصول از روی اسلاگ
     Optional<Product> findBySlug(String slug);
+
+    /**
+     * شمارشِ محصولاتِ «کامل» — معیارِ ثبت‌شدهٔ پروژه: {@code techSpecs} و {@code faqs} و
+     * {@code description} هر سه غیرخالی.
+     * <p>
+     * ⚠️ چرا {@code count()} خالی به‌درد نمی‌خورد: صفحهٔ «سابقه و اعتبار» ادعا می‌کند این
+     * محصولات مشخصاتِ فنی و پرسشِ متداول دارند. {@code count()} همهٔ اسناد را می‌شمارد،
+     * پس با هر محصولِ خامِ تازه، ادعا رو به بالا از واقعیت جدا می‌شود.
+     */
+    @Query(value = "{ 'techSpecs': { $exists: true, $not: { $size: 0 } },"
+            + " 'faqs': { $exists: true, $not: { $size: 0 } },"
+            + " 'description': { $exists: true, $nin: [ null, '' ] } }", count = true)
+    long countComplete();
 
     // پیدا کردن محصولاتی که آیدی آن‌ها در لیست ارسالی است
     List<Product> findByIdIn(List<String> productIds);
