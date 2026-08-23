@@ -441,10 +441,6 @@ public class StoreWebController {
         model.addAttribute("courseTracks", tracks);
         model.addAttribute("courseCountFa", courseCountFa);
         model.addAttribute("trackCountFa", faDigits(String.valueOf(tracks.size())));
-        // ⚠️ countComplete، نه count: متنِ صفحه ادعا می‌کند این محصولات مشخصاتِ فنی و
-        // پرسشِ متداول دارند. شمارشِ خام همهٔ اسناد را می‌شمرد و ادعا را رو به بالا
-        // از واقعیت جدا می‌کرد (قاعدهٔ ثبت‌شدهٔ «شمارش از DB»).
-        model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.countComplete())));
         model.addAttribute("onlineYearsFa", yearsFa);
         model.addAttribute("onlineSinceFa", ONLINE_SINCE_JALALI);
         model.addAttribute("coursesHubUrl", baseUrl + "/blog/hub/" + encodePathSegment(COURSES_HUB_SLUG));
