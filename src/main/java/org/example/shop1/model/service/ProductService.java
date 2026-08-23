@@ -64,8 +64,14 @@ public class ProductService {
             product.setStockIsfahan(request.getStockIsfahan());
             product.setStockTehran(request.getStockTehran());
             product.setStock(product.getSellableStock()); // «در راه» عمداً بیرون است
-        } else {
+        } else if (request.getStock() != null) {
             product.setStock(request.getStock());
+        } else if (product.getStock() == null) {
+            // ⚠️ اینجا منشأِ باگِ دیتالاس بود: قبلاً بی‌قید setStock(null) می‌شد، پس هر
+            // PUTِ ناقص موجودی را نال می‌کرد و PUTِ بعدی روی همان محصول با NPE می‌شکست.
+            // حالا: PUTِ ناقص مقدارِ موجود را دست نمی‌زند، و محصولِ تازه به‌جایِ نال با
+            // صفر ساخته می‌شود (صفر یعنی ناموجود — پیش‌فرضِ امن؛ نال هیچ معنایی ندارد).
+            product.setStock(0);
         }
 
         if (request.getIncomingStock() != null) product.setIncomingStock(request.getIncomingStock());
@@ -150,23 +156,33 @@ public class ProductService {
         // تغییرات را فقط روی سایر فیلدها اعمال می‌کنیم.
 
         // مقدارِ قبلیِ موجودی را نگه‌دار تا گذارِ «ناموجود → موجود» را تشخیص دهیم (تریگرِ اطلاع‌رسانی)
-        int oldStock = product.getStock();
+        // ⚠️ stock از نوعِ Integer است: unboxingِ بی‌گارد روی رکوردِ قدیمیِ نال‌دار NPE می‌داد
+        // و محصول را برای همیشه غیرقابلِ‌آپدیت می‌کرد. نالِ کهنه = «ناموجود» تفسیر می‌شود.
+        int oldStock = product.getStock() != null ? product.getStock() : 0;
 
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         applyStockAndPricingFields(product, request);
         product.setDescription(request.getDescription());
-        product.setBasePrice(request.getBasePrice()); // آپدیت قیمت پایه
         product.setUpdatedAt(Instant.now()); // ثبت زمان آپدیت
-        product.setWarehouseDescription(request.getWarehouseDescription());
-        product.setUnit(request.getUnit());
-        product.setPackQuantity(request.getPackQuantity());
         product.setOnlinePrice(request.getOnlinePrice());
 
-        product.setWeight(request.getWeight());
-        product.setLength(request.getLength());
-        product.setWidth(request.getWidth());
-        product.setHeight(request.getHeight());
+        // ⚠️ فیلدهایِ انبار و ابعاد: merge، نه replace.
+        // این فیلدها را پنلِ انبار (AnbarMali) پر می‌کند، ولی پنلِ فروشگاه (Admin)
+        // همیشه در بدنهٔ PUT نمی‌فرستدشان — و قبلاً بی‌قید بازنویسی می‌شدند، یعنی هر
+        // آپدیتِ ساده‌ی فروشگاه کارِ انبار را نال می‌کرد. همان الگویِ
+        // applyStockAndPricingFields (فیلدهایِ میزِ قیمت‌گذاری) اینجا هم اعمال شد.
+        // معاوضه‌ی آگاهانه: پاک‌کردنِ عمدیِ این فیلدها با PUT دیگر ممکن نیست؛
+        // در برابرِ از‌دست‌رفتنِ بی‌صدایِ دیتا، این هزینه‌ی درستی است.
+        if (request.getBasePrice() != null) product.setBasePrice(request.getBasePrice());
+        if (request.getWarehouseDescription() != null) product.setWarehouseDescription(request.getWarehouseDescription());
+        if (request.getUnit() != null) product.setUnit(request.getUnit());
+        if (request.getPackQuantity() != null) product.setPackQuantity(request.getPackQuantity());
+
+        if (request.getWeight() != null) product.setWeight(request.getWeight());
+        if (request.getLength() != null) product.setLength(request.getLength());
+        if (request.getWidth() != null) product.setWidth(request.getWidth());
+        if (request.getHeight() != null) product.setHeight(request.getHeight());
 
         if (!product.getCategoryId().equals(request.getCategoryId())) {
             Category category = categoryRepo.findById(request.getCategoryId())
@@ -180,8 +196,8 @@ public class ProductService {
 
         // اعمال مجدد تخفیف با درصد جدید
         applyDiscount(product, request.getDiscountPercent());
-// داخل متد createProduct و updateProduct:
-        product.setWarehouseCategoryId(request.getWarehouseCategoryId());
+        // merge (نه replace) — به همان دلیلِ بالا: دسته‌ی انبار را پنلِ فروشگاه نمی‌فرستد
+        if (request.getWarehouseCategoryId() != null) product.setWarehouseCategoryId(request.getWarehouseCategoryId());
 
         // ---> کدهای جدید سئو <---
         product.setSeoTitle(request.getSeoTitle());
@@ -196,7 +212,11 @@ public class ProductService {
         Product saved = productRepo.save(product);
 
         // گذارِ «ناموجود → موجود»: مشترکینِ اطلاع‌رسانی پیامک بگیرند (async؛ ذخیره را کند/شکننده نمی‌کند)
-        if (oldStock <= 0 && saved.getStock() > 0) {
+        // ⚠️ نقطهٔ دومِ unboxing. به‌خاطرِ short-circuitِ && فقط وقتی ارزیابی می‌شد که
+        // oldStock <= 0 بود، پس در سناریویِ «موجودی داشت و نال شد» بی‌صدا رد می‌شد و
+        // نال در دیتابیس می‌نشست — دقیقاً چیزی که کشفش را سخت کرده بود.
+        int newStock = saved.getStock() != null ? saved.getStock() : 0;
+        if (oldStock <= 0 && newStock > 0) {
             stockNotificationService.notifyBackInStock(saved.getId(), saved.getName());
         }
 
