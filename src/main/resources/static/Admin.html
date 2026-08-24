@@ -2040,6 +2040,29 @@
         TIPAX: '📮 تیپاکس', BARBARI: '🚛 باربری'
     };
 
+    // وضعیتِ پرداخت برایِ جزئیاتِ سفارش — طبقِ prompt-tech-chat-mellat-admin-panel-display.md.
+    // سفارش‌هایِ قدیمی/mock نه PAYMENT_FAILED دارند نه paymentFailureReason؛ برایشان همان
+    // مسیرِ «موفق» (چون finalized+paid با mock بودند) یا «در انتظار» طی می‌شود، بدونِ خطا.
+    function paymentStatusHtml(o) {
+        if (o.status === 'PAYMENT_FAILED') {
+            return `<div class="md:col-span-2"><p class="text-gray-400 text-[10px] md:text-xs">وضعیتِ پرداخت:</p><p class="font-bold text-red-600">❌ ناموفق${o.paymentFailureReason ? ' — ' + escapeHTML(o.paymentFailureReason) : ''}</p></div>`;
+        }
+        if (o.status === 'PENDING_PAYMENT') {
+            return `<div><p class="text-gray-400 text-[10px] md:text-xs">وضعیتِ پرداخت:</p><p class="font-bold text-gray-500">در انتظارِ پرداخت</p></div>`;
+        }
+        return `<div><p class="text-gray-400 text-[10px] md:text-xs">وضعیتِ پرداخت:</p><p class="font-bold text-green-600">✅ موفق</p></div>`;
+    }
+
+    // فقط اگر مقدار داشتند نمایش داده شوند — سفارش‌هایِ ساخته‌شده با mock-gatewayِ قبلی
+    // این فیلدها را اصلاً ندارند (undefined)، پس چیزی رندر نمی‌شود؛ نه خطا، نه "undefined".
+    function mellatRefHtml(o) {
+        if (!o.mellatRefId && !o.mellatSaleReferenceId) return '';
+        return `
+            ${o.mellatRefId ? `<div><p class="text-gray-400 text-[10px] md:text-xs">RefId (ملت):</p><p class="font-bold font-mono text-[11px]" dir="ltr">${escapeHTML(o.mellatRefId)}</p></div>` : ''}
+            ${o.mellatSaleReferenceId ? `<div><p class="text-gray-400 text-[10px] md:text-xs">مرجعِ تراکنش (SaleReferenceId):</p><p class="font-bold font-mono text-[11px]" dir="ltr">${escapeHTML(o.mellatSaleReferenceId)}</p></div>` : ''}
+        `;
+    }
+
     function viewOrderDetails(id) {
         const o = state.orders.find(x => x.id === id);
         const cont = document.getElementById('order-details-content');
@@ -2053,6 +2076,8 @@
                 <div><p class="text-gray-400 text-[10px] md:text-xs">مجموع کالاها:</p><p class="font-bold text-green-600">${o.itemsTotal?.toLocaleString() || 0} تومان</p></div>
                 <div><p class="text-gray-400 text-[10px] md:text-xs">۱۰٪ مالیات بر ارزش افزوده:</p><p class="font-bold text-amber-600">${o.taxAmount?.toLocaleString() || 0} تومان</p></div>
                 <div><p class="text-gray-400 text-[10px] md:text-xs">مجموع فاکتور:</p><p class="font-bold text-indigo-700">${o.totalAmount?.toLocaleString() || 0} تومان</p></div>
+                ${paymentStatusHtml(o)}
+                ${mellatRefHtml(o)}
             </div>
             <div class="space-y-2 mt-4">
                 <p class="font-bold text-indigo-700 mb-2 text-xs md:text-sm">🛒 اقلام سفارش:</p>
