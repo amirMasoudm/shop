@@ -1974,7 +1974,7 @@
                 <td class="p-3 md:p-4 font-bold text-gray-800 text-xs md:text-sm">${escapeHTML(o.user?.firstName || '')} ${escapeHTML(o.user?.lastName || 'مشتری')}<br><span class="text-[10px] md:text-xs text-gray-500">${o.user?.username || ''}</span></td>
                 <td class="p-3 md:p-4 text-xs text-gray-500 hidden md:table-cell">
                     <div class="truncate max-w-[120px] md:max-w-[200px]" title="${escapeHTML(o.shippingAddress)}">${escapeHTML(o.shippingAddress || 'ثبت نشده')}</div>
-                    <div class="mt-1 font-bold text-blue-600">${o.shippingMethod === 'SNAPP_BOX' ? '🛵 اسنپ' : (o.shippingMethod ? '🚚 پست' : '')}</div>
+                    <div class="mt-1 font-bold text-blue-600">${SHIP_METHOD_LABELS[o.shippingMethod] || ''}</div>
                 </td>
                 <td class="p-3 md:p-4 font-bold text-gray-800 text-left md:text-right text-xs md:text-sm">${(o.totalAmount || 0).toLocaleString()}</td>
                 <td class="p-3 md:p-4 text-center"><span class="status-badge st-${o.status} block mx-auto max-w-max text-[9px] md:text-[11px]">${getStatusLabel(o.status)}</span></td>
@@ -2034,6 +2034,12 @@
         });
     }
 
+    // برچسبِ فارسیِ روش‌هایِ ارسال (بدونِ قیمت — پس‌کرایه‌اند)؛ کدها از ShippingService.java
+    const SHIP_METHOD_LABELS = {
+        SNAPP_BOX: '🛵 پیک موتوری', POST_PISHTAZ: '📦 پست پیشتاز',
+        TIPAX: '📮 تیپاکس', BARBARI: '🚛 باربری'
+    };
+
     function viewOrderDetails(id) {
         const o = state.orders.find(x => x.id === id);
         const cont = document.getElementById('order-details-content');
@@ -2043,8 +2049,10 @@
                 <div><p class="text-gray-400 text-[10px] md:text-xs">تماس:</p><p class="font-bold" dir="ltr">${o.user?.username}</p></div>
                 <div class="md:col-span-2"><p class="text-gray-400 text-[10px] md:text-xs">نشانی پستی:</p><p class="font-bold leading-relaxed">${escapeHTML(o.shippingAddress) || '---'}</p></div>
                 <div><p class="text-gray-400 text-[10px] md:text-xs">کد پستی:</p><p class="font-bold">${o.postalCode || 'ثبت نشده'}</p></div>
-                <div><p class="text-gray-400 text-[10px] md:text-xs">هزینه ارسال:</p><p class="font-bold text-red-600">${o.shippingCost?.toLocaleString() || 0} تومان</p></div>
-                <div class="md:col-span-2"><p class="text-gray-400 text-[10px] md:text-xs">مجموع کالاها:</p><p class="font-bold text-green-600">${o.itemsTotal?.toLocaleString() || 0} تومان</p></div>
+                <div><p class="text-gray-400 text-[10px] md:text-xs">روش ارسال:</p><p class="font-bold text-blue-600">${SHIP_METHOD_LABELS[o.shippingMethod] || o.shippingMethod || 'ثبت نشده'} <span class="text-[9px] text-gray-400 font-normal">(پس‌کرایه)</span></p></div>
+                <div><p class="text-gray-400 text-[10px] md:text-xs">مجموع کالاها:</p><p class="font-bold text-green-600">${o.itemsTotal?.toLocaleString() || 0} تومان</p></div>
+                <div><p class="text-gray-400 text-[10px] md:text-xs">۱۰٪ مالیات بر ارزش افزوده:</p><p class="font-bold text-amber-600">${o.taxAmount?.toLocaleString() || 0} تومان</p></div>
+                <div><p class="text-gray-400 text-[10px] md:text-xs">مجموع فاکتور:</p><p class="font-bold text-indigo-700">${o.totalAmount?.toLocaleString() || 0} تومان</p></div>
             </div>
             <div class="space-y-2 mt-4">
                 <p class="font-bold text-indigo-700 mb-2 text-xs md:text-sm">🛒 اقلام سفارش:</p>

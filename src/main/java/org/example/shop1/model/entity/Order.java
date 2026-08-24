@@ -29,13 +29,18 @@ public class Order {
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal itemsTotal = BigDecimal.ZERO;
 
-    // هزینه ارسال
+    // ۱۰٪ مالیات بر ارزش افزوده — همیشه سمتِ سرور محاسبه می‌شود (OrderService.applyTotals)
     @Field(targetType = FieldType.DECIMAL128)
-    private BigDecimal shippingCost = BigDecimal.ZERO;
+    private BigDecimal taxAmount = BigDecimal.ZERO;
 
-    // مبلغ نهایی
+    // مبلغ نهایی = itemsTotal + taxAmount (هزینهٔ ارسال دیگر تویِ جمع نیست — پس‌کرایه است)
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    // فقط نامِ روشِ انتخابیِ مشتری (تیپاکس/باربری/پست...)؛ چون دیگر قیمتی نداریم،
+    // این تنها اثرِ ماندگارِ انتخابِ ارسال است.
+    private String shippingMethod;
+
     private OrderStatus status; // تغییر از String به OrderStatus
 
 
@@ -112,12 +117,12 @@ public class Order {
         this.itemsTotal = itemsTotal;
     }
 
-    public BigDecimal getShippingCost() {
-        return shippingCost;
+    public BigDecimal getTaxAmount() {
+        return taxAmount;
     }
 
-    public void setShippingCost(BigDecimal shippingCost) {
-        this.shippingCost = shippingCost;
+    public void setTaxAmount(BigDecimal taxAmount) {
+        this.taxAmount = taxAmount;
     }
 
     public BigDecimal getTotalAmount() {
@@ -126,6 +131,14 @@ public class Order {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getShippingMethod() {
+        return shippingMethod;
+    }
+
+    public void setShippingMethod(String shippingMethod) {
+        this.shippingMethod = shippingMethod;
     }
 
 

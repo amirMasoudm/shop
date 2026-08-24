@@ -67,19 +67,7 @@
                         "price": "[(${#numbers.formatDecimal(p.onlinePrice != null ? p.onlinePrice : p.price, 1, 0)})]0",
                         "priceValidUntil": "[(${priceValidUntil})]",
                         "itemCondition": "https://schema.org/NewCondition",
-                        "availability": "[(${p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'})]",
-                        "shippingDetails": {
-                            "@type": "OfferShippingDetails",
-                            "shippingRate": {
-                                "@type": "MonetaryAmount",
-                                "value": "0",
-                                "currency": "IRR"
-                            },
-                            "shippingDestination": {
-                                "@type": "DefinedRegion",
-                                "addressCountry": "IR"
-                            }
-                        }
+                        "availability": "[(${p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'})]"
                     }[(${aggregateRatingJson})]
                 },
                 {

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,6 +23,9 @@ import java.util.List;
 
 @Service
 public class OrderService {
+
+    // نرخِ مالیات بر ارزش افزوده — طبقِ تصمیمِ کارِ ۱ (docs/prompt-tech-chat-invoice-vat-and-shipping.md)
+    private static final BigDecimal TAX_RATE = new BigDecimal("0.10");
 
     private final OrderRepository orderRepo;
     private final ProductRepository productRepo;
@@ -120,9 +124,22 @@ public class OrderService {
 
         order.setItems(orderItems);
         order.setItemsTotal(itemsTotal);
-        // تا قبل از انتخاب روش ارسال، هزینه ارسال صفر است
-        order.setTotalAmount(itemsTotal.add(order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO));
+        applyTotals(order);
         return orderRepo.save(order);
+    }
+
+    /**
+     * تکِ نقطهٔ محاسبهٔ مالیات و مبلغِ نهایی — از itemsTotalِ فعلیِ order می‌خواند.
+     * هرجا itemsTotal بازمحاسبه می‌شود (ثبتِ اولیه، ویرایشِ اقلام، نهایی‌سازی) باید
+     * همین متد صدا زده شود تا taxAmount/totalAmount هیچ‌وقت از itemsTotal عقب نیفتد.
+     * <p>
+     * ⚠️ هزینهٔ ارسال دیگر اینجا نیست — پس‌کرایه است، سایت هیچ مبلغی برایش حساب نمی‌کند.
+     */
+    private void applyTotals(Order order) {
+        BigDecimal itemsTotal = order.getItemsTotal() != null ? order.getItemsTotal() : BigDecimal.ZERO;
+        BigDecimal tax = itemsTotal.multiply(TAX_RATE).setScale(0, RoundingMode.HALF_UP);
+        order.setTaxAmount(tax);
+        order.setTotalAmount(itemsTotal.add(tax));
     }
 
     public List<ShippingOption> getShippingQuotes(String orderId, Address destination) {
@@ -181,9 +198,7 @@ public class OrderService {
                 newItemsTotal = newItemsTotal.add(item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
             }
             order.setItemsTotal(newItemsTotal);
-            BigDecimal shippingCost = request.getShippingCost() != null ? request.getShippingCost() : BigDecimal.ZERO;
-            order.setShippingCost(shippingCost);
-            order.setTotalAmount(newItemsTotal.add(shippingCost));
+            applyTotals(order);
             orderRepo.save(order);
 
             // پرتاب خطا جهت باخبر کردن کلاینت و نمایش پاپ‌آپ تایید جدید
@@ -192,9 +207,9 @@ public class OrderService {
         // =========================================================================
 
         order.setShippingAddress(request.getAddress());
-        BigDecimal shippingCost = request.getShippingCost() != null ? request.getShippingCost() : BigDecimal.ZERO;
-        order.setShippingCost(shippingCost);
-        order.setTotalAmount(order.getItemsTotal().add(shippingCost));
+        // فقط نامِ روشِ انتخابی پرسیست می‌شود؛ قیمتی از کلاینت گرفته/اعتماد نمی‌شود (پس‌کرایه است)
+        order.setShippingMethod(request.getShippingMethod());
+        applyTotals(order);
 
         order.setFinalized(true);
         return orderRepo.save(order);

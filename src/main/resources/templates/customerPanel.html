@@ -273,8 +273,28 @@
             <button onclick="openAddressModal()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 rounded-xl mb-6 hover:bg-gray-50 transition">+ تعریف آدرس جدید روی نقشه</button>
 
             <div id="shipping-section" class="hidden border-t pt-6">
-                <h4 class="font-bold text-sm mb-4">۳. روش ارسال و هزینه:</h4>
+                <h4 class="font-bold text-sm mb-4">۳. روش ارسال:</h4>
                 <div id="shipping-options" class="space-y-3 mb-6"></div>
+                <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-6 text-center font-bold">
+                    🚚 هزینه‌ی ارسال در زمانِ تحویل توسطِ شرکتِ حمل‌ونقل از گیرنده دریافت می‌شود.
+                </p>
+
+                <!-- خلاصه‌ی فاکتور: کارِ ۱ پرامپتِ مالیات — مجموعِ کالاها + ۱۰٪ مالیات + مجموعِ فاکتور -->
+                <div class="bg-gray-50 p-4 rounded-xl border mb-6 space-y-2">
+                    <div class="flex justify-between items-center text-xs text-gray-600">
+                        <span>مجموع کالاها:</span>
+                        <span id="checkout-invoice-items">۰ تومان</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-600">
+                        <span>۱۰٪ مالیات بر ارزش افزوده:</span>
+                        <span id="checkout-invoice-tax">۰ تومان</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t">
+                        <span class="font-bold text-sm">مجموع فاکتور:</span>
+                        <span id="checkout-invoice-total" class="font-black text-blue-900 text-lg">۰ تومان</span>
+                    </div>
+                </div>
+
                 <div class="flex gap-3">
                     <button onclick="goToCheckoutStep('items')" class="flex-1 p-3 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition">❮ برگشت</button>
                     <button onclick="finalizeAndPay()" id="btn-final-pay" class="flex-[2] btn-yas shadow-xl" disabled>تایید نهایی و پرداخت 💳</button>
@@ -505,6 +525,23 @@
         document.getElementById('btn-next-step').disabled = false;
     }
 
+    // خلاصه‌ی فاکتور (کارِ ۱): اگر مقادیرِ معتبرِ سرور (taxAmount/totalAmount) روی
+    // state.currentOrder باشد از همان استفاده می‌شود (مقدارِ قطعی)؛ وگرنه فقط برایِ
+    // پیش‌نمایشِ سریع، تخمینِ سمتِ کلاینت با همان نرخِ ۱۰٪ زده می‌شود — محاسبه‌ی نهایی
+    // و قابلِ‌اعتماد همیشه سمتِ سرور (OrderService.applyTotals) انجام می‌شود.
+    function renderInvoiceSummary() {
+        const o = state.currentOrder;
+        if (!o) return;
+        const itemsTotal = o.itemsTotal || 0;
+        const hasServerTax = typeof o.taxAmount === 'number' && typeof o.totalAmount === 'number';
+        const tax = hasServerTax ? o.taxAmount : Math.round(itemsTotal * 0.10);
+        const total = hasServerTax ? o.totalAmount : (itemsTotal + tax);
+
+        document.getElementById('checkout-invoice-items').innerText = itemsTotal.toLocaleString() + ' تومان';
+        document.getElementById('checkout-invoice-tax').innerText = tax.toLocaleString() + ' تومان';
+        document.getElementById('checkout-invoice-total').innerText = total.toLocaleString() + ' تومان';
+    }
+
     function updateWizardQty(pid, delta) {
         const item = state.currentOrder.items.find(x => x.productId === pid);
         if(!item) return;
@@ -589,6 +626,7 @@
             const quotes = await res.json();
             state.lastQuotes = quotes;
             renderShippingOptions(quotes);
+            renderInvoiceSummary();
         } catch(e) {
             cont.innerHTML = '<p class="text-center py-4 text-xs text-red-500 font-bold">خطا در ارتباط با سیستم پست و اسنپ</p>';
         }
@@ -600,23 +638,24 @@
             let icon = '🚚';
             if (q.method === 'SNAPP_BOX') icon = '🛵';
             else if (q.method === 'POST_PISHTAZ') icon = '📦';
-            else if (q.method === 'POST_SEFARESHI') icon = '✉️';
+            else if (q.method === 'TIPAX') icon = '📮';
+            else if (q.method === 'BARBARI') icon = '🚛';
 
+            // بدونِ قیمت — هزینه‌ی واقعی پس‌کرایه است و در زمانِ تحویل گرفته می‌شود
             return `
-            <div class="shipping-option ${state.selectedShip?.method === q.method ? 'active' : ''}" onclick="setShipMethod('${q.method}', ${q.cost})">
+            <div class="shipping-option ${state.selectedShip?.method === q.method ? 'active' : ''}" onclick="setShipMethod('${q.method}')">
                 <div class="text-2xl">${icon}</div>
                 <div class="flex-1">
                     <div class="font-bold text-sm text-gray-800">${q.title}</div>
                     <div class="text-[10px] text-gray-500">${q.estimatedTime}</div>
                 </div>
-                <div class="font-black text-blue-900">${q.cost.toLocaleString()} تومان</div>
             </div>
         `;
         }).join('');
     }
 
-    function setShipMethod(method, cost) {
-        state.selectedShip = { method, cost };
+    function setShipMethod(method) {
+        state.selectedShip = { method };
         document.getElementById('btn-final-pay').disabled = false;
         document.getElementById('btn-final-pay').classList.remove('opacity-50');
         renderShippingOptions(state.lastQuotes || []);
@@ -634,7 +673,6 @@
                 body: JSON.stringify({
                     address: addrString,
                     shippingMethod: state.selectedShip.method,
-                    shippingCost: state.selectedShip.cost,
                     items: state.currentOrder.items
                 })
             });
@@ -651,6 +689,7 @@
                     async () => {
                         state.currentOrder = updatedOrder;
                         renderCheckoutItems();
+                        renderInvoiceSummary(); // فاکتورِ اصلاح‌شده با taxAmount/totalAmountِ قطعیِ سرور
                         await finalizeAndPay(); // تلاش مجدد با فاکتور جدید
                     }
                 );

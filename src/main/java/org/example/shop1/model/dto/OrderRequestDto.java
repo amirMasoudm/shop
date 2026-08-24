@@ -1,14 +1,13 @@
 package org.example.shop1.model.dto;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public class OrderRequestDto {
 
     private String address;
     private List<CartItemDto> items;
+    // فقط نامِ روش (بدونِ هزینه) — هزینه دیگر از کلاینت گرفته نمی‌شود، پس‌کرایه است
     private String shippingMethod;
-    private BigDecimal shippingCost;
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
@@ -18,9 +17,6 @@ public class OrderRequestDto {
 
     public String getShippingMethod() { return shippingMethod; }
     public void setShippingMethod(String shippingMethod) { this.shippingMethod = shippingMethod; }
-
-    public BigDecimal getShippingCost() { return shippingCost; }
-    public void setShippingCost(BigDecimal shippingCost) { this.shippingCost = shippingCost; }
 
     public static class CartItemDto {
         private String productId;

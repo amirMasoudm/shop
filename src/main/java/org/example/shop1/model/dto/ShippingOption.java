@@ -1,17 +1,21 @@
 package org.example.shop1.model.dto;
 
+/**
+ * یک روشِ ارسالِ قابلِ‌انتخاب — بدونِ قیمت.
+ * <p>
+ * هزینهٔ واقعیِ ارسال («پس‌کرایه») در لحظهٔ تحویل توسطِ شرکتِ حمل‌ونقل از گیرنده
+ * گرفته می‌شود، نه توسطِ سایت؛ پس اینجا دیگر فیلدِ قیمتی وجود ندارد.
+ */
 public class ShippingOption {
     private String method;
     private String title;
-    private Long cost;
     private String estimatedTime;
 
     public ShippingOption() {}
 
-    public ShippingOption(String method, String title, Long cost, String estimatedTime) {
+    public ShippingOption(String method, String title, String estimatedTime) {
         this.method = method;
         this.title = title;
-        this.cost = cost;
         this.estimatedTime = estimatedTime;
     }
 
@@ -19,8 +23,6 @@ public class ShippingOption {
     public void setMethod(String method) { this.method = method; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    public Long getCost() { return cost; }
-    public void setCost(Long cost) { this.cost = cost; }
     public String getEstimatedTime() { return estimatedTime; }
     public void setEstimatedTime(String estimatedTime) { this.estimatedTime = estimatedTime; }
 }
