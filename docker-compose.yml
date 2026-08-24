@@ -48,6 +48,11 @@ services:
       # قالبِ «دوباره موجود شد»؛ اگر در .env نبود پیش‌فرضِ 791445 (نه رشتهٔ خالی)
       - SMS_STOCK_TEMPLATE_ID=${SMS_STOCK_TEMPLATE_ID:-791445}
 
+      # درگاهِ پرداختِ ملت — مقدارِ واقعی را فقط مالک در .env می‌گذارد
+      - MELLAT_TERMINAL_ID=${MELLAT_TERMINAL_ID}
+      - MELLAT_USERNAME=${MELLAT_USERNAME}
+      - MELLAT_PASSWORD=${MELLAT_PASSWORD}
+
       # آنالیتیکس (فاز ۰ رودمپ) — خالی = غیرفعال
       - GA4_ID=${GA4_ID:-}
       - GSC_VERIFICATION=${GSC_VERIFICATION:-}

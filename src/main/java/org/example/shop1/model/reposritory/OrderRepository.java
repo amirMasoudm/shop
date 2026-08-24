@@ -22,4 +22,8 @@ public interface OrderRepository extends MongoRepository<Order, String> {
     List<Order> findByUserOrderByOrderDateDesc(User user);
     // متد جدید: جستجوی سفارشات بر اساس آیدی کاربر (بدون نیاز به لود کردن کل شیء User)
     List<Order> findByUserId(String userId);
+
+    // callbackِ بانک شناسه‌ی داخلیِ Mongo را نمی‌شناسد، فقط orderIdِ عددی‌ای که خودمان
+    // در bpPayRequest فرستادیم (paymentRefNumber) را برمی‌گرداند — پس با همین پیدا می‌شود.
+    java.util.Optional<Order> findByPaymentRefNumber(Long paymentRefNumber);
 }

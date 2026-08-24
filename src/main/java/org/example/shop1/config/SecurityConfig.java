@@ -59,6 +59,12 @@ public class SecurityConfig {
                             // امضایِ ed25519 است، پس CSRF اینجا موضوعیت ندارد. بدونِ این معافیت
                             // درخواستِ ترب قبل از رسیدن به کنترلر ۴۰۳ می‌گرفت.
                             .ignoringRequestMatchers("/torob_api/**")
+
+                            // callbackِ درگاهِ ملت هم همان الگو: از سرورِ بانک/مرورگرِ کاربرِ
+                            // درحالِ ریدایرکت‌شدن می‌آید، نه یک ریکوئستِ SPAی ما با توکنِ CSRFِ
+                            // خودمان. امنیتِ واقعی‌اش با bpVerifyRequestِ سرور-به-سرور تضمین
+                            // می‌شود (OrderService.handleMellatCallback)، نه با CSRF/سشن.
+                            .ignoringRequestMatchers("/api/orders/mellat-callback")
                             ;
 
                 })
@@ -113,6 +119,10 @@ public class SecurityConfig {
                         // بدونِ این خط، قاعده‌ی anyRequest().authenticated() پایین بلاکش می‌کند
                         // (همان کلاسِ باگی که قبلاً روی /img/** خوردیم).
                         .requestMatchers(HttpMethod.POST, "/torob_api/v3/products").permitAll()
+
+                        // callbackِ درگاهِ ملت — سرورِ بانک سشنِ ما را ندارد؛ بدونِ این خط
+                        // anyRequest().authenticated() پایین ۴۰۱ می‌داد و تراکنشِ واقعی گم می‌شد.
+                        .requestMatchers(HttpMethod.POST, "/api/orders/mellat-callback").permitAll()
 
                         // ۳. باقی مسیرها
                         .requestMatchers("/api/auth/**").permitAll()

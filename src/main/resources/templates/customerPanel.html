@@ -22,13 +22,28 @@
         function gaEvent(name, params) {
             try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (e) {}
         }
-        // رویداد purchase: وقتی از درگاه با paid=1 برگشتیم (تکمیل قیف فروش)
+        // بازگشت از درگاهِ ملت: یا paid=1 (موفق)، یا paymentFailed=1 (بانک/verify/settle رد کرد)،
+        // یا paymentError=1 (خطایِ فنی — مثلاً سفارش پیدا نشد). در هر سه حالت، پارامترها بعدِ
+        // نمایش پاک می‌شوند تا رفرشِ صفحه رویداد/پیام را تکرار نکند.
         (function () {
             const sp = new URLSearchParams(location.search);
+            let changed = false;
+
             if (sp.get('paid') === '1' && sp.get('order')) {
                 gaEvent('purchase', {transaction_id: sp.get('order'), currency: 'IRR'});
-                // پاک کردن پارامترها تا رفرش صفحه رویداد تکراری نفرستد
                 sp.delete('paid'); sp.delete('order');
+                changed = true;
+            } else if (sp.get('paymentFailed') === '1') {
+                alert('پرداخت ناموفق بود یا توسطِ شما لغو شد. سفارش پرداخت‌نشده باقی ماند — می‌توانید دوباره تلاش کنید.');
+                sp.delete('paymentFailed'); sp.delete('order');
+                changed = true;
+            } else if (sp.get('paymentError') === '1') {
+                alert('خطایی در ارتباط با درگاهِ پرداخت رخ داد. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.');
+                sp.delete('paymentError');
+                changed = true;
+            }
+
+            if (changed) {
                 const qs = sp.toString();
                 history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
             }
@@ -697,7 +712,7 @@
             }
 
             if(res.ok) {
-                btn.innerText = "انتقال به درگاه تستی...";
+                btn.innerText = "انتقال به درگاهِ بانک...";
                 const payRes = await fetch(`${API}/orders/${state.currentOrder.id}/pay`, { method: 'POST', credentials: 'include' }).then(r => r.json());
                 if(payRes.paymentUrl) window.location.href = payRes.paymentUrl;
                 else location.reload();

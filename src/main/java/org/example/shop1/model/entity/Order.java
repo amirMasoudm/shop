@@ -41,6 +41,16 @@ public class Order {
     // این تنها اثرِ ماندگارِ انتخابِ ارسال است.
     private String shippingMethod;
 
+    // ===== درگاهِ پرداختِ ملت =====
+    // orderIdِ عددیِ ارسالی به بانک — جدا از orderCode (که برایِ این کار امن نیست، رجوع به پرامپت)
+    private Long paymentRefNumber;
+    // RefId که بانک بعدِ bpPayRequestِ موفق برمی‌گرداند؛ برایِ ساختِ صفحهٔ auto-submit لازم است
+    private String mellatRefId;
+    // SaleReferenceIdِ نهایی — بعدِ callbackِ موفق ذخیره می‌شود، برایِ verify/settle/reversal لازم است
+    private String mellatSaleReferenceId;
+    // اگر پرداخت شکست خورد، دلیل اینجا ثبت می‌شود تا پشتیبانی بدونِ کاوش در لاگ ببیندش
+    private String paymentFailureReason;
+
     private OrderStatus status; // تغییر از String به OrderStatus
 
 
@@ -139,6 +149,38 @@ public class Order {
 
     public void setShippingMethod(String shippingMethod) {
         this.shippingMethod = shippingMethod;
+    }
+
+    public Long getPaymentRefNumber() {
+        return paymentRefNumber;
+    }
+
+    public void setPaymentRefNumber(Long paymentRefNumber) {
+        this.paymentRefNumber = paymentRefNumber;
+    }
+
+    public String getMellatRefId() {
+        return mellatRefId;
+    }
+
+    public void setMellatRefId(String mellatRefId) {
+        this.mellatRefId = mellatRefId;
+    }
+
+    public String getMellatSaleReferenceId() {
+        return mellatSaleReferenceId;
+    }
+
+    public void setMellatSaleReferenceId(String mellatSaleReferenceId) {
+        this.mellatSaleReferenceId = mellatSaleReferenceId;
+    }
+
+    public String getPaymentFailureReason() {
+        return paymentFailureReason;
+    }
+
+    public void setPaymentFailureReason(String paymentFailureReason) {
+        this.paymentFailureReason = paymentFailureReason;
     }
 
 

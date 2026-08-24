@@ -9,6 +9,11 @@ import org.example.shop1.model.enums.Role;
 import org.example.shop1.model.reposritory.OrderRepository;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.example.shop1.model.reposritory.UserRepository;
+import org.example.shop1.model.service.payment.MellatGatewayException;
+import org.example.shop1.model.service.payment.MellatGatewayService;
+import org.example.shop1.model.service.payment.PaymentRefNumberGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,9 +25,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     // نرخِ مالیات بر ارزش افزوده — طبقِ تصمیمِ کارِ ۱ (docs/prompt-tech-chat-invoice-vat-and-shipping.md)
     private static final BigDecimal TAX_RATE = new BigDecimal("0.10");
@@ -31,12 +39,18 @@ public class OrderService {
     private final ProductRepository productRepo;
     private final UserRepository userRepo;
     private final ShippingService shippingService;
+    private final MellatGatewayService mellatGatewayService;
+    private final PaymentRefNumberGenerator paymentRefNumberGenerator;
 
-    public OrderService(OrderRepository orderRepo, ProductRepository productRepo, UserRepository userRepo, ShippingService shippingService) {
+    public OrderService(OrderRepository orderRepo, ProductRepository productRepo, UserRepository userRepo,
+                        ShippingService shippingService, MellatGatewayService mellatGatewayService,
+                        PaymentRefNumberGenerator paymentRefNumberGenerator) {
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;
         this.userRepo = userRepo;
         this.shippingService = shippingService;
+        this.mellatGatewayService = mellatGatewayService;
+        this.paymentRefNumberGenerator = paymentRefNumberGenerator;
     }
 
     private User getCurrentUser() {
@@ -221,11 +235,192 @@ public class OrderService {
     // با بررسی مالکیت: هر کاربر فقط سفارش خودش را می‌بیند (ادمین همه را)
     public Order getOrderById(String id) { return getOwnedOrder(id); }
 
-    // پرداخت سفارش توسط صاحب همان سفارش (درگاه تستی). ادمین هم مجاز است.
+    // ==========================================================
+    // درگاهِ پرداختِ ملت — طبقِ docs/prompt-tech-chat-mellat-gateway.md
+    // ==========================================================
+
+    /**
+     * شروعِ پرداخت: {@code paymentRefNumber}ِ یکتا می‌سازد، {@code bpPayRequest} می‌زند و
+     * آدرسِ صفحه‌ی auto-submitِ داخلی را برمی‌گرداند (نه مستقیم آدرسِ بانک — چون خودِ
+     * {@code RefId} باید قبلش رویِ سفارش ذخیره شود).
+     * <p>
+     * اگر {@code bpPayRequest} رد شود (ResCode≠۰)، وضعیتِ سفارش تغییر <b>نمی‌کند</b>
+     * (PENDING_PAYMENT می‌ماند) — چون این شکست معمولاً موقتی/شبکه‌ای است و کاربر باید بتواند
+     * دوباره تلاش کند؛ PAYMENT_FAILED فقط برایِ شکستِ واقعیِ گزارش‌شده از بانک (در callback) است.
+     */
     @Transactional
-    public Order payOrderByCurrentUser(String orderId) {
-        getOwnedOrder(orderId); // فقط جهت اعمال بررسی مالکیت
-        return updateOrderStatus(orderId, OrderStatus.PAID_PREPARING);
+    public Map<String, String> startMellatPayment(String orderId, String baseUrl) {
+        Order order = getOwnedOrder(orderId);
+        if (order.isPaid()) {
+            throw new RuntimeException("این سفارش قبلاً پرداخت شده است");
+        }
+        if (!order.isFinalized()) {
+            throw new RuntimeException("سفارش هنوز نهایی نشده است");
+        }
+        if (order.getTotalAmount() == null || order.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("مبلغِ سفارش نامعتبر است");
+        }
+        if (!mellatGatewayService.isConfigured()) {
+            // پیامِ روشن به‌جایِ خطایِ گنگِ SOAP — رایج در dev که کلیدهایِ ملت تنظیم نشده‌اند
+            throw new RuntimeException("درگاهِ پرداخت هنوز پیکربندی نشده است (کلیدهایِ ملت در .env نیستند)");
+        }
+
+        long paymentRefNumber = paymentRefNumberGenerator.next();
+        // ⚠️ واحدِ پروژه تومان است؛ ملت ریال می‌خواهد — دقیقاً ۱۰ برابر (رایج‌ترین باگِ اتصال)
+        long amountRial = order.getTotalAmount().multiply(BigDecimal.TEN).longValueExact();
+        String callBackUrl = baseUrl + "/api/orders/mellat-callback";
+
+        MellatGatewayService.PayResult result;
+        try {
+            result = mellatGatewayService.pay(paymentRefNumber, amountRial, callBackUrl);
+        } catch (MellatGatewayException e) {
+            log.error("bpPayRequest برایِ سفارشِ {} با خطا مواجه شد: {}", order.getId(), e.getMessage());
+            throw new RuntimeException("ارتباط با درگاهِ پرداخت برقرار نشد؛ لطفاً دوباره تلاش کنید");
+        }
+
+        if (!result.success()) {
+            log.warn("bpPayRequest برایِ سفارشِ {} ردِ شد: ResCode={}", order.getId(), result.resCode());
+            throw new RuntimeException("درگاهِ پرداخت درخواست را رد کرد (کدِ خطا: " + result.resCode() + ")");
+        }
+
+        order.setPaymentRefNumber(paymentRefNumber);
+        order.setMellatRefId(result.refId());
+        orderRepo.save(order);
+
+        return Map.of("paymentUrl", "/api/orders/mellat-redirect/" + order.getId());
+    }
+
+    /** صفحه‌ی HTMLِ auto-submit که {@code RefId}ِ ذخیره‌شده را با POST به بانک می‌فرستد. */
+    public String buildMellatRedirectHtml(String orderId) {
+        Order order = getOwnedOrder(orderId);
+        if (order.getMellatRefId() == null || order.getMellatRefId().isBlank()) {
+            throw new RuntimeException("پرداخت برایِ این سفارش هنوز شروع نشده است");
+        }
+        String refId = order.getMellatRefId().replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;");
+        return """
+                <!DOCTYPE html>
+                <html lang="fa" dir="rtl"><head><meta charset="UTF-8"><title>انتقال به درگاهِ پرداخت</title></head>
+                <body onload="document.forms[0].submit()">
+                <form method="POST" action="https://bpm.shaparak.ir/pgwchannel/startpay.mellat">
+                <input type="hidden" name="RefId" value="%s"/>
+                </form>
+                <p style="font-family:Tahoma,Arial,sans-serif;text-align:center;margin-top:60px;color:#374151;">
+                در حال انتقال به درگاهِ پرداختِ بانک ملت…</p>
+                </body></html>
+                """.formatted(refId);
+    }
+
+    /**
+     * پردازشِ callbackِ ملت. این متد از سرورِ خودِ بانک صدا زده می‌شود (بدونِ سشنِ کاربر)، پس
+     * نباید به احرازِ هویت/getOwnedOrder وابسته باشد.
+     * <p>
+     * 🔒 طبقِ نکتهٔ حیاتیِ پرامپت: هرگز فقط با دیدنِ این POST سفارش paid نمی‌شود. حتی اگر
+     * ResCode=۰ باشد، یک {@code bpVerifyRequest}ِ سرور-به-سرورِ جدا (با یوزر/پسِ خودمان) لازم
+     * است — چون این POST از مرورگرِ کاربر (که وسطش می‌تواند دست‌کاری شود) عبور می‌کند، نه یک
+     * کانالِ مطمئن.
+     *
+     * @return مسیرِ ریدایرکتِ نهایی برایِ مرورگرِ کاربر
+     */
+    @Transactional
+    public String handleMellatCallback(Map<String, String> params) {
+        String resCode = firstNonBlank(params.get("ResCode"), params.get("resCode"));
+        String saleOrderIdRaw = firstNonBlank(params.get("SaleOrderId"), params.get("saleOrderId"));
+        String saleReferenceIdRaw = firstNonBlank(params.get("SaleReferenceId"), params.get("saleReferenceId"));
+
+        if (saleOrderIdRaw == null) {
+            log.error("callbackِ ملت بدونِ SaleOrderId رسید: {}", params);
+            return "/profile?paymentError=1";
+        }
+
+        long paymentRefNumber;
+        try {
+            paymentRefNumber = Long.parseLong(saleOrderIdRaw.trim());
+        } catch (NumberFormatException e) {
+            log.error("SaleOrderId نامعتبر در callbackِ ملت: {}", saleOrderIdRaw);
+            return "/profile?paymentError=1";
+        }
+
+        Order order = orderRepo.findByPaymentRefNumber(paymentRefNumber).orElse(null);
+        if (order == null) {
+            log.error("سفارشی با paymentRefNumber={} پیدا نشد (callbackِ ملت)", paymentRefNumber);
+            return "/profile?paymentError=1";
+        }
+
+        // callbackِ تکراری (ریترایِ بانک/بازگشتِ مرورگر): اگر قبلاً کامل پردازش شده، دوباره
+        // verify/settle نزن — پاسخِ دوباره‌ی ملت به یک تراکنشِ verify‌شده لزوماً "0" نیست.
+        if (order.getStatus() == OrderStatus.PAID_PREPARING) {
+            return "/profile?paid=1&order=" + order.getId();
+        }
+
+        if (!"0".equals(resCode)) {
+            failOrder(order, "بانک ResCode=" + resCode + " برگرداند (پرداخت لغو/ناموفق شد)");
+            return "/profile?paymentFailed=1&order=" + order.getId();
+        }
+
+        long saleReferenceId;
+        try {
+            saleReferenceId = Long.parseLong(saleReferenceIdRaw.trim());
+        } catch (Exception e) {
+            failOrder(order, "SaleReferenceIdِ نامعتبر از بانک: " + saleReferenceIdRaw);
+            return "/profile?paymentFailed=1&order=" + order.getId();
+        }
+
+        // ۱. verify — تنها منبعِ معتبرِ تاییدِ تراکنش
+        String verifyResCode;
+        try {
+            verifyResCode = mellatGatewayService.verify(paymentRefNumber, paymentRefNumber, saleReferenceId);
+        } catch (MellatGatewayException e) {
+            failOrder(order, "bpVerifyRequest ناموفق (خطایِ ارتباطی): " + e.getMessage());
+            return "/profile?paymentFailed=1&order=" + order.getId();
+        }
+        if (!"0".equals(verifyResCode)) {
+            failOrder(order, "bpVerifyRequest ناموفق (ResCode=" + verifyResCode + ")");
+            return "/profile?paymentFailed=1&order=" + order.getId();
+        }
+
+        order.setMellatSaleReferenceId(String.valueOf(saleReferenceId));
+
+        // ۲. settle — همان لحظه، طبقِ مستندِ ملت (وگرنه واریز به حسابِ فروشگاه انجام نمی‌شود)
+        String settleResCode;
+        try {
+            settleResCode = mellatGatewayService.settle(paymentRefNumber, paymentRefNumber, saleReferenceId);
+        } catch (MellatGatewayException e) {
+            settleResCode = "ERR";
+            log.error("bpSettleRequest برایِ سفارشِ {} با خطایِ ارتباطی مواجه شد: {}", order.getId(), e.getMessage());
+        }
+
+        // ResCode=45 یعنی «قبلاً settle شده» — طبقِ مستندِ ملت خطا نیست (رایج در ریترای)
+        if (!"0".equals(settleResCode) && !"45".equals(settleResCode)) {
+            log.error("bpSettleRequest ناموفق برایِ سفارشِ {}: ResCode={} — تلاش برایِ Reversal",
+                    order.getId(), settleResCode);
+            try {
+                mellatGatewayService.reversal(paymentRefNumber, paymentRefNumber, saleReferenceId);
+                failOrder(order, "Settle ناموفق (ResCode=" + settleResCode + ") — Reversal با موفقیت انجام شد");
+            } catch (MellatGatewayException reversalError) {
+                log.error("⚠️ Reversal هم برایِ سفارشِ {} شکست خورد — نیازِ پیگیریِ دستیِ فوری: {}",
+                        order.getId(), reversalError.getMessage());
+                failOrder(order, "Settle ناموفق (ResCode=" + settleResCode
+                        + ") و Reversal هم شکست خورد — نیازِ پیگیریِ دستی با پشتیبانیِ بانک");
+            }
+            return "/profile?paymentFailed=1&order=" + order.getId();
+        }
+
+        orderRepo.save(order); // ذخیرهٔ mellatSaleReferenceId قبلِ تغییرِ وضعیت
+        updateOrderStatus(order.getId(), OrderStatus.PAID_PREPARING); // کاهشِ موجودی هم همین‌جا انجام می‌شود
+        return "/profile?paid=1&order=" + order.getId();
+    }
+
+    private void failOrder(Order order, String reason) {
+        order.setStatus(OrderStatus.PAYMENT_FAILED);
+        order.setPaymentFailureReason(reason);
+        orderRepo.save(order);
+        log.warn("سفارشِ {} به PAYMENT_FAILED رفت: {}", order.getId(), reason);
+    }
+
+    private String firstNonBlank(String a, String b) {
+        if (a != null && !a.isBlank()) return a;
+        if (b != null && !b.isBlank()) return b;
+        return null;
     }
 
     // متد جدید جهت تغییر وضعیت سفارش در دیتابیس به صورت کاملا ایمن
