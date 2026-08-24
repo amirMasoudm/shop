@@ -73,6 +73,18 @@
         .cta .fill { background:var(--primary); color:#fff; }
         .cta .out { background:#fff; color:var(--primary); border:1px solid var(--primary); }
 
+        .client-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:16px; margin-top:16px; }
+        .client-grid .logo { display:flex; align-items:center; justify-content:center; background:#fff;
+            border:1px solid var(--border); border-radius:12px; padding:12px; height:70px; }
+        .client-grid .logo img { max-width:100%; max-height:100%; object-fit:contain; filter:grayscale(15%); }
+
+        .licenses { display:flex; flex-wrap:wrap; gap:20px; margin-top:16px; align-items:flex-start; }
+        .licenses figure { margin:0; text-align:center; }
+        .licenses img { max-width:220px; border:1px solid var(--border); border-radius:10px; }
+        .licenses figcaption { font-size:.78rem; color:var(--mid); margin-top:6px; }
+        .enamad { display:inline-block; margin-top:6px; }
+        .enamad img { height:90px; }
+
         footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
         footer .in { max-width:1000px; margin:0 auto; }
         footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
@@ -192,12 +204,11 @@
 
     <!-- ================= مجوزها و اعتبار رسمی ================= -->
     <!--
-      متنِ هر دو مجوز عیناً از سایتِ خودِ شرکت است. ⛔ شماره‌ی مجوز یا تاریخ اضافه نشود —
-      نداریم و ساختنش هم به E-E-A-T ضربه می‌زند هم صادقانه نیست.
+      متنِ مجوزها عیناً از سایتِ خودِ شرکت است. شماره‌ی مجوز/تاریخِ تایپ‌شده اضافه نشد —
+      خودِ تصویرِ اسکن‌شده مدرک است، تایپِ دوباره‌ی عددش چیزی اضافه نمی‌کند.
 
-      📌 جای خالی: فهرستِ «شرکت‌هایی که با آن‌ها کار کرده‌ایم» را مالک خواسته بود، ولی
-      این داده هنوز نرسیده — صفحاتِ /projects/{network,wireless,voip,cctv} سایتِ قدیم
-      خالی‌اند. وقتی مالک فهرست را داد، یک زیربخشِ تازه همین‌جا اضافه می‌شود.
+      هر دو مجوز اسکنِ اصل هستند — عددِ مجوز/تاریخ در خودِ تصویر است، تایپِ دوباره‌اش
+      روی صفحه (که در گزارشِ قبلی عمداً حذف شده بود چون هیچ مدرکی پشتش نبود) اضافه نشد.
     -->
     <section>
         <h2>مجوزها و اعتبار رسمی</h2>
@@ -205,6 +216,59 @@
             <li>مجوز فعالیت سازمان نظام صنفی رایانه‌ای کشور</li>
             <li>پروانه‌ی عرضه‌ی خدمات ورود، خرید و فروش تجهیزات رادیویی</li>
         </ul>
+
+        <div class="licenses">
+            <figure>
+                <img src="/img/licenses/computer-guild-license.jpg" loading="lazy"
+                     alt="مجوز فعالیت سازمان نظام صنفی رایانه‌ای کشور — شرکت ارتباطات شبکه داده نما">
+                <figcaption>مجوز فعالیت سازمان نظام صنفی رایانه‌ای کشور</figcaption>
+            </figure>
+            <figure>
+                <img src="/img/licenses/radio-equipment-license.jpg" loading="lazy"
+                     alt="پروانه‌ی عرضه‌ی خدمات ورود، خرید و فروش تجهیزات رادیویی — شرکت ارتباطات شبکه داده نما">
+                <figcaption>پروانه‌ی عرضه‌ی خدمات تجهیزات رادیویی</figcaption>
+            </figure>
+        </div>
+
+        <!--
+          بجِ اینماد عمداً لینکِ زنده به trustseal.enamad.ir است، نه عکسِ لوکال‌شده.
+          برخلافِ عکسِ محصولات، این بج باید هر بار از سرورِ خودِ اینماد لود شود تا
+          روی صفحه‌ی enamad.ir قابلِ استعلام بماند؛ نسخه‌ی ذخیره‌شده از اعتبارِ بج
+          چیزی اثبات نمی‌کند و می‌تواند جعلی به‌نظر برسد.
+        -->
+        <a class="enamad" referrerpolicy="origin" target="_blank"
+           href="https://trustseal.enamad.ir/?id=299559&amp;Code=N9ReIKi8aA69ixgOyEzI">
+            <img referrerpolicy="origin"
+                 src="https://trustseal.enamad.ir/logo.aspx?id=299559&amp;Code=N9ReIKi8aA69ixgOyEzI"
+                 alt="نماد اعتماد الکترونیکی">
+        </a>
+    </section>
+
+    <!-- ================= شرکت‌ها و سازمان‌هایی که با آن‌ها همکاری کرده‌ایم ================= -->
+    <section>
+        <h2>شرکت‌ها و سازمان‌هایی که با آن‌ها همکاری کرده‌ایم</h2>
+        <p>گزیده‌ای از سازمان‌ها، دانشگاه‌ها و بانک‌هایی که پروژه‌های شبکه و ارتباطات بی‌سیم‌شان توسط داده نما اجرا شده:</p>
+        <div class="client-grid">
+            <div class="logo"><img src="/img/clients/UI.png" loading="lazy" alt="دانشگاه اصفهان"></div>
+            <div class="logo"><img src="/img/clients/IUT.png" loading="lazy" alt="دانشگاه صنعتی اصفهان"></div>
+            <div class="logo"><img src="/img/clients/IMEDU.png" loading="lazy" alt="دانشگاه علوم پزشکی اصفهان"></div>
+            <div class="logo"><img src="/img/clients/mapna.png" loading="lazy" alt="گروه مپنا"></div>
+            <div class="logo"><img src="/img/clients/foulad-mobarakeh.png" loading="lazy" alt="فولاد مبارکه اصفهان"></div>
+            <div class="logo"><img src="/img/clients/agri-bank-1.png" loading="lazy" alt="بانک کشاورزی"></div>
+            <div class="logo"><img src="/img/clients/bank-sepah.png" loading="lazy" alt="بانک سپه"></div>
+            <div class="logo"><img src="/img/clients/mehre-eghtesad.png" loading="lazy" alt="بانک مهر اقتصاد"></div>
+            <div class="logo"><img src="/img/clients/kowsar.png" loading="lazy" alt="موسسه اعتباری کوثر"></div>
+            <div class="logo"><img src="/img/clients/barname-bodje.png" loading="lazy" alt="سازمان برنامه و بودجه کشور"></div>
+            <div class="logo"><img src="/img/clients/vezarat-keshvar.png" loading="lazy" alt="وزارت کشور"></div>
+            <div class="logo"><img src="/img/clients/ostandari-esf.png" loading="lazy" alt="استانداری اصفهان"></div>
+            <div class="logo"><img src="/img/clients/sabte-asnad.png" loading="lazy" alt="سازمان ثبت اسناد و املاک کشور"></div>
+            <div class="logo"><img src="/img/clients/komite-emdad.png" loading="lazy" alt="کمیته امداد امام خمینی"></div>
+            <div class="logo"><img src="/img/clients/bonyad-meli-nokhbegan.png" loading="lazy" alt="بنیاد ملی نخبگان"></div>
+            <div class="logo"><img src="/img/clients/power-isf.png" loading="lazy" alt="صنعت برق اصفهان"></div>
+            <div class="logo"><img src="/img/clients/sanaie-shimiaei.png" loading="lazy" alt="صنایع شیمیایی ایران"></div>
+            <div class="logo"><img src="/img/clients/respina.png" loading="lazy" alt="رسپینا"></div>
+            <div class="logo"><img src="/img/clients/irisa.png" loading="lazy" alt="ایریسا"></div>
+        </div>
     </section>
 
     <!-- تنها یک CTA: لینکِ هابِ دوره‌ها از قبل داخلِ بخشِ «سابقه‌ی آموزشی» هست و
