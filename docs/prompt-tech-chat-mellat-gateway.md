@@ -1,0 +1,60 @@
+# پرامپتِ چت الف — اتصالِ واقعی به درگاهِ به‌پرداختِ ملت (جایگزینیِ mock-gateway)
+
+## زمینه
+پنلِ مشتری الان یک درگاهِ **قلابی** دارد (دو دکمهٔ «موفق»/«ناموفق» که خودشان callback را صدا می‌زنند). مالک در به‌پرداختِ ملت ثبت‌نام کرده و پیامکِ اطلاعاتِ اتصال (شمارهٔ پایانه، یوزرنیم، رمزِ عبور) را گرفته. این تسک آن سه مقدار را **نمی‌بیند و نمی‌خواهد** — مستقیم توسطِ مالک در `.env` گذاشته می‌شود (زیرِ «کانفیگ» را ببین). تسک فقط کدِ اتصالِ واقعی را می‌سازد.
+
+⚠️ **این پول است، نه محتوا.** خطایِ واحدِ پول یا orderId تکراری یعنی مشتری اشتباه شارژ می‌شود یا تراکنش گم می‌شود. سخت‌گیرتر از تسک‌هایِ معمولی تست کن.
+
+## نقشهٔ کدِ فعلی (از یک اسکنِ کاملِ کد، قبل از نوشتنِ این پرامپت)
+
+| چیز | فایل/خط |
+|---|---|
+| شروعِ پرداخت (الان: فقط یک URLِ ساختگی می‌سازد) | `OrderController.java` — `POST /{orderId}/pay`، خط ۱۰۰-۱۱۱ |
+| صفحهٔ mock (دو دکمه) | `OrderController.java` — `GET /mock-gateway/{orderId}`، خط ۱۱۳-۱۵۹ |
+| callback (الان: خودِ همان صفحه صداش می‌زند) | `OrderController.java` — `POST /mock-gateway-callback/{orderId}`، خط ۱۶۲-۱۸۴ |
+| علامت‌زدنِ سفارش به‌عنوانِ پرداخت‌شده | `OrderService.java` — `payOrderByCurrentUser` خط ۲۲۴-۲۲۹، `updateOrderStatus` خط ۲۳۲-۲۵۹ (کاهشِ موجودی هم همین‌جاست، فقط در همین ترنزیشن) |
+| فرانت‌اندِ صداکنندهٔ `/pay` و ریدایرکت | `customerPanel.html` خط ~۷۰۰-۷۰۲ |
+| الگویِ فعلیِ کانفیگِ کلیدهایِ بیرونی | `.env.example` خط ۲۱-۲۴، `docker-compose.yml` خط ۴۳-۴۷، `application-prod.properties` (بدونِ دیفالت)، `application-dev.properties` (دیفالتِ خالی) |
+| الگویِ permitAll+بی‌نیازی‌ازِ CSRF برایِ callbackِ بیرونی (نمونهٔ موجود، Torob) | `SecurityConfig.java` خط ۶۱ و ۱۱۵ |
+
+## ۴ نکتهٔ حیاتی که اگر جا بیفتند باگِ مالی می‌سازند
+
+۱. **واحدِ پول:** قیمت‌هایِ این پروژه همه‌جا **تومان**اند. ملت مبلغ را **ریال** می‌خواهد. یعنی `amount`ِ ارسالی به `bpPayRequest` باید `order.totalAmount × ۱۰` باشد — این رایج‌ترین باگِ اتصال به درگاه‌هایِ ایرانی است.
+
+۲. **`orderId`ِ عددیِ منحصربه‌فرد:** ملت یک `orderId` عددی می‌خواهد که تکراری نباشد. فیلدِ فعلیِ `orderCode` (`"ORD-" + currentTimeMillis % 1000000`) **برایِ این کار امن نیست** — هر ~۱۶.۷ دقیقه دور می‌زند، هیچ چکِ یکتاییِ دیتابیسی ندارد، و `findByOrderCode` هم اصلاً وجود ندارد. یک فیلدِ عددیِ **جدید و جدا** بساز (مثلاً `Order.paymentRefNumber`, `Long`) که با یک شمارندهٔ اتمیکِ Mongo (الگویِ `findAndModify` روی یک کالکشنِ counter، نه `currentTimeMillis`) تولید شود؛ به `orderCode`ِ فعلی/جاهایِ دیگری که ازش استفاده می‌کنند دست نزن.
+
+۳. **هیچ‌وقت فقط با دیدنِ POSTِ callback سفارش را paid نکن.** callbackِ بانک از سرورِ خودِ بانک می‌آید، بدونِ سشن/CSRF — هرکسی می‌تواند شبیه‌سازیش کند. تنها راهِ معتبر: بعدِ گرفتنِ `ResCode=0` در callback، یک تماسِ سرور-به-سرورِ جدا با `bpVerifyRequest` (با یوزرنیم/پسِ خودت) بزن؛ فقط اگر آن هم `0` برگرداند، `updateOrderStatus(orderId, PAID_PREPARING)` را صدا بزن (همان متدِ موجود، همان منطقِ کاهشِ موجودی را حفظ می‌کند). بعدِ verifyِ موفق، `bpSettleRequest` هم باید همان لحظه (نه بعداً/batch) زده شود — طبقِ مستندِ ملت، تسویه باید همان روزِ بانکی انجام شود وگرنه واریز نمی‌شود.
+
+۴. **مسیرِ callback باید مثلِ Torob معاف شود:** `SecurityConfig.java` خط ۶۱/۱۱۵ الگویِ موجود است (`permitAll` + `ignoringRequestMatchers` برایِ CSRF). مسیرِ جدیدِ callbackِ ملت باید همین رفتار را بگیرد — چون سشن‌کوکیِ کاربر برایِ درخواستی که از سرورِ بانک می‌آید بی‌معنی است.
+
+## جریانِ کامل که باید پیاده شود
+
+۱. `POST /{orderId}/pay` (جایگزینِ خط ۱۰۰-۱۱۱): `paymentRefNumber`ِ جدید تولید و رویِ سفارش ذخیره کن → `bpPayRequest` (SOAP) با `terminalId/userName/password` (از env)، `orderId=paymentRefNumber`، `amount` (ریال)، `localDate/localTime`، `callBackUrl` (آدرسِ کاملِ callbackِ جدید)، `payerId=0` → اگر `ResCode==0`، `RefId` را بگیر و رویِ سفارش ذخیره کن.
+۲. یک صفحهٔ HTMLِ **auto-submit** (نه دو دکمه — جایگزینِ صفحهٔ mock خط ۱۱۳-۱۵۹) که با یک `<form>` مخفی، `RefId` را با POST به `bpm.shaparak.ir/pgwchannel/startpay.mellat` می‌فرستد (آدرسِ رسمیِ ریدایرکتِ ملت).
+۳. اگر `ResCode!=0` در قدمِ ۱، کاربر را به یک پیامِ خطایِ روشن برگردان (نه چیزی شبیهِ موفقیت).
+۴. Callbackِ جدید (جایگزینِ خط ۱۶۲-۱۸۴، مسیرِ جدا، معافِ CSRF/سشن طبقِ نکتهٔ ۴): بانک با POSTِ `RefId`/`ResCode`/`SaleOrderId`/`SaleReferenceId` می‌آید → اگر `ResCode==0`، `bpVerifyRequest` بزن (نکتهٔ ۳) → اگر تأیید شد، `bpSettleRequest` بزن → `updateOrderStatus(..., PAID_PREPARING)`. اگر هرکدام از این‌ها fail شد (یا `ResCode!=0` از همان اول)، سفارش را **paid نکن** و وضعیت/دلیلِ شکست را جایی ثبت کن که پشتیبانی بتواند ببیند (نکتهٔ بعدی).
+۵. **`OrderStatus` فعلاً هیچ مقدارِ FAILED/CANCELLED ندارد** (فقط `PENDING_PAYMENT/PAID_PREPARING/POST_PROCESSING/SHIPPED/DELIVERED` — کامنتِ قدیمیِ بالایِ `Order.java` با enumِ واقعی نمی‌خواند، نادیده بگیر). یک مقدارِ جدید اضافه کن (مثلاً `PAYMENT_FAILED`) تا شکستِ واقعی به‌جایِ خاموش‌ماندن (رفتارِ فعلیِ mock) قابلِ‌دیدن باشد.
+۶. اگر `bpVerifyRequest` موفق شد ولی `bpSettleRequest` fail شد، طبقِ مستندِ رسمیِ ملت `bpReversalRequest` باید زده شود (برایِ برگرداندنِ هولد) — اگر وقت داشتی همین دورِ اول، وگرنه به‌عنوانِ بک‌لاگ در گزارش پرچمش بزن.
+
+## کانفیگ (نامِ متغیرها — مقدارِ واقعی را مالک خودش در `.env` می‌گذارد)
+طبقِ الگویِ دقیقِ `OPENAI_KEY`/`TAPIN_TOKEN` موجود:
+- `.env.example`: `MELLAT_TERMINAL_ID=CHANGE_ME`, `MELLAT_USERNAME=CHANGE_ME`, `MELLAT_PASSWORD=CHANGE_ME`
+- `docker-compose.yml` (بخشِ `backend.environment`): `- MELLAT_TERMINAL_ID=${MELLAT_TERMINAL_ID}` و مشابه برایِ دو تایِ دیگر.
+- `application-prod.properties`: `mellat.terminal-id=${MELLAT_TERMINAL_ID}` (بدونِ دیفالت — اگر نبود، بالا نیاید، مثلِ `openai.api.key`).
+- `application-dev.properties`: همان با `:` دیفالتِ خالی (`${MELLAT_TERMINAL_ID:}`) تا لوکال بدونِ این مقدارها هم بالا بیاید (فقط فیچرِ پرداخت غیرفعال می‌ماند).
+- WSDL: `https://bpm.shaparak.ir/pgwchannel/services/pgw?wsdl`. `pom.xml` الان **هیچ وابستگیِ SOAP** ندارد — به‌جایِ اضافه‌کردنِ تولینگِ سنگینِ WSDL-codegen (که با mirrorِ Mavenِ سفارشیِ پروژه، `mvnhub.ir`، ممکن است در دسترس نباشد)، ساده‌تر و کم‌ریسک‌تر این است که envelopeِ SOAP را دستی (رشتهٔ XML) با `WebClient`ِ موجود (webflux از قبل هست) بسازی و بفرستی — پاسخِ کلاسیکِ ملت هم معمولاً یک رشتهٔ سادهٔ کاما-جدا (`ResCode,RefId`) است، نه XMLِ پیچیده. اگر ترجیح می‌دهی از ابزارِ SOAP استفاده کنی، اول مطمئن شو از `mvnhub.ir` قابلِ‌دانلود است.
+
+## فیلدهایِ جدیدِ پیشنهادی رویِ `Order`
+برایِ ردیابی/پشتیبانیِ تراکنش‌هایِ واقعی (لازم، نه زیاده‌روی — بدونِ این‌ها اگر پرداختی گم شود قابلِ‌ردیابی نیست):
+- `paymentRefNumber` (Long, یکتا — نکتهٔ ۲)
+- `mellatRefId` (String)
+- `mellatSaleReferenceId` (String، بعدِ callbackِ موفق)
+
+## تست
+- یک سفارشِ واقعی با مبلغِ کوچک (مثلاً ۱۰۰۰ تومان) تا آخرِ فلو ببر: پرداخت → ریدایرکتِ واقعی به بانک → پرداختِ واقعی → callback → verify → settle → `PAID_PREPARING` روی سفارش، موجودیِ محصول کم شده. (هماهنگ با مالک برایِ بازگشتِ وجهِ همین تستِ واقعی — درگاهِ ملت sandbox جدا ندارد.)
+- یک تراکنشِ لغوشده/ناموفق از سمتِ بانک: سفارش نباید paid شود، وضعیتِ `PAYMENT_FAILED` (یا مشابه) ثبت شود، کاربر پیامِ روشن ببیند.
+- چک کن `amount`ِ فرستاده‌شده دقیقاً ۱۰ برابرِ `totalAmount`ِ تومانی است (نکتهٔ ۱).
+- دو تراکنشِ هم‌زمان: `paymentRefNumber`ها نباید تصادفاً برخورد کنند.
+
+## گزارش
+فایل‌هایِ تغییریافته، نتیجهٔ تستِ واقعی (مبلغِ کوچک)، و اینکه `bpReversalRequest` را همین دور پیاده کردی یا بک‌لاگ ماند.
