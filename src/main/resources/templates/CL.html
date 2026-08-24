@@ -1507,9 +1507,10 @@
                     <div class="skeleton" style="width:50%; height:20px;"></div>
                 </div>
             </div>
-            <div id="landingSections" style="display:none;"></div>
-
             <!-- بلاکِ خلاصه‌ی «سابقه و اعتبار» — SSR (نه SPA) تا خزنده هم ببیندش.
+                 🔴 عمداً قبل از landingSections آمده: landingSections تعدادِ متغیری سکشنِ
+                 داینامیک دارد (جشنواره‌ها و…)، و این نوار باید همیشه بلافاصله زیرِ
+                 سرچ‌بار بماند، نه اینکه با اضافه‌شدنِ سکشن به پایینِ آن‌ها هل داده شود.
                  فقط در نمای خانه دیده می‌شود؛ نمایشش دقیقاً با landingSections همگام است.
                  🔴 هیچ راه تماس مستقیم/شبکه‌ی اجتماعی — قانون ضد-دور-زدن. -->
             <a id="trustStrip" th:if="${trustCourseCountFa != null}"
@@ -1532,6 +1533,8 @@
                     <span class="trust-cta">سابقه و اعتبار داده نما ❯</span>
                 </div>
             </a>
+
+            <div id="landingSections" style="display:none;"></div>
 
             <div id="latestSectionHeader"
                  style="font-weight:900; font-size:1.2rem; margin-top:30px; border-right:4px solid var(--primary); padding-right:10px; color:var(--text); display:none;">
