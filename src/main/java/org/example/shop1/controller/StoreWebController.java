@@ -7,6 +7,7 @@ import org.example.shop1.model.entity.Category;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.example.shop1.model.reposritory.CategoryRepository;
 import org.example.shop1.model.service.ArticleService;
+import org.example.shop1.model.service.BannerService;
 import org.example.shop1.model.service.CategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -26,6 +27,7 @@ public class StoreWebController {
     private final CategoryRepository categoryRepo;
     private final CategoryService categoryService;
     private final ArticleService articleService;
+    private final BannerService bannerService;
     private final org.example.shop1.model.service.ProductRedirectService productRedirectService;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
@@ -37,11 +39,13 @@ public class StoreWebController {
 
     public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo,
                               CategoryService categoryService, ArticleService articleService,
+                              BannerService bannerService,
                               org.example.shop1.model.service.ProductRedirectService productRedirectService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.categoryService = categoryService;
         this.articleService = articleService;
+        this.bannerService = bannerService;
         this.productRedirectService = productRedirectService;
     }
 
@@ -53,6 +57,10 @@ public class StoreWebController {
         model.addAttribute("seoTitle", "داده نما | اتصال آسان است");
         model.addAttribute("seoDescription", "فروشگاه اینترنتی یاس، عرضه کننده بهترین محصولات با گارانتی معتبر و ارسال فوری");
         model.addAttribute("canonicalUrl", buildBaseUrl(request) + "/");
+
+        // اسلایدرِ بنر — بالاترینِ عنصرِ صفحه (LCP)؛ لینک‌ها همین‌جا (نه در زمانِ
+        // ذخیره‌ی بنر) resolve می‌شوند تا تغییرِ بعدیِ نامِ محصول/دسته/مقاله لینک را نشکند.
+        model.addAttribute("banners", bannerService.getActiveBannersResolved());
 
         // بلاکِ خلاصه‌ی «سابقه و اعتبار» (SSR؛ لینک به /about). شمارشِ سبک است تا
         // صفحه‌ی اصلی برای یک عدد، ۴۹ سندِ کامل نخواند.

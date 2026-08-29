@@ -313,6 +313,10 @@
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🎉</span> لندینگ و جشنواره
         </div>
+        <div onclick="switchTab('banners')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>🖼️</span> اسلایدر بنر خانه
+        </div>
         <div onclick="switchTab('articles')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>📝</span> مقالات بلاگ
@@ -543,6 +547,21 @@
             </button>
         </div>
         <div id="sections-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- 4b. BANNER SLIDER (بنرهای متحرک صفحه اصلی) -->
+    <div id="tab-banners" class="hidden-section fade-in">
+        <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">اسلایدر بنر صفحه اصلی</h2>
+                <p class="text-xs text-gray-400 mt-1">اولین بنرِ فعال، سنگین‌ترین عنصرِ لودِ صفحه‌ی اصلی است؛ فقط عکسِ باکیفیت و سبک استفاده کنید.</p>
+            </div>
+            <button onclick="openBannerModal()"
+                    class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 flex items-center justify-center gap-2">
+                <span>✨</span> بنر جدید
+            </button>
+        </div>
+        <div id="banners-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
     </div>
 
     <!-- ARTICLES (بلاگ) -->
@@ -1383,6 +1402,92 @@
     </div>
 </div>
 
+<!-- Banner Modal (اسلایدر بنر خانه) -->
+<div id="bannerModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-4">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col" style="max-height:88vh;">
+        <div data-drag-handle class="shrink-0 flex justify-between items-center px-5 py-4 bg-gray-800 text-white rounded-t-2xl select-none">
+            <h3 id="banner-modal-title" class="text-lg font-bold">بنر جدید</h3>
+            <button onclick="closeModalSafe('bannerModal')" class="text-white/70 hover:text-white text-2xl font-bold leading-none px-1 outline-none">✕</button>
+        </div>
+        <input type="hidden" id="bn-id">
+        <div class="flex-1 overflow-y-auto px-5 md:px-6 py-4 md:py-5" style="min-height:0;">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">عنوانِ داخلی (فقط برای مدیریت — در سایت نمایش داده نمی‌شود)</label>
+                <input type="text" id="bn-title" placeholder="مثلاً: بنرِ جشنواره‌ی تابستان"
+                       class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">متنِ جایگزینِ عکس (alt) <span class="text-red-500">*</span></label>
+                <input type="text" id="bn-alt-text" placeholder="توصیفِ کوتاهِ عکس برایِ سئو/دسترس‌پذیری"
+                       class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">عکسِ دسکتاپ <span class="text-red-500">*</span></label>
+                <div class="flex items-center gap-3">
+                    <input type="file" id="bn-image-file" accept="image/*" class="text-xs" onchange="uploadBannerImage(this, 'bn-image')">
+                    <img id="bn-image-preview" src="" alt="" class="h-14 rounded-lg border hidden">
+                    <input type="hidden" id="bn-image">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">عکسِ موبایل (اختیاری — نبود آن یعنی همان عکسِ دسکتاپ استفاده می‌شود)</label>
+                <div class="flex items-center gap-3">
+                    <input type="file" id="bn-image-mobile-file" accept="image/*" class="text-xs" onchange="uploadBannerImage(this, 'bn-image-mobile')">
+                    <img id="bn-image-mobile-preview" src="" alt="" class="h-14 rounded-lg border hidden">
+                    <input type="hidden" id="bn-image-mobile">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">ترتیبِ نمایش</label>
+                <input type="number" id="bn-order" value="0"
+                       class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">وضعیت</label>
+                <select id="bn-active" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+                    <option value="true">فعال</option>
+                    <option value="false">غیرفعال</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- نوعِ لینکِ بنر -->
+        <div class="mt-5 border rounded-xl p-4">
+            <label class="block text-sm text-gray-600 mb-1">با کلیک روی بنر کجا برود؟</label>
+            <select id="bn-link-type" onchange="onBannerLinkTypeChange()" class="w-full p-2.5 border rounded-lg bg-white outline-none mb-3">
+                <option value="NONE">بدون لینک (فقط نمایشی)</option>
+                <option value="PRODUCT">صفحه‌ی یک محصول</option>
+                <option value="CATEGORY">صفحه‌ی یک دسته‌بندی</option>
+                <option value="ARTICLE">یک مقاله‌ی بلاگ</option>
+                <option value="INTERNAL_PATH">آدرسِ داخلیِ دیگر (مثلاً /about)</option>
+                <option value="EXTERNAL_URL">آدرسِ خارجی (سایتِ دیگر)</option>
+            </select>
+
+            <select id="bn-link-product" class="hidden w-full p-2.5 border rounded-lg bg-white outline-none"></select>
+            <select id="bn-link-category" class="hidden w-full p-2.5 border rounded-lg bg-white outline-none"></select>
+            <select id="bn-link-article" class="hidden w-full p-2.5 border rounded-lg bg-white outline-none"></select>
+            <input type="text" id="bn-link-path" placeholder="/about" class="hidden w-full p-2.5 border rounded-lg outline-none">
+            <input type="url" id="bn-link-url" placeholder="https://example.com" class="hidden w-full p-2.5 border rounded-lg outline-none">
+
+            <p class="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+                ⚠️ طبقِ قانونِ فروشگاه، لینک‌دادن به شبکه‌های اجتماعی یا هر روشِ تماسِ مستقیم (تلگرام، اینستاگرام، واتساپ، شماره تماس و…) مجاز نیست.
+            </p>
+        </div>
+
+        </div>
+        <div class="shrink-0 flex flex-col md:flex-row justify-end gap-3 px-5 py-4 border-t bg-white rounded-b-2xl">
+            <button onclick="closeModalSafe('bannerModal')"
+                    class="w-full md:w-auto px-4 py-2 text-gray-500 border rounded-lg">انصراف
+            </button>
+            <button onclick="saveBanner()"
+                    class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">ذخیره
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Article Modal (مقالات بلاگ) -->
 <div id="articleModal"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-4">
@@ -1539,6 +1644,7 @@
         categories: [],
         flatCategories: [],
         sections: [],
+        banners: [],
         orders: [],
         comments: [],
         currentCommentStatus: 'PENDING',
@@ -1692,6 +1798,7 @@
         if (id === 'pricing') { mountPricingUi(); fetchPricingRows(); }
         if (id === 'activityLog') { mountLogUi(); fetchActivityLogs(); }
         if (id === 'articles') fetchArticles();
+        if (id === 'banners' && !state.articles) fetchArticles();
         if (id === 'rfq') fetchRfqsAdmin();
         if (id === 'stockNotify') fetchStockNotifications();
         if (id === 'settings') {
@@ -1715,7 +1822,7 @@
     // ============================================================
     // سیستمِ مودالِ پیشرفته: backdrop-close، dirty-check، resize
     // ============================================================
-    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'articleModal', 'staffModal']);
+    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'bannerModal', 'articleModal', 'staffModal']);
     const _modalSnap = {};
 
     function snapshotModalForm(id) {
@@ -1867,16 +1974,18 @@
     async function fetchAllData() {
         toggleLoader(true);
         try {
-            const [prods, cats, secs] = await Promise.all([
+            const [prods, cats, secs, banners] = await Promise.all([
                 axios.get(`${API}/v1/products/admin`),
                 axios.get(`${API}/categories/tree?type=ONLINE`),
-                axios.get(`${API}/v1/landing-sections/admin`)
+                axios.get(`${API}/v1/landing-sections/admin`),
+                axios.get(`${API}/v1/banners/admin`)
             ]);
 
             state.products = prods.data;
             state.categories = cats.data;
             state.flatCategories = flatten(cats.data);
             state.sections = secs.data;
+            state.banners = banners.data;
 
             try {
                 const ordersRes = await axios.get(`${API}/orders/admin/all`);
@@ -1890,6 +1999,7 @@
             renderProducts();
             renderCategoryTree();
             renderSections();
+            renderBanners();
 
         } catch (err) {
             console.error(err);
@@ -3022,6 +3132,151 @@
             b.innerText = document.getElementById('s-sticker-txt').value || 'تست';
             b.style.backgroundColor = document.getElementById('s-sticker-color').value;
         }
+    }
+
+    // ==========================================
+    // اسلایدرِ بنرِ خانه (Banners)
+    // ==========================================
+    const BANNER_LINK_FIELD_BY_TYPE = {
+        PRODUCT: 'bn-link-product',
+        CATEGORY: 'bn-link-category',
+        ARTICLE: 'bn-link-article',
+        INTERNAL_PATH: 'bn-link-path',
+        EXTERNAL_URL: 'bn-link-url'
+    };
+
+    function bannerLinkTypeLabel(type) {
+        return {
+            NONE: 'بدون لینک', PRODUCT: 'لینک به محصول', CATEGORY: 'لینک به دسته',
+            ARTICLE: 'لینک به مقاله', INTERNAL_PATH: 'مسیرِ داخلی', EXTERNAL_URL: 'لینکِ خارجی'
+        }[type] || type;
+    }
+
+    function renderBanners() {
+        document.getElementById('banners-container').innerHTML = state.banners.map(b => `
+            <div class="bg-white rounded-xl shadow-sm border p-4 md:p-5 relative overflow-hidden group hover:shadow-md transition">
+                <img src="${b.imageUrl}" class="w-full h-28 object-cover rounded-lg bg-gray-100" onerror="this.src='${FALLBACK_IMG}'">
+                <h4 class="font-bold text-sm md:text-base text-gray-800 mt-3">${b.title || '(بدون عنوان)'}</h4>
+                <div class="mt-2 flex gap-2 text-[10px] md:text-xs text-gray-500 flex-wrap">
+                    <span class="bg-gray-100 px-2 py-1 rounded">ترتیب: ${b.orderIndex}</span>
+                    <span class="px-2 py-1 rounded ${b.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${b.active ? 'فعال' : 'غیرفعال'}</span>
+                    <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${bannerLinkTypeLabel(b.linkType)}</span>
+                </div>
+                <div class="mt-4 flex gap-2 border-t pt-3">
+                    <button onclick='editBanner("${b.id}")' class="flex-1 bg-indigo-50 text-indigo-700 py-1.5 md:py-2 rounded text-xs md:text-sm hover:bg-indigo-100 font-bold transition">ویرایش</button>
+                    <button onclick="deleteItem('v1/banners', '${b.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 rounded hover:bg-red-100 transition">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function populateBannerProductSelect(selected = '') {
+        document.getElementById('bn-link-product').innerHTML = '<option value="">— انتخابِ محصول —</option>' +
+            state.products.map(p => `<option value="${p.id}" ${p.id === selected ? 'selected' : ''}>${p.name}</option>`).join('');
+    }
+
+    function populateBannerCategorySelect(selected = '') {
+        document.getElementById('bn-link-category').innerHTML = '<option value="">— انتخابِ دسته —</option>' +
+            state.flatCategories.map(c => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${c.name}</option>`).join('');
+    }
+
+    function populateBannerArticleSelect(selected = '') {
+        document.getElementById('bn-link-article').innerHTML = '<option value="">— انتخابِ مقاله —</option>' +
+            (state.articles || []).map(a => `<option value="${a.id}" ${a.id === selected ? 'selected' : ''}>${a.title}</option>`).join('');
+    }
+
+    function onBannerLinkTypeChange() {
+        const type = document.getElementById('bn-link-type').value;
+        Object.values(BANNER_LINK_FIELD_BY_TYPE).forEach(id => document.getElementById(id).classList.add('hidden'));
+        const fieldId = BANNER_LINK_FIELD_BY_TYPE[type];
+        if (!fieldId) return;
+        document.getElementById(fieldId).classList.remove('hidden');
+        if (type === 'PRODUCT') populateBannerProductSelect();
+        if (type === 'CATEGORY') populateBannerCategorySelect();
+        if (type === 'ARTICLE') populateBannerArticleSelect();
+    }
+
+    async function uploadBannerImage(input, targetId) {
+        if (!input.files || !input.files[0]) return;
+        const fd = new FormData(); fd.append('file', input.files[0]);
+        try {
+            const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
+            document.getElementById(targetId).value = res.data;
+            const prev = document.getElementById(`${targetId}-preview`);
+            prev.src = res.data; prev.classList.remove('hidden');
+        } catch (e) { Swal.fire('خطا', 'آپلود عکس ناموفق بود', 'error'); }
+    }
+
+    function openBannerModal() {
+        resetForm('bn');
+        document.getElementById('bn-active').value = 'true';
+        document.getElementById('bn-order').value = '0';
+        document.getElementById('bn-image-preview').classList.add('hidden');
+        document.getElementById('bn-image-mobile-preview').classList.add('hidden');
+        document.getElementById('bn-link-type').value = 'NONE';
+        onBannerLinkTypeChange();
+        document.getElementById('banner-modal-title').innerText = 'بنر جدید';
+        openModal('bannerModal');
+    }
+
+    function editBanner(id) {
+        const b = state.banners.find(x => x.id === id);
+        if (!b) return;
+        document.getElementById('bn-id').value = b.id;
+        document.getElementById('bn-title').value = b.title || '';
+        document.getElementById('bn-alt-text').value = b.altText || '';
+        document.getElementById('bn-image').value = b.imageUrl || '';
+        document.getElementById('bn-image-mobile').value = b.imageUrlMobile || '';
+        document.getElementById('bn-order').value = b.orderIndex;
+        document.getElementById('bn-active').value = String(b.active);
+
+        const prev = document.getElementById('bn-image-preview');
+        if (b.imageUrl) { prev.src = b.imageUrl; prev.classList.remove('hidden'); } else prev.classList.add('hidden');
+        const prevM = document.getElementById('bn-image-mobile-preview');
+        if (b.imageUrlMobile) { prevM.src = b.imageUrlMobile; prevM.classList.remove('hidden'); } else prevM.classList.add('hidden');
+
+        const type = b.linkType || 'NONE';
+        document.getElementById('bn-link-type').value = type;
+        onBannerLinkTypeChange();
+        if (type === 'PRODUCT') populateBannerProductSelect(b.linkTarget);
+        if (type === 'CATEGORY') populateBannerCategorySelect(b.linkTarget);
+        if (type === 'ARTICLE') populateBannerArticleSelect(b.linkTarget);
+        if (type === 'INTERNAL_PATH') document.getElementById('bn-link-path').value = b.linkTarget || '';
+        if (type === 'EXTERNAL_URL') document.getElementById('bn-link-url').value = b.linkTarget || '';
+
+        document.getElementById('banner-modal-title').innerText = 'ویرایشِ بنر';
+        openModal('bannerModal');
+    }
+
+    function saveBanner() {
+        const altText = document.getElementById('bn-alt-text').value.trim();
+        const imageUrl = document.getElementById('bn-image').value;
+        if (!imageUrl) { Swal.fire('خطا', 'عکسِ دسکتاپِ بنر را آپلود کنید', 'error'); return; }
+        if (!altText) { Swal.fire('خطا', 'متنِ جایگزینِ عکس (alt) را وارد کنید', 'error'); return; }
+
+        const linkType = document.getElementById('bn-link-type').value;
+        const targetFieldId = BANNER_LINK_FIELD_BY_TYPE[linkType];
+        const linkTarget = targetFieldId ? document.getElementById(targetFieldId).value.trim() : null;
+        if (linkType !== 'NONE' && !linkTarget) {
+            Swal.fire('خطا', 'برایِ این نوعِ لینک، مقصد را انتخاب/وارد کنید', 'error');
+            return;
+        }
+
+        const data = {
+            id: document.getElementById('bn-id').value || null,
+            title: document.getElementById('bn-title').value.trim() || null,
+            imageUrl: imageUrl,
+            imageUrlMobile: document.getElementById('bn-image-mobile').value || null,
+            altText: altText,
+            linkType: linkType,
+            linkTarget: linkTarget || null,
+            orderIndex: Number(document.getElementById('bn-order').value) || 0,
+            active: document.getElementById('bn-active').value === 'true'
+        };
+
+        axios.post(`${API}/v1/banners`, data)
+            .then(() => { closeModal('bannerModal'); fetchAllData(); Swal.fire({icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false}); })
+            .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'ذخیره‌ی بنر ناموفق بود', 'error'));
     }
 
     // ==========================================

@@ -547,10 +547,98 @@
             flex: 0 0 200px;
         }
 
-        /* بلاکِ خلاصه‌ی «سابقه و اعتبار» در خانه (لینک به /about) */
+        /* اسلایدرِ بنرِ صفحه‌ی خانه — بالاترین عنصرِ صفحه (LCP)، پس بدونِ display:none
+           در بارگذاریِ اول رندر می‌شود؛ نسبتِ ابعادِ ثابت تا موقعِ لود صفحه نپرد. */
+        .banner-slider {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 21 / 6;
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 18px;
+            background: var(--surface);
+        }
+
+        .banner-track {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .banner-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .5s ease;
+        }
+
+        .banner-slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .banner-slide a, .banner-slide > picture {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .banner-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .banner-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 7px;
+            z-index: 2;
+        }
+
+        .banner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .55);
+            cursor: pointer;
+            transition: .2s;
+            box-shadow: 0 0 3px rgba(0, 0, 0, .3);
+        }
+
+        .banner-dot.active {
+            background: #fff;
+            width: 22px;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 700px) {
+            .banner-slider {
+                aspect-ratio: 4 / 3;
+                border-radius: 12px;
+                margin-bottom: 14px;
+            }
+        }
+
+        /* حرکتِ کاهش‌یافته: بنر همچنان نمایش داده می‌شود، فقط خودکار نمی‌چرخد (JS این را چک می‌کند)
+           و ترانزیشنِ تعویضِ اسلاید هم حذف می‌شود. */
+        @media (prefers-reduced-motion: reduce) {
+            .banner-slide { transition: none; }
+        }
+
+        /* بلاکِ خلاصه‌ی «سابقه و اعتبار» در خانه (لینک به /about).
+           🔴 بخشِ ۴ (واضح‌ترکردنِ کلیک‌پذیری): فقط ظاهر تغییر کرد — اعداد/متن دست‌نخورده. */
         #trustStrip {
             text-decoration: none;
             color: inherit;
+            cursor: pointer;
+            display: block;
         }
 
         .trust-strip {
@@ -565,13 +653,16 @@
             gap: 12px 24px;
             align-items: center;
             justify-content: space-between;
-            transition: .15s;
+            transition: .2s ease;
         }
 
-        #trustStrip:hover .trust-strip {
+        #trustStrip:hover .trust-strip,
+        #trustStrip:focus-visible .trust-strip {
             border-color: var(--primary);
             border-right-color: var(--accent);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .1);
+            transform: translateY(-1px);
+            background: var(--primary-light, var(--surface));
         }
 
         .trust-facts {
@@ -597,6 +688,20 @@
             font-weight: 800;
             font-size: .88rem;
             white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trust-arrow {
+            display: inline-block;
+            font-size: 1.05em;
+            transition: transform .2s ease;
+        }
+
+        #trustStrip:hover .trust-arrow,
+        #trustStrip:focus-visible .trust-arrow {
+            transform: translateX(-4px);
         }
 
         /* موبایل: نوار باید فشرده بماند و ریتمِ صفحه‌ی اصلی را نشکند */
@@ -1495,6 +1600,40 @@
                     <div class="skeleton" style="width:50%; height:20px;"></div>
                 </div>
             </div>
+            <!-- اسلایدرِ بنرِ خانه — بالاترین عنصرِ صفحه (LCP)، پس کاملاً SSR.
+                 🔴 عمداً بدونِ display:none روی خودِ کانتینر/اسلایدِ اول: باید در
+                 HTMLِ خام (نه فقط DOMِ رندرشده) دیده شود. ترتیبِ نهاییِ صفحه:
+                 بنر ← نوارِ اعتبار ← سکشن‌های داینامیک ← محصولات.
+                 وقتی صفر بنرِ فعال داریم th:if کلِ بلاک را حذف می‌کند (نه پنهان). -->
+            <div class="banner-slider" id="bannerSlider" th:if="${banners != null and !banners.isEmpty()}">
+                <div class="banner-track" id="bannerTrack">
+                    <div class="banner-slide" th:each="b, bstat : ${banners}"
+                         th:classappend="${bstat.index == 0} ? ' active' : ''">
+                        <a th:if="${b.resolvedUrl != null}" th:href="${b.resolvedUrl}"
+                           th:target="${b.external} ? '_blank' : null"
+                           th:rel="${b.external} ? 'noopener nofollow' : null">
+                            <picture>
+                                <source media="(max-width:700px)" th:srcset="${b.imageUrlMobile}">
+                                <img th:src="${b.imageUrl}" th:alt="${b.altText}"
+                                     th:attr="fetchpriority=${bstat.index == 0 ? 'high' : null},loading=${bstat.index == 0 ? null : 'lazy'}"
+                                     decoding="async">
+                            </picture>
+                        </a>
+                        <picture th:unless="${b.resolvedUrl != null}">
+                            <source media="(max-width:700px)" th:srcset="${b.imageUrlMobile}">
+                            <img th:src="${b.imageUrl}" th:alt="${b.altText}"
+                                 th:attr="fetchpriority=${bstat.index == 0 ? 'high' : null},loading=${bstat.index == 0 ? null : 'lazy'}"
+                                 decoding="async">
+                        </picture>
+                    </div>
+                </div>
+                <div class="banner-dots" th:if="${banners.size() > 1}">
+                    <span class="banner-dot" th:each="b, bstat : ${banners}"
+                          th:classappend="${bstat.index == 0} ? ' active' : ''"
+                          th:attr="data-idx=${bstat.index}" onclick="goToBannerSlide(this)"></span>
+                </div>
+            </div>
+
             <!-- بلاکِ خلاصه‌ی «سابقه و اعتبار» — SSR (نه SPA) تا خزنده هم ببیندش.
                  🔴 عمداً قبل از landingSections آمده: landingSections تعدادِ متغیری سکشنِ
                  داینامیک دارد (جشنواره‌ها و…)، و این نوار باید همیشه بلافاصله زیرِ
@@ -1518,7 +1657,7 @@
                             <span>سابقه‌ی مستند آموزشی</span>
                         </div>
                     </div>
-                    <span class="trust-cta">سابقه و اعتبار داده نما ❯</span>
+                    <span class="trust-cta">سابقه و اعتبار داده نما <b class="trust-arrow">❯</b></span>
                 </div>
             </a>
 
@@ -1747,6 +1886,7 @@
                 if (targetProduct) {
                     document.getElementById('landingSections').style.display = 'block';
                     setTrustStrip(true);
+                    setBannerSlider(true);
                     document.getElementById('latestSectionHeader').style.display = 'block';
                     renderGrid(state.all.slice(0, 20));
                     openProductDetail(targetProduct.id, true);
@@ -2345,6 +2485,82 @@
         if (el) el.style.display = show ? 'block' : 'none';
     }
 
+    // اسلایدرِ بنر — مثلِ trustStrip فقط در نمای خانه دیده می‌شود، اما بدونِ
+    // display:none در HTMLِ اولیه (برایِ LCP). چرخشِ خودکار فقط بعدِ کاملاً
+    // بارگذاری‌شدنِ صفحه (window.load) شروع می‌شود، نه زودتر.
+    let bannerTimer = null;
+    let bannerIndex = 0;
+    let bannerPaused = false;
+    let pageFullyLoaded = false;
+
+    function setBannerSlider(show) {
+        const el = document.getElementById('bannerSlider');
+        if (!el) return; // صفر بنرِ فعال یعنی th:if اصلاً این عنصر را رندر نکرده
+        el.style.display = show ? 'block' : 'none';
+        if (show && pageFullyLoaded) startBannerRotation();
+        else if (!show) stopBannerRotation();
+    }
+
+    function startBannerRotation() {
+        stopBannerRotation();
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const track = document.getElementById('bannerTrack');
+        const count = track ? track.children.length : 0;
+        if (count < 2) return;
+        bannerTimer = setInterval(() => {
+            if (!bannerPaused) goToBannerSlide((bannerIndex + 1) % count);
+        }, 5000);
+    }
+
+    function stopBannerRotation() {
+        if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
+    }
+
+    function goToBannerSlide(target) {
+        const track = document.getElementById('bannerTrack');
+        if (!track) return;
+        const slides = track.querySelectorAll('.banner-slide');
+        const dots = document.querySelectorAll('#bannerSlider .banner-dot');
+        const idx = typeof target === 'object' ? Number(target.dataset.idx) : target;
+        if (isNaN(idx) || idx < 0 || idx >= slides.length) return;
+        slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        bannerIndex = idx;
+    }
+
+    (function initBannerInteractions() {
+        const el = document.getElementById('bannerSlider');
+        if (!el) return;
+        // مکث روی هاور/فوکوس (دسترس‌پذیری برایِ کیبورد هم رعایت شود)
+        el.addEventListener('mouseenter', () => { bannerPaused = true; });
+        el.addEventListener('mouseleave', () => { bannerPaused = false; });
+        el.addEventListener('focusin', () => { bannerPaused = true; });
+        el.addEventListener('focusout', () => { bannerPaused = false; });
+
+        // سوایپِ موبایل — همان قراردادِ لایت‌باکسِ گالریِ محصول: چپ=بعدی، راست=قبلی
+        let tx0 = 0, ty0 = 0;
+        el.addEventListener('touchstart', e => {
+            tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
+        }, {passive: true});
+        el.addEventListener('touchend', e => {
+            const track = document.getElementById('bannerTrack');
+            const count = track ? track.children.length : 0;
+            if (!count || e.changedTouches.length !== 1) return;
+            const dx = e.changedTouches[0].clientX - tx0;
+            const dy = e.changedTouches[0].clientY - ty0;
+            if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) {
+                goToBannerSlide(dx > 0 ? (bannerIndex - 1 + count) % count : (bannerIndex + 1) % count);
+            }
+        }, {passive: true});
+    })();
+
+    // چرخشِ خودکار فقط پس از کاملاً لودشدنِ صفحه شروع می‌شود — مزاحمِ LCP نشود
+    window.addEventListener('load', () => {
+        pageFullyLoaded = true;
+        const el = document.getElementById('bannerSlider');
+        if (el && el.style.display !== 'none') startBannerRotation();
+    });
+
     async function loadHome(isPopState = false) {
         resetSearchUi();
         document.getElementById('productView').classList.remove('active');
@@ -2354,6 +2570,7 @@
         document.getElementById('filterFab').classList.remove('visible');
         document.getElementById('landingSections').style.display = 'block';
         setTrustStrip(true);
+        setBannerSlider(true);
         document.getElementById('latestSectionHeader').style.display = 'block';
         document.getElementById('latestSectionHeader').innerText = 'جدیدترین محصولات';
         renderCatIntro(null); // صفحه‌ی اصلی متنِ معرفیِ دسته ندارد
@@ -2395,6 +2612,7 @@
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         setTrustStrip(false);
+        setBannerSlider(false);
         document.getElementById('latestSectionHeader').innerText = 'دسته: ' + name;
 
         // لیست دسته: صفحه‌بندی سروری با «نمایش بیشتر» (بدون سقف ۲۰۰)
@@ -2416,6 +2634,7 @@
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         setTrustStrip(false);
+        setBannerSlider(false);
         document.getElementById('latestSectionHeader').innerText = title;
         renderCatIntro(null); // نمای جشنواره متنِ معرفیِ دسته ندارد
 
@@ -2462,6 +2681,7 @@
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         setTrustStrip(false);
+        setBannerSlider(false);
         document.getElementById('latestSectionHeader').style.display = 'block';
         document.getElementById('latestSectionHeader').innerText = `نتایج جست‌وجو برای: ${q}`;
         renderCatIntro(null); // نمای سرچ متنِ معرفیِ دسته ندارد

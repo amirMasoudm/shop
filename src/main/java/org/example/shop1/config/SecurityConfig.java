@@ -96,6 +96,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("ADMIN")
 
+                        // بنرهایِ خانه — عمداً الگویِ landing-sections را کپی نکردم: آن مسیر
+                        // فعلاً کاملاً permitAll است (حتی POST/DELETE)، یعنی هرکسِ ناشناس هم
+                        // می‌تواند سکشن بسازد/حذف کند. اینجا کدِ تازه است، پس درست نوشته می‌شود:
+                        // فقط خواندنِ فعال‌ها عمومی است، نوشتن فقط ADMIN.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/banners/active").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/banners/admin").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/banners").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/banners/**").hasRole("ADMIN")
+
                         // ۲. مسیرهای عمومی API را با دقت بیشتر باز کنید (حذف HttpMethod.GET برای تست اگر جواب نداد)
                         .requestMatchers(
                                 "/api/v1/products/**",
