@@ -1162,7 +1162,7 @@
                                 <input type="text" id="p-slug"
                                        class="w-full p-2 md:p-2.5 border rounded-lg outline-none text-left bg-gray-50"
                                        dir="ltr" placeholder="iphone-13-pro-max">
-                                <p class="text-[9px] text-gray-400 mt-1">اگر خالی بگذارید، سیستم به صورت خودکار از روی
+                                <p id="p-slug-hint" class="text-[9px] text-gray-400 mt-1">اگر خالی بگذارید، سیستم به صورت خودکار از روی
                                     نام محصول می‌سازد.</p>
                             </div>
                             <div class="md:col-span-2">
@@ -2351,6 +2351,7 @@
         renderTechSpecRows([]);
         renderFaqRows([]);
         renderRelProducts([], null);
+        setSlugHint(false);
         document.getElementById('modal-title-action').textContent = 'افزودن محصول';
         document.getElementById('modal-title-id').textContent = 'ID: NEW';
         openModal('productModal');
@@ -2396,9 +2397,24 @@
         state.currentImageAlts = (p.images || []).map((_, i) => (p.imageAlts && p.imageAlts[i]) ? p.imageAlts[i] : '');
         renderImages();
 
+        setSlugHint(true);
         document.getElementById('modal-title-action').textContent = 'ویرایش محصول';
         document.getElementById('modal-title-id').textContent = 'ID: ' + p.id;
         openModal('productModal');
+    }
+
+    // راهنمایِ فیلدِ اسلاگ. در «افزودن» خالی‌گذاشتن بی‌خطر است؛ در «ویرایش» همان کار
+    // آدرسِ ایندکس‌شده را عوض می‌کند، پس متن نباید تشویقش کند.
+    function setSlugHint(isEdit) {
+        const el = document.getElementById('p-slug-hint');
+        if (!el) return;
+        if (isEdit) {
+            el.textContent = '⚠️ خالی‌کردنِ این فیلد آدرسِ فعلیِ محصول را از روی نام بازمی‌سازد و لینکِ قبلی می‌شکند. اگر عوضش کردید، هنگامِ ذخیره پیشنهادِ ریدایرکت داده می‌شود.';
+            el.className = 'text-[9px] text-amber-600 mt-1';
+        } else {
+            el.textContent = 'اگر خالی بگذارید، سیستم به صورت خودکار از روی نام محصول می‌سازد.';
+            el.className = 'text-[9px] text-gray-400 mt-1';
+        }
     }
 
     function saveProduct() {
@@ -2446,10 +2462,65 @@
 
         const method = id ? 'put' : 'post';
         const url = id ? `${API}/v1/products/${id}` : `${API}/v1/products`;
-        axios[method](url, data).then(() => {
+
+        // آدرسِ عمومیِ محصول قبل از ذخیره — برایِ تشخیصِ تغییرِ اسلاگ.
+        // فقط در ویرایش معنا دارد؛ محصولِ جدید آدرسِ قبلی ندارد.
+        const before = id ? (state.products || []).find(x => x.id === id) : null;
+        const oldResolver = before ? productResolverOf(before) : null;
+
+        axios[method](url, data).then(async (res) => {
             closeModal('productModal');
+            // ⚠️ مقایسه با اسلاگِ واقعیِ ذخیره‌شده، نه با چیزی که تایپ شده — چون
+            // generateUniqueSlug ممکن است برایِ یکتاسازی «-2» به آن اضافه کند.
+            const saved = res && res.data;
+            if (oldResolver && saved) {
+                const newResolver = productResolverOf(saved);
+                if (newResolver && newResolver !== oldResolver) {
+                    await offerSlugChangeRedirect(oldResolver, newResolver, saved.name);
+                }
+            }
             fetchAllData();
         });
+    }
+
+    // تغییرِ اسلاگ دقیقاً مثلِ حذفِ محصول، آدرسِ ایندکس‌شده را بی‌صدا از بین می‌برد.
+    // همان مکانیزمِ ۳۰۱ اینجا هم پیشنهاد می‌شود تا لینکِ قبلی نشکند.
+    async function offerSlugChangeRedirect(oldResolver, newResolver, name) {
+        const r = await Swal.fire({
+            title: 'آدرسِ محصول عوض شد',
+            html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
+                     محصول: <b>${escapeHTML(name || '')}</b><br>
+                     آدرسِ قبلی: <code style="direction:ltr; display:inline-block;">/product/${escapeHTML(oldResolver)}</code><br>
+                     آدرسِ جدید: <code style="direction:ltr; display:inline-block;">/product/${escapeHTML(newResolver)}</code><br><br>
+                     آدرسِ قبلی از الان <b>۴۰۴</b> می‌دهد. ریدایرکتِ ۳۰۱ به آدرسِ جدید ثبت شود؟
+                     <span style="display:block; color:#6b7280; font-size:.82rem;">
+                       اگر این محصول قبلاً منتشر/ایندکس شده بود، «بله» را بزنید.
+                     </span>
+                   </div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'بله، ریدایرکت ثبت کن',
+            cancelButtonText: 'نه، لازم نیست',
+            confirmButtonColor: '#1b4f8a'
+        });
+        if (!r.isConfirmed) return;
+
+        try {
+            const res = await axios.post(`${API}/v1/product-redirects`, {
+                fromSlug: oldResolver,
+                toResolver: newResolver,
+                note: `تغییرِ اسلاگِ «${name || ''}» از پنل`
+            });
+            if (res.data && res.data.targetResolves === false) {
+                Swal.fire('ثبت شد، ولی...', 'مقصد الان به محصولِ زنده‌ای نمی‌رسد؛ آدرسِ قبلی همچنان ۴۰۴ می‌دهد.', 'warning');
+            } else {
+                Swal.fire({title: 'ریدایرکت ثبت شد', icon: 'success', timer: 1400, showConfirmButton: false});
+            }
+        } catch (e) {
+            const msg = (e.response && e.response.data && (e.response.data.message || e.response.data)) || 'ثبتِ ریدایرکت ناموفق بود';
+            // ⚠️ محصول از قبل ذخیره شده؛ این فقط هشدار است نه شکستِ ذخیره.
+            Swal.fire('ریدایرکت ثبت نشد', escapeHTML(String(msg)) + ' — آدرسِ قبلی ۴۰۴ می‌دهد.', 'error');
+        }
     }
 
     // ==========================================
