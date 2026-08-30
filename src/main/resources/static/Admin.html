@@ -686,6 +686,22 @@
         </div>
 
         <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border mb-6">
+            <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2"><span>🖼️</span> فاصله‌ی چرخشِ بنرِ خانه</h3>
+            <p class="text-xs text-gray-500 mb-3">اسلایدرِ اصلیِ بالایِ صفحه‌ی خانه (وقتی چند بنرِ فعال دارد) هر چند ثانیه یک‌بار خودکار به بنرِ بعدی می‌رود.</p>
+            <div class="flex gap-3 items-end">
+                <div class="flex-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">فاصله (ثانیه)</label>
+                    <input type="number" id="banner-rotation-seconds" min="1" placeholder="مثلاً 5"
+                           class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-indigo-500">
+                </div>
+                <button onclick="saveBannerRotationSeconds()"
+                        class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                    ذخیره فاصله
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border mb-6">
             <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2"><span>💹</span> ضریب قیمت سایت</h3>
             <p class="text-xs text-gray-500 mb-3">
                 قیمت سایت هر محصول از روی «فروش تعدادی» ضربدر این ضریب محاسبه می‌شود.
@@ -1425,19 +1441,33 @@
             </div>
             <div>
                 <label class="block text-sm text-gray-600 mb-1">عکسِ دسکتاپ <span class="text-red-500">*</span></label>
-                <div class="flex items-center gap-3">
-                    <input type="file" id="bn-image-file" accept="image/*" class="text-xs" onchange="uploadBannerImage(this, 'bn-image')">
-                    <img id="bn-image-preview" src="" alt="" class="h-14 rounded-lg border hidden">
-                    <input type="hidden" id="bn-image">
-                </div>
+                <label for="bn-image-file"
+                       class="relative flex flex-col items-center justify-center gap-1 w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition overflow-hidden bg-gray-50">
+                    <img id="bn-image-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden">
+                    <span id="bn-image-placeholder" class="flex flex-col items-center gap-1 text-gray-400 text-xs pointer-events-none px-2 text-center">
+                        <span class="text-2xl">🖼️</span>
+                        <span>برای انتخاب عکس کلیک کنید</span>
+                    </span>
+                    <span id="bn-image-hint"
+                          class="hidden absolute bottom-0 inset-x-0 bg-black/55 text-white text-[10px] text-center py-1 pointer-events-none">برای تغییرِ عکس کلیک کنید</span>
+                </label>
+                <input type="file" id="bn-image-file" accept="image/*" class="hidden" onchange="uploadBannerImage(this, 'bn-image')">
+                <input type="hidden" id="bn-image">
             </div>
             <div>
                 <label class="block text-sm text-gray-600 mb-1">عکسِ موبایل (اختیاری — نبود آن یعنی همان عکسِ دسکتاپ استفاده می‌شود)</label>
-                <div class="flex items-center gap-3">
-                    <input type="file" id="bn-image-mobile-file" accept="image/*" class="text-xs" onchange="uploadBannerImage(this, 'bn-image-mobile')">
-                    <img id="bn-image-mobile-preview" src="" alt="" class="h-14 rounded-lg border hidden">
-                    <input type="hidden" id="bn-image-mobile">
-                </div>
+                <label for="bn-image-mobile-file"
+                       class="relative flex flex-col items-center justify-center gap-1 w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition overflow-hidden bg-gray-50">
+                    <img id="bn-image-mobile-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden">
+                    <span id="bn-image-mobile-placeholder" class="flex flex-col items-center gap-1 text-gray-400 text-xs pointer-events-none px-2 text-center">
+                        <span class="text-2xl">📱</span>
+                        <span>اختیاری — برای انتخاب عکس کلیک کنید</span>
+                    </span>
+                    <span id="bn-image-mobile-hint"
+                          class="hidden absolute bottom-0 inset-x-0 bg-black/55 text-white text-[10px] text-center py-1 pointer-events-none">برای تغییرِ عکس کلیک کنید</span>
+                </label>
+                <input type="file" id="bn-image-mobile-file" accept="image/*" class="hidden" onchange="uploadBannerImage(this, 'bn-image-mobile')">
+                <input type="hidden" id="bn-image-mobile">
             </div>
             <div>
                 <label class="block text-sm text-gray-600 mb-1">ترتیبِ نمایش</label>
@@ -1451,6 +1481,17 @@
                     <option value="false">غیرفعال</option>
                 </select>
             </div>
+        </div>
+
+        <!-- کجایِ صفحه‌ی خانه نمایش داده شود -->
+        <div class="mt-5 border rounded-xl p-4">
+            <label class="block text-sm text-gray-600 mb-1">این بنر کجایِ صفحه‌ی خانه نشان داده شود؟</label>
+            <select id="bn-placement" onchange="onBannerPlacementChange()" class="w-full p-2.5 border rounded-lg bg-white outline-none mb-3">
+                <option value="HERO">بالایِ صفحه (اسلایدرِ اصلی)</option>
+                <option value="AFTER_SECTION">زیرِ یک سکشنِ لندینگِ مشخص</option>
+            </select>
+            <select id="bn-after-section" class="hidden w-full p-2.5 border rounded-lg bg-white outline-none"></select>
+            <p class="text-[11px] text-gray-400 mt-2">اسلایدرِ اصلی خودکار می‌چرخد و بالایِ صفحه ثابت است؛ حالتِ «زیرِ سکشن» یک عکسِ ساده (بدونِ چرخش) دقیقاً زیرِ همان سکشنِ لندینگی می‌نشاند.</p>
         </div>
 
         <!-- نوعِ لینکِ بنر -->
@@ -1803,6 +1844,7 @@
         if (id === 'stockNotify') fetchStockNotifications();
         if (id === 'settings') {
             fetchRfqThreshold();
+            fetchBannerRotationSeconds();
             fetchSitePriceFactor();
             setTimeout(() => {
                 if (!adminMap) initAdminMap();
@@ -2235,7 +2277,7 @@
                 <td class="p-3 md:p-4 text-center"><span class="px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold ${p.stock > 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}">${p.stock}</span></td>
                 <td class="p-3 md:p-4 text-center flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
                     <button onclick='editProduct("${p.id}")' class="text-indigo-600 hover:bg-indigo-50 p-1 md:p-2 rounded transition">✏️</button>
-                    <button onclick="deleteItem('v1/products', '${p.id}')" class="text-red-500 hover:bg-red-50 p-1 md:p-2 rounded transition">🗑️</button>
+                    <button onclick="deleteProductWithRedirect('${p.id}')" class="text-red-500 hover:bg-red-50 p-1 md:p-2 rounded transition">🗑️</button>
                 </td>
             </tr>
         `).join('');
@@ -2474,16 +2516,23 @@
         })).filter(f => f.question && f.answer);
     }
 
-    function renderRelProducts(selectedIds, excludeId) {
-        const list = (state.products || []).filter(p => p.id !== excludeId);
-        document.getElementById('rel-prod-list').innerHTML = list.map(p => `
+    // یک ردیفِ انتخاب‌گرِ محصول. مشترک بینِ «محصولاتِ مرتبط» (چک‌باکس) و
+    // انتخابِ مقصدِ ریدایرکت هنگامِ حذف (رادیو) — تا دو مارک‌آپِ موازی نداشته باشیم.
+    function productPickRow(p, inputHtml) {
+        return `
             <label class="rel-prod-item flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer border-b border-gray-100 last:border-0"
                    data-name="${(p.name || '').toLowerCase()}">
-                <input type="checkbox" value="${p.id}" class="rel-prod-chk rounded h-4 w-4"
-                       ${(selectedIds || []).includes(p.id) ? 'checked' : ''}>
+                ${inputHtml}
                 <img src="${p.images?.[0] || FALLBACK_IMG}" class="w-6 h-6 rounded object-cover bg-gray-200" onerror="this.src='${FALLBACK_IMG}'">
                 <span class="text-xs text-gray-700">${p.name}</span>
-            </label>`).join('');
+            </label>`;
+    }
+
+    function renderRelProducts(selectedIds, excludeId) {
+        const list = (state.products || []).filter(p => p.id !== excludeId);
+        document.getElementById('rel-prod-list').innerHTML = list.map(p => productPickRow(p,
+            `<input type="checkbox" value="${p.id}" class="rel-prod-chk rounded h-4 w-4"
+                    ${(selectedIds || []).includes(p.id) ? 'checked' : ''}>`)).join('');
     }
 
     function filterRelProducts() {
@@ -2792,6 +2841,161 @@
     function getCatName(id) {
         const c = state.flatCategories.find(x => x.id === id);
         return c ? c.name : '-';
+    }
+
+    // ==========================================
+    // حذفِ محصول با تعیینِ تکلیفِ آدرسِ قدیمی (۳۰۱ به‌جایِ ۴۰۴)
+    //
+    // چرا جدا از deleteItemِ عمومی: آن یکی برایِ سکشن و بنر هم استفاده می‌شود که
+    // اسلاگِ عمومی ندارند و این پرسش برایشان بی‌معناست.
+    //
+    // ⚠️ fromSlug باید همان چیزی باشد که resolveProduct با آن تطبیق می‌دهد:
+    // در StoreWebController اول findBySlug و بعد findById صدا زده می‌شود، و آدرسِ
+    // عمومی هم از productResolver ساخته می‌شود = slug اگر باشد وگرنه id.
+    // persianSlug فقط دُمِ تزئینیِ آدرس است و در تطبیق نقشی ندارد.
+    // ==========================================
+    function productResolverOf(p) {
+        return (p && p.slug && p.slug.trim()) ? p.slug.trim() : (p ? p.id : '');
+    }
+
+    async function deleteProductWithRedirect(id) {
+        const product = (state.products || []).find(p => p.id === id);
+        if (!product) { Swal.fire('خطا', 'محصول در لیستِ پنل پیدا نشد. صفحه را تازه کنید.', 'error'); return; }
+
+        const name = escapeHTML(product.name || '');
+        const fromSlug = productResolverOf(product);
+
+        const choice = await Swal.fire({
+            title: 'حذفِ محصول',
+            html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
+                     محصول: <b>${name}</b><br>
+                     آدرسِ فعلی: <code style="direction:ltr; display:inline-block;">/product/${escapeHTML(fromSlug)}</code><br><br>
+                     آیا آدرسِ این محصول به محصولِ دیگری ریدایرکت شود؟<br>
+                     <span style="color:#6b7280; font-size:.82rem;">
+                       اگر این محصول تکراری/ادغام‌شونده است «بله» را بزنید؛
+                       اگر هرگز منتشر و ایندکس نشده، «رد کن».
+                     </span>
+                   </div>`,
+            icon: 'warning',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'ریدایرکت به محصولِ دیگر',
+            denyButtonText: 'رد کن، مستقیم حذف کن',
+            cancelButtonText: 'انصراف',
+            confirmButtonColor: '#1b4f8a',
+            denyButtonColor: '#d33'
+        });
+
+        if (choice.isDismissed) return; // انصراف
+
+        // ---- مسیرِ «رد کن»: تأییدِ دوم چون عمداً ۴۰۴ می‌سازد ----
+        if (choice.isDenied) {
+            const sure = await Swal.fire({
+                title: 'بدونِ ریدایرکت حذف شود؟',
+                html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
+                         این کار آدرسِ محصول را <b>۴۰۴</b> می‌کند.<br>
+                         مطمئنید این محصول هرگز منتشر/ایندکس نشده؟
+                       </div>`,
+                icon: 'warning', showCancelButton: true,
+                confirmButtonText: 'بله، مستقیم حذف کن', cancelButtonText: 'انصراف',
+                confirmButtonColor: '#d33'
+            });
+            if (!sure.isConfirmed) return;
+            await performProductDelete(id);
+            return;
+        }
+
+        // ---- مسیرِ ریدایرکت ----
+        const target = await pickRedirectTarget(id);
+        if (!target) return; // انصراف در انتخاب‌گر
+
+        const toResolver = productResolverOf(target);
+        let data;
+        try {
+            const res = await axios.post(`${API}/v1/product-redirects`, {
+                fromSlug: fromSlug,
+                toResolver: toResolver,
+                note: `حذفِ «${product.name}» از پنل`
+            });
+            data = res.data || {};
+        } catch (e) {
+            const msg = (e.response && e.response.data && (e.response.data.message || e.response.data)) || 'ثبتِ ریدایرکت ناموفق بود';
+            Swal.fire('ریدایرکت ثبت نشد', escapeHTML(String(msg)), 'error');
+            return; // ⛔ محصول حذف نمی‌شود — ترتیبِ امن: اول ریدایرکت، بعد حذف
+        }
+
+        // مقصدی که به محصولِ زنده نمی‌رسد یعنی آدرس همچنان ۴۰۴ می‌دهد
+        if (data.targetResolves === false) {
+            const cont = await Swal.fire({
+                title: 'هشدار: مقصد حل نمی‌شود',
+                html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
+                         ریدایرکت ثبت شد، ولی مقصد الان به هیچ محصولِ زنده‌ای نمی‌رسد —
+                         یعنی آدرسِ قدیمی همچنان <b>۴۰۴</b> می‌دهد.<br>
+                         بازهم محصول حذف شود؟
+                       </div>`,
+                icon: 'warning', showCancelButton: true,
+                confirmButtonText: 'بله، حذف کن', cancelButtonText: 'انصراف — فعلاً حذف نکن',
+                confirmButtonColor: '#d33'
+            });
+            if (!cont.isConfirmed) {
+                Swal.fire('حذف نشد', 'رکوردِ ریدایرکت ثبت شده و باقی می‌ماند. محصول دست‌نخورده است.', 'info');
+                return;
+            }
+        }
+
+        await performProductDelete(id);
+    }
+
+    // انتخابِ محصولِ مقصد — همان دادهٔ state.products و همان مارک‌آپِ ردیفِ
+    // «محصولاتِ مرتبط»، فقط تک‌انتخابی (رادیو به‌جایِ چک‌باکس).
+    async function pickRedirectTarget(excludeId) {
+        const list = (state.products || []).filter(p => p.id !== excludeId);
+        if (!list.length) {
+            await Swal.fire('محصولی نیست', 'محصولِ دیگری برایِ ریدایرکت وجود ندارد.', 'info');
+            return null;
+        }
+
+        const rows = list.map(p => productPickRow(p,
+            `<input type="radio" name="redirect-target" value="${p.id}" class="redirect-target-radio h-4 w-4">`)).join('');
+
+        const res = await Swal.fire({
+            title: 'مقصدِ ریدایرکت',
+            html: `<input id="redirect-target-search" placeholder="جست‌وجویِ نامِ محصول..."
+                          style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; margin-bottom:10px; font-size:.85rem;">
+                   <div id="redirect-target-list" style="max-height:320px; overflow-y:auto; text-align:right;">${rows}</div>`,
+            width: 560,
+            showCancelButton: true,
+            confirmButtonText: 'تأیید مقصد',
+            cancelButtonText: 'انصراف',
+            confirmButtonColor: '#1b4f8a',
+            didOpen: () => {
+                const box = document.getElementById('redirect-target-search');
+                box.addEventListener('input', () => {
+                    const q = box.value.toLowerCase();
+                    document.querySelectorAll('#redirect-target-list .rel-prod-item').forEach(item => {
+                        item.style.display = item.dataset.name.includes(q) ? 'flex' : 'none';
+                    });
+                });
+            },
+            preConfirm: () => {
+                const picked = document.querySelector('.redirect-target-radio:checked');
+                if (!picked) { Swal.showValidationMessage('یک محصولِ مقصد انتخاب کنید'); return false; }
+                return picked.value;
+            }
+        });
+
+        if (!res.isConfirmed) return null;
+        return (state.products || []).find(p => p.id === res.value) || null;
+    }
+
+    async function performProductDelete(id) {
+        try {
+            await axios.delete(`${API}/v1/products/${id}`);
+            await fetchAllData();
+            Swal.fire({title: 'حذف شد', icon: 'success', timer: 1400, showConfirmButton: false});
+        } catch (e) {
+            Swal.fire('خطا', 'حذفِ محصول ناموفق بود.', 'error');
+        }
     }
 
     function deleteItem(ep, id) {
@@ -3152,6 +3356,12 @@
         }[type] || type;
     }
 
+    function bannerPlacementLabel(b) {
+        if (b.placement !== 'AFTER_SECTION') return 'بالایِ صفحه (هیرو)';
+        const sec = state.sections.find(x => x.id === b.afterSectionId);
+        return 'زیرِ سکشن: ' + (sec ? sec.title : '؟');
+    }
+
     function renderBanners() {
         document.getElementById('banners-container').innerHTML = state.banners.map(b => `
             <div class="bg-white rounded-xl shadow-sm border p-4 md:p-5 relative overflow-hidden group hover:shadow-md transition">
@@ -3160,6 +3370,7 @@
                 <div class="mt-2 flex gap-2 text-[10px] md:text-xs text-gray-500 flex-wrap">
                     <span class="bg-gray-100 px-2 py-1 rounded">ترتیب: ${b.orderIndex}</span>
                     <span class="px-2 py-1 rounded ${b.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${b.active ? 'فعال' : 'غیرفعال'}</span>
+                    <span class="bg-purple-50 text-purple-700 px-2 py-1 rounded">${bannerPlacementLabel(b)}</span>
                     <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${bannerLinkTypeLabel(b.linkType)}</span>
                 </div>
                 <div class="mt-4 flex gap-2 border-t pt-3">
@@ -3168,6 +3379,22 @@
                 </div>
             </div>
         `).join('');
+    }
+
+    function populateBannerSectionSelect(selected = '') {
+        document.getElementById('bn-after-section').innerHTML = '<option value="">— انتخابِ سکشن —</option>' +
+            state.sections.map(s => `<option value="${s.id}" ${s.id === selected ? 'selected' : ''}>${s.title}</option>`).join('');
+    }
+
+    function onBannerPlacementChange() {
+        const placement = document.getElementById('bn-placement').value;
+        const sectionField = document.getElementById('bn-after-section');
+        if (placement === 'AFTER_SECTION') {
+            sectionField.classList.remove('hidden');
+            populateBannerSectionSelect();
+        } else {
+            sectionField.classList.add('hidden');
+        }
     }
 
     function populateBannerProductSelect(selected = '') {
@@ -3196,25 +3423,50 @@
         if (type === 'ARTICLE') populateBannerArticleSelect();
     }
 
+    // نمایشِ باکسِ آپلودِ بنر: یا پیش‌نمایشِ عکس (با راهنمای «برای تغییر کلیک کنید» روی هاور)
+    // یا حالتِ خالیِ اولیه («برای انتخابِ عکس کلیک کنید») — targetId یکی از bn-image / bn-image-mobile
+    function setBannerImagePreview(targetId, url) {
+        const preview = document.getElementById(`${targetId}-preview`);
+        const placeholder = document.getElementById(`${targetId}-placeholder`);
+        const hint = document.getElementById(`${targetId}-hint`);
+        if (url) {
+            preview.src = url;
+            preview.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            hint.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+            hint.classList.add('hidden');
+        }
+    }
+
     async function uploadBannerImage(input, targetId) {
         if (!input.files || !input.files[0]) return;
+        const placeholder = document.getElementById(`${targetId}-placeholder`);
+        const placeholderOriginal = placeholder.innerHTML;
+        placeholder.innerHTML = '<span class="text-xs text-gray-400">در حال آپلود...</span>';
         const fd = new FormData(); fd.append('file', input.files[0]);
         try {
             const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
             document.getElementById(targetId).value = res.data;
-            const prev = document.getElementById(`${targetId}-preview`);
-            prev.src = res.data; prev.classList.remove('hidden');
-        } catch (e) { Swal.fire('خطا', 'آپلود عکس ناموفق بود', 'error'); }
+            setBannerImagePreview(targetId, res.data);
+        } catch (e) {
+            placeholder.innerHTML = placeholderOriginal;
+            Swal.fire('خطا', 'آپلود عکس ناموفق بود', 'error');
+        }
     }
 
     function openBannerModal() {
         resetForm('bn');
         document.getElementById('bn-active').value = 'true';
         document.getElementById('bn-order').value = '0';
-        document.getElementById('bn-image-preview').classList.add('hidden');
-        document.getElementById('bn-image-mobile-preview').classList.add('hidden');
+        setBannerImagePreview('bn-image', null);
+        setBannerImagePreview('bn-image-mobile', null);
         document.getElementById('bn-link-type').value = 'NONE';
         onBannerLinkTypeChange();
+        document.getElementById('bn-placement').value = 'HERO';
+        onBannerPlacementChange();
         document.getElementById('banner-modal-title').innerText = 'بنر جدید';
         openModal('bannerModal');
     }
@@ -3230,10 +3482,8 @@
         document.getElementById('bn-order').value = b.orderIndex;
         document.getElementById('bn-active').value = String(b.active);
 
-        const prev = document.getElementById('bn-image-preview');
-        if (b.imageUrl) { prev.src = b.imageUrl; prev.classList.remove('hidden'); } else prev.classList.add('hidden');
-        const prevM = document.getElementById('bn-image-mobile-preview');
-        if (b.imageUrlMobile) { prevM.src = b.imageUrlMobile; prevM.classList.remove('hidden'); } else prevM.classList.add('hidden');
+        setBannerImagePreview('bn-image', b.imageUrl);
+        setBannerImagePreview('bn-image-mobile', b.imageUrlMobile);
 
         const type = b.linkType || 'NONE';
         document.getElementById('bn-link-type').value = type;
@@ -3243,6 +3493,11 @@
         if (type === 'ARTICLE') populateBannerArticleSelect(b.linkTarget);
         if (type === 'INTERNAL_PATH') document.getElementById('bn-link-path').value = b.linkTarget || '';
         if (type === 'EXTERNAL_URL') document.getElementById('bn-link-url').value = b.linkTarget || '';
+
+        const placement = b.placement || 'HERO';
+        document.getElementById('bn-placement').value = placement;
+        onBannerPlacementChange();
+        if (placement === 'AFTER_SECTION') populateBannerSectionSelect(b.afterSectionId);
 
         document.getElementById('banner-modal-title').innerText = 'ویرایشِ بنر';
         openModal('bannerModal');
@@ -3262,6 +3517,13 @@
             return;
         }
 
+        const placement = document.getElementById('bn-placement').value;
+        const afterSectionId = placement === 'AFTER_SECTION' ? document.getElementById('bn-after-section').value : null;
+        if (placement === 'AFTER_SECTION' && !afterSectionId) {
+            Swal.fire('خطا', 'برایِ نمایش زیرِ یک سکشن، باید همان سکشن را انتخاب کنید', 'error');
+            return;
+        }
+
         const data = {
             id: document.getElementById('bn-id').value || null,
             title: document.getElementById('bn-title').value.trim() || null,
@@ -3271,7 +3533,9 @@
             linkType: linkType,
             linkTarget: linkTarget || null,
             orderIndex: Number(document.getElementById('bn-order').value) || 0,
-            active: document.getElementById('bn-active').value === 'true'
+            active: document.getElementById('bn-active').value === 'true',
+            placement: placement,
+            afterSectionId: afterSectionId
         };
 
         axios.post(`${API}/v1/banners`, data)
@@ -4150,6 +4414,20 @@
         axios.post(`${API}/v1/settings/admin/rfq-threshold`, {threshold})
             .then(() => Swal.fire('موفق', 'آستانه‌ی استعلام ذخیره شد.', 'success'))
             .catch(() => Swal.fire('خطا', 'مشکل در ذخیره آستانه.', 'error'));
+    }
+
+    async function fetchBannerRotationSeconds() {
+        try {
+            const res = await axios.get(`${API}/v1/settings/banner-rotation-seconds`);
+            document.getElementById('banner-rotation-seconds').value = Number(res.data.seconds || 5);
+        } catch (e) { }
+    }
+
+    function saveBannerRotationSeconds() {
+        const seconds = Number(document.getElementById('banner-rotation-seconds').value) || 5;
+        axios.post(`${API}/v1/settings/admin/banner-rotation-seconds`, {seconds})
+            .then(() => Swal.fire('موفق', 'فاصله‌ی چرخشِ بنر ذخیره شد.', 'success'))
+            .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'مشکل در ذخیره.', 'error'));
     }
 
     async function fetchSitePriceFactor() {
