@@ -47,6 +47,18 @@ public class StoreSettingsController {
         return ResponseEntity.ok(settingsService.updateRfqThreshold(threshold));
     }
 
+    // فاصله‌ی چرخشِ خودکارِ اسلایدرِ بنرِ خانه (ثانیه) — خواندنی و عمومی (CL.html این را می‌خواند)
+    @GetMapping("/banner-rotation-seconds")
+    public ResponseEntity<Map<String, Integer>> getBannerRotationSeconds() {
+        return ResponseEntity.ok(Collections.singletonMap("seconds", settingsService.getBannerRotationSeconds()));
+    }
+
+    // تنظیمِ فاصله — فقط ادمین
+    @PostMapping("/admin/banner-rotation-seconds")
+    public ResponseEntity<StoreSettings> setBannerRotationSeconds(@RequestBody Map<String, Integer> body) {
+        return ResponseEntity.ok(settingsService.updateBannerRotationSeconds(body.get("seconds")));
+    }
+
     /**
      * ضریبِ قیمتِ سایت — خواندنی برای میزِ کار (تا مقدارِ پیشنهادی را نشان دهد).
      * زیرِ /admin/ نیست چون PRICER هم باید بتواند ببیند، فقط نتواند تغییر دهد.

@@ -35,6 +35,21 @@ public class StoreSettings {
     /** ضریبِ پیش‌فرض وقتی هنوز در تنظیمات ست نشده است. */
     public static final BigDecimal DEFAULT_SITE_PRICE_FACTOR = new BigDecimal("1.08");
 
+    // فاصله‌ی چرخشِ خودکارِ اسلایدرِ بنرِ خانه (ثانیه). null یا نامعتبر یعنی پیش‌فرض.
+    private Integer bannerRotationSeconds;
+
+    /** پیش‌فرضِ فاصله‌ی چرخشِ بنر وقتی هنوز در تنظیمات ست نشده. */
+    public static final int DEFAULT_BANNER_ROTATION_SECONDS = 5;
+
+    public Integer getBannerRotationSeconds() { return bannerRotationSeconds; }
+    public void setBannerRotationSeconds(Integer bannerRotationSeconds) { this.bannerRotationSeconds = bannerRotationSeconds; }
+
+    /** فاصله‌ی مؤثر — اگر ست نشده یا نامعتبر بود، پیش‌فرض. */
+    public int effectiveBannerRotationSeconds() {
+        return (bannerRotationSeconds != null && bannerRotationSeconds > 0)
+                ? bannerRotationSeconds : DEFAULT_BANNER_ROTATION_SECONDS;
+    }
+
     // Getters & Setters
 
     public BigDecimal getRfqThreshold() { return rfqThreshold; }

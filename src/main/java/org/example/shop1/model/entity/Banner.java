@@ -1,6 +1,7 @@
 package org.example.shop1.model.entity;
 
 import org.example.shop1.model.enums.BannerLinkType;
+import org.example.shop1.model.enums.BannerPlacement;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -38,6 +39,12 @@ public class Banner {
     private int orderIndex = 0;
     private boolean isActive = true;
 
+    // کجایِ صفحه‌ی خانه نمایش داده شود؛ پیش‌فرض HERO یعنی همون اسلایدرِ اصلی (رفتارِ اولیه)
+    private BannerPlacement placement = BannerPlacement.HERO;
+
+    // فقط وقتی placement=AFTER_SECTION پر می‌شود: شناسه‌ی سکشنِ لندینگی که این بنر زیرِ آن بیاید
+    private String afterSectionId;
+
     public Banner() {}
 
     public String getId() { return id; }
@@ -66,4 +73,10 @@ public class Banner {
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+
+    public BannerPlacement getPlacement() { return placement; }
+    public void setPlacement(BannerPlacement placement) { this.placement = placement; }
+
+    public String getAfterSectionId() { return afterSectionId; }
+    public void setAfterSectionId(String afterSectionId) { this.afterSectionId = afterSectionId; }
 }

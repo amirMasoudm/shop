@@ -60,7 +60,7 @@ public class StoreWebController {
 
         // اسلایدرِ بنر — بالاترینِ عنصرِ صفحه (LCP)؛ لینک‌ها همین‌جا (نه در زمانِ
         // ذخیره‌ی بنر) resolve می‌شوند تا تغییرِ بعدیِ نامِ محصول/دسته/مقاله لینک را نشکند.
-        model.addAttribute("banners", bannerService.getActiveBannersResolved());
+        model.addAttribute("banners", bannerService.getHeroBannersResolved());
 
         // بلاکِ خلاصه‌ی «سابقه و اعتبار» (SSR؛ لینک به /about). شمارشِ سبک است تا
         // صفحه‌ی اصلی برای یک عدد، ۴۹ سندِ کامل نخواند.

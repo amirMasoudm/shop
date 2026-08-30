@@ -31,6 +31,10 @@ public class StoreSettingsService {
         if (settings.getSitePriceFactor() == null) {
             settings.setSitePriceFactor(current.getSitePriceFactor());
         }
+        // همین محافظت برای فاصله‌ی چرخشِ بنر
+        if (settings.getBannerRotationSeconds() == null) {
+            settings.setBannerRotationSeconds(current.getBannerRotationSeconds());
+        }
         return settingsRepo.save(settings);
     }
 
@@ -56,6 +60,23 @@ public class StoreSettingsService {
         StoreSettings current = getSettings();
         current.setId(SETTINGS_ID);
         current.setRfqThreshold(threshold);
+        return settingsRepo.save(current);
+    }
+
+    /** فاصله‌ی مؤثرِ چرخشِ بنر (با پیش‌فرض). */
+    public int getBannerRotationSeconds() {
+        return getSettings().effectiveBannerRotationSeconds();
+    }
+
+    // تنظیم فقط فاصله‌ی چرخشِ بنر (بدون دست‌زدن به بقیه‌ی فیلدها)
+    public StoreSettings updateBannerRotationSeconds(Integer seconds) {
+        if (seconds == null || seconds <= 0) {
+            throw new org.example.shop1.exeption.ApiException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "فاصله‌ی چرخش باید عددی بزرگ‌تر از صفر باشد");
+        }
+        StoreSettings current = getSettings();
+        current.setId(SETTINGS_ID);
+        current.setBannerRotationSeconds(seconds);
         return settingsRepo.save(current);
     }
 }

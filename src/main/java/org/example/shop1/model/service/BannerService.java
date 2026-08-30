@@ -7,6 +7,7 @@ import org.example.shop1.model.entity.Banner;
 import org.example.shop1.model.entity.Category;
 import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.enums.BannerLinkType;
+import org.example.shop1.model.enums.BannerPlacement;
 import org.example.shop1.model.reposritory.ArticleRepository;
 import org.example.shop1.model.reposritory.BannerRepository;
 import org.example.shop1.model.reposritory.CategoryRepository;
@@ -59,6 +60,16 @@ public class BannerService {
                 && (banner.getLinkTarget() == null || banner.getLinkTarget().isBlank())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "برایِ این نوعِ لینک، مقصد را انتخاب/وارد کنید");
         }
+        if (banner.getPlacement() == null) {
+            banner.setPlacement(BannerPlacement.HERO);
+        }
+        if (banner.getPlacement() == BannerPlacement.AFTER_SECTION
+                && (banner.getAfterSectionId() == null || banner.getAfterSectionId().isBlank())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "برایِ نمایش زیرِ یک سکشن، باید همان سکشن را انتخاب کنید");
+        }
+        if (banner.getPlacement() == BannerPlacement.HERO) {
+            banner.setAfterSectionId(null);
+        }
         return bannerRepo.save(banner);
     }
 
@@ -79,10 +90,23 @@ public class BannerService {
                     ? b.getImageUrlMobile() : b.getImageUrl();
             String resolvedUrl = resolveUrl(b);
             boolean external = b.getLinkType() == BannerLinkType.EXTERNAL_URL && resolvedUrl != null;
+            BannerPlacement placement = b.getPlacement() != null ? b.getPlacement() : BannerPlacement.HERO;
             result.add(new BannerDisplayDto(b.getId(), b.getImageUrl(), mobileImg, b.getAltText(),
-                    resolvedUrl, external));
+                    resolvedUrl, external, placement, b.getAfterSectionId()));
         }
         return result;
+    }
+
+    /**
+     * فقط بنرهایِ اسلاتِ اصلی (HERO) — چون این‌ها LCPِ صفحه‌اند و SSR می‌شوند.
+     * بنرهایِ AFTER_SECTION را StoreWebController اینجا نمی‌فرستد؛ آن‌ها از همان
+     * اندپوینتِ عمومیِ /api/v1/banners/active توسط JSِ خودِ صفحه (loadHome) گرفته
+     * و کنارِ سکشنِ مربوطه رندر می‌شوند — چون خودِ سکشن‌ها هم SSR نیستند.
+     */
+    public List<BannerDisplayDto> getHeroBannersResolved() {
+        return getActiveBannersResolved().stream()
+                .filter(b -> b.getPlacement() == BannerPlacement.HERO)
+                .toList();
     }
 
     private String resolveUrl(Banner b) {

@@ -89,6 +89,8 @@ public class SecurityConfig {
 
                         // آستانه‌ی RFQ خواندنی و عمومی است (فرانت دکمه را شرطی می‌کند)
                         .requestMatchers(HttpMethod.GET, "/api/v1/settings/rfq-threshold").permitAll()
+                        // فاصله‌ی چرخشِ بنر هم خواندنی و عمومی است (CL.html این را می‌خواند)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/settings/banner-rotation-seconds").permitAll()
 
                         // نوشتن محصول فقط ادمین؛ جستجو (POST) عمومی می‌ماند چون فرانت با آن فیلتر می‌کند
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/search").permitAll()

@@ -1,5 +1,7 @@
 package org.example.shop1.model.dto;
 
+import org.example.shop1.model.enums.BannerPlacement;
+
 /**
  * نمایِ آماده‌ی رندر برایِ یک اسلایدِ بنر — {@code resolvedUrl} همین‌جا و همین حالا
  * از رویِ شناسه ساخته شده (نه در زمانِ ذخیره)، تا تغییرِ بعدیِ نامِ محصول/دسته/مقاله
@@ -12,15 +14,20 @@ public class BannerDisplayDto {
     private final String altText;
     private final String resolvedUrl;    // null یعنی بنر لینک ندارد (linkType=NONE یا هدف پیدا نشد)
     private final boolean external;      // true یعنی target=_blank rel=noopener nofollow
+    private final BannerPlacement placement;
+    private final String afterSectionId; // فقط وقتی placement=AFTER_SECTION معنا دارد
 
     public BannerDisplayDto(String id, String imageUrl, String imageUrlMobile, String altText,
-                            String resolvedUrl, boolean external) {
+                            String resolvedUrl, boolean external,
+                            BannerPlacement placement, String afterSectionId) {
         this.id = id;
         this.imageUrl = imageUrl;
         this.imageUrlMobile = imageUrlMobile;
         this.altText = altText;
         this.resolvedUrl = resolvedUrl;
         this.external = external;
+        this.placement = placement;
+        this.afterSectionId = afterSectionId;
     }
 
     public String getId() { return id; }
@@ -29,4 +36,6 @@ public class BannerDisplayDto {
     public String getAltText() { return altText; }
     public String getResolvedUrl() { return resolvedUrl; }
     public boolean isExternal() { return external; }
+    public BannerPlacement getPlacement() { return placement; }
+    public String getAfterSectionId() { return afterSectionId; }
 }

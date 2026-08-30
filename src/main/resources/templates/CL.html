@@ -618,12 +618,49 @@
             border-radius: 5px;
         }
 
+        /* ناوبریِ دستیِ کاربر (قبلی/بعدی) — علاوه‌بر سوایپ/چرخشِ خودکار، همیشه دیده می‌شود. */
+        .banner-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, .35);
+            color: #fff;
+            font-size: 1.3rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: .2s;
+        }
+
+        .banner-nav:hover {
+            background: rgba(0, 0, 0, .55);
+        }
+
+        .banner-nav-right { right: 14px; }
+        .banner-nav-left { left: 14px; }
+
         @media (max-width: 700px) {
             .banner-slider {
                 aspect-ratio: 4 / 3;
                 border-radius: 12px;
                 margin-bottom: 14px;
             }
+
+            .banner-nav {
+                width: 32px;
+                height: 32px;
+                font-size: 1.1rem;
+            }
+
+            .banner-nav-right { right: 8px; }
+            .banner-nav-left { left: 8px; }
         }
 
         /* حرکتِ کاهش‌یافته: بنر همچنان نمایش داده می‌شود، فقط خودکار نمی‌چرخد (JS این را چک می‌کند)
@@ -642,17 +679,18 @@
         }
 
         .trust-strip {
-            background: var(--surface);
+            background: linear-gradient(135deg, var(--surface), var(--bg));
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            border-right: 4px solid var(--accent);
-            padding: 14px 18px;
+            border-radius: var(--radius-lg);
+            border-right: 6px solid var(--accent);
+            padding: 20px 26px;
             margin-bottom: 25px;
             display: flex;
             flex-wrap: wrap;
-            gap: 12px 24px;
+            gap: 14px 24px;
             align-items: center;
             justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
             transition: .2s ease;
         }
 
@@ -660,37 +698,60 @@
         #trustStrip:focus-visible .trust-strip {
             border-color: var(--primary);
             border-right-color: var(--accent);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, .1);
-            transform: translateY(-1px);
-            background: var(--primary-light, var(--surface));
+            box-shadow: 0 8px 22px rgba(0, 0, 0, .12);
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--surface), var(--bg));
+        }
+
+        .trust-strip-main {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .trust-headline {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: var(--text);
         }
 
         .trust-facts {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px 28px;
+            gap: 10px 30px;
         }
 
         .trust-fact b {
             color: var(--primary);
-            font-size: 1.15rem;
+            font-size: 1.4rem;
             font-weight: 900;
             margin-left: 6px;
         }
 
         .trust-fact span {
             color: var(--text-mid);
-            font-size: .85rem;
+            font-size: .9rem;
         }
 
         .trust-cta {
-            color: var(--accent);
+            color: #fff;
+            background: var(--accent);
             font-weight: 800;
-            font-size: .88rem;
+            font-size: .95rem;
             white-space: nowrap;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            padding: 12px 22px;
+            border-radius: 999px;
+            box-shadow: 0 4px 12px rgba(232, 134, 26, .35);
+            transition: .2s ease;
+        }
+
+        #trustStrip:hover .trust-cta,
+        #trustStrip:focus-visible .trust-cta {
+            background: var(--primary);
+            box-shadow: 0 6px 16px rgba(27, 79, 138, .35);
         }
 
         .trust-arrow {
@@ -707,8 +768,12 @@
         /* موبایل: نوار باید فشرده بماند و ریتمِ صفحه‌ی اصلی را نشکند */
         @media (max-width: 700px) {
             .trust-strip {
-                padding: 12px 14px;
-                gap: 8px 14px;
+                padding: 14px 16px;
+                gap: 12px 14px;
+            }
+
+            .trust-headline {
+                font-size: 1rem;
             }
 
             .trust-facts {
@@ -720,7 +785,7 @@
             }
 
             .trust-fact b {
-                font-size: 1rem;
+                font-size: 1.15rem;
                 margin-left: 4px;
             }
 
@@ -730,6 +795,9 @@
 
             .trust-cta {
                 font-size: .82rem;
+                padding: 10px 16px;
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -1548,11 +1616,11 @@
         </a>
 
         <div class="menu-scroll-wrap" id="menuScrollWrap">
-            <button type="button" class="menu-arrow menu-arrow-right" id="menuArrowRight" onclick="scrollMenu('right')" aria-label="نمایش دسته‌های قبلی">›</button>
+            <button type="button" class="menu-arrow menu-arrow-right" id="menuArrowRight" onclick="scrollMenu('right')" aria-label="نمایش دسته‌های قبلی">‹</button>
             <div class="desktop-menu-wrapper" id="desktopMenuWrapper">
                 <ul class="desktop-menu" id="desktopMenu"></ul>
             </div>
-            <button type="button" class="menu-arrow menu-arrow-left" id="menuArrowLeft" onclick="scrollMenu('left')" aria-label="نمایش دسته‌های بعدی">‹</button>
+            <button type="button" class="menu-arrow menu-arrow-left" id="menuArrowLeft" onclick="scrollMenu('left')" aria-label="نمایش دسته‌های بعدی">›</button>
         </div>
         <div class="nav-actions">
             <div id="authWidget"></div>
@@ -1627,10 +1695,17 @@
                         </picture>
                     </div>
                 </div>
+                <!-- ناوبریِ دستیِ کاربر (قبلی/بعدی) — همان قراردادِ سوایپ/کیبورد: چپ=بعدی، راست=قبلی -->
+                <button type="button" class="banner-nav banner-nav-right" th:if="${banners.size() > 1}"
+                        th:onclick="'manualBannerNav((bannerIndex-1+' + ${banners.size()} + ')%' + ${banners.size()} + ')'"
+                        aria-label="بنرِ قبلی">‹</button>
+                <button type="button" class="banner-nav banner-nav-left" th:if="${banners.size() > 1}"
+                        th:onclick="'manualBannerNav((bannerIndex+1)%' + ${banners.size()} + ')'"
+                        aria-label="بنرِ بعدی">›</button>
                 <div class="banner-dots" th:if="${banners.size() > 1}">
                     <span class="banner-dot" th:each="b, bstat : ${banners}"
                           th:classappend="${bstat.index == 0} ? ' active' : ''"
-                          th:attr="data-idx=${bstat.index}" onclick="goToBannerSlide(this)"></span>
+                          th:onclick="'manualBannerNav(' + ${bstat.index} + ')'"></span>
                 </div>
             </div>
 
@@ -1643,21 +1718,24 @@
             <a id="trustStrip" th:if="${trustCourseCountFa != null}"
                th:href="${baseUrl + '/about'}" style="display:none;">
                 <div class="trust-strip">
-                    <div class="trust-facts">
-                        <div class="trust-fact">
-                            <b th:text="'از ' + ${trustSinceFa}">از ۱۳۸۲</b>
-                            <span th:text="${trustYearsFa} + ' سال حضور آنلاین'">سال حضور آنلاین</span>
-                        </div>
-                        <div class="trust-fact">
-                            <b th:text="${trustCourseCountFa}">۴۹</b>
-                            <span>دوره‌ی تخصصی برگزارشده</span>
-                        </div>
-                        <div class="trust-fact">
-                            <b>۷ سال</b>
-                            <span>سابقه‌ی مستند آموزشی</span>
+                    <div class="trust-strip-main">
+                        <div class="trust-headline">چرا به داده‌نما اعتماد کنید؟</div>
+                        <div class="trust-facts">
+                            <div class="trust-fact">
+                                <b th:text="'از ' + ${trustSinceFa}">از ۱۳۸۲</b>
+                                <span th:text="${trustYearsFa} + ' سال حضور آنلاین'">سال حضور آنلاین</span>
+                            </div>
+                            <div class="trust-fact">
+                                <b th:text="${trustCourseCountFa}">۴۹</b>
+                                <span>دوره‌ی تخصصی برگزارشده</span>
+                            </div>
+                            <div class="trust-fact">
+                                <b>۷ سال</b>
+                                <span>سابقه‌ی مستند آموزشی</span>
+                            </div>
                         </div>
                     </div>
-                    <span class="trust-cta">سابقه و اعتبار داده نما <b class="trust-arrow">❯</b></span>
+                    <span class="trust-cta">مشاهده‌ی کاملِ سابقه و اعتبار <b class="trust-arrow">❯</b></span>
                 </div>
             </a>
 
@@ -1866,9 +1944,18 @@
         fetch(`${API}/api/v1/landing-sections/active`).then(r => r.json()).then(s => {
             state.secs = s;
         });
+        // بنرهایِ زیرِ سکشن (AFTER_SECTION) — بنرِ هیرو خودش SSR شده، این‌ها فقط برایِ
+        // سکشن‌هایی‌ست که همین‌جا (loadHome) سمتِ کلاینت رندر می‌شوند.
+        fetch(`${API}/api/v1/banners/active`).then(r => r.json()).then(b => {
+            state.allBanners = b;
+        }).catch(() => { state.allBanners = []; });
         // آستانه‌ی استعلام پیش‌فاکتور (RFQ)؛ ۰ یعنی غیرفعال
         fetch(`${API}/api/v1/settings/rfq-threshold`).then(r => r.json()).then(d => {
             state.rfqThreshold = Number(d.threshold || 0);
+        }).catch(() => {});
+        // فاصله‌ی چرخشِ خودکارِ اسلایدرِ بنر (ثانیه، از ادمین قابلِ‌تنظیم) — پیش‌فرض تا رسیدنِ پاسخ
+        fetch(`${API}/api/v1/settings/banner-rotation-seconds`).then(r => r.json()).then(d => {
+            bannerRotationMs = Number(d.seconds || 5) * 1000;
         }).catch(() => {});
         try {
             // پیش‌واکشیِ سبک: این لیست فقط کشِ جست‌وجو برای openProductDetail است؛
@@ -2379,6 +2466,21 @@
     })();
 
     // RENDERERS
+
+    // بنرهایِ AFTER_SECTION برایِ یک سکشنِ خاص — بنرِ هیرو SSR است (رجوع به بالایِ HTML)،
+    // این‌ها چون کنارِ سکشن‌های کلاینت‌ساخته می‌آیند همین‌جا (JS) رندر می‌شوند. اسلایدر/چرخشِ
+    // خودکار ندارند؛ اگر چند بنر به یک سکشن وصل باشد، زیرِ هم می‌آیند.
+    function renderSectionBanners(sectionId) {
+        const banners = (state.allBanners || []).filter(b => b.placement === 'AFTER_SECTION' && b.afterSectionId === sectionId);
+        if (!banners.length) return '';
+        return banners.map(b => {
+            const img = `<img src="${b.imageUrl}" alt="${b.altText}" loading="lazy" style="width:100%; border-radius:var(--radius); display:block; margin:16px 0; cursor:${b.resolvedUrl ? 'pointer' : 'default'};">`;
+            if (!b.resolvedUrl) return img;
+            const targetAttr = b.external ? ' target="_blank" rel="noopener nofollow"' : '';
+            return `<a href="${b.resolvedUrl}"${targetAttr}>${img}</a>`;
+        }).join('');
+    }
+
     function renderDesktopMenu(items) {
         const build = (list) => list.map(item => {
             const slug = item.slug || item.id;
@@ -2492,6 +2594,7 @@
     let bannerIndex = 0;
     let bannerPaused = false;
     let pageFullyLoaded = false;
+    let bannerRotationMs = 5000; // پیش‌فرض تا جوابِ /settings/banner-rotation-seconds برسد
 
     function setBannerSlider(show) {
         const el = document.getElementById('bannerSlider');
@@ -2509,23 +2612,29 @@
         if (count < 2) return;
         bannerTimer = setInterval(() => {
             if (!bannerPaused) goToBannerSlide((bannerIndex + 1) % count);
-        }, 5000);
+        }, bannerRotationMs);
     }
 
     function stopBannerRotation() {
         if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
     }
 
-    function goToBannerSlide(target) {
+    function goToBannerSlide(idx) {
         const track = document.getElementById('bannerTrack');
         if (!track) return;
         const slides = track.querySelectorAll('.banner-slide');
         const dots = document.querySelectorAll('#bannerSlider .banner-dot');
-        const idx = typeof target === 'object' ? Number(target.dataset.idx) : target;
         if (isNaN(idx) || idx < 0 || idx >= slides.length) return;
         slides.forEach((s, i) => s.classList.toggle('active', i === idx));
         dots.forEach((d, i) => d.classList.toggle('active', i === idx));
         bannerIndex = idx;
+    }
+
+    // ناوبریِ دستی (فلش/دات/سوایپ) — علاوه‌بر رفتن به اسلاید، تایمرِ چرخشِ خودکار را
+    // ریست می‌کند تا بلافاصله بعدِ کلیکِ کاربر، خودکار دوباره نپرد.
+    function manualBannerNav(idx) {
+        goToBannerSlide(idx);
+        if (pageFullyLoaded) startBannerRotation();
     }
 
     (function initBannerInteractions() {
@@ -2549,7 +2658,7 @@
             const dx = e.changedTouches[0].clientX - tx0;
             const dy = e.changedTouches[0].clientY - ty0;
             if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) {
-                goToBannerSlide(dx > 0 ? (bannerIndex - 1 + count) % count : (bannerIndex + 1) % count);
+                manualBannerNav(dx > 0 ? (bannerIndex - 1 + count) % count : (bannerIndex + 1) % count);
             }
         }, {passive: true});
     })();
@@ -2589,7 +2698,10 @@
             secResults.forEach(({sec, ps}) => {
                 // ادغام در حافظه تا کلیک روی کارت بدون واکشی مجدد کار کند
                 ps.forEach(p => { if (!state.all.some(x => x.id === p.id)) state.all.push(p); });
-                if (ps.length) secHtml += `<div class="dynamic-section"><div class="section-color-bar" style="background:${sec.stickerColor}"></div><div class="section-header"><span>${sec.title}</span><button onclick="loadSection('${sec.id}','${sec.title}')" style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer;">همه محصولات ❯</button></div><div class="section-slider">${ps.map(p => renderCard(p, [sec])).join('')}</div></div>`;
+                if (ps.length) {
+                    secHtml += `<div class="dynamic-section"><div class="section-color-bar" style="background:${sec.stickerColor}"></div><div class="section-header"><span>${sec.title}</span><button onclick="loadSection('${sec.id}','${sec.title}')" style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer;">همه محصولات ❯</button></div><div class="section-slider">${ps.map(p => renderCard(p, [sec])).join('')}</div></div>`;
+                    secHtml += renderSectionBanners(sec.id);
+                }
             });
             document.getElementById('landingSections').innerHTML = secHtml;
         } catch (e) {
