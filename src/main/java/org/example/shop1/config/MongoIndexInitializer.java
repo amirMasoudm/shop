@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * ایندکس‌های unique را هنگامِ بالا آمدنِ برنامه می‌سازد (کالکشن‌های users و orders).
+ * ایندکس‌های unique را هنگامِ بالا آمدنِ برنامه می‌سازد (کالکشن‌های users، orders و product_redirects).
  *
  * <p>چرا دستی و نه با {@code spring.data.mongodb.auto-index-creation=true}؟ چون آن گزینه
  * ایندکس را کورکورانه می‌سازد؛ اگر داده‌ی تکراری در دیتابیس باشد ساختِ ایندکس شکست می‌خورد و
@@ -28,6 +28,11 @@ import java.util.stream.Collectors;
  * {@code findByUsername} با {@code IncorrectResultSizeDataAccessException} می‌ترکید؛ یعنی کلِ
  * لاگینِ ادمین از کار می‌افتاد. {@code orders.paymentRefNumber} (شمارنده‌ی اتمیکِ درگاهِ ملت) هم
  * همین سطحِ محافظت را می‌گیرد — برخوردِ عددی روی پول واقعی است، نه یک کاربرِ گم‌شده.
+ *
+ * <p>⚠️ <b>هر انوتیشنِ {@code @Indexed} روی انتیتی‌ها به‌تنهایی بی‌اثر است</b>، چون
+ * {@code auto-index-creation} عمداً خاموش است. یعنی هر ایندکسِ uniqueِ لازم باید
+ * <b>در فهرستِ زیر</b> هم ثبت شود؛ وگرنه انوتیشن فقط مستندسازی است و هیچ قیدی اعمال
+ * نمی‌کند. (این یک‌بار روی {@code product_redirects.fromSlug} اتفاق افتاد و دیده نشد.)
  *
  * <p>سیاستِ خطا: اگر تکراری پیدا شود ایندکس ساخته <b>نمی‌شود</b> ولی برنامه هم بالا می‌آید — چون
  * پایین نگه داشتنِ کلِ سایت به‌خاطرِ یک ایندکس بدتر از بالا آمدن با یک لاگِ ERROR است. لاگ را
@@ -54,7 +59,12 @@ public class MongoIndexInitializer implements CommandLineRunner {
             new UniqueField("users", "phoneNumber", "uk_users_phoneNumber", "string"),
             // paymentRefNumber فقط بعدِ شروعِ پرداخت (bpPayRequest) پر می‌شود؛ سفارش‌هایِ
             // درفت/پرداخت‌نشده مقدارش را ندارند و باید از قاعده‌ی unique معاف بمانند.
-            new UniqueField("orders", "paymentRefNumber", "uk_orders_paymentRefNumber", "number")
+            new UniqueField("orders", "paymentRefNumber", "uk_orders_paymentRefNumber", "number"),
+            // اسلاگِ مبدأ باید یکتا باشد، وگرنه یک آدرس دو مقصدِ ممکن پیدا می‌کند و
+            // findByFromSlug نامعین می‌شود — یعنی ۳۰۱ به محصولِ تصادفی. مسیرِ APIِ ثبت
+            // خودش با existsByFromSlug چک می‌کند، ولی نوشتنِ مستقیم در دیتابیس (مثلِ
+            // ادغامِ دسته‌ای) و دو درخواستِ هم‌زمان هر دو از آن چک رد می‌شوند.
+            new UniqueField("product_redirects", "fromSlug", "uk_product_redirects_fromSlug", "string")
     );
 
     private final MongoTemplate mongoTemplate;
