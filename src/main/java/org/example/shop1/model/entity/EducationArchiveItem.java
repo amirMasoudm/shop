@@ -3,11 +3,18 @@ package org.example.shop1.model.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * یک عکسِ آرشیوِ تصویریِ کلاس‌ها/دوره‌های برگزارشده — برایِ پنجرهٔ صفحه‌ی داده‌نما و صفحه‌ی
- * آموزشِ کامل. طبقِ docs/prompt-tech-chat-education-gallery.md عمداً موجودیتِ جداست
- * (الگویِ دقیقِ {@link Banner})، نه توسعه‌ی بنر — این آرشیوِ داخلی است، نه بنرِ تبلیغاتی،
- * پس عمداً هیچ فیلدِ لینک ندارد.
+ * یک گروهِ عکسِ آرشیوِ تصویریِ کلاس‌ها/دوره‌های برگزارشده — برایِ پنجرهٔ صفحه‌ی داده‌نما و
+ * صفحه‌ی آموزشِ کامل. طبقِ docs/prompt-tech-chat-education-gallery.md عمداً موجودیتِ
+ * جداست (الگویِ دقیقِ {@link Banner})، نه توسعه‌ی بنر — این آرشیوِ داخلی است، نه بنرِ
+ * تبلیغاتی، پس عمداً هیچ فیلدِ لینک ندارد.
+ * <p>
+ * 🔴 هر گروه چند عکس دارد ({@code imageUrls}) نه یک عکس — یک کلاس/دوره معمولاً چند
+ * عکس دارد (عکسِ دسته‌جمعی، تخته، مراسمِ گواهی‌نامه و...)، پس آپلود و مدیریتِ عکس‌ها
+ * گروهی است (خواسته‌ی صریحِ مالک).
  */
 @Document(collection = "education_archive_items")
 public class EducationArchiveItem {
@@ -15,11 +22,11 @@ public class EducationArchiveItem {
     @Id
     private String id;
 
-    // اجباری — زیرِ عکس نمایش داده می‌شود
+    // اجباری — زیرِ گروهِ عکس نمایش داده می‌شود
     private String title;
 
-    // اجباری
-    private String imageUrl;
+    // اجباری، حداقل یک عکس
+    private List<String> imageUrls = new ArrayList<>();
 
     // اختیاری — توضیحِ کوتاه
     private String caption;
@@ -38,8 +45,8 @@ public class EducationArchiveItem {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public List<String> getImageUrls() { return imageUrls; }
+    public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }
 
     public String getCaption() { return caption; }
     public void setCaption(String caption) { this.caption = caption; }

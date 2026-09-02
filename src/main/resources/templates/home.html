@@ -375,7 +375,7 @@
                 </div>
                 <div class="edu-gallery-strip">
                     <a th:each="ph : ${educationArchiveItems}" href="/learn">
-                        <img th:src="${ph.imageUrl}" th:alt="${ph.title}" loading="lazy">
+                        <img th:src="${ph.imageUrls[0]}" th:alt="${ph.title}" loading="lazy">
                         <div class="n" th:text="${ph.title}">عنوان عکس</div>
                     </a>
                 </div>

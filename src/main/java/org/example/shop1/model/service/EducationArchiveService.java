@@ -25,8 +25,8 @@ public class EducationArchiveService {
         if (item.getTitle() == null || item.getTitle().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "عنوانِ عکس الزامی است");
         }
-        if (item.getImageUrl() == null || item.getImageUrl().isBlank()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "عکس الزامی است");
+        if (item.getImageUrls() == null || item.getImageUrls().isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "حداقل یک عکس الزامی است");
         }
         return repo.save(item);
     }
