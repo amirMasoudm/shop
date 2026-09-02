@@ -31,6 +31,8 @@
     </th:block>
 
     <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <!-- نوارِ هویتِ سایت — مشترک بینِ همه‌ی صفحه‌ها (فایلِ جدا: css/site-nav.css) -->
+    <link href="/css/site-nav.css" rel="stylesheet">
     <style>
         :root {
             --primary: #1b4f8a; --primary-lt: #2563ad; --accent: #e8861a;
@@ -47,26 +49,6 @@
         }
         a { color: var(--primary); }
         .wrap { max-width: 1360px; margin: 0 auto; padding: 0 20px; }
-
-        /* ===== هدر ===== */
-        header.topnav {
-            height: 70px; background: linear-gradient(135deg, #1a3f6f, var(--primary));
-            display: flex; align-items: center; padding: 0 20px; gap: 28px;
-            box-shadow: 0 4px 15px rgba(0,0,0,.15); position: sticky; top: 0; z-index: 50;
-        }
-        .topnav .brand { font-weight: 900; font-size: 1.2rem; color: #fff; white-space: nowrap; text-decoration: none; }
-        .topnav nav { display: flex; gap: 22px; font-size: .92rem; font-weight: 500; }
-        .topnav nav a, .topnav nav span { color: #c7d8ee; text-decoration: none; }
-        .topnav nav a.active { color: #fff; border-bottom: 2px solid var(--accent); padding-bottom: 3px; }
-        .topnav nav span.muted { opacity: .55; cursor: default; }
-        .topnav .spacer { flex-grow: 1; }
-        .topnav .login { display: flex; align-items: center; gap: 6px; color: #c7d8ee; font-size: .85rem; text-decoration: none; white-space: nowrap; }
-        @media (max-width: 780px) {
-            .topnav { gap: 14px; padding: 0 14px; }
-            .topnav .brand { font-size: 1.05rem; }
-            .topnav nav { gap: 12px; font-size: .78rem; }
-            .topnav .login span { display: none; }
-        }
 
         /* ===== بالای صفحه ===== */
         .hero {
@@ -123,6 +105,16 @@
             .hero h1 { font-size: 1.7rem; }
         }
 
+        /* ===== بنرِ محصولِ داده‌نما (WimaxNear) ===== */
+        .product-banner-wrap { max-width: 1360px; margin: 26px auto 0; padding: 0 20px; }
+        .product-banner-wrap .t { font-size: 1.02rem; font-weight: 900; margin-bottom: 13px; }
+        .product-banner {
+            display: block; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
+            box-shadow: 0 10px 28px rgba(27,79,138,.1); transition: .2s ease;
+        }
+        .product-banner:hover { box-shadow: 0 14px 36px rgba(27,79,138,.18); transform: translateY(-2px); }
+        .product-banner img { display: block; width: 100%; height: auto; }
+
         /* ===== کارنامه ===== */
         .heritage { max-width: 1360px; margin: 0 auto; padding: 40px 20px 46px; }
         .heritage-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -164,6 +156,18 @@
         .cert-grid .c .sub { color: #a9c6e8; font-size: .66rem; }
         @media (max-width: 640px) { .cert-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
 
+        .hub-article-list {
+            border: 1px solid var(--border-lt); border-radius: 15px; background: var(--surface);
+            max-height: 260px; overflow-y: auto; margin-bottom: 14px;
+        }
+        .hub-article-list a {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 11px 16px; font-size: .84rem; color: var(--text); text-decoration: none;
+            border-bottom: 1px solid var(--border-lt);
+        }
+        .hub-article-list a:last-child { border-bottom: none; }
+        .hub-article-list a:hover { background: var(--bg-soft); color: var(--primary); }
+        .hub-article-list a .arrow { color: var(--text-muted); flex-shrink: 0; }
         .card-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
         @media (max-width: 700px) { .card-grid-3 { grid-template-columns: 1fr; } }
         .info-card { border: 1px solid var(--border-lt); border-radius: 14px; padding: 15px 17px; background: var(--surface); }
@@ -220,6 +224,7 @@
     <a class="brand" href="/">داده نما</a>
     <nav>
         <a href="/" class="active">داده نما</a>
+        <a href="/wimaxnear">WimaxNear</a>
         <a href="/shop">فروشگاه</a>
         <span class="muted" title="به‌زودی">آموزش</span>
         <a href="/blog">بلاگ</a>
@@ -271,6 +276,14 @@
 
         <a class="cta" href="/shop">ورود به فروشگاه</a>
     </div>
+</div>
+
+<!-- ===== بنرِ محصولِ داده‌نما ===== -->
+<div class="product-banner-wrap">
+    <div class="t">محصول داده نما</div>
+    <a class="product-banner" href="/wimaxnear" aria-label="WimaxNear — رادیوی حرفه‌ای، خط تولید داده‌نما">
+        <img src="/img/wimaxnear-banner.jpg" alt="WimaxNear — رادیوی حرفه‌ای، خط تولید داده‌نما" loading="lazy">
+    </a>
 </div>
 
 <!-- ===== کارنامهٔ داده نما ===== -->
@@ -326,6 +339,15 @@
                         <div class="sub" th:text="${r.subtitle}">مقدماتی</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- فهرستِ مقالاتِ منتشرشده‌ی همین هاب — قابلِ‌اسکرول، زیرِ نردبان (خواسته‌ی مالک) -->
+            <div class="hub-article-list" th:if="${courseHubArticles != null and !courseHubArticles.isEmpty()}">
+                <a th:each="art : ${courseHubArticles}"
+                   th:href="${baseUrl + '/blog/' + (art.slug != null and !art.slug.isEmpty() ? art.slug : art.id)}">
+                    <span th:text="${art.title}">عنوان مقاله</span>
+                    <span class="arrow">❯</span>
+                </a>
             </div>
 
             <div class="card-grid-3">

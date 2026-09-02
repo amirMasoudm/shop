@@ -1,0 +1,60 @@
+/* نوارِ هویتِ سایت — داده‌نما / WimaxNear / فروشگاه / آموزش / بلاگ.
+   مشترک بینِ همه‌ی صفحه‌ها (/, /wimaxnear, /shop, /about, /blog, /blog/{slug}) تا با
+   رفتن به فروشگاه از بین نرود — طبقِ خواسته‌ی صریحِ مالک. عمداً یک فایلِ مشترک است
+   (نه استایلِ درون‌قالبیِ تکرارشده در ۶ فایل) چون دقیقاً همین یک بلاک در همه جا تکرار می‌شود. */
+:root {
+    --nav-primary: #1b4f8a;
+    --nav-accent: #e8861a;
+}
+header.topnav {
+    height: 56px;
+    background: linear-gradient(135deg, #1a3f6f, var(--nav-primary));
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 26px;
+    font-family: Vazirmatn, Tahoma, sans-serif;
+}
+header.topnav .brand {
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: #fff;
+    white-space: nowrap;
+    text-decoration: none;
+}
+header.topnav nav {
+    display: flex;
+    gap: 20px;
+    font-size: .88rem;
+    font-weight: 500;
+}
+header.topnav nav a,
+header.topnav nav span {
+    color: #c7d8ee;
+    text-decoration: none;
+}
+header.topnav nav a.active {
+    color: #fff;
+    border-bottom: 2px solid var(--nav-accent);
+    padding-bottom: 3px;
+}
+header.topnav nav span.muted {
+    opacity: .55;
+    cursor: default;
+}
+header.topnav .spacer { flex-grow: 1; }
+header.topnav .login {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #c7d8ee;
+    font-size: .82rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+@media (max-width: 780px) {
+    header.topnav { gap: 12px; padding: 0 12px; height: auto; min-height: 48px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+    header.topnav .brand { font-size: .95rem; }
+    header.topnav nav { gap: 10px; font-size: .74rem; flex-wrap: wrap; }
+    header.topnav .login span { display: none; }
+}

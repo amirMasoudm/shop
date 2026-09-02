@@ -76,6 +76,10 @@ public class StoreWebController {
         model.addAttribute("certLadderTotalFa", faDigits(String.valueOf(
                 CERT_LADDER.stream().mapToInt(CertRung::getCount).sum())));
 
+        // فهرستِ مقالاتِ منتشرشده‌ی هابِ «دوره‌های آموزشی» — زیرِ نردبانِ گواهی‌نامه‌ها،
+        // داخلِ یک جعبه‌ی قابلِ‌اسکرول (خواسته‌ی مالک)
+        model.addAttribute("courseHubArticles", articleService.getHubArticles(COURSES_HUB_SLUG));
+
         // تعدادِ محصولاتِ جعبهٔ خرید — زنده از دیتابیس (نه عددِ ثابت که با اضافه/حذفِ محصول قدیمی می‌شود)
         model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.count())));
 
@@ -487,6 +491,18 @@ public class StoreWebController {
             new CourseTrack("MTCUME", "مدیریت کاربران میکروتیک", 2, "شهریور ۱۳۹۴", "دی ۱۳۹۴", "mtcume-course")
     );
 
+    // صفحه‌ی معرفیِ WimaxNear — خطِ تولیدِ رادیویِ خودِ داده‌نما (بخشی از نوارِ هویتِ سایت)
+    @GetMapping("/wimaxnear")
+    public String wimaxNearPage(Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+        String baseUrl = buildBaseUrl(request);
+        model.addAttribute("seoTitle", "WimaxNear | رادیوی حرفه‌ای، خط تولید داده نما");
+        model.addAttribute("seoDescription",
+                "WimaxNear رادیوی حرفه‌ای و خط تولید خودِ داده‌نما است — حاصلِ بیش از دو دهه تجربه در اجرای لینک‌های رادیویی پرظرفیت.");
+        model.addAttribute("canonicalUrl", baseUrl + "/wimaxnear");
+        return "wimaxnear";
+    }
+
     @GetMapping("/about")
     public String aboutPage(Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
@@ -645,6 +661,9 @@ public class StoreWebController {
 
         // صفحه‌ی سابقه و اعتبار (هدفِ جست‌وجوی برندی — ۷۹٪ کلیک‌های سایت قدیم)
         xml.append("<url><loc>").append(baseUrl).append("/about</loc><priority>0.8</priority></url>");
+
+        // صفحه‌ی WimaxNear
+        xml.append("<url><loc>").append(baseUrl).append("/wimaxnear</loc><priority>0.6</priority></url>");
 
         // بلاگ و مقالات منتشرشده
         xml.append("<url><loc>").append(baseUrl).append("/blog</loc><priority>0.7</priority></url>");

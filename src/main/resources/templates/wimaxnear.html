@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${seoTitle}">WimaxNear | داده نما</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${baseUrl + '/img/wimaxnear-banner.jpg'}">
+    <meta property="og:site_name" content="داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <style>
+        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; --border:#e5e7eb; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
+        main { max-width:920px; margin:0 auto; padding:28px 16px 8px; }
+        .crumb { font-size:.8rem; color:var(--mid); margin-bottom:16px; }
+        .crumb a { color:var(--primary); text-decoration:none; }
+        .hero-banner { width:100%; border-radius:16px; overflow:hidden; margin-bottom:24px; box-shadow:0 10px 26px rgba(27,79,138,.12); }
+        .hero-banner img { display:block; width:100%; height:auto; }
+        h1 { font-size:1.5rem; line-height:1.7; margin-bottom:12px; }
+        .lead { font-size:.98rem; line-height:2.1; margin-bottom:8px; }
+        p { line-height:2.1; font-size:.93rem; }
+        section { background:#fff; border:1px solid var(--border); border-radius:16px; padding:22px; margin-top:22px; }
+        section h2 { font-size:1.1rem; margin-bottom:12px; border-right:4px solid var(--accent); padding-right:10px; }
+        .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+        .tags span { background:#eef3fa; color:var(--primary); border-radius:100px; padding:5px 13px; font-size:.8rem; font-weight:700; }
+        .cta { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
+        .cta a { padding:12px 22px; border-radius:100px; text-decoration:none; font-weight:700; font-size:.9rem; }
+        .cta .fill { background:var(--primary); color:#fff; }
+        .cta .out { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+        footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
+        footer .in { max-width:920px; margin:0 auto; }
+        footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/">داده نما</a>
+        <a href="/wimaxnear" class="active">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <span class="muted" title="به‌زودی">آموزش</span>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<main>
+    <nav class="crumb">
+        <a href="/">خانه</a> <span>/ WimaxNear</span>
+    </nav>
+
+    <div class="hero-banner">
+        <img src="/img/wimaxnear-banner.jpg" alt="WimaxNear — رادیوی حرفه‌ای، خط تولید داده‌نما">
+    </div>
+
+    <h1>WimaxNear — رادیوی حرفه‌ای، خط تولید خودِ داده‌نما</h1>
+
+    <p class="lead">
+        از سال ۱۳۸۰ کارِ ما ارتباطاتِ بی‌سیم است. در همین مسیر، داده‌نما خطِ تولیدِ رادیویِ حرفه‌ایِ
+        <b>WimaxNear</b> را راه انداخته — محصولی که کنارِ نمایندگیِ تجهیزاتِ برندهایِ جهانی
+        (میکروتیک و سایرین)، حاصلِ تجربه‌ی مستقیمِ ما در اجرایِ لینک‌هایِ رادیوییِ پرظرفیت است.
+    </p>
+
+    <section>
+        <h2>چرا WimaxNear</h2>
+        <p>
+            بیش از دو دهه، تیمِ داده‌نما لینک‌هایِ رادیوییِ پرظرفیت را برایِ اتصالِ شعب و کارخانه‌ها،
+            انتقالِ داده/صوت/اینترنت، و پروژه‌هایِ ارتباطاتِ بی‌سیم اجرا کرده است. WimaxNear خروجیِ
+            همین تجربه است — رادیویی که خودِ داده‌نما طراحی و تولید می‌کند، نه صرفاً واردات یا نمایندگی.
+        </p>
+        <div class="tags">
+            <span>ارتباطاتِ بی‌سیم</span><span>خطِ تولیدِ داخلی</span><span>لینکِ رادیوییِ پرظرفیت</span>
+        </div>
+    </section>
+
+    <div class="cta">
+        <a class="fill" href="/shop">مشاهده‌ی فروشگاه ❯</a>
+        <a class="out" href="/about">سابقه و اعتبار داده‌نما ❯</a>
+    </div>
+</main>
+
+<footer th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; font-weight:700;">سابقه و اعتبار</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© داده نما</div>
+    </div>
+</footer>
+</body>
+</html>
