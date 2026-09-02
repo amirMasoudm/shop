@@ -71,6 +71,10 @@ public class StoreWebController {
         model.addAttribute("canonicalUrl", canonical);
         model.addAttribute("organizationJsonLd", buildStandaloneOrganizationJsonLd(baseUrl, description));
 
+        // اسلایدرِ بنرِ بالایِ صفحه — همان سیستمِ بنرگذاریِ فروشگاه، جایگاهِ جدا (HOME_HERO).
+        // لینک‌ها همین‌جا resolve می‌شوند (نه در زمانِ ذخیره) تا تغییرِ بعدیِ محصول/دسته/مقاله لینک را نشکند.
+        model.addAttribute("banners", bannerService.getHomeBannersResolved());
+
         // نوارِ «کارنامه» — پنلِ دوره‌ها با دادهٔ واقعی: مجموعِ زنده از دیتابیس +
         // نردبانِ گواهی‌نامه‌هایِ میکروتیک (اعدادِ مستندشده در docs/company-profile-source.md).
         model.addAttribute("heroCourseCountFa",

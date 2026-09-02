@@ -105,15 +105,30 @@
             .hero h1 { font-size: 1.7rem; }
         }
 
-        /* ===== بنرِ محصولِ داده‌نما (WimaxNear) ===== */
-        .product-banner-wrap { max-width: 1360px; margin: 26px auto 0; padding: 0 20px; }
-        .product-banner-wrap .t { font-size: 1.02rem; font-weight: 900; margin-bottom: 13px; }
-        .product-banner {
-            display: block; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
-            box-shadow: 0 10px 28px rgba(27,79,138,.1); transition: .2s ease;
+        /* ===== اسلایدرِ بنرِ بالایِ صفحه — همان سیستمِ بنرگذاریِ فروشگاه (CL.html)، جایگاهِ
+           جدا (HOME_HERO). بدونِ display:none روی اسلایدِ اول (LCP)؛ نسبتِ ابعادِ ثابت. ===== */
+        .banner-wrap { max-width: 1360px; margin: 26px auto 0; padding: 0 12px; }
+        .banner-title { font-size: 1rem; font-weight: 900; color: var(--text); margin-bottom: 10px; min-height: 1.3em; }
+        .banner-slider { position: relative; width: 100%; aspect-ratio: 21/6; border-radius: 0; overflow: hidden; background: var(--surface); box-shadow: 0 10px 28px rgba(27,79,138,.1); }
+        .banner-track { position: relative; width: 100%; height: 100%; }
+        .banner-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .4s ease; }
+        .banner-slide.active { opacity: 1; visibility: visible; }
+        .banner-slide a, .banner-slide > picture { display: block; width: 100%; height: 100%; cursor: pointer; }
+        .banner-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .banner-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 2; }
+        .banner-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.55); cursor: pointer; transition: .2s; box-shadow: 0 0 3px rgba(0,0,0,.3); }
+        .banner-dot.active { background: #fff; width: 22px; border-radius: 5px; }
+        .banner-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(0,0,0,.35); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .2s; }
+        .banner-nav:hover { background: rgba(0,0,0,.55); }
+        .banner-nav-right { right: 14px; }
+        .banner-nav-left { left: 14px; }
+        @media (max-width: 700px) {
+            .banner-slider { aspect-ratio: 4/3; border-radius: 0; }
+            .banner-nav { width: 32px; height: 32px; font-size: 1.1rem; }
+            .banner-nav-right { right: 8px; }
+            .banner-nav-left { left: 8px; }
         }
-        .product-banner:hover { box-shadow: 0 14px 36px rgba(27,79,138,.18); transform: translateY(-2px); }
-        .product-banner img { display: block; width: 100%; height: auto; }
+        @media (prefers-reduced-motion: reduce) { .banner-slide { transition: none; } }
 
         /* ===== کارنامه ===== */
         .heritage { max-width: 1360px; margin: 0 auto; padding: 40px 20px 46px; }
@@ -295,12 +310,49 @@
     </div>
 </div>
 
-<!-- ===== بنرِ محصولِ داده‌نما ===== -->
-<div class="product-banner-wrap">
-    <div class="t">محصول داده نما</div>
-    <a class="product-banner" href="/wimaxnear" aria-label="WimaxNear — رادیوی حرفه‌ای، خط تولید داده‌نما">
-        <img src="/img/wimaxnear-banner.jpg" alt="WimaxNear — رادیوی حرفه‌ای، خط تولید داده‌نما" loading="lazy">
-    </a>
+<!-- ===== اسلایدرِ بنر — همان سیستمِ بنرگذاریِ فروشگاه، مدیریت از پنل (تبِ «مدیریتِ صفحه‌ی
+     اصلی ← بنرگذاری»). بدونِ display:none روی اسلایدِ اول (LCP)؛ صفر بنرِ فعال یعنی th:if
+     کلِ بلاک را حذف می‌کند، نه پنهان. ===== -->
+<div class="banner-wrap" th:if="${banners != null and !banners.isEmpty()}">
+    <!-- عنوانِ داخلیِ بنر (فیلدِ «عنوان» در پنل) — اینجا برخلافِ اسلایدرِ فروشگاه واقعاً
+         رندر می‌شود، بالایِ اسلاید؛ با چرخش، JS متنش را عوض می‌کند. مقدارِ اولیه از
+         اسلایدِ اول، برایِ SSR. -->
+    <div class="banner-title" id="bannerTitleLabel" th:text="${banners[0].title}"></div>
+    <div class="banner-slider" id="bannerSlider">
+        <div class="banner-track" id="bannerTrack">
+            <div class="banner-slide" th:each="b, bstat : ${banners}"
+                 th:classappend="${bstat.index == 0} ? ' active' : ''"
+                 th:attr="data-title=${b.title}">
+                <a th:if="${b.resolvedUrl != null}" th:href="${b.resolvedUrl}"
+                   th:target="${b.external} ? '_blank' : null"
+                   th:rel="${b.external} ? 'noopener nofollow' : null">
+                    <picture>
+                        <source media="(max-width:700px)" th:srcset="${b.imageUrlMobile}">
+                        <img th:src="${b.imageUrl}" th:alt="${b.altText}"
+                             th:attr="fetchpriority=${bstat.index == 0 ? 'high' : null},loading=${bstat.index == 0 ? null : 'lazy'}"
+                             decoding="async">
+                    </picture>
+                </a>
+                <picture th:unless="${b.resolvedUrl != null}">
+                    <source media="(max-width:700px)" th:srcset="${b.imageUrlMobile}">
+                    <img th:src="${b.imageUrl}" th:alt="${b.altText}"
+                         th:attr="fetchpriority=${bstat.index == 0 ? 'high' : null},loading=${bstat.index == 0 ? null : 'lazy'}"
+                         decoding="async">
+                </picture>
+            </div>
+        </div>
+        <button type="button" class="banner-nav banner-nav-right" th:if="${banners.size() > 1}"
+                th:onclick="'manualBannerNav((bannerIndex-1+' + ${banners.size()} + ')%' + ${banners.size()} + ')'"
+                aria-label="بنرِ قبلی">‹</button>
+        <button type="button" class="banner-nav banner-nav-left" th:if="${banners.size() > 1}"
+                th:onclick="'manualBannerNav((bannerIndex+1)%' + ${banners.size()} + ')'"
+                aria-label="بنرِ بعدی">›</button>
+        <div class="banner-dots" th:if="${banners.size() > 1}">
+            <span class="banner-dot" th:each="b, bstat : ${banners}"
+                  th:classappend="${bstat.index == 0} ? ' active' : ''"
+                  th:onclick="'manualBannerNav(' + ${bstat.index} + ')'"></span>
+        </div>
+    </div>
 </div>
 
 <!-- ===== کارنامهٔ داده نما ===== -->
@@ -528,6 +580,80 @@
             p.classList.toggle('active', p.id === 'panel-' + id);
         });
     }
+
+    // اسلایدرِ بنر — همان منطقِ CL.html: چرخشِ خودکار فقط بعدِ window.load (مزاحمِ LCP نشود)،
+    // prefers-reduced-motion رعایت می‌شود، مکث روی هاور/فوکوس، سوایپِ موبایل.
+    let bannerTimer = null;
+    let bannerIndex = 0;
+    let bannerPaused = false;
+    let pageFullyLoaded = false;
+    let bannerRotationMs = 5000; // پیش‌فرض تا جوابِ /settings/banner-rotation-seconds برسد
+
+    fetch('/api/v1/settings/banner-rotation-seconds').then(r => r.json()).then(d => {
+        bannerRotationMs = Number(d.seconds || 5) * 1000;
+    }).catch(() => {});
+
+    function startBannerRotation() {
+        stopBannerRotation();
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const track = document.getElementById('bannerTrack');
+        const count = track ? track.children.length : 0;
+        if (count < 2) return;
+        bannerTimer = setInterval(() => {
+            if (!bannerPaused) goToBannerSlide((bannerIndex + 1) % count);
+        }, bannerRotationMs);
+    }
+
+    function stopBannerRotation() {
+        if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
+    }
+
+    function goToBannerSlide(idx) {
+        const track = document.getElementById('bannerTrack');
+        if (!track) return;
+        const slides = track.querySelectorAll('.banner-slide');
+        const dots = document.querySelectorAll('#bannerSlider .banner-dot');
+        if (isNaN(idx) || idx < 0 || idx >= slides.length) return;
+        slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        bannerIndex = idx;
+        const label = document.getElementById('bannerTitleLabel');
+        if (label) label.textContent = slides[idx].dataset.title || '';
+    }
+
+    function manualBannerNav(idx) {
+        goToBannerSlide(idx);
+        if (pageFullyLoaded) startBannerRotation();
+    }
+
+    (function initBannerInteractions() {
+        const el = document.getElementById('bannerSlider');
+        if (!el) return;
+        el.addEventListener('mouseenter', () => { bannerPaused = true; });
+        el.addEventListener('mouseleave', () => { bannerPaused = false; });
+        el.addEventListener('focusin', () => { bannerPaused = true; });
+        el.addEventListener('focusout', () => { bannerPaused = false; });
+
+        let tx0 = 0, ty0 = 0;
+        el.addEventListener('touchstart', e => {
+            tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
+        }, {passive: true});
+        el.addEventListener('touchend', e => {
+            const track = document.getElementById('bannerTrack');
+            const count = track ? track.children.length : 0;
+            if (!count || e.changedTouches.length !== 1) return;
+            const dx = e.changedTouches[0].clientX - tx0;
+            const dy = e.changedTouches[0].clientY - ty0;
+            if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) {
+                manualBannerNav(dx > 0 ? (bannerIndex - 1 + count) % count : (bannerIndex + 1) % count);
+            }
+        }, {passive: true});
+    })();
+
+    window.addEventListener('load', () => {
+        pageFullyLoaded = true;
+        if (document.getElementById('bannerSlider')) startBannerRotation();
+    });
 </script>
 </body>
 </html>

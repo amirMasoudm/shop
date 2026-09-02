@@ -67,7 +67,7 @@ public class BannerService {
                 && (banner.getAfterSectionId() == null || banner.getAfterSectionId().isBlank())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "برایِ نمایش زیرِ یک سکشن، باید همان سکشن را انتخاب کنید");
         }
-        if (banner.getPlacement() == BannerPlacement.HERO) {
+        if (banner.getPlacement() != BannerPlacement.AFTER_SECTION) {
             banner.setAfterSectionId(null);
         }
         return bannerRepo.save(banner);
@@ -91,7 +91,7 @@ public class BannerService {
             String resolvedUrl = resolveUrl(b);
             boolean external = b.getLinkType() == BannerLinkType.EXTERNAL_URL && resolvedUrl != null;
             BannerPlacement placement = b.getPlacement() != null ? b.getPlacement() : BannerPlacement.HERO;
-            result.add(new BannerDisplayDto(b.getId(), b.getImageUrl(), mobileImg, b.getAltText(),
+            result.add(new BannerDisplayDto(b.getId(), b.getTitle(), b.getImageUrl(), mobileImg, b.getAltText(),
                     resolvedUrl, external, placement, b.getAfterSectionId()));
         }
         return result;
@@ -106,6 +106,13 @@ public class BannerService {
     public List<BannerDisplayDto> getHeroBannersResolved() {
         return getActiveBannersResolved().stream()
                 .filter(b -> b.getPlacement() == BannerPlacement.HERO)
+                .toList();
+    }
+
+    /** بنرهایِ اسلایدرِ بالایِ صفحه‌ی داده‌نما (ریشه‌ی سایت) — همان الگو، جایگاهِ جدا. */
+    public List<BannerDisplayDto> getHomeBannersResolved() {
+        return getActiveBannersResolved().stream()
+                .filter(b -> b.getPlacement() == BannerPlacement.HOME_HERO)
                 .toList();
     }
 

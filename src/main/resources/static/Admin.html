@@ -73,6 +73,18 @@
             border-right: 4px solid #a5b4fc;
         }
 
+        /* سوییچرِ بخش‌هایِ ادمین (فروشگاه/آموزش/صفحه‌ی اصلی) — بالایِ سایدبار */
+        .admin-section-btn { color: #6b7280; transition: all .15s; cursor: pointer; }
+        .admin-section-btn.active-section { background-color: #4338ca; color: #fff; }
+
+        /* رفعِ باگِ از قبل موجود: کلاسِ دلخواهِ Tailwind (top-[70px]) در بسته‌ی
+           پیش‌کامپایل‌شده‌ی all-tailwind-classes-full-min.css نیست، پس هیچ‌وقت اعمال
+           نمی‌شد و سایدبارِ موبایل زیرِ هدرِ ثابتِ موبایل (که ۷۲px بلند است) پنهان
+           می‌ماند — با اضافه‌شدنِ سوییچرِ بخش‌ها، این ناحیه دیگر واقعاً استفاده می‌شد. */
+        @media (max-width: 767px) {
+            #mobile-sidebar { top: 72px; }
+        }
+
         .hidden-section {
             display: none !important;
         }
@@ -264,14 +276,31 @@
 
 <!-- Sidebar -->
     <aside id="mobile-sidebar" class="md:flex w-full md:w-64 bg-white shadow-xl z-20 flex-col border-l border-gray-200 absolute md:relative h-[calc(100vh-70px)] md:h-full top-[70px] md:top-0 left-0 hidden">
-        <div class="p-6 border-b hidden md:flex items-center gap-3 bg-indigo-900 text-white">
-        <div class="text-2xl">🛍️</div>
-        <div>
-            <h1 class="font-bold text-lg">مدیریت فروشگاه</h1>
-            <p class="text-xs text-indigo-200">پنل ادمین (آنلاین)</p>
+        <div class="p-4 border-b hidden md:block bg-indigo-900 text-white">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="text-xl">⚙️</div>
+            <div>
+                <h1 class="font-bold text-base">پنل ادمین</h1>
+                <p class="text-[11px] text-indigo-200">آنلاین</p>
+            </div>
         </div>
     </div>
+
+    <!-- سوییچرِ بخش‌هایِ ادمین — هر بخش نوارِ سایدبارِ خودش را دارد (فروشگاه/آموزش/صفحه‌ی اصلی) -->
+    <div class="p-3 border-b bg-gray-50">
+        <div class="flex gap-1 bg-white rounded-lg p-1 border">
+            <button onclick="switchAdminSection('shop')" id="section-btn-shop"
+                    class="admin-section-btn active-section flex-1 py-2 rounded-md text-[10px] md:text-[11px] font-bold">🛍️ فروشگاه</button>
+            <button onclick="switchAdminSection('education')" id="section-btn-education"
+                    class="admin-section-btn flex-1 py-2 rounded-md text-[10px] md:text-[11px] font-bold">🎓 آموزش</button>
+            <button onclick="switchAdminSection('homepage')" id="section-btn-homepage"
+                    class="admin-section-btn flex-1 py-2 rounded-md text-[10px] md:text-[11px] font-bold">🏠 صفحه اصلی</button>
+        </div>
+    </div>
+
     <nav class="flex-1 overflow-y-auto py-4 space-y-1">
+        <!-- ===== بخش: مدیریتِ فروشگاه ===== -->
+        <div id="section-group-shop" class="admin-section-group space-y-1">
         <div onclick="switchTab('dashboard')"
              class="sidebar-link active flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>📊</span> داشبورد
@@ -315,7 +344,7 @@
         </div>
         <div onclick="switchTab('banners')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
-            <span>🖼️</span> اسلایدر بنر خانه
+            <span>🖼️</span> اسلایدر بنر فروشگاه
         </div>
         <div onclick="switchTab('articles')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
@@ -341,16 +370,22 @@
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🛡️</span> مدیریت ادمین‌ها
         </div>
-
-        <!-- نوارِ جدا — «مدیریتِ آموزش» (نه یک تبِ دیگر زیرِ مدیریتِ فروشگاه؛ خودش یک
-             بخشِ مستقل است که بعداً تب‌هایِ بیشتری زیرش اضافه می‌شود) -->
-        <div class="border-t mt-4 pt-4 px-6 pb-1 flex items-center gap-2">
-            <span class="text-base">🎓</span>
-            <p class="text-xs font-bold text-gray-400 tracking-wide">مدیریت آموزش</p>
         </div>
+
+        <!-- ===== بخش: مدیریتِ آموزش ===== -->
+        <div id="section-group-education" class="admin-section-group space-y-1 hidden">
         <div onclick="switchTab('education')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🖼️</span> آرشیو تصویری کلاس‌ها
+        </div>
+        </div>
+
+        <!-- ===== بخش: مدیریتِ صفحه‌ی اصلی (داده‌نما) ===== -->
+        <div id="section-group-homepage" class="admin-section-group space-y-1 hidden">
+        <div onclick="switchTab('homeBanners')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>🖼️</span> بنرگذاری
+        </div>
         </div>
 
         <!-- این قطعه کد را دقیقا قبل از بسته شدن تگ </nav> اضافه کن -->
@@ -560,19 +595,34 @@
         <div id="sections-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
     </div>
 
-    <!-- 4b. BANNER SLIDER (بنرهای متحرک صفحه اصلی) -->
+    <!-- 4b. BANNER SLIDER (بنرهای متحرک فروشگاه — HERO/AFTER_SECTION) -->
     <div id="tab-banners" class="hidden-section fade-in">
         <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800">اسلایدر بنر صفحه اصلی</h2>
-                <p class="text-xs text-gray-400 mt-1">اولین بنرِ فعال، سنگین‌ترین عنصرِ لودِ صفحه‌ی اصلی است؛ فقط عکسِ باکیفیت و سبک استفاده کنید.</p>
+                <h2 class="text-2xl font-bold text-gray-800">اسلایدر بنر فروشگاه (/shop)</h2>
+                <p class="text-xs text-gray-400 mt-1">اولین بنرِ فعال، سنگین‌ترین عنصرِ لودِ صفحه‌ی فروشگاه است؛ فقط عکسِ باکیفیت و سبک استفاده کنید.</p>
             </div>
-            <button onclick="openBannerModal()"
+            <button onclick="openBannerModal('HERO')"
                     class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 flex items-center justify-center gap-2">
                 <span>✨</span> بنر جدید
             </button>
         </div>
         <div id="banners-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- 4b-2. BANNER SLIDER صفحه‌ی اصلی (داده‌نما — HOME_HERO) — همان سیستم، جایگاهِ جدا -->
+    <div id="tab-homeBanners" class="hidden-section fade-in">
+        <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">اسلایدر بنر صفحه‌ی اصلی (/)</h2>
+                <p class="text-xs text-gray-400 mt-1">اولین بنرِ فعال، سنگین‌ترین عنصرِ لودِ ریشه‌ی سایت (صفحه‌ی داده‌نما) است؛ فقط عکسِ باکیفیت و سبک استفاده کنید.</p>
+            </div>
+            <button onclick="openBannerModal('HOME_HERO')"
+                    class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 flex items-center justify-center gap-2">
+                <span>✨</span> بنر جدید
+            </button>
+        </div>
+        <div id="home-banners-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
     </div>
 
     <!-- 4c. آرشیوِ تصویریِ آموزش -->
@@ -1526,15 +1576,16 @@
             </div>
         </div>
 
-        <!-- کجایِ صفحه‌ی خانه نمایش داده شود -->
+        <!-- کجا نمایش داده شود -->
         <div class="mt-5 border rounded-xl p-4">
-            <label class="block text-sm text-gray-600 mb-1">این بنر کجایِ صفحه‌ی خانه نشان داده شود؟</label>
+            <label class="block text-sm text-gray-600 mb-1">این بنر کجا نشان داده شود؟</label>
             <select id="bn-placement" onchange="onBannerPlacementChange()" class="w-full p-2.5 border rounded-lg bg-white outline-none mb-3">
-                <option value="HERO">بالایِ صفحه (اسلایدرِ اصلی)</option>
-                <option value="AFTER_SECTION">زیرِ یک سکشنِ لندینگِ مشخص</option>
+                <option value="HERO">بالایِ صفحه‌ی فروشگاه (/shop)</option>
+                <option value="AFTER_SECTION">زیرِ یک سکشنِ لندینگِ مشخص (در /shop)</option>
+                <option value="HOME_HERO">بالایِ صفحه‌ی اصلی، داده‌نما (/)</option>
             </select>
             <select id="bn-after-section" class="hidden w-full p-2.5 border rounded-lg bg-white outline-none"></select>
-            <p class="text-[11px] text-gray-400 mt-2">اسلایدرِ اصلی خودکار می‌چرخد و بالایِ صفحه ثابت است؛ حالتِ «زیرِ سکشن» یک عکسِ ساده (بدونِ چرخش) دقیقاً زیرِ همان سکشنِ لندینگی می‌نشاند.</p>
+            <p class="text-[11px] text-gray-400 mt-2">اسلایدرِ بالایِ صفحه خودکار می‌چرخد و ثابت است؛ حالتِ «زیرِ سکشن» یک عکسِ ساده (بدونِ چرخش) دقیقاً زیرِ همان سکشنِ لندینگی می‌نشاند.</p>
         </div>
 
         <!-- نوعِ لینکِ بنر -->
@@ -1948,6 +1999,7 @@
         if (id === 'activityLog') { mountLogUi(); fetchActivityLogs(); }
         if (id === 'articles') fetchArticles();
         if (id === 'banners' && !state.articles) fetchArticles();
+        if (id === 'homeBanners' && !state.articles) fetchArticles();
         if (id === 'rfq') fetchRfqsAdmin();
         if (id === 'stockNotify') fetchStockNotifications();
         if (id === 'settings') {
@@ -1959,6 +2011,25 @@
                 else adminMap.invalidateSize();
             }, 300);
         }
+    }
+
+    // سوییچرِ بخش‌هایِ ادمین — هر بخش سایدبارِ خودش را دارد؛ اولین تبِ آن بخش هم خودکار باز می‌شود.
+    const ADMIN_SECTION_DEFAULT_TAB = {shop: 'dashboard', education: 'education', homepage: 'homeBanners'};
+    function switchAdminSection(section) {
+        document.querySelectorAll('.admin-section-group').forEach(el => el.classList.add('hidden'));
+        document.getElementById('section-group-' + section).classList.remove('hidden');
+        document.querySelectorAll('.admin-section-btn').forEach(el => el.classList.remove('active-section'));
+        document.getElementById('section-btn-' + section).classList.add('active-section');
+
+        const defaultTab = ADMIN_SECTION_DEFAULT_TAB[section];
+        switchTab(defaultTab);
+        // switchTab به window.event تکیه می‌کند که اینجا روی دکمه‌ی سوییچر است، نه رویِ
+        // خودِ آیتمِ سایدبار؛ پس active بودنِ آیتمِ درست را دستی تضمین می‌کنیم.
+        document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+        const link = document.querySelector(`#section-group-${section} .sidebar-link[onclick="switchTab('${defaultTab}')"]`);
+        if (link) link.classList.add('active');
+
+        if (window.innerWidth < 768) document.getElementById('mobile-sidebar').classList.add('hidden');
     }
 
     function toggleLoader(show) {
@@ -3539,13 +3610,16 @@
     }
 
     function bannerPlacementLabel(b) {
-        if (b.placement !== 'AFTER_SECTION') return 'بالایِ صفحه (هیرو)';
-        const sec = state.sections.find(x => x.id === b.afterSectionId);
-        return 'زیرِ سکشن: ' + (sec ? sec.title : '؟');
+        if (b.placement === 'HOME_HERO') return 'بالایِ صفحه‌ی اصلی (داده‌نما)';
+        if (b.placement === 'AFTER_SECTION') {
+            const sec = state.sections.find(x => x.id === b.afterSectionId);
+            return 'زیرِ سکشن: ' + (sec ? sec.title : '؟');
+        }
+        return 'بالایِ صفحه‌ی فروشگاه (هیرو)';
     }
 
-    function renderBanners() {
-        document.getElementById('banners-container').innerHTML = state.banners.map(b => `
+    function bannerCardHtml(b) {
+        return `
             <div class="bg-white rounded-xl shadow-sm border p-4 md:p-5 relative overflow-hidden group hover:shadow-md transition">
                 <img src="${b.imageUrl}" class="w-full h-28 object-cover rounded-lg bg-gray-100" onerror="this.src='${FALLBACK_IMG}'">
                 <h4 class="font-bold text-sm md:text-base text-gray-800 mt-3">${b.title || '(بدون عنوان)'}</h4>
@@ -3560,7 +3634,16 @@
                     <button onclick="deleteItem('v1/banners', '${b.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 rounded hover:bg-red-100 transition">🗑️</button>
                 </div>
             </div>
-        `).join('');
+        `;
+    }
+
+    // دو نوارِ جدا: تبِ «فروشگاه» فقط HERO/AFTER_SECTION را می‌بیند، تبِ «صفحه‌ی اصلی»
+    // فقط HOME_HERO را — یک state.banners مشترک، فقط نمایش فیلتر می‌شود.
+    function renderBanners() {
+        document.getElementById('banners-container').innerHTML =
+            state.banners.filter(b => b.placement !== 'HOME_HERO').map(bannerCardHtml).join('');
+        document.getElementById('home-banners-container').innerHTML =
+            state.banners.filter(b => b.placement === 'HOME_HERO').map(bannerCardHtml).join('');
     }
 
     function populateBannerSectionSelect(selected = '') {
@@ -3639,7 +3722,7 @@
         }
     }
 
-    function openBannerModal() {
+    function openBannerModal(defaultPlacement = 'HERO') {
         resetForm('bn');
         document.getElementById('bn-active').value = 'true';
         document.getElementById('bn-order').value = '0';
@@ -3647,7 +3730,7 @@
         setBannerImagePreview('bn-image-mobile', null);
         document.getElementById('bn-link-type').value = 'NONE';
         onBannerLinkTypeChange();
-        document.getElementById('bn-placement').value = 'HERO';
+        document.getElementById('bn-placement').value = defaultPlacement;
         onBannerPlacementChange();
         document.getElementById('banner-modal-title').innerText = 'بنر جدید';
         openModal('bannerModal');
