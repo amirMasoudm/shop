@@ -49,14 +49,78 @@ public class StoreWebController {
         this.productRedirectService = productRedirectService;
     }
 
+    // ================= صفحه‌ی داده نما (ریشه‌ی سایت) =================
+    // 🔴 قبلاً «/» فروشگاه بود؛ حالا صفحه‌ی معرفیِ شرکت است (تصمیمِ معماریِ
+    // داده‌نما/فروشگاه/آموزش، جزئیات: docs/prompt-tech-chat-dadehnama-home.md).
+    // کاملاً SSR — بیشترین وزنِ سئویی رویِ کلِ سایت را دارد.
     @GetMapping("/")
-    public String homePage(Model model, HttpServletRequest request) {
+    public String dadehNamaHomePage(Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+
+        String baseUrl = buildBaseUrl(request);
+        String canonical = baseUrl + "/";
+
+        String description = "از سال ۱۳۸۰ در ارتباطاتِ بی‌سیم، نمایندگیِ میکروتیک، لینک‌هایِ رادیوییِ پرظرفیت و "
+                + "برگزاریِ دوره‌ها و سمینارهایِ تخصصیِ شبکه در ایران — دفترِ مرکزی اصفهان و دفترِ تهران.";
+
+        model.addAttribute("seoTitle", "داده نما | ارتباطاتِ بی‌سیم، نمایندگیِ میکروتیک و آموزشِ تخصصیِ شبکه");
+        model.addAttribute("seoDescription", description);
+        model.addAttribute("canonicalUrl", canonical);
+        model.addAttribute("organizationJsonLd", buildStandaloneOrganizationJsonLd(baseUrl, description));
+
+        // نوارِ «کارنامه» — پنلِ دوره‌ها با دادهٔ واقعی: مجموعِ زنده از دیتابیس +
+        // نردبانِ گواهی‌نامه‌هایِ میکروتیک (اعدادِ مستندشده در docs/company-profile-source.md).
+        model.addAttribute("heroCourseCountFa",
+                faDigits(String.valueOf(articleService.countHubArticles(COURSES_HUB_SLUG))));
+        model.addAttribute("certLadder", CERT_LADDER);
+        model.addAttribute("certLadderTotalFa", faDigits(String.valueOf(
+                CERT_LADDER.stream().mapToInt(CertRung::getCount).sum())));
+
+        // تعدادِ محصولاتِ جعبهٔ خرید — زنده از دیتابیس (نه عددِ ثابت که با اضافه/حذفِ محصول قدیمی می‌شود)
+        model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.count())));
+
+        return "home";
+    }
+
+    /**
+     * نردبانِ گواهی‌نامه‌هایِ میکروتیک برایِ پنلِ «دوره‌ها»یِ صفحه‌ی داده‌نما — عمداً همینجا
+     * ثابت است، نه کوئریِ زنده‌یِ تطبیقِ عنوان: دیتای خام (عنوانِ ۴۹ مقاله) به‌قدرِ کافی
+     * ناهم‌سان است که تطبیقِ خودکار می‌توانست دوباره همان خطایِ «تعمیمِ نمونه به کل» را
+     * تکرار کند. این پنج عدد قبلاً با شمارشِ کاملِ آرشیو تأیید شده‌اند —
+     * منبع و روشِ شمارش: docs/company-profile-source.md (بخشِ ۳).
+     */
+    private static final List<CertRung> CERT_LADDER = List.of(
+            new CertRung("MTCNA", 12, "مقدماتی"),
+            new CertRung("MTCWE", 6, "وایرلس"),
+            new CertRung("MTCTCE", 5, "کنترل ترافیک"),
+            new CertRung("MTCRE", 4, "مسیریابی"),
+            new CertRung("MTCUME", 1, "مدیریت کاربران")
+    );
+
+    public static class CertRung {
+        private final String code, subtitle;
+        private final int count;
+
+        CertRung(String code, int count, String subtitle) {
+            this.code = code; this.count = count; this.subtitle = subtitle;
+        }
+
+        public String getCode() { return code; }
+        public int getCount() { return count; }
+        public String getCountFa() { return faDigits(String.valueOf(count)); }
+        public String getSubtitle() { return subtitle; }
+    }
+
+    // نمایِ فروشگاه (سرچ‌بار، بنر، سکشن‌ها، گریدِ محصولات) — قبلاً روی «/» بود، حالا زیرِ
+    // /shop تا سه بخشِ سایت (داده‌نما/فروشگاه/آموزش) مرزِ روشن داشته باشند.
+    @GetMapping("/shop")
+    public String shopHomePage(Model model, HttpServletRequest request) {
         // متد کمکی برای اضافه کردن آدرس‌های زنده (جلوگیری از خطای ۵۰۰)
         addDynamicUrls(model, request);
 
-        model.addAttribute("seoTitle", "داده نما | اتصال آسان است");
+        model.addAttribute("seoTitle", "فروشگاه داده نما | میکروتیک، رادیو وایرلس و تجهیزاتِ شبکه");
         model.addAttribute("seoDescription", "فروشگاه اینترنتی یاس، عرضه کننده بهترین محصولات با گارانتی معتبر و ارسال فوری");
-        model.addAttribute("canonicalUrl", buildBaseUrl(request) + "/");
+        model.addAttribute("canonicalUrl", buildBaseUrl(request) + "/shop");
 
         // اسلایدرِ بنر — بالاترینِ عنصرِ صفحه (LCP)؛ لینک‌ها همین‌جا (نه در زمانِ
         // ذخیره‌ی بنر) resolve می‌شوند تا تغییرِ بعدیِ نامِ محصول/دسته/مقاله لینک را نشکند.
@@ -73,7 +137,7 @@ public class StoreWebController {
     }
 
     // آدرسِ قدیمیِ تک‌بخشی — برای سازگاریِ عقب همچنان ۲۰۰ می‌دهد؛ canonical به فرمِ هیبرید هدایت می‌کند
-    @GetMapping("/product/{slugOrId}")
+    @GetMapping("/shop/product/{slugOrId}")
     public Object productPage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
         Optional<Product> found = resolveProduct(slugOrId);
@@ -106,9 +170,9 @@ public class StoreWebController {
         return rv;
     }
 
-    // آدرسِ هیبریدِ جدید: /product/{resolver}/{persianTail}
+    // آدرسِ هیبریدِ جدید: /shop/product/{resolver}/{persianTail}
     // resolver محصول را قطعی resolve می‌کند؛ دُم فقط تزئینی/سئو است و برای lookup نادیده گرفته می‌شود.
-    @GetMapping("/product/{resolver}/{persianTail}")
+    @GetMapping("/shop/product/{resolver}/{persianTail}")
     public Object productPageHybrid(@PathVariable String resolver, @PathVariable String persianTail,
                                     Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
@@ -214,7 +278,7 @@ public class StoreWebController {
     }
 
     // ================= صفحه‌ی سئوی دسته‌بندی =================
-    @GetMapping("/category/{slugOrId}")
+    @GetMapping("/shop/category/{slugOrId}")
     public String categoryPage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
 
@@ -223,7 +287,7 @@ public class StoreWebController {
 
         String baseUrl = buildBaseUrl(request);
         String slug = (cat.getSlug() != null && !cat.getSlug().isEmpty()) ? cat.getSlug() : cat.getId();
-        String canonical = baseUrl + "/category/" + slug;
+        String canonical = baseUrl + "/shop/category/" + slug;
 
         String title = (cat.getSeoTitle() != null && !cat.getSeoTitle().isEmpty())
                 ? cat.getSeoTitle()
@@ -255,8 +319,8 @@ public class StoreWebController {
                 .append("\",\"url\":\"").append(esc(canonical)).append("\"}");
 
         sb.append(",{\"@type\":\"BreadcrumbList\",\"itemListElement\":[")
-                .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"خانه\",\"item\":\"")
-                .append(esc(baseUrl)).append("/\"},")
+                .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"فروشگاه\",\"item\":\"")
+                .append(esc(baseUrl)).append("/shop\"},")
                 .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"").append(esc(cat.getName()))
                 .append("\",\"item\":\"").append(esc(canonical)).append("\"}]}");
 
@@ -474,11 +538,7 @@ public class StoreWebController {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[");
 
-        sb.append("{\"@type\":\"Organization\",\"name\":\"داده نما\"")
-                .append(",\"alternateName\":\"فروشگاه داده نما\"")
-                .append(",\"url\":\"").append(esc(baseUrl)).append("/\"")
-                .append(",\"logo\":\"").append(esc(baseUrl)).append("/logo.png\"")
-                .append(",\"description\":\"").append(esc(description)).append("\"}");
+        sb.append(buildOrganizationJsonLd(baseUrl, description));
 
         sb.append(",{\"@type\":\"AboutPage\",\"name\":\"سابقه و اعتبار داده نما\"")
                 .append(",\"url\":\"").append(esc(canonical)).append("\"")
@@ -492,6 +552,26 @@ public class StoreWebController {
 
         sb.append("]}");
         return sb.toString();
+    }
+
+    /**
+     * بلاکِ Organization به‌تنهایی — هم رویِ {@code /about} (داخلِ @graph) و هم رویِ
+     * ریشهٔ سایت {@code /} (که خودش جایگاهِ درست‌ترِ این اسکیماست) استفاده می‌شود.
+     * ⚠️ عمداً بدون telephone/email/sameAs (قانون ضد-دور-زدن).
+     */
+    private String buildOrganizationJsonLd(String baseUrl, String description) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"@type\":\"Organization\",\"name\":\"داده نما\"")
+                .append(",\"alternateName\":\"شرکت ارتباطات شبکه داده نما\"")
+                .append(",\"url\":\"").append(esc(baseUrl)).append("/\"")
+                .append(",\"logo\":\"").append(esc(baseUrl)).append("/logo.png\"")
+                .append(",\"description\":\"").append(esc(description)).append("\"}");
+        return sb.toString();
+    }
+
+    /** سندِ کاملِ مستقلِ JSON-LD (با {@code @context}) — برای ریشهٔ سایت که فقط همین یک اسکیما را دارد. */
+    private String buildStandaloneOrganizationJsonLd(String baseUrl, String description) {
+        return "{\"@context\":\"https://schema.org/\",\"@graph\":[" + buildOrganizationJsonLd(baseUrl, description) + "]}";
     }
 
     // ارقام لاتین → فارسی (عددهای داخل متنِ فارسیِ صفحه باید فارسی باشند)
@@ -560,6 +640,9 @@ public class StoreWebController {
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
         xml.append("<url><loc>").append(baseUrl).append("/</loc><priority>1.0</priority></url>");
 
+        // فروشگاه — ریشه‌ی زیردرختِ محصولات/دسته‌ها (تصمیمِ معماریِ داده‌نما/فروشگاه/آموزش)
+        xml.append("<url><loc>").append(baseUrl).append("/shop</loc><priority>0.95</priority></url>");
+
         // صفحه‌ی سابقه و اعتبار (هدفِ جست‌وجوی برندی — ۷۹٪ کلیک‌های سایت قدیم)
         xml.append("<url><loc>").append(baseUrl).append("/about</loc><priority>0.8</priority></url>");
 
@@ -587,7 +670,7 @@ public class StoreWebController {
             if (c.getType() != null && "WAREHOUSE".equalsIgnoreCase(c.getType())) continue;
             String cSlug = (c.getSlug() != null && !c.getSlug().isEmpty()) ? c.getSlug() : c.getId();
             xml.append("<url>");
-            xml.append("<loc>").append(baseUrl).append("/category/").append(cSlug).append("</loc>");
+            xml.append("<loc>").append(baseUrl).append("/shop/category/").append(cSlug).append("</loc>");
             xml.append("<priority>0.9</priority>");
             xml.append("</url>");
         }

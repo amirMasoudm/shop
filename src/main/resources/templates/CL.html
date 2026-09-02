@@ -76,8 +76,8 @@
                         {
                             "@type": "ListItem",
                             "position": 1,
-                            "name": "خانه",
-                            "item": "[(${baseUrl + '/'})]"
+                            "name": "فروشگاه",
+                            "item": "[(${baseUrl + '/shop'})]"
                         },
                         {
                             "@type": "ListItem",
@@ -1512,7 +1512,7 @@
      style="position:fixed; inset:0; z-index:5000; background:#fff; overflow:auto; padding:24px 16px; direction:rtl;">
     <div style="max-width:900px; margin:0 auto;">
         <nav style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            <a th:href="${baseUrl + '/'}" style="color:#1b4f8a; text-decoration:none;">خانه</a>
+            <a th:href="${baseUrl + '/shop'}" style="color:#1b4f8a; text-decoration:none;">خانه</a>
             <span> / </span>
             <span th:text="${categoryName}">دسته‌بندی</span>
         </nav>
@@ -1562,7 +1562,7 @@
      style="position:fixed; inset:0; z-index:5000; background:#fff; overflow:auto; padding:24px 16px; direction:rtl;">
     <div style="max-width:1100px; margin:0 auto;">
         <nav style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            <a th:href="${baseUrl + '/'}" style="color:#1b4f8a; text-decoration:none;">خانه</a>
+            <a th:href="${baseUrl + '/shop'}" style="color:#1b4f8a; text-decoration:none;">خانه</a>
             <span> / </span>
             <span th:text="${cat.name}">دسته</span>
         </nav>
@@ -1571,7 +1571,7 @@
 
         <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
             <a th:each="prod : ${catProducts}"
-               th:href="${baseUrl + '/product/' + (prod.slug != null and !prod.slug.isEmpty() ? prod.slug : prod.id) + (prod.persianTail != null and !prod.persianTail.isEmpty() ? '/' + prod.persianTail : '')}"
+               th:href="${baseUrl + '/shop/product/' + (prod.slug != null and !prod.slug.isEmpty() ? prod.slug : prod.id) + (prod.persianTail != null and !prod.persianTail.isEmpty() ? '/' + prod.persianTail : '')}"
                style="display:block; border:1px solid #e5e7eb; border-radius:12px; padding:12px; text-decoration:none; color:inherit; background:#fff;">
                 <img th:src="${prod.images != null and !prod.images.isEmpty() ? prod.images[0] : baseUrl + '/logo.png'}"
                      th:alt="${prod.name}" loading="lazy" decoding="async"
@@ -1605,7 +1605,9 @@
             }
         } </style>
 
-        <a class="logo-container" onclick="loadHome()">
+        <!-- لوگو حالا به ریشهٔ سایت (داده‌نما) می‌رود، نه بازگشتِ SPA به خانه‌ی فروشگاه —
+             چون از این پس / و /shop دو صفحهٔ جدای‌اند (تصمیمِ معماریِ داده‌نما/فروشگاه/آموزش). -->
+        <a class="logo-container" href="/">
             <div class="logo-icon">
                 <img src="/img/logo.png" alt="LOD" width="42" height="42" style="object-fit:contain;display:block;">
             </div>
@@ -1613,6 +1615,11 @@
                 <span class="main">فروشگاه شرکت داده نما</span>
                 <span class="sub">شبکه و ارتباطات</span>
             </div>
+        </a>
+
+        <a href="/shop" onclick="loadHome(); return false;"
+           style="display:flex; align-items:center; color:#fff; font-weight:700; font-size:.88rem; text-decoration:none; white-space:nowrap; padding:6px 12px; border-radius:100px; background:rgba(255,255,255,.1);">
+            فروشگاه
         </a>
 
         <div class="menu-scroll-wrap" id="menuScrollWrap">
@@ -2033,11 +2040,11 @@
             .replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '');
     }
 
-    // مسیرِ هیبریدِ محصول: /product/{resolver}/{persianTail}
+    // مسیرِ هیبریدِ محصول: /shop/product/{resolver}/{persianTail}
     function productPath(p) {
         const resolver = p.slug || p.id;
         const tail = p.persianTail || sanitizeTail(p.name);
-        return tail ? '/product/' + resolver + '/' + tail : '/product/' + resolver;
+        return tail ? '/shop/product/' + resolver + '/' + tail : '/shop/product/' + resolver;
     }
 
     async function openProductDetail(productId, isInitialLoad = false) {
@@ -2185,7 +2192,7 @@
 
         <!-- شروع بخش Breadcrumb -->
         <nav style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8c9cb5; margin-bottom: 20px; background: #fff; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
-            <a href="/" onclick="loadHome(); return false;" style="text-decoration: none; color: var(--primary); font-weight: bold;">خانه</a>
+            <a href="/shop" onclick="loadHome(); return false;" style="text-decoration: none; color: var(--primary); font-weight: bold;">خانه</a>
             <span>/</span>
             <span style="cursor: pointer; color: var(--text-mid);" onclick="loadCat('${p.categoryId}','${getCatName(p.categoryId).replace(/'/g,"")}')">${getCatName(p.categoryId)}</span>
             <span>/</span>
@@ -2486,7 +2493,7 @@
             const slug = item.slug || item.id;
             const nm = item.name.replace(/'/g, "");
             // لینک واقعی خزنده‌پذیر به صفحه‌ی SSR دسته + حفظ تجربه‌ی SPA با preventDefault
-            return `<li class="dropdown"><a href="/category/${encodeURIComponent(slug)}" onclick="event.preventDefault(); loadCat('${item.id}','${nm}')">${item.name} ${item.children?.length ? '❮' : ''}</a>${item.children?.length ? `<ul class="dropdown-menu">${build(item.children)}</ul>` : ''}</li>`;
+            return `<li class="dropdown"><a href="/shop/category/${encodeURIComponent(slug)}" onclick="event.preventDefault(); loadCat('${item.id}','${nm}')">${item.name} ${item.children?.length ? '❮' : ''}</a>${item.children?.length ? `<ul class="dropdown-menu">${build(item.children)}</ul>` : ''}</li>`;
         }).join('');
         // لینک ثابت بلاگ (لینک واقعی <a> — هم برای کاربر هم خزنده)
         const blogLink = `<li style="display:flex;align-items:center;padding:0 6px;"><a href="/blog" style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,var(--accent),#ffb347);color:#fff;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:800;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(232,134,26,0.45);letter-spacing:0.3px;">✍️ بلاگ</a></li>`;
@@ -2549,7 +2556,7 @@
             const slug = item.slug || item.id;
             const nm = item.name.replace(/'/g, "");
             return `<div class="mob-item"><div style="display:flex; border-bottom:1px solid var(--border); align-items:stretch;">
-                    <a href="/category/${encodeURIComponent(slug)}" style="flex:1; padding:15px 20px; font-weight:700; text-decoration:none; color:inherit;" onclick="event.preventDefault(); loadCat('${item.id}','${nm}'); closeAll();">${item.name}</a>
+                    <a href="/shop/category/${encodeURIComponent(slug)}" style="flex:1; padding:15px 20px; font-weight:700; text-decoration:none; color:inherit;" onclick="event.preventDefault(); loadCat('${item.id}','${nm}'); closeAll();">${item.name}</a>
                     ${hasKids ? `<div style="padding:15px 20px; border-right:1px solid #eee;" onclick="toggleSub(this)"><span style="color:#888;">▼</span></div>` : ''}</div>
                     ${hasKids ? `<div class="mob-children" style="display:none; background:#f9f9f9; padding-right:15px;">${build(item.children)}</div>` : ''}</div>`;
         }).join('');
@@ -2712,8 +2719,8 @@
 
         // ذخیره در تاریخچه مرورگر
         if (!isPopState) {
-            if (window.location.pathname !== '/' || window.location.search !== '') {
-                window.history.pushState({type: 'home'}, '', '/');
+            if (window.location.pathname !== '/shop' || window.location.search !== '') {
+                window.history.pushState({type: 'home'}, '', '/shop');
             }
         }
     }
@@ -2736,7 +2743,7 @@
         // ذخیره لیست در تاریخچه مرورگر — URL تمیز /category/{slug} تا با صفحه‌ی SSR و canonical یکی شود
         if (!isPopState) {
             const slug = getCatSlug(id);
-            window.history.pushState({type: 'cat', id}, '', `/category/${encodeURIComponent(slug)}`);
+            window.history.pushState({type: 'cat', id}, '', `/shop/category/${encodeURIComponent(slug)}`);
         }
     }
 
@@ -2755,7 +2762,7 @@
 
         // ذخیره لیست جشنواره در تاریخچه مرورگر
         if (!isPopState) {
-            window.history.pushState({type: 'sec', id}, '', `/?sec=${id}&title=${encodeURIComponent(title)}`);
+            window.history.pushState({type: 'sec', id}, '', `/shop?sec=${id}&title=${encodeURIComponent(title)}`);
         }
     }
 
@@ -2806,7 +2813,7 @@
         if (!isPopState) {
             const params = new URLSearchParams({q});
             if (cat) params.set('cat_id', cat);
-            window.history.pushState({type: 'search', q, cat}, '', `/?${params.toString()}`);
+            window.history.pushState({type: 'search', q, cat}, '', `/shop?${params.toString()}`);
         }
     }
 
@@ -3590,8 +3597,8 @@
         const path = window.location.pathname;
         const searchParams = new URLSearchParams(window.location.search);
 
-        if (path.startsWith('/product/')) {
-            const slug = decodeURIComponent(path.split('/')[2]);
+        if (path.startsWith('/shop/product/')) {
+            const slug = decodeURIComponent(path.split('/')[3]);
             const p = state.all.find(x => x.slug === slug || x.id === slug);
             if (p) {
                 openProductDetail(p.id, true);
@@ -3600,10 +3607,10 @@
                 fetchProductBySlugOrId(slug).then(fp => { if (fp) openProductDetail(fp.id, true); });
             }
         }
-        else if (path.startsWith('/category/')) {
-            // بازگشت به لیست دسته با آدرس تمیز /category/{slug}
+        else if (path.startsWith('/shop/category/')) {
+            // بازگشت به لیست دسته با آدرس تمیز /shop/category/{slug}
             if (state.originalTitle) document.title = state.originalTitle;
-            const slug = decodeURIComponent(path.split('/')[2]);
+            const slug = decodeURIComponent(path.split('/')[3]);
             const cat = getCatBySlug(slug);
             if (cat) {
                 loadCat(cat.id, cat.name, true);
@@ -3645,7 +3652,7 @@
         <div style="font-weight:bold; color:#fff; margin-bottom:14px; font-size:15px;">دسته‌بندی‌های فروشگاه</div>
         <nav style="display:flex; flex-wrap:wrap; gap:10px 18px;">
             <a th:each="fc : ${footerCategories}"
-               th:href="${baseUrl + '/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
                th:text="${fc.name}"
                style="color:#cbd5e1; text-decoration:none; font-size:13px;">دسته</a>
             <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; text-decoration:none; font-size:13px; font-weight:700;">✍️ بلاگ آموزشی</a>

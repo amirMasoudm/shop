@@ -96,14 +96,14 @@
 
 <header class="topbar">
     <div class="in">
-        <a th:href="${baseUrl + '/'}">🛒 فروشگاه داده نما</a>
+        <a th:href="${baseUrl + '/shop'}">🛒 فروشگاه داده نما</a>
         <span style="font-size:.85rem;">سابقه و اعتبار</span>
     </div>
 </header>
 
 <main>
     <nav class="crumb">
-        <a th:href="${baseUrl + '/'}">خانه</a> <span>/ سابقه و اعتبار</span>
+        <a th:href="${baseUrl + '/shop'}">خانه</a> <span>/ سابقه و اعتبار</span>
     </nav>
 
     <h1>سابقه و اعتبار داده نما</h1>
@@ -283,7 +283,7 @@
         <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
         <nav>
             <a th:each="fc : ${footerCategories}"
-               th:href="${baseUrl + '/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
                th:text="${fc.name}">دسته</a>
             <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
         </nav>

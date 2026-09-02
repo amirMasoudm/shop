@@ -579,12 +579,29 @@
                 </button>
             </div>
         </div>
+        <!-- جست‌وجو/فیلترِ جدول — چون هابِ ۲۸ مقاله به‌هم‌ریخته است و بدونِ این ابزار
+             پیداکردنشان بینِ ۲۸۱ ردیف طاقت‌فرساست. سمتِ کلاینت (state.articles از قبل کامل است). -->
+        <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border mb-4 flex flex-col md:flex-row gap-3">
+            <input type="text" id="art-search" placeholder="جست‌وجو در عنوان/اسلاگ…" oninput="filterArticles()"
+                   class="flex-1 p-2.5 border rounded-lg outline-none text-sm">
+            <select id="art-hub-filter" onchange="filterArticles()" class="p-2.5 border rounded-lg bg-white outline-none text-sm md:w-56">
+                <option value="">همهٔ هاب‌ها</option>
+                <option value="__NONE__">⚠️ بدون هاب</option>
+            </select>
+            <select id="art-status-filter" onchange="filterArticles()" class="p-2.5 border rounded-lg bg-white outline-none text-sm md:w-40">
+                <option value="">همهٔ وضعیت‌ها</option>
+                <option value="published">منتشرشده</option>
+                <option value="draft">پیش‌نویس</option>
+            </select>
+            <div class="text-xs text-gray-400 flex items-center whitespace-nowrap" id="art-filter-count"></div>
+        </div>
         <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
             <table class="w-full text-right text-sm">
                 <thead class="bg-gray-50 text-gray-500">
                 <tr>
                     <th class="p-3 md:p-4">عنوان</th>
                     <th class="p-3 md:p-4 hidden md:table-cell">اسلاگ</th>
+                    <th class="p-3 md:p-4">هاب</th>
                     <th class="p-3 md:p-4">وضعیت</th>
                     <th class="p-3 md:p-4 hidden md:table-cell">به‌روزرسانی</th>
                     <th class="p-3 md:p-4">عملیات</th>
@@ -1275,7 +1292,7 @@
                 <!-- پیش‌نمایش نتیجه گوگل -->
                 <div class="mt-3 bg-white border rounded-lg p-3" style="direction:rtl;">
                     <div class="text-[10px] text-gray-400 mb-1">پیش‌نمایش نتیجه گوگل:</div>
-                    <div id="serp-url" class="text-[11px]" style="color:#0d652d; direction:ltr; text-align:right;">dadehnama.com/category/...</div>
+                    <div id="serp-url" class="text-[11px]" style="color:#0d652d; direction:ltr; text-align:right;">dadehnama.com/shop/category/...</div>
                     <div id="serp-title" class="text-sm font-bold" style="color:#1a0dab;">عنوان صفحه</div>
                     <div id="serp-desc" class="text-[11px] text-gray-600 leading-5">توضیح صفحه در نتایج جستجو...</div>
                 </div>
@@ -2490,8 +2507,8 @@
             title: 'آدرسِ محصول عوض شد',
             html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
                      محصول: <b>${escapeHTML(name || '')}</b><br>
-                     آدرسِ قبلی: <code style="direction:ltr; display:inline-block;">/product/${escapeHTML(oldResolver)}</code><br>
-                     آدرسِ جدید: <code style="direction:ltr; display:inline-block;">/product/${escapeHTML(newResolver)}</code><br><br>
+                     آدرسِ قبلی: <code style="direction:ltr; display:inline-block;">/shop/product/${escapeHTML(oldResolver)}</code><br>
+                     آدرسِ جدید: <code style="direction:ltr; display:inline-block;">/shop/product/${escapeHTML(newResolver)}</code><br><br>
                      آدرسِ قبلی از الان <b>۴۰۴</b> می‌دهد. ریدایرکتِ ۳۰۱ به آدرسِ جدید ثبت شود؟
                      <span style="display:block; color:#6b7280; font-size:.82rem;">
                        اگر این محصول قبلاً منتشر/ایندکس شده بود، «بله» را بزنید.
@@ -2940,7 +2957,7 @@
             title: 'حذفِ محصول',
             html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
                      محصول: <b>${name}</b><br>
-                     آدرسِ فعلی: <code style="direction:ltr; display:inline-block;">/product/${escapeHTML(fromSlug)}</code><br><br>
+                     آدرسِ فعلی: <code style="direction:ltr; display:inline-block;">/shop/product/${escapeHTML(fromSlug)}</code><br><br>
                      آیا آدرسِ این محصول به محصولِ دیگری ریدایرکت شود؟<br>
                      <span style="color:#6b7280; font-size:.82rem;">
                        اگر این محصول تکراری/ادغام‌شونده است «بله» را بزنید؛
@@ -3206,7 +3223,7 @@
         dc.style.color = desc.length > 160 ? '#dc2626' : '#9ca3af';
 
         const effSlug = jsSlugify(slug || name) || '...';
-        document.getElementById('serp-url').innerText = location.host + '/category/' + effSlug;
+        document.getElementById('serp-url').innerText = location.host + '/shop/category/' + effSlug;
         document.getElementById('serp-title').innerText = title || (name ? 'خرید ' + name + ' | فروشگاه داده نما' : 'عنوان صفحه');
         document.getElementById('serp-desc').innerText = desc || (name ? 'خرید انواع ' + name + ' با بهترین قیمت و گارانتی معتبر از فروشگاه داده نما' : 'توضیح صفحه در نتایج جستجو...');
     }
@@ -3661,21 +3678,59 @@
         try {
             const res = await axios.get(`${API}/v1/articles/admin/all`);
             state.articles = res.data || [];
-            renderArticles();
-            // پر کردن پیشنهادهای خوشه از خوشه‌های موجود
-            const hubs = [...new Set(state.articles.map(a => a.hub).filter(Boolean))];
-            document.getElementById('hub-list').innerHTML = hubs.map(h => `<option value="${h}">`).join('');
+            refreshHubLists();
+            filterArticles();
         } catch (e) {
             Swal.fire('خطا', 'دریافت مقالات ناموفق بود', 'error');
         }
     }
 
-    function renderArticles() {
-        const rows = (state.articles || []).sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
+    // پیشنهادهای خوشه (هم برایِ دیتالیستِ فرمِ کامل، هم برایِ سلکتِ فیلترِ جدول) —
+    // بعدِ هر ذخیره هم دوباره صدا زده می‌شود تا هابِ تازه‌تایپ‌شده فوراً در لیست بیاید.
+    function refreshHubLists() {
+        const hubs = [...new Set((state.articles || []).map(a => a.hub).filter(Boolean))].sort();
+        document.getElementById('hub-list').innerHTML = hubs.map(h => `<option value="${h}">`).join('');
+        const sel = document.getElementById('art-hub-filter');
+        const current = sel.value;
+        sel.innerHTML = '<option value="">همهٔ هاب‌ها</option><option value="__NONE__">⚠️ بدون هاب</option>'
+            + hubs.map(h => `<option value="${h}">${h}</option>`).join('');
+        sel.value = hubs.includes(current) || current === '__NONE__' ? current : '';
+    }
+
+    // فیلترِ سمتِ کلاینت (۲۸۱ مقاله از قبل در state.articles است، نیازی به کالِ تازه نیست)
+    function filterArticles() {
+        const q = (document.getElementById('art-search').value || '').trim().toLowerCase();
+        const hubFilter = document.getElementById('art-hub-filter').value;
+        const statusFilter = document.getElementById('art-status-filter').value;
+
+        let rows = state.articles || [];
+        if (q) rows = rows.filter(a => (a.title || '').toLowerCase().includes(q) || (a.slug || '').toLowerCase().includes(q));
+        if (hubFilter === '__NONE__') rows = rows.filter(a => !a.hub);
+        else if (hubFilter) rows = rows.filter(a => a.hub === hubFilter);
+        if (statusFilter === 'published') rows = rows.filter(a => a.published);
+        else if (statusFilter === 'draft') rows = rows.filter(a => !a.published);
+
+        document.getElementById('art-filter-count').innerText = `${rows.length} از ${(state.articles || []).length}`;
+        renderArticles(rows);
+    }
+
+    function renderArticles(rows) {
+        rows = (rows || state.articles || []).slice().sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
         document.getElementById('articles-tbody').innerHTML = rows.length ? rows.map(a => `
             <tr class="border-t hover:bg-gray-50">
                 <td class="p-3 md:p-4 font-medium text-gray-800">${a.title || '—'}</td>
                 <td class="p-3 md:p-4 hidden md:table-cell text-xs text-gray-500" dir="ltr">${a.slug || ''}</td>
+                <td class="p-3 md:p-4">
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" list="hub-list" value="${escapeHTML(a.hub || '')}" placeholder="بدون هاب"
+                               id="hub-input-${a.id}"
+                               class="w-28 md:w-36 p-1.5 text-xs border rounded-lg outline-none ${a.hub ? '' : 'border-amber-400 bg-amber-50 placeholder-amber-500'}"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault(); quickSetArticleHub('${a.id}');}">
+                        <button onclick="quickSetArticleHub('${a.id}')" title="ذخیرهٔ هاب"
+                                class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1.5 rounded hover:bg-indigo-100">✓</button>
+                        ${a.hub ? '' : '<span class="text-[9px] md:text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded whitespace-nowrap">بدون هاب</span>'}
+                    </div>
+                </td>
                 <td class="p-3 md:p-4">
                     <span class="px-2 py-1 rounded text-[10px] md:text-xs font-bold ${a.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
                         ${a.published ? 'منتشرشده' : 'پیش‌نویس'}
@@ -3690,7 +3745,31 @@
                     </div>
                 </td>
             </tr>
-        `).join('') : '<tr><td colspan="5" class="p-8 text-center text-gray-400">هنوز مقاله‌ای ننوشته‌اید — اولین مقاله را بسازید!</td></tr>';
+        `).join('') : '<tr><td colspan="6" class="p-8 text-center text-gray-400">هیچ مقاله‌ای با این فیلتر پیدا نشد.</td></tr>';
+    }
+
+    // تغییرِ هابِ یک مقاله بدونِ بازکردنِ ویرایشگرِ کامل — عمداً از همان
+    // POST /v1/articles/admin رد می‌شود (سرور خودش hubSlug را می‌سازد، دقیقاً همان
+    // منطقِ ذخیره‌ی کاملِ مقاله) و کلِ آبجکتِ موجود را دوباره می‌فرستد تا هیچ فیلدی
+    // (متن، کاور، سئو) گم نشود — همان باگی که یک‌بار در ذخیره‌ی محصول افتاده بود.
+    async function quickSetArticleHub(id) {
+        const article = (state.articles || []).find(x => x.id === id);
+        if (!article) return;
+        const input = document.getElementById(`hub-input-${id}`);
+        const newHub = input.value.trim();
+        if (newHub === (article.hub || '')) return; // چیزی عوض نشده
+
+        const payload = Object.assign({}, article, {hub: newHub || null});
+        try {
+            const res = await axios.post(`${API}/v1/articles/admin`, payload);
+            const idx = state.articles.findIndex(x => x.id === id);
+            if (idx !== -1) state.articles[idx] = res.data;
+            refreshHubLists();
+            filterArticles();
+            Swal.fire({icon: 'success', title: 'هاب ذخیره شد', timer: 1000, showConfirmButton: false});
+        } catch (e) {
+            Swal.fire('خطا', (e.response && e.response.data) || 'ذخیره‌ی هاب ناموفق بود', 'error');
+        }
     }
 
     function updateArticleSeoPreview() {

@@ -57,7 +57,7 @@
 
 <header class="topbar">
     <div class="in">
-        <a th:href="${baseUrl + '/'}">🛒 فروشگاه داده نما</a>
+        <a th:href="${baseUrl + '/shop'}">🛒 فروشگاه داده نما</a>
         <span style="font-size:.85rem;">بلاگ آموزشی</span>
     </div>
 </header>
@@ -97,7 +97,7 @@
         <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
         <nav>
             <a th:each="fc : ${footerCategories}"
-               th:href="${baseUrl + '/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
                th:text="${fc.name}">دسته</a>
         </nav>
         <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© فروشگاه داده نما</div>

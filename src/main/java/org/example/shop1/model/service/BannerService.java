@@ -134,7 +134,7 @@ public class BannerService {
                     }
                     String resolver = (c.get().getSlug() != null && !c.get().getSlug().isEmpty())
                             ? c.get().getSlug() : c.get().getId();
-                    return "/category/" + UriUtils.encodePathSegment(resolver, StandardCharsets.UTF_8);
+                    return "/shop/category/" + UriUtils.encodePathSegment(resolver, StandardCharsets.UTF_8);
                 }
                 case ARTICLE -> {
                     Optional<Article> a = articleRepo.findById(target);

@@ -21,11 +21,13 @@ public final class ProductUrlUtil {
         return (p.getSlug() != null && !p.getSlug().isEmpty()) ? p.getSlug() : p.getId();
     }
 
-    /** مسیرِ خام و خوانا (بدونِ baseUrl) — برای canonical/og در HTML. */
+    /** مسیرِ خام و خوانا (بدونِ baseUrl) — برای canonical/og در HTML.
+     * 🔴 پیشوندِ {@code /shop}: کلِ زیردرختِ فروشگاه زیرِ /shop جمع شده (تصمیمِ معماریِ
+     * تقسیمِ سایت به داده‌نما/فروشگاه/آموزش). */
     public static String hybridPath(Product p) {
         String resolver = productResolver(p);
         String tail = p.getPersianTail();
-        return (tail != null && !tail.isEmpty()) ? "/product/" + resolver + "/" + tail : "/product/" + resolver;
+        return (tail != null && !tail.isEmpty()) ? "/shop/product/" + resolver + "/" + tail : "/shop/product/" + resolver;
     }
 
     /**
@@ -35,8 +37,8 @@ public final class ProductUrlUtil {
     public static String hybridPathEncoded(Product p) {
         String resolver = UriUtils.encodePathSegment(productResolver(p), StandardCharsets.UTF_8);
         String tail = p.getPersianTail();
-        if (tail == null || tail.isEmpty()) return "/product/" + resolver;
+        if (tail == null || tail.isEmpty()) return "/shop/product/" + resolver;
         String encTail = UriUtils.encodePathSegment(tail, StandardCharsets.UTF_8);
-        return "/product/" + resolver + "/" + encTail;
+        return "/shop/product/" + resolver + "/" + encTail;
     }
 }

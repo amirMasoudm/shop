@@ -68,14 +68,14 @@
 
 <header class="topbar">
     <div class="in">
-        <a th:href="${baseUrl + '/'}">🛒 فروشگاه داده نما</a>
+        <a th:href="${baseUrl + '/shop'}">🛒 فروشگاه داده نما</a>
         <a th:href="${baseUrl + '/blog'}" style="font-size:.85rem;">بلاگ آموزشی</a>
     </div>
 </header>
 
 <main>
     <nav class="crumb">
-        <a th:href="${baseUrl + '/'}">خانه</a> /
+        <a th:href="${baseUrl + '/shop'}">خانه</a> /
         <a th:href="${baseUrl + '/blog'}">بلاگ</a> /
         <span th:text="${article.title}">مقاله</span>
     </nav>
@@ -110,7 +110,7 @@
 
         <div class="cta">
             <div style="font-weight:700;">نیاز به تجهیزات میکروتیک و شبکه دارید؟</div>
-            <a th:href="${baseUrl + '/'}">مشاهده فروشگاه داده نما</a>
+            <a th:href="${baseUrl + '/shop'}">مشاهده فروشگاه داده نما</a>
         </div>
     </article>
 </main>
@@ -120,7 +120,7 @@
         <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
         <nav>
             <a th:each="fc : ${footerCategories}"
-               th:href="${baseUrl + '/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
                th:text="${fc.name}">دسته</a>
         </nav>
         <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© فروشگاه داده نما</div>
