@@ -9,6 +9,7 @@ import org.example.shop1.model.reposritory.CategoryRepository;
 import org.example.shop1.model.service.ArticleService;
 import org.example.shop1.model.service.BannerService;
 import org.example.shop1.model.service.CategoryService;
+import org.example.shop1.model.service.EducationArchiveService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +29,7 @@ public class StoreWebController {
     private final CategoryService categoryService;
     private final ArticleService articleService;
     private final BannerService bannerService;
+    private final EducationArchiveService educationArchiveService;
     private final org.example.shop1.model.service.ProductRedirectService productRedirectService;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
@@ -39,13 +41,14 @@ public class StoreWebController {
 
     public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo,
                               CategoryService categoryService, ArticleService articleService,
-                              BannerService bannerService,
+                              BannerService bannerService, EducationArchiveService educationArchiveService,
                               org.example.shop1.model.service.ProductRedirectService productRedirectService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.categoryService = categoryService;
         this.articleService = articleService;
         this.bannerService = bannerService;
+        this.educationArchiveService = educationArchiveService;
         this.productRedirectService = productRedirectService;
     }
 
@@ -79,6 +82,9 @@ public class StoreWebController {
         // فهرستِ مقالاتِ منتشرشده‌ی هابِ «دوره‌های آموزشی» — زیرِ نردبانِ گواهی‌نامه‌ها،
         // داخلِ یک جعبه‌ی قابلِ‌اسکرول (خواسته‌ی مالک)
         model.addAttribute("courseHubArticles", articleService.getHubArticles(COURSES_HUB_SLUG));
+
+        // پنجرهٔ آرشیوِ تصویریِ کلاس‌ها — بلافاصله زیرِ نردبان/فهرستِ بالا، لینک به /learn
+        model.addAttribute("educationArchiveItems", educationArchiveService.getActive());
 
         // تعدادِ محصولاتِ جعبهٔ خرید — زنده از دیتابیس (نه عددِ ثابت که با اضافه/حذفِ محصول قدیمی می‌شود)
         model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.count())));
@@ -503,6 +509,19 @@ public class StoreWebController {
         return "wimaxnear";
     }
 
+    // صفحه‌ی آموزش — آرشیوِ تصویریِ کلاس‌ها و دوره‌هایِ برگزارشده (سابقه، نه اعلانِ دورهٔ فعال)
+    @GetMapping("/learn")
+    public String learnPage(Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+        String baseUrl = buildBaseUrl(request);
+        model.addAttribute("seoTitle", "آموزش | آرشیوِ دوره‌ها و کلاس‌های برگزارشده‌ی داده‌نما");
+        model.addAttribute("seoDescription",
+                "آرشیوِ تصویریِ دوره‌ها، کلاس‌ها و سمینارهایِ برگزارشده‌ی داده‌نما در حوزه‌ی شبکه و ارتباطاتِ بی‌سیم.");
+        model.addAttribute("canonicalUrl", baseUrl + "/learn");
+        model.addAttribute("educationArchiveItems", educationArchiveService.getActive());
+        return "learn";
+    }
+
     @GetMapping("/about")
     public String aboutPage(Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
@@ -664,6 +683,9 @@ public class StoreWebController {
 
         // صفحه‌ی WimaxNear
         xml.append("<url><loc>").append(baseUrl).append("/wimaxnear</loc><priority>0.6</priority></url>");
+
+        // صفحه‌ی آموزش
+        xml.append("<url><loc>").append(baseUrl).append("/learn</loc><priority>0.6</priority></url>");
 
         // بلاگ و مقالات منتشرشده
         xml.append("<url><loc>").append(baseUrl).append("/blog</loc><priority>0.7</priority></url>");

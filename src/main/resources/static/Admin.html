@@ -317,6 +317,10 @@
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🖼️</span> اسلایدر بنر خانه
         </div>
+        <div onclick="switchTab('education')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>🎓</span> مدیریت آموزش
+        </div>
         <div onclick="switchTab('articles')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>📝</span> مقالات بلاگ
@@ -562,6 +566,21 @@
             </button>
         </div>
         <div id="banners-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- 4c. آرشیوِ تصویریِ آموزش -->
+    <div id="tab-education" class="hidden-section fade-in">
+        <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">مدیریت آموزش — آرشیوِ تصویریِ کلاس‌ها</h2>
+                <p class="text-xs text-gray-400 mt-1">این عکس‌ها هم در صفحه‌ی اصلی (پنجره‌ی کوچک) و هم در صفحه‌ی «آموزش» (فهرستِ کامل) نمایش داده می‌شوند.</p>
+            </div>
+            <button onclick="openEducationModal()"
+                    class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 flex items-center justify-center gap-2">
+                <span>✨</span> عکسِ جدید
+            </button>
+        </div>
+        <div id="education-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
     </div>
 
     <!-- ARTICLES (بلاگ) -->
@@ -1546,6 +1565,76 @@
     </div>
 </div>
 
+<!-- Education Archive Modal (آرشیوِ تصویریِ آموزش) -->
+<div id="educationModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col" style="max-height:88vh;">
+        <div data-drag-handle class="shrink-0 flex justify-between items-center px-5 py-4 bg-gray-800 text-white rounded-t-2xl select-none">
+            <h3 id="edu-modal-title" class="text-lg font-bold">عکسِ جدید</h3>
+            <button onclick="closeModalSafe('educationModal')" class="text-white/70 hover:text-white text-2xl font-bold leading-none px-1 outline-none">✕</button>
+        </div>
+        <input type="hidden" id="edu-id">
+        <div class="flex-1 overflow-y-auto px-5 md:px-6 py-4 md:py-5" style="min-height:0;">
+        <div class="grid grid-cols-1 gap-4">
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">عکس <span class="text-red-500">*</span></label>
+                <label for="edu-image-file"
+                       class="relative flex flex-col items-center justify-center gap-1 w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition overflow-hidden bg-gray-50">
+                    <img id="edu-image-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden">
+                    <span id="edu-image-placeholder" class="flex flex-col items-center gap-1 text-gray-400 text-xs pointer-events-none px-2 text-center">
+                        <span class="text-2xl">🖼️</span>
+                        <span>برای انتخاب عکس کلیک کنید</span>
+                    </span>
+                    <span id="edu-image-hint"
+                          class="hidden absolute bottom-0 inset-x-0 bg-black/55 text-white text-[10px] text-center py-1 pointer-events-none">برای تغییرِ عکس کلیک کنید</span>
+                </label>
+                <input type="file" id="edu-image-file" accept="image/*" class="hidden" onchange="uploadEducationImage(this)">
+                <input type="hidden" id="edu-image">
+                <p class="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                    ⚠️ فقط عکسِ خودِ کلاس/دوره را بارگذاری کنید — طبقِ قانونِ فروشگاه، هیچ شماره تماس، ایمیل یا آدرسِ شبکه‌ی اجتماعی نباید داخلِ عکس یا توضیحش باشد.
+                </p>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">عنوان <span class="text-red-500">*</span></label>
+                <input type="text" id="edu-title" placeholder="مثلاً: دوره‌ی مقدماتیِ میکروتیک — شهریور ۱۳۹۴"
+                       class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">توضیحِ کوتاه (اختیاری)</label>
+                <textarea id="edu-caption" rows="2" class="w-full p-2.5 border rounded-lg outline-none resize-none"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">تاریخِ برگزاری (اختیاری، آزاد)</label>
+                    <input type="text" id="edu-event-date" placeholder="مثلاً: تیر ۱۳۹۵"
+                           class="w-full p-2.5 border rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">ترتیبِ نمایش</label>
+                    <input type="number" id="edu-order" value="0"
+                           class="w-full p-2.5 border rounded-lg outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">وضعیت</label>
+                <select id="edu-active" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+                    <option value="true">فعال</option>
+                    <option value="false">غیرفعال</option>
+                </select>
+            </div>
+        </div>
+        </div>
+        <div class="shrink-0 flex flex-col md:flex-row justify-end gap-3 px-5 py-4 border-t bg-white rounded-b-2xl">
+            <button onclick="closeModalSafe('educationModal')"
+                    class="w-full md:w-auto px-4 py-2 text-gray-500 border rounded-lg">انصراف
+            </button>
+            <button onclick="saveEducationItem()"
+                    class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">ذخیره
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Article Modal (مقالات بلاگ) -->
 <div id="articleModal"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-4">
@@ -1703,6 +1792,7 @@
         flatCategories: [],
         sections: [],
         banners: [],
+        education: [],
         orders: [],
         comments: [],
         currentCommentStatus: 'PENDING',
@@ -1881,7 +1971,7 @@
     // ============================================================
     // سیستمِ مودالِ پیشرفته: backdrop-close، dirty-check، resize
     // ============================================================
-    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'bannerModal', 'articleModal', 'staffModal']);
+    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'bannerModal', 'educationModal', 'articleModal', 'staffModal']);
     const _modalSnap = {};
 
     function snapshotModalForm(id) {
@@ -2033,11 +2123,12 @@
     async function fetchAllData() {
         toggleLoader(true);
         try {
-            const [prods, cats, secs, banners] = await Promise.all([
+            const [prods, cats, secs, banners, education] = await Promise.all([
                 axios.get(`${API}/v1/products/admin`),
                 axios.get(`${API}/categories/tree?type=ONLINE`),
                 axios.get(`${API}/v1/landing-sections/admin`),
-                axios.get(`${API}/v1/banners/admin`)
+                axios.get(`${API}/v1/banners/admin`),
+                axios.get(`${API}/v1/education-archive/admin`)
             ]);
 
             state.products = prods.data;
@@ -2045,6 +2136,7 @@
             state.flatCategories = flatten(cats.data);
             state.sections = secs.data;
             state.banners = banners.data;
+            state.education = education.data;
 
             try {
                 const ordersRes = await axios.get(`${API}/orders/admin/all`);
@@ -2059,6 +2151,7 @@
             renderCategoryTree();
             renderSections();
             renderBanners();
+            renderEducation();
 
         } catch (err) {
             console.error(err);
@@ -3629,6 +3722,88 @@
         axios.post(`${API}/v1/banners`, data)
             .then(() => { closeModal('bannerModal'); fetchAllData(); Swal.fire({icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false}); })
             .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'ذخیره‌ی بنر ناموفق بود', 'error'));
+    }
+
+    // ==========================================
+    // آرشیوِ تصویریِ آموزش (Education Archive) — الگویِ دقیقِ بنرها، بدونِ لینک
+    // ==========================================
+    function renderEducation() {
+        document.getElementById('education-container').innerHTML = (state.education || []).map(e => `
+            <div class="bg-white rounded-xl shadow-sm border p-4 md:p-5 relative overflow-hidden group hover:shadow-md transition">
+                <img src="${e.imageUrl}" class="w-full h-28 object-cover rounded-lg bg-gray-100" onerror="this.src='${FALLBACK_IMG}'">
+                <h4 class="font-bold text-sm md:text-base text-gray-800 mt-3">${e.title || '(بدون عنوان)'}</h4>
+                <div class="mt-2 flex gap-2 text-[10px] md:text-xs text-gray-500 flex-wrap">
+                    <span class="bg-gray-100 px-2 py-1 rounded">ترتیب: ${e.orderIndex}</span>
+                    <span class="px-2 py-1 rounded ${e.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${e.active ? 'فعال' : 'غیرفعال'}</span>
+                    ${e.eventDate ? `<span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${e.eventDate}</span>` : ''}
+                </div>
+                <div class="mt-4 flex gap-2 border-t pt-3">
+                    <button onclick='editEducationItem("${e.id}")' class="flex-1 bg-indigo-50 text-indigo-700 py-1.5 md:py-2 rounded text-xs md:text-sm hover:bg-indigo-100 font-bold transition">ویرایش</button>
+                    <button onclick="deleteItem('v1/education-archive', '${e.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 rounded hover:bg-red-100 transition">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function uploadEducationImage(input) {
+        if (!input.files || !input.files[0]) return;
+        const placeholder = document.getElementById('edu-image-placeholder');
+        const placeholderOriginal = placeholder.innerHTML;
+        placeholder.innerHTML = '<span class="text-xs text-gray-400">در حال آپلود...</span>';
+        const fd = new FormData(); fd.append('file', input.files[0]);
+        try {
+            const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
+            document.getElementById('edu-image').value = res.data;
+            setBannerImagePreview('edu-image', res.data);
+        } catch (e) {
+            placeholder.innerHTML = placeholderOriginal;
+            Swal.fire('خطا', 'آپلود عکس ناموفق بود', 'error');
+        }
+    }
+
+    function openEducationModal() {
+        resetForm('edu');
+        document.getElementById('edu-active').value = 'true';
+        document.getElementById('edu-order').value = '0';
+        setBannerImagePreview('edu-image', null);
+        document.getElementById('edu-modal-title').innerText = 'عکسِ جدید';
+        openModal('educationModal');
+    }
+
+    function editEducationItem(id) {
+        const e = (state.education || []).find(x => x.id === id);
+        if (!e) return;
+        document.getElementById('edu-id').value = e.id;
+        document.getElementById('edu-title').value = e.title || '';
+        document.getElementById('edu-caption').value = e.caption || '';
+        document.getElementById('edu-event-date').value = e.eventDate || '';
+        document.getElementById('edu-image').value = e.imageUrl || '';
+        document.getElementById('edu-order').value = e.orderIndex;
+        document.getElementById('edu-active').value = String(e.active);
+        setBannerImagePreview('edu-image', e.imageUrl);
+        document.getElementById('edu-modal-title').innerText = 'ویرایشِ عکس';
+        openModal('educationModal');
+    }
+
+    function saveEducationItem() {
+        const title = document.getElementById('edu-title').value.trim();
+        const imageUrl = document.getElementById('edu-image').value;
+        if (!imageUrl) { Swal.fire('خطا', 'عکس را آپلود کنید', 'error'); return; }
+        if (!title) { Swal.fire('خطا', 'عنوان را وارد کنید', 'error'); return; }
+
+        const data = {
+            id: document.getElementById('edu-id').value || null,
+            title: title,
+            imageUrl: imageUrl,
+            caption: document.getElementById('edu-caption').value.trim() || null,
+            eventDate: document.getElementById('edu-event-date').value.trim() || null,
+            orderIndex: Number(document.getElementById('edu-order').value) || 0,
+            active: document.getElementById('edu-active').value === 'true'
+        };
+
+        axios.post(`${API}/v1/education-archive`, data)
+            .then(() => { closeModal('educationModal'); fetchAllData(); Swal.fire({icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false}); })
+            .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'ذخیره‌ی عکس ناموفق بود', 'error'));
     }
 
     // ==========================================

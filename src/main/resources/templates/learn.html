@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${seoTitle}">آموزش | داده نما</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta property="og:site_name" content="داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <style>
+        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; --border:#e5e7eb; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
+        main { max-width:1160px; margin:0 auto; padding:28px 16px 8px; }
+        .crumb { font-size:.8rem; color:var(--mid); margin-bottom:14px; }
+        .crumb a { color:var(--primary); text-decoration:none; }
+        h1 { font-size:1.55rem; line-height:1.7; margin-bottom:8px; }
+        .lead { color:var(--mid); font-size:.92rem; line-height:1.9; margin-bottom:26px; max-width:720px; }
+        .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:18px; }
+        .gallery-card { background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+        .gallery-card img { width:100%; height:170px; object-fit:cover; display:block; background:#eef2f7; }
+        .gallery-card .b { padding:13px 14px; }
+        .gallery-card .n { font-size:.92rem; font-weight:700; line-height:1.6; margin-bottom:4px; }
+        .gallery-card .d { font-size:.8rem; color:var(--mid); line-height:1.8; margin-bottom:6px; }
+        .gallery-card .date { display:inline-block; font-size:.72rem; color:var(--primary); background:#eef3fa; border-radius:100px; padding:3px 10px; font-weight:700; }
+        .empty { background:#fff; border:1px dashed #cbd5e1; border-radius:14px; padding:48px; text-align:center; color:var(--mid); }
+        footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:44px; }
+        footer .in { max-width:1160px; margin:0 auto; }
+        footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/">داده نما</a>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/learn" class="active">آموزش</a>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<main>
+    <nav class="crumb">
+        <a href="/">خانه</a> <span>/ آموزش</span>
+    </nav>
+
+    <h1>آرشیوِ دوره‌ها و کلاس‌های برگزارشده</h1>
+    <p class="lead">
+        مجموعه‌ی تصویریِ دوره‌ها، کلاس‌ها و سمینارهایی که تا امروز برگزار کرده‌ایم — سابقه‌ی برگزاری است،
+        نه فهرستِ دوره‌های در حالِ ثبت‌نام.
+    </p>
+
+    <div class="gallery-grid" th:if="${educationArchiveItems != null and !educationArchiveItems.isEmpty()}">
+        <div class="gallery-card" th:each="ph : ${educationArchiveItems}">
+            <img th:src="${ph.imageUrl}" th:alt="${ph.title}" loading="lazy">
+            <div class="b">
+                <div class="n" th:text="${ph.title}">عنوان عکس</div>
+                <div class="d" th:if="${ph.caption != null and !ph.caption.isEmpty()}" th:text="${ph.caption}">توضیح</div>
+                <span class="date" th:if="${ph.eventDate != null and !ph.eventDate.isEmpty()}" th:text="${ph.eventDate}">تیر ۱۳۹۵</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="empty" th:if="${educationArchiveItems == null or educationArchiveItems.isEmpty()}">
+        آرشیوِ تصویری هنوز خالی است.
+    </div>
+</main>
+
+<footer th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; font-weight:700;">سابقه و اعتبار</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© داده نما</div>
+    </div>
+</footer>
+</body>
+</html>

@@ -168,6 +168,23 @@
         .hub-article-list a:last-child { border-bottom: none; }
         .hub-article-list a:hover { background: var(--bg-soft); color: var(--primary); }
         .hub-article-list a .arrow { color: var(--text-muted); flex-shrink: 0; }
+        /* آرشیوِ تصویریِ کلاس‌ها — فیلمِ افقی، چون محتوایش عکس است (نه متن مثلِ فهرستِ بالا) */
+        .edu-gallery {
+            border: 1px solid var(--border-lt); border-radius: 15px; background: var(--surface);
+            padding: 14px; margin-bottom: 14px;
+        }
+        .edu-gallery-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .edu-gallery-head .t { font-size: .88rem; font-weight: 900; color: var(--text); }
+        .edu-gallery-head a { font-size: .78rem; color: var(--primary); font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .edu-gallery-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
+        .edu-gallery-strip a {
+            flex: 0 0 auto; scroll-snap-align: start; width: 148px; text-decoration: none; color: var(--text);
+        }
+        .edu-gallery-strip img {
+            width: 148px; height: 108px; object-fit: cover; border-radius: 11px; display: block;
+            border: 1px solid var(--border-lt); margin-bottom: 6px;
+        }
+        .edu-gallery-strip .n { font-size: .77rem; font-weight: 700; line-height: 1.5; }
         .card-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
         @media (max-width: 700px) { .card-grid-3 { grid-template-columns: 1fr; } }
         .info-card { border: 1px solid var(--border-lt); border-radius: 14px; padding: 15px 17px; background: var(--surface); }
@@ -226,7 +243,7 @@
         <a href="/" class="active">داده نما</a>
         <a href="/wimaxnear">WimaxNear</a>
         <a href="/shop">فروشگاه</a>
-        <span class="muted" title="به‌زودی">آموزش</span>
+        <a href="/learn">آموزش</a>
         <a href="/blog">بلاگ</a>
     </nav>
     <div class="spacer"></div>
@@ -348,6 +365,20 @@
                     <span th:text="${art.title}">عنوان مقاله</span>
                     <span class="arrow">❯</span>
                 </a>
+            </div>
+
+            <!-- آرشیوِ تصویریِ کلاس‌ها — قابلِ‌اسکرولِ افقی، کلیک روی هر عکس به /learn می‌رود -->
+            <div class="edu-gallery" th:if="${educationArchiveItems != null and !educationArchiveItems.isEmpty()}">
+                <div class="edu-gallery-head">
+                    <div class="t">آرشیوِ تصویریِ کلاس‌ها</div>
+                    <a href="/learn">مشاهدهٔ همه ❯</a>
+                </div>
+                <div class="edu-gallery-strip">
+                    <a th:each="ph : ${educationArchiveItems}" href="/learn">
+                        <img th:src="${ph.imageUrl}" th:alt="${ph.title}" loading="lazy">
+                        <div class="n" th:text="${ph.title}">عنوان عکس</div>
+                    </a>
+                </div>
             </div>
 
             <div class="card-grid-3">
