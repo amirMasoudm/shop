@@ -22,12 +22,15 @@ const MTC_BENEFITS =
   'برگزاری کلاس‌ها به صورت تئوری و عملی (آزمایشگاه) همراه با حل نمونه‌سؤالات آزمون‌ها و نکات مهم هر بخش. ' +
   'برگزاری آزمون بین‌المللی آنلاین با اعطای مدرک رسمی میکروتیک و یک نسخه لایسنس Level 4 میکروتیک.';
 
-const mtc = (code, en, fa, seoDesc) => ({
+const mtc = (code, en, fa, duration, prereq, modules, seoDesc) => ({
   title: 'دورهٔ ' + code + ' — ' + fa,
   slug: 'دوره-' + code.toLowerCase(),
   mode: 'IN_PERSON',
-  syllabus: [],   // عمداً خالی: سرفصلِ رسمیِ این مدارک در هیچ‌کدام از منابعِ مالک نبود
-  organizerDescription: MTC_BENEFITS,
+  // هر ردیف = یک ماژولِ رسمی؛ group نامِ ماژول است و در قالب به‌صورت
+  // پیشوندِ توپُر رندر می‌شود، پس هر ماژول دقیقاً یک بار دیده می‌شود.
+  syllabus: modules.map(m => S(m[1], m[0])),
+  organizerDescription:
+    'مدتِ رسمیِ دوره طبقِ سرفصلِ میکروتیک: ' + duration + '. پیش‌نیاز: ' + prereq + '. ' + MTC_BENEFITS,
   seoTitle: 'دورهٔ ' + code + ' میکروتیک (' + en + ') | داده‌نما',
   seoDescription: seoDesc
 });
@@ -233,22 +236,86 @@ const courses = [
   seoDescription: 'دورهٔ جامع شبکه‌های بی‌سیم داده‌نما: مبانی امواج و مدولاسیون، استانداردهای IEEE، حالات رادیو (AP/CPE/Mesh/PtP/PtMP)، مشخصات آنتن، کانکتور و کابل، ناحیهٔ فرنل، برق خورشیدی و بادی، و آنالیز لینک رادیویی.'
 },
 
-// ═══ ۶ تا ۱۱) آکادمی میکروتیک (کاتالوگ ص۱۸) ═══════════════════════════════
-// سرفصلِ رسمیِ این شش مدرک در هیچ‌کدام از سندهایِ مالک نبود — عمداً خالی
-// گذاشته شد تا از خودم نسازم. باید از سرفصلِ رسمیِ mikrotik.com وارد شود.
+// ═══ ۶ تا ۱۱) آکادمی میکروتیک ════════════════════════════════════════════
+// عنوان و نامِ فارسیِ مدارک از کاتالوگِ داده‌نما (ص۱۸).
+// سرفصل‌ها از **PDFهای رسمیِ خودِ میکروتیک** (i.mt.lv/cdn/training_pdf/…) که از
+// صفحهٔ mikrotik.com/training/about لینک شده‌اند — یک ردیف به‌ازای هر ماژولِ رسمی.
+// هیچ سرفصلی از حافظه ساخته نشده؛ همه از متنِ همان PDFها استخراج شده.
 mtc('MTCNA', 'MikroTik Certified Network Associate', 'مهندسی عمومی میکروتیک',
-    'دورهٔ MTCNA داده‌نما با مدرک رسمی بین‌المللی میکروتیک — کلاس تئوری و عملی (آزمایشگاه) به همراه آزمون آنلاین و لایسنس Level 4.'),
-mtc('MTCWE', 'MikroTik Certified Wireless Engineer', 'مهندسی تخصصی وایرلس',
-    'دورهٔ MTCWE داده‌نما — مهندسی تخصصی وایرلس میکروتیک با مدرک رسمی بین‌المللی، کلاس عملی در آزمایشگاه و آزمون آنلاین.'),
-mtc('MTCTCE', 'MikroTik Certified Traffic Control Engineer', 'مهندسی کنترل پهنای باند',
-    'دورهٔ MTCTCE داده‌نما — کنترل ترافیک و پهنای باند در میکروتیک، با مدرک رسمی بین‌المللی و کلاس تئوری و عملی.'),
-mtc('MTCUME', 'MikroTik Certified User Management Engineer', 'مهندسی مدیریت کاربران',
-    'دورهٔ MTCUME داده‌نما — مدیریت کاربران در میکروتیک با مدرک رسمی بین‌المللی، کلاس عملی و آزمون آنلاین.'),
-mtc('MTCRE', 'MikroTik Certified Routing Engineer', 'مهندسی مسیریابی',
-    'دورهٔ MTCRE داده‌نما — مهندسی مسیریابی میکروتیک با مدرک رسمی بین‌المللی، کلاس تئوری و عملی در آزمایشگاه.'),
-mtc('MTCINE', 'MikroTik Certified Inter-networking Engineer', 'مهندسی پیشرفتهٔ شبکه میکروتیک',
-    'دورهٔ MTCINE داده‌نما — بالاترین سطح مدارک میکروتیک، مهندسی پیشرفتهٔ اینترنتورکینگ با مدرک رسمی بین‌المللی.')
+  '۳ روز', 'درکِ خوب از TCP/IP و ساب‌نتینگ',
+  [
+    ['ماژول ۱ — Introduction', 'معرفی میکروتیک، RouterOS و RouterBOARD؛ اولین دسترسی به روتر (WinBox، MAC-WinBox، WebFig، Quick Set)؛ خط فرمانِ RouterOS؛ پیکربندی اولیهٔ اینترنت (DHCP-client، آدرس LAN و گیت‌وی، NAT masquerade)؛ ارتقای RouterOS و فرم‌ورِ RouterBOOT؛ مدیریت لاگین و سرویس‌ها؛ بکاپ و فایل export؛ ریست و Netinstall؛ سطوح لایسنس'],
+    ['ماژول ۲ — DHCP', 'سرور و کلاینتِ DHCP؛ راه‌اندازیِ سرور؛ مدیریت Lease؛ پیکربندی شبکهٔ DHCP؛ پروتکل ARP و حالت‌های آن و جدولِ ARP در RouterOS'],
+    ['ماژول ۳ — Bridging', 'مفاهیم و تنظیماتِ بریج؛ ساختِ بریج و افزودن پورت؛ بریج‌کردنِ شبکه‌های وایرلس (Station Bridge)'],
+    ['ماژول ۴ — Routing', 'مفاهیمِ مسیریابی و Route Flags؛ مسیریابیِ استاتیک؛ ساختِ مسیر و مسیرِ پیش‌فرض؛ مدیریتِ مسیرهای دینامیک؛ پیاده‌سازیِ مسیریابیِ استاتیک در یک شبکهٔ ساده'],
+    ['ماژول ۵ — Wireless', 'مفاهیمِ 802.11 a/b/g/n/ac (باند، کانال، نرخِ داده، Chain، توانِ ارسال، حساسیتِ گیرنده، مقرراتِ کشوری)؛ راه‌اندازیِ یک لینکِ وایرلسِ ساده؛ امنیت و رمزنگاریِ وایرلس؛ ابزارهای مانیتورینگ'],
+    ['ماژول ۶ — Firewall', 'اصولِ فایروال؛ Address-List پایه؛ Source NAT؛ Destination NAT؛ FastTrack'],
+    ['ماژول ۷ — QoS', 'Simple Queue؛ یک Simple Queue برای کلِ شبکه با PCQ'],
+    ['ماژول ۸ — Tunnels', 'تنظیماتِ PPP؛ IP Pool؛ امن‌سازیِ شبکهٔ محلی؛ آدرس‌دهیِ نقطه‌به‌نقطه؛ ارتباطِ امنِ شبکه‌های راه‌دور'],
+    ['ماژول ۹ — Misc', 'ابزارهای RouterOS؛ مانیتورینگ؛ نحوهٔ گرفتنِ پشتیبانی از میکروتیک']
+  ],
+  'دورهٔ MTCNA داده‌نما با مدرک رسمی بین‌المللی میکروتیک — ۹ ماژولِ رسمی از RouterOS و RouterBOARD تا DHCP، بریجینگ، مسیریابی، وایرلس، فایروال، QoS و تونل؛ کلاس تئوری و عملی به همراه آزمون آنلاین و لایسنس Level 4.'),
 
+mtc('MTCWE', 'MikroTik Certified Wireless Engineer', 'مهندسی تخصصی وایرلس',
+  '۲ روز', 'مدرکِ MTCNA',
+  [
+    ['ماژول ۱ — Wireless Installations', 'روترهای وایرلس؛ سخت‌افزارِ RouterBOARD؛ کارت‌های وایرلس؛ انواع آنتن'],
+    ['ماژول ۲ — Wireless Standard', 'استانداردهای 802.11 a/b/g/n؛ باند و پهنای کانال؛ فرکانس‌ها'],
+    ['ماژول ۳ — Wireless Tools', 'Scan؛ Frequency Usage؛ Spectral Scan و History؛ Snooper؛ Align؛ Sniffer'],
+    ['ماژول ۴ — Wireless Troubleshooting', 'عیب‌یابیِ کلاینت‌های وایرلس؛ تحلیلِ Registration Table؛ Ack-Timeout و Distance؛ CCQ؛ قدرتِ سیگنالِ TX/RX؛ Frames و HW-frames؛ Data-rates'],
+    ['ماژول ۵ — Wireless Advanced Settings', 'HW-retries؛ HW-protection؛ Adaptive Noise Immunity؛ WMM؛ تنظیماتِ مقرراتِ کشوری؛ TX-power؛ Virtual-AP'],
+    ['ماژول ۶ — 802.11n', 'ویژگی‌ها؛ Data Rates؛ Channel Bonding؛ Frame Aggregation؛ TX-power کارت‌های N؛ تنظیماتِ Chain؛ دیباگِ لینکِ وایرلس'],
+    ['ماژول ۷ — Wireless Security', 'مدیریتِ دسترسی؛ Access-List و Connect-List؛ RADIUS؛ احراز هویت؛ رمزنگاری؛ EAP؛ Management Frame Protection'],
+    ['ماژول ۸ — WDS and MESH', 'پروتکلِ WDS (دینامیک و استاتیک)؛ RSTP Bridge؛ Wireless MESH؛ HWMP+ Mesh'],
+    ['ماژول ۹ — Wireless Bridging', 'بریجِ شفافِ وایرلس؛ WDS Bridging؛ AP و Station-WDS؛ Pseudobridge؛ تونلِ MPLS/VPLS'],
+    ['ماژول ۱۰ — Nstreme Protocol', 'ویژگی‌ها؛ گزینه‌های پیکربندی؛ Nstreme Dual؛ عیب‌یابی'],
+    ['ماژول ۱۱ — Nv2 Protocol', 'ویژگی‌ها؛ گزینه‌های پیکربندی؛ عیب‌یابی']
+  ],
+  'دورهٔ MTCWE داده‌نما — ۱۱ ماژولِ رسمیِ مهندسی وایرلس میکروتیک: ابزارهای Scan و Spectral، عیب‌یابی CCQ و Registration Table، تنظیمات پیشرفته، 802.11n، امنیت، WDS و MESH، و پروتکل‌های Nstreme و Nv2.'),
+
+mtc('MTCRE', 'MikroTik Certified Routing Engineer', 'مهندسی مسیریابی',
+  '۲ روز', 'مدرکِ MTCNA',
+  [
+    ['ماژول ۱ — Static Routing', 'مسیرهای More Specific؛ ECMP؛ اجبارِ گیت‌وی روی اینترفیسِ مشخص؛ بررسیِ دسترس‌پذیریِ گیت‌وی و Route Distance؛ Routing Mark و Route Policy؛ Recursive Next-hop و کاربردِ scope و target-scope'],
+    ['ماژول ۲ — Point to Point Addressing', 'پیکربندیِ آدرس‌دهیِ نقطه‌به‌نقطه'],
+    ['ماژول ۳ — VPN', 'VPN چیست و انواعِ آن؛ اتصالِ سایت‌به‌سایت با تونل؛ IPIP، EoIP، PPTP، SSTP، L2TP، PPPoE؛ VLAN و کاربردِ آن؛ پیاده‌سازیِ QinQ؛ VLAN با سوییچِ مدیریتی و پیکربندیِ چیپِ سوییچ روی RouterBOARD'],
+    ['ماژول ۴ — OSPF', 'OSPF چیست و چگونه کار می‌کند؛ Hello Protocol؛ توزیعِ دیتابیس و انواعِ LSA؛ ساختارِ شبکه و Areaها؛ انواعِ روتر؛ همسایگی و انتخابِ DR و BDR؛ توزیعِ مسیرِ خارجی (type1 و type2)؛ هزینه و انواعِ اینترفیس؛ الگوریتمِ SPT؛ OSPF و مالتی‌کست؛ Stub و NSSA و Area Range؛ Virtual Link و محدودیت‌هایش؛ فیلترهای مسیریابیِ OSPF']
+  ],
+  'دورهٔ MTCRE داده‌نما — مهندسی مسیریابی میکروتیک در ۴ ماژولِ رسمی: مسیریابی استاتیک و ECMP، آدرس‌دهی نقطه‌به‌نقطه، انواع VPN و VLAN/QinQ، و OSPF کامل (LSA، Area، DR/BDR، Virtual Link).'),
+
+mtc('MTCTCE', 'MikroTik Certified Traffic Control Engineer', 'مهندسی کنترل پهنای باند',
+  '۲ روز', 'مدرکِ MTCNA',
+  [
+    ['ماژول ۱ — Packet Flow Diagram', 'چرا این دیاگرام لازم است؛ مرورِ کاملِ اجزای آن؛ مسیرِ عبورِ پکت با مثال‌های ساده؛ Routing؛ Bridging؛ اتصال به خودِ روتر؛ مثال‌های پیچیده‌ترِ کاربردِ دیاگرام'],
+    ['ماژول ۲ — Firewall Filter, NAT, Mangle', 'Connection Tracking؛ Filter با زنجیره‌های پیش‌فرض و سفارشی و تمامِ اکشن‌ها و شرط‌های رایج؛ NAT و NAT Helperها؛ Mangle و شرط‌های پیشرفته؛ UPnP'],
+    ['ماژول ۳ — Quality of Service', 'HTB: اطلاعاتِ عمومی، پیاده‌سازی با Queue Tree، ساختار، Dual Limitation، اولویت و Burst؛ انواعِ صف: FIFO، SFQ، RED، PCQ؛ Queue Size؛ Simple Queue و تعاملش با Queue Tree'],
+    ['ماژول ۴ — DNS Client & Cache', 'پیکربندیِ پایه؛ رکوردِ استاتیکِ DNS'],
+    ['ماژول ۵ — DHCP Client, Relay, Server', 'تحلیلِ ارتباطِ DHCP؛ شناسایی و پیکربندیِ کلاینت؛ پیکربندیِ سرور و شبکه‌های DHCP؛ آپشن‌های داخلی و سفارشی؛ IP Pool؛ DHCP پیشرفته؛ پیکربندیِ DHCP Relay'],
+    ['ماژول ۶ — Web Proxy', 'پیکربندیِ پایه؛ لیست‌های قانونِ پروکسی؛ Access List؛ Direct Access List؛ Cache List؛ عبارات باقاعده']
+  ],
+  'دورهٔ MTCTCE داده‌نما — کنترل ترافیک و پهنای باند میکروتیک در ۶ ماژولِ رسمی: Packet Flow Diagram، فایروال و NAT و Mangle، کیفیت سرویس با HTB و PCQ، DNS، DHCP و Web Proxy.'),
+
+mtc('MTCUME', 'MikroTik Certified User Management Engineer', 'مهندسی مدیریت کاربران',
+  '۲ روز', 'مدرکِ MTCNA',
+  [
+    ['ماژول ۱ — PPP', 'PPP Profile: آدرسِ محلی و راه‌دور، فیلترهای ورودی و خروجی، Address List، تغییرِ TCP-MSS، رمزنگاری، Session Timeout، Rate-limit، تنظیمِ Only-one؛ PPP Secret و سرویس و پروفایل و مسیرها و Limit Bytes؛ IP Pool و بازهٔ آدرس‌ها'],
+    ['ماژول ۲ — PPTP و L2TP', 'پیکربندیِ کلاینت و سرورِ PPTP؛ پیکربندیِ کلاینت و سرورِ L2TP'],
+    ['ماژول ۳ — PPPoE', 'سرور و کلاینتِ PPPoE؛ پیکربندیِ هرکدام؛ رمزنگاری؛ Interface ECMP'],
+    ['ماژول ۴ — Bridging', 'L2TP با EoIP؛ L2TP با VPLS؛ L2TP با BCP؛ Multilink Protocol؛ MLPPP'],
+    ['ماژول ۵ — IPsec', 'IPsec Peer؛ Policy؛ Proposal؛ Installed-SA؛ ساختِ IPsec بینِ دو روتر با NAT'],
+    ['ماژول ۶ — HotSpot', 'روش‌های ورودِ HotSpot؛ کاربران؛ مانیتورینگِ کاربران؛ Profile؛ Bypass کردنِ HotSpot؛ سفارشی‌سازیِ صفحهٔ HotSpot'],
+    ['ماژول ۷ — RADIUS', 'سرورِ RADIUS؛ User Manager؛ RADIUS Incoming']
+  ],
+  'دورهٔ MTCUME داده‌نما — مدیریت متمرکز کاربران در میکروتیک، ۷ ماژولِ رسمی: PPP و PPP Secret، PPTP و L2TP، PPPoE، بریجینگ، IPsec، HotSpot و RADIUS با User Manager.'),
+
+mtc('MTCINE', 'MikroTik Certified Inter-networking Engineer', 'مهندسی پیشرفتهٔ شبکه میکروتیک',
+  '۲ روز', 'مدارکِ MTCNA و MTCRE',
+  [
+    ['ماژول ۱ — BGP', 'Autonomous System چیست؛ پروتکلِ BGP چیست؛ الگوریتمِ Path Vector؛ Transport و انواعِ پکت؛ iBGP و eBGP؛ سناریوهای Stub و حذفِ AS خصوصی؛ سناریوهای Non-stub؛ Multi-hop و کاربردِ Loopback؛ توزیعِ مسیر و فیلترهای مسیریابی؛ الگوریتمِ انتخابِ بهترین مسیر؛ Attributeهای BGP؛ Route Reflector و Confederation'],
+    ['ماژول ۲ — MPLS', 'مبانیِ MPLS؛ Static Label Mapping؛ پروتکلِ LDP؛ Penultimate-hop-popping؛ تفاوت‌های Traceroute در MPLS؛ تونلِ VPLS مبتنی بر LDP؛ Bridge Split Horizon؛ کاربردِ Control Word؛ اهمیتِ L2MTU و فرگمنتیشن؛ VPLS مبتنی بر BGP؛ VRF و Route Leaking؛ تونلِ لایه‌سهِ مبتنی بر BGP (L3VPN)؛ OSPF به‌عنوانِ پروتکلِ CE-PE'],
+    ['ماژول ۳ — Traffic Engineering', 'مهندسیِ ترافیک چیست و چگونه کار می‌کند؛ RSVP؛ مسیرِ استاتیک و مسیرِ دینامیک (CSPF)؛ تفاوت و تنظیماتِ تخصیص و محدودسازیِ پهنای باند']
+  ],
+  'دورهٔ MTCINE داده‌نما — بالاترین سطح مدارک میکروتیک در ۳ ماژولِ رسمی: BGP کامل (Path Vector، Route Reflector، انتخاب بهترین مسیر)، MPLS و VPLS و L3VPN، و مهندسی ترافیک با RSVP و CSPF.')
 ];
 
 // ── اجرا ──────────────────────────────────────────────────────────────────
