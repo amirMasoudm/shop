@@ -2003,7 +2003,6 @@
                     <label class="block text-sm text-gray-600 mb-1">حالتِ نمایش</label>
                     <select id="irb-display-mode" onchange="onImageRowDisplayModeChange()" class="w-full p-2.5 border rounded-lg bg-white outline-none">
                         <option value="STATIC">ثابت (اسکرولِ دستی)</option>
-                        <option value="ROTATING">چرخشی (یک عکس در هر لحظه)</option>
                         <option value="MARQUEE">متحرک (نوارِ درحالِ‌حرکتِ پیوسته)</option>
                     </select>
                 </div>
@@ -4616,7 +4615,6 @@
     }
 
     function displayModeLabel(m) {
-        if (m === 'ROTATING') return 'چرخشی';
         if (m === 'MARQUEE') return 'متحرک';
         return 'ثابت';
     }
@@ -4653,10 +4651,14 @@
         return `<div class="irb-admin-row border rounded-lg p-2 flex gap-2 items-start bg-gray-50/50" data-img="${(item.imageUrl || '').replace(/"/g, '&quot;')}">
             <img src="${item.imageUrl || ''}" class="w-16 h-16 rounded-lg object-cover border bg-white shrink-0">
             <div class="flex-1 space-y-1">
+                <div class="flex gap-2 items-center">
+                    <input type="number" title="ایندکسِ نمایش (عددِ کوچک‌تر جلوتر)" placeholder="ایندکس" value="${item.position != null ? item.position : 0}"
+                           class="irb-item-position w-16 p-1.5 text-xs border rounded-lg outline-none text-center shrink-0">
+                    <input type="text" placeholder="عنوانِ عکس (اختیاری)" value="${(item.caption || '').replace(/"/g, '&quot;')}"
+                           class="irb-item-caption flex-1 p-1.5 text-xs border rounded-lg outline-none">
+                </div>
                 <input type="text" placeholder="لینک (اختیاری) — /shop/... یا https://..." value="${(item.link || '').replace(/"/g, '&quot;')}"
                        class="irb-item-link w-full p-1.5 text-xs border rounded-lg outline-none" dir="ltr">
-                <input type="text" placeholder="عنوانِ عکس (اختیاری)" value="${(item.caption || '').replace(/"/g, '&quot;')}"
-                       class="irb-item-caption w-full p-1.5 text-xs border rounded-lg outline-none">
             </div>
             <button type="button" onclick="this.closest('.irb-admin-row').remove()" class="text-red-500 hover:bg-red-50 rounded-lg px-2 py-1 text-sm shrink-0">✕</button>
         </div>`;
@@ -4670,7 +4672,8 @@
         return Array.from(document.querySelectorAll('#irb-items-list .irb-admin-row')).map(row => ({
             imageUrl: row.dataset.img,
             link: row.querySelector('.irb-item-link').value.trim() || null,
-            caption: row.querySelector('.irb-item-caption').value.trim() || null
+            caption: row.querySelector('.irb-item-caption').value.trim() || null,
+            position: Number(row.querySelector('.irb-item-position').value) || 0
         })).filter(it => it.imageUrl);
     }
 
@@ -4684,7 +4687,8 @@
             const fd = new FormData(); fd.append('file', files[i]);
             try {
                 const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
-                document.getElementById('irb-items-list').insertAdjacentHTML('beforeend', irbItemRowHtml({imageUrl: res.data}));
+                const nextPosition = document.querySelectorAll('#irb-items-list .irb-admin-row').length;
+                document.getElementById('irb-items-list').insertAdjacentHTML('beforeend', irbItemRowHtml({imageUrl: res.data, position: nextPosition}));
             } catch (e) {
                 Swal.fire('خطا', `آپلودِ «${files[i].name}» ناموفق بود`, 'error');
             }

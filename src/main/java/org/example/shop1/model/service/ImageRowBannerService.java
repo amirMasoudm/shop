@@ -2,10 +2,12 @@ package org.example.shop1.model.service;
 
 import org.example.shop1.exeption.ApiException;
 import org.example.shop1.model.entity.ImageRowBanner;
+import org.example.shop1.model.entity.ImageRowItem;
 import org.example.shop1.model.reposritory.ImageRowBannerRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -18,17 +20,28 @@ public class ImageRowBannerService {
     }
 
     public List<ImageRowBanner> getAllForAdmin() {
-        return repo.findAll();
+        return sortImagesWithin(repo.findAll());
     }
 
     public List<ImageRowBanner> getActiveByPlacement(String placement) {
-        return repo.findByPlacementAndActiveTrueOrderByPositionAsc(placement);
+        return sortImagesWithin(repo.findByPlacementAndActiveTrueOrderByPositionAsc(placement));
     }
 
     /** همه‌ی پنجره‌های فعال، هر جایگاهی — برایِ رندرِ کلاینتیِ SHOP_AFTER_SECTION
      * (مثلِ BannerService.getActiveBannersResolved که همه را می‌دهد و کلاینت فیلتر می‌کند). */
     public List<ImageRowBanner> getAllActive() {
-        return repo.findByActiveTrueOrderByPositionAsc();
+        return sortImagesWithin(repo.findByActiveTrueOrderByPositionAsc());
+    }
+
+    /** ترتیبِ عکس‌هایِ داخلِ هر پنجره را بر اساسِ ImageRowItem.position مرتب می‌کند —
+     * مستقل از ترتیبِ افزودن/آپلود، طبقِ خواسته‌ی مالک («ایندکس‌گذاری روی عکس‌ها»). */
+    private List<ImageRowBanner> sortImagesWithin(List<ImageRowBanner> groups) {
+        for (ImageRowBanner g : groups) {
+            if (g.getImages() != null) {
+                g.getImages().sort(Comparator.comparingInt(ImageRowItem::getPosition));
+            }
+        }
+        return groups;
     }
 
     public ImageRowBanner save(ImageRowBanner input) {

@@ -11,6 +11,9 @@ public class ImageRowItem {
     private String link;
     private String caption;
 
+    // ترتیبِ نمایشِ این عکس در همان ردیف — عددِ کوچک‌تر جلوتر (مستقل از ترتیبِ افزودن)
+    private int position = 0;
+
     public ImageRowItem() {}
 
     public String getImageUrl() { return imageUrl; }
@@ -21,4 +24,7 @@ public class ImageRowItem {
 
     public String getCaption() { return caption; }
     public void setCaption(String caption) { this.caption = caption; }
+
+    public int getPosition() { return position; }
+    public void setPosition(int position) { this.position = position; }
 }

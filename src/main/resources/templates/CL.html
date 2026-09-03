@@ -677,29 +677,24 @@
         }
 
         /* پنجره‌هایِ ردیفیِ بنرِ تصویری — هر عکس اندازه‌ی «کارتِ محصول» است ولی نسبتِ
-           ابعادش دینامیک/طبیعی می‌ماند (بدونِ aspect-ratioِ اجباری). */
-        .irb-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
-        .irb-head { padding: 14px 18px; font-weight: 800; font-size: 1rem; border-bottom: 1px solid var(--border); }
+           ابعادش دینامیک/طبیعی می‌ماند (بدونِ aspect-ratioِ اجباری). عنوان یک لایه‌ی
+           محوِ روی‌همِ بالایِ کارت است (نه یک نوارِ جدا)، تا خودِ عکس‌ها تا پایینِ کادر
+           کشیده شوند. */
+        .irb-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+        .irb-head {
+            position: absolute; top: 0; right: 0; left: 0; z-index: 3;
+            padding: 10px 16px 26px; font-weight: 800; font-size: .95rem; color: #fff;
+            background: linear-gradient(to bottom, rgba(0,0,0,.62), rgba(0,0,0,.22) 65%, transparent);
+            pointer-events: none;
+        }
         .irb-row { display: flex; gap: 12px; overflow-x: auto; padding: 16px 18px; scrollbar-width: none; }
         .irb-row::-webkit-scrollbar { display: none; }
         .irb-item { flex: 0 0 200px; cursor: pointer; }
         .irb-item img { width: 100%; height: auto; display: block; border-radius: 10px; border: 1px solid var(--border); }
         .irb-cap { margin-top: 6px; font-size: .82rem; color: var(--text-mid); text-align: center; }
 
-        /* حالتِ چرخشی — یک عکس در هر لحظه، چرخشِ خودکار با فاصله‌ی قابلِ‌تنظیم */
-        .irb-slider { position: relative; border-radius: 10px; overflow: hidden; background: var(--bg-soft); aspect-ratio: 16/10; max-height: 360px; margin: 16px 18px; }
-        .irb-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .irb-slide.active { opacity: 1; z-index: 1; }
-        .irb-slider .irb-slide img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .irb-slider-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.4); color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; z-index: 2; font-size: 1.2rem; line-height: 1; }
-        .irb-slider-nav:hover { background: rgba(0,0,0,.6); }
-        .irb-slider-prev { right: 10px; }
-        .irb-slider-next { left: 10px; }
-        .irb-slider-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; z-index: 2; }
-        .irb-slider-dots .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.55); cursor: pointer; padding: 0; border: none; }
-        .irb-slider-dots .dot.active { background: #fff; }
-
-        /* حالتِ متحرک — نوارِ درحالِ‌حرکتِ پیوسته (دو کپیِ پشتِ‌سرِهم برایِ حلقه‌ی بی‌درز) */
+        /* حالتِ متحرک — نوارِ درحالِ‌حرکتِ پیوسته (دو کپیِ پشتِ‌سرِهم برایِ حلقه‌ی بی‌درز:
+           با خروجِ آخرین عکس، اولین عکس بی‌فاصله وارد می‌شود) */
         .irb-marquee-wrap { overflow: hidden; padding: 16px 18px; }
         .irb-marquee-track { display: flex; gap: 12px; width: max-content; animation: irb-marquee linear infinite; }
         .irb-marquee-track:hover { animation-play-state: paused; }
@@ -1745,24 +1740,6 @@
                         </div>
                     </div>
 
-                    <div class="irb-slider" th:if="${grp.displayMode == 'ROTATING'}" th:attr="data-speed=${grp.rotationSpeedSeconds}">
-                        <div class="irb-slide" th:each="img, imgStat : ${grp.images}"
-                             th:classappend="${imgStat.index == 0} ? ' active' : ''"
-                             th:attr="data-img=${img.imageUrl},data-link=${img.link},data-caption=${img.caption}"
-                             onclick="openIrbLightbox(this)">
-                            <img th:src="${img.imageUrl}"
-                                 th:alt="${img.caption != null and !img.caption.isEmpty() ? img.caption : grp.title}"
-                                 loading="lazy" decoding="async">
-                        </div>
-                        <button type="button" class="irb-slider-nav irb-slider-prev" th:if="${grp.images.size() > 1}" onclick="irbSliderNav(this, -1)">‹</button>
-                        <button type="button" class="irb-slider-nav irb-slider-next" th:if="${grp.images.size() > 1}" onclick="irbSliderNav(this, 1)">›</button>
-                        <div class="irb-slider-dots" th:if="${grp.images.size() > 1}">
-                            <button type="button" class="dot" th:each="img, imgStat : ${grp.images}"
-                                    th:classappend="${imgStat.index == 0} ? ' active' : ''"
-                                    th:attr="onclick='irbSliderGoTo(this,' + ${imgStat.index} + ')'"></button>
-                        </div>
-                    </div>
-
                     <div class="irb-marquee-wrap" th:if="${grp.displayMode == 'MARQUEE'}">
                         <div class="irb-marquee-track" th:style="'animation-duration:' + ${grp.rotationSpeedSeconds} + 's'">
                             <div class="irb-item" th:each="img : ${grp.images}"
@@ -2712,18 +2689,7 @@
             const mode = g.displayMode || 'STATIC';
             const images = g.images || [];
             let bodyHtml;
-            if (mode === 'ROTATING') {
-                const slides = images.map((img, i) => {
-                    const q = s => (s || '').replace(/"/g, '&quot;');
-                    return `<div class="irb-slide${i === 0 ? ' active' : ''}" onclick="openIrbLightbox(this)"
-                                 data-img="${q(img.imageUrl)}" data-link="${q(img.link)}" data-caption="${q(img.caption)}">
-                                <img src="${img.imageUrl}" alt="${escapeHTML(img.caption || g.title)}" loading="lazy" decoding="async">
-                            </div>`;
-                }).join('');
-                const dots = images.length > 1 ? `<div class="irb-slider-dots">${images.map((_, i) => `<button type="button" class="dot${i === 0 ? ' active' : ''}" onclick="irbSliderGoTo(this,${i})"></button>`).join('')}</div>` : '';
-                const navs = images.length > 1 ? `<button type="button" class="irb-slider-nav irb-slider-prev" onclick="irbSliderNav(this,-1)">‹</button><button type="button" class="irb-slider-nav irb-slider-next" onclick="irbSliderNav(this,1)">›</button>` : '';
-                bodyHtml = `<div class="irb-slider" data-speed="${g.rotationSpeedSeconds || 5}">${slides}${navs}${dots}</div>`;
-            } else if (mode === 'MARQUEE') {
+            if (mode === 'MARQUEE') {
                 const set1 = images.map(img => irbItemHtml(img, g.title)).join('');
                 const set2 = images.map(img => irbItemHtml(img, g.title, 'data-dup="1" aria-hidden="true"')).join('');
                 bodyHtml = `<div class="irb-marquee-wrap"><div class="irb-marquee-track" style="animation-duration:${g.rotationSpeedSeconds || 5}s">${set1}${set2}</div></div>`;
@@ -2838,7 +2804,6 @@
     function setImageRowBanners(show) {
         const el = document.getElementById('imageRowBanners');
         if (el) el.style.display = show ? 'block' : 'none';
-        if (el && show) initIrbSliders(el);
     }
 
     // لایت‌باکسِ پنجره‌هایِ ردیفی — کلیک روی هر عکس، بزرگش می‌کند و قابلِ اسکرول به
@@ -2886,45 +2851,6 @@
     });
 
     // حالتِ چرخشیِ پنجره‌هایِ ردیفی — چرخشِ خودکار + ناوبریِ دستی (که تایمر را ریست می‌کند)
-    function irbSlideTo(sliderEl, idx) {
-        const slides = sliderEl.querySelectorAll('.irb-slide');
-        if (!slides.length) return;
-        idx = (idx + slides.length) % slides.length;
-        slides.forEach((s, i) => s.classList.toggle('active', i === idx));
-        sliderEl.querySelectorAll('.irb-slider-dots .dot').forEach((d, i) => d.classList.toggle('active', i === idx));
-        sliderEl._irbIndex = idx;
-    }
-
-    function irbRestartTimer(sliderEl) {
-        if (sliderEl._irbTimer) clearInterval(sliderEl._irbTimer);
-        const slides = sliderEl.querySelectorAll('.irb-slide');
-        if (slides.length < 2) return;
-        const speedMs = Number(sliderEl.dataset.speed || 5) * 1000;
-        sliderEl._irbTimer = setInterval(() => irbSlideTo(sliderEl, (sliderEl._irbIndex || 0) + 1), speedMs);
-    }
-
-    function irbSliderNav(btn, dir) {
-        const sliderEl = btn.closest('.irb-slider');
-        irbSlideTo(sliderEl, (sliderEl._irbIndex || 0) + dir);
-        irbRestartTimer(sliderEl);
-    }
-
-    function irbSliderGoTo(dotEl, idx) {
-        const sliderEl = dotEl.closest('.irb-slider');
-        irbSlideTo(sliderEl, idx);
-        irbRestartTimer(sliderEl);
-    }
-
-    // بعدِ هر رندر (سروری یا کلاینتی)، اسلایدرهایِ تازه را راه‌اندازی کن — idempotent
-    function initIrbSliders(root) {
-        (root || document).querySelectorAll('.irb-slider').forEach(el => {
-            if (el.dataset.irbInit) return;
-            el.dataset.irbInit = '1';
-            el._irbIndex = 0;
-            irbRestartTimer(el);
-        });
-    }
-
     // اسلایدرِ بنر — مثلِ setImageRowBanners فقط در نمای خانه دیده می‌شود، اما بدونِ
     // display:none در HTMLِ اولیه (برایِ LCP). چرخشِ خودکار فقط بعدِ کاملاً
     // بارگذاری‌شدنِ صفحه (window.load) شروع می‌شود، نه زودتر.
@@ -3044,7 +2970,6 @@
                 }
             });
             document.getElementById('landingSections').innerHTML = secHtml;
-            initIrbSliders(document.getElementById('landingSections'));
         } catch (e) {
             document.getElementById('landingSections').innerHTML = '';
         }

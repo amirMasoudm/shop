@@ -8,10 +8,8 @@ import java.util.List;
 
 /**
  * یک «پنجره»ی عنوان‌دار از عکس‌هایِ ردیفی، قابلِ‌کلیک (هر عکس لینک/عنوانِ خودش را
- * دارد، مثلِ Bannerِ اسلایدر ولی به‌جایِ چرخشِ تک‌عکسی، همه‌ی عکس‌ها کنارِ هم در یک
- * ردیفِ افقیِ اسکرول‌شدنی‌اند). placement مشخص می‌کند این پنجره کجایِ سایت بیاید
- * (مثلاً HOME یا SHOP) — همان الگویِ BannerPlacement، اینجا رشته‌ی ساده چون فعلاً
- * فقط دو جایگاه لازم است.
+ * دارد). placement مشخص می‌کند این پنجره کجایِ سایت بیاید (مثلاً HOME یا SHOP) —
+ * همان الگویِ BannerPlacement، اینجا رشته‌ی ساده چون فعلاً چند جایگاهِ ثابت کافی است.
  */
 @Document(collection = "image_row_banners")
 public class ImageRowBanner {
@@ -29,12 +27,11 @@ public class ImageRowBanner {
     private int position = 0;
     private boolean active = true;
 
-    // نحوه‌ی نمایشِ ردیف: STATIC (اسکرولِ دستی — پیش‌فرض)، ROTATING (اسلایدرِ
-    // یک‌عکسی با چرخشِ خودکار)، MARQUEE (نوارِ درحالِ‌حرکتِ پیوسته)
+    // نحوه‌ی نمایشِ ردیف: STATIC (اسکرولِ دستی — پیش‌فرض)، MARQUEE (نوارِ
+    // درحالِ‌حرکتِ پیوسته — با خروجِ آخرین عکس، اولین عکس بی‌درز وارد می‌شود)
     private String displayMode = "STATIC";
 
-    // فقط برایِ ROTATING/MARQUEE معنا دارد: ROTATING = فاصله‌ی چرخش (ثانیه)،
-    // MARQUEE = مدتِ یک دورِ کاملِ حرکت (ثانیه — عددِ بزرگ‌تر یعنی کندتر)
+    // فقط برایِ MARQUEE معنا دارد: مدتِ یک دورِ کاملِ حرکت (ثانیه — عددِ بزرگ‌تر یعنی کندتر)
     private int rotationSpeedSeconds = 5;
 
     private List<ImageRowItem> images = new ArrayList<>();
