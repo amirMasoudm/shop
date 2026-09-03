@@ -1794,6 +1794,23 @@
             </div>
 
             <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">عنوان سئو (Meta Title)</label>
+                <input type="text" id="course-seo-title" class="w-full p-2.5 border rounded-lg outline-none"
+                       placeholder="مثلاً: دوره‌ی MTCNA میکروتیک — ثبت‌نامِ آنلاین">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">لینکِ دوره (Slug - انگلیسی یا پینگلیش)</label>
+                <input type="text" id="course-slug" dir="ltr"
+                       class="w-full p-2.5 border rounded-lg outline-none text-left bg-gray-50" placeholder="mtcna-course">
+                <p class="text-[11px] text-gray-400 mt-1">اگر خالی بگذارید، سیستم به‌صورتِ خودکار از رویِ عنوانِ دوره می‌سازد.</p>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">توضیحاتِ متا (Meta Description)</label>
+                <textarea id="course-seo-desc" rows="2" class="w-full p-2.5 border rounded-lg outline-none text-xs"
+                          placeholder="توضیحِ جذاب برای نمایش در گوگل (حدود ۱۵۰ کاراکتر)..."></textarea>
+            </div>
+
+            <div class="md:col-span-2">
                 <label class="block text-sm text-gray-600 mb-1">بنرِ اختصاصیِ دوره (اختیاری)</label>
                 <label for="course-banner-file"
                        class="relative flex flex-col items-center justify-center gap-1 w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition overflow-hidden bg-gray-50">
@@ -4218,6 +4235,9 @@
         document.getElementById('course-active').value = String(c.active);
         document.getElementById('course-syllabus').value = (c.syllabus || []).join('\n');
         document.getElementById('course-description').value = c.description || '';
+        document.getElementById('course-seo-title').value = c.seoTitle || '';
+        document.getElementById('course-slug').value = c.slug || '';
+        document.getElementById('course-seo-desc').value = c.seoDescription || '';
         document.getElementById('course-banner').value = c.bannerImage || '';
         setBannerImagePreview('course-banner', c.bannerImage);
         courseModalImages = (c.images || []).slice();
@@ -4250,6 +4270,9 @@
             active: document.getElementById('course-active').value === 'true',
             syllabus: document.getElementById('course-syllabus').value.split('\n').map(s => s.trim()).filter(Boolean),
             description: document.getElementById('course-description').value.trim() || null,
+            seoTitle: document.getElementById('course-seo-title').value.trim() || null,
+            slug: document.getElementById('course-slug').value.trim() || null,
+            seoDescription: document.getElementById('course-seo-desc').value.trim() || null,
             bannerImage: document.getElementById('course-banner').value || null,
             images: courseModalImages
         };
