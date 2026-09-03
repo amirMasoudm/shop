@@ -1978,10 +1978,12 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">جایگاهِ نمایش</label>
-                    <select id="irb-placement" class="w-full p-2.5 border rounded-lg bg-white outline-none">
-                        <option value="HOME">صفحه‌ی خانه‌ی داده‌نما (/)</option>
-                        <option value="SHOP">صفحه‌ی فروشگاه (/shop)</option>
+                    <select id="irb-placement" onchange="onImageRowPlacementChange()" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+                        <option value="HOME">بالایِ صفحه‌ی خانه‌ی داده‌نما (/)</option>
+                        <option value="SHOP_TOP">بالایِ صفحه‌ی فروشگاه (/shop)</option>
+                        <option value="SHOP_AFTER_SECTION">زیرِ یک سکشنِ لندینگِ مشخص (در /shop)</option>
                     </select>
+                    <select id="irb-after-section" class="hidden w-full p-2.5 border rounded-lg bg-white outline-none mt-2"></select>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">وضعیت</label>
@@ -4587,7 +4589,10 @@
     // پنجره‌هایِ ردیفیِ بنرِ تصویری (Image Row Banners)
     // ==========================================
     function placementLabel(p) {
-        return p === 'HOME' ? 'خانه‌ی داده‌نما (/)' : (p === 'SHOP' ? 'فروشگاه (/shop)' : p);
+        if (p === 'HOME') return 'بالایِ خانه‌ی داده‌نما (/)';
+        if (p === 'SHOP_TOP') return 'بالایِ فروشگاه (/shop)';
+        if (p === 'SHOP_AFTER_SECTION') return 'زیرِ یک سکشن (/shop)';
+        return p;
     }
 
     function renderImageRowBannersTab() {
@@ -4661,11 +4666,28 @@
         input.value = '';
     }
 
+    function populateImageRowSectionSelect(selected = '') {
+        document.getElementById('irb-after-section').innerHTML = '<option value="">— انتخابِ سکشن —</option>' +
+            (state.sections || []).map(s => `<option value="${s.id}" ${s.id === selected ? 'selected' : ''}>${s.title}</option>`).join('');
+    }
+
+    function onImageRowPlacementChange() {
+        const placement = document.getElementById('irb-placement').value;
+        const sectionField = document.getElementById('irb-after-section');
+        if (placement === 'SHOP_AFTER_SECTION') {
+            sectionField.classList.remove('hidden');
+            populateImageRowSectionSelect();
+        } else {
+            sectionField.classList.add('hidden');
+        }
+    }
+
     function openImageRowModal() {
         resetForm('irb');
         renderImageRowItems([]);
         document.getElementById('irb-placement').value = 'HOME';
         document.getElementById('irb-active').value = 'true';
+        onImageRowPlacementChange();
         document.getElementById('irb-modal-title').innerText = 'پنجره‌ی جدید';
         openModal('imageRowModal');
     }
@@ -4677,6 +4699,8 @@
         document.getElementById('irb-title').value = g.title || '';
         document.getElementById('irb-placement').value = g.placement || 'HOME';
         document.getElementById('irb-active').value = String(g.active);
+        onImageRowPlacementChange();
+        if (g.placement === 'SHOP_AFTER_SECTION') populateImageRowSectionSelect(g.afterSectionId);
         renderImageRowItems(g.images || []);
         document.getElementById('irb-modal-title').innerText = 'ویرایشِ پنجره';
         openModal('imageRowModal');
@@ -4686,10 +4710,17 @@
         const title = document.getElementById('irb-title').value.trim();
         if (!title) { Swal.fire('خطا', 'عنوانِ پنجره را وارد کنید', 'error'); return; }
 
+        const placement = document.getElementById('irb-placement').value;
+        const afterSectionId = placement === 'SHOP_AFTER_SECTION' ? document.getElementById('irb-after-section').value : null;
+        if (placement === 'SHOP_AFTER_SECTION' && !afterSectionId) {
+            Swal.fire('خطا', 'سکشنِ لندینگ را انتخاب کنید', 'error'); return;
+        }
+
         const data = {
             id: document.getElementById('irb-id').value || null,
             title: title,
-            placement: document.getElementById('irb-placement').value,
+            placement: placement,
+            afterSectionId: afterSectionId,
             active: document.getElementById('irb-active').value === 'true',
             images: collectImageRowItems()
         };

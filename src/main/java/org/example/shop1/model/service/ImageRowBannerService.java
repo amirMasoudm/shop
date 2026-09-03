@@ -25,12 +25,25 @@ public class ImageRowBannerService {
         return repo.findByPlacementAndActiveTrueOrderByPositionAsc(placement);
     }
 
+    /** همه‌ی پنجره‌های فعال، هر جایگاهی — برایِ رندرِ کلاینتیِ SHOP_AFTER_SECTION
+     * (مثلِ BannerService.getActiveBannersResolved که همه را می‌دهد و کلاینت فیلتر می‌کند). */
+    public List<ImageRowBanner> getAllActive() {
+        return repo.findByActiveTrueOrderByPositionAsc();
+    }
+
     public ImageRowBanner save(ImageRowBanner input) {
         if (input.getTitle() == null || input.getTitle().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "عنوانِ پنجره الزامی است");
         }
         if (input.getPlacement() == null || input.getPlacement().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "جایگاهِ نمایش را انتخاب کنید");
+        }
+        if ("SHOP_AFTER_SECTION".equals(input.getPlacement())
+                && (input.getAfterSectionId() == null || input.getAfterSectionId().isBlank())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "برایِ نمایش زیرِ یک سکشن، باید همان سکشن را انتخاب کنید");
+        }
+        if (!"SHOP_AFTER_SECTION".equals(input.getPlacement())) {
+            input.setAfterSectionId(null);
         }
         return repo.save(input);
     }

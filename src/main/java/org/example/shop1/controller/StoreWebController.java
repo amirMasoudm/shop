@@ -158,8 +158,10 @@ public class StoreWebController {
         // ذخیره‌ی بنر) resolve می‌شوند تا تغییرِ بعدیِ نامِ محصول/دسته/مقاله لینک را نشکند.
         model.addAttribute("banners", bannerService.getHeroBannersResolved());
 
-        // پنجره‌هایِ ردیفیِ بنرِ تصویری — جایگاهِ SHOP
-        model.addAttribute("imageRowBanners", imageRowBannerService.getActiveByPlacement("SHOP"));
+        // پنجره‌هایِ ردیفیِ بنرِ تصویری — فقط جایگاهِ بالایِ صفحه (SHOP_TOP)؛ حالتِ
+        // SHOP_AFTER_SECTION مثلِ AFTER_SECTIONِ بنر، کاملاً کلاینتی رندر می‌شود
+        // (کنارِ سکشن‌های لندینگ که خودشان هم SSR نیستند).
+        model.addAttribute("imageRowBanners", imageRowBannerService.getActiveByPlacement("SHOP_TOP"));
 
         return "CL";
     }

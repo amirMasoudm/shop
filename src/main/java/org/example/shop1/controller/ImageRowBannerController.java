@@ -18,10 +18,11 @@ public class ImageRowBannerController {
         this.service = service;
     }
 
-    // --- عمومی ---
+    // --- عمومی --- همه‌ی پنجره‌های فعال (هر جایگاهی)؛ کلاینت خودش بر اساسِ
+    // placement/afterSectionId فیلتر می‌کند (دقیقاً مثلِ /api/v1/banners/active).
     @GetMapping("/active")
-    public List<ImageRowBanner> active(@RequestParam String placement) {
-        return service.getActiveByPlacement(placement);
+    public List<ImageRowBanner> active() {
+        return service.getAllActive();
     }
 
     // --- ادمین ---

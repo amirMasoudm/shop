@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ImageRowBannerRepository extends MongoRepository<ImageRowBanner, String> {
     List<ImageRowBanner> findByPlacementAndActiveTrueOrderByPositionAsc(String placement);
+    List<ImageRowBanner> findByActiveTrueOrderByPositionAsc();
 }

@@ -1957,6 +1957,11 @@
         fetch(`${API}/api/v1/banners/active`).then(r => r.json()).then(b => {
             state.allBanners = b;
         }).catch(() => { state.allBanners = []; });
+        // پنجره‌هایِ ردیفیِ بنرِ تصویری — همان الگو: SHOP_TOP قبلاً SSR شده،
+        // SHOP_AFTER_SECTION اینجا (loadHome) کنارِ سکشن‌ها رندر می‌شود.
+        fetch(`${API}/api/v1/image-row-banners/active`).then(r => r.json()).then(g => {
+            state.allImageRowBanners = g;
+        }).catch(() => { state.allImageRowBanners = []; });
         // آستانه‌ی استعلام پیش‌فاکتور (RFQ)؛ ۰ یعنی غیرفعال
         fetch(`${API}/api/v1/settings/rfq-threshold`).then(r => r.json()).then(d => {
             state.rfqThreshold = Number(d.threshold || 0);
@@ -2630,6 +2635,25 @@
         }).join('');
     }
 
+    // پنجره‌هایِ ردیفیِ بنرِ تصویری با جایگاهِ SHOP_AFTER_SECTION — همان الگویِ
+    // renderSectionBanners، فقط مارک‌آپش irb-* است (همان کلاس‌هایِ بلوکِ SSR بالای فایل).
+    function renderSectionImageRows(sectionId) {
+        const groups = (state.allImageRowBanners || []).filter(g => g.placement === 'SHOP_AFTER_SECTION' && g.afterSectionId === sectionId);
+        if (!groups.length) return '';
+        return groups.map(g => `
+            <div class="irb-card">
+                <div class="irb-head">${escapeHTML(g.title)}</div>
+                <div class="irb-row">
+                    ${(g.images || []).map(img => `
+                        <div class="irb-item" onclick="openIrbLightbox(this)"
+                             data-img="${(img.imageUrl || '').replace(/"/g, '&quot;')}" data-link="${(img.link || '').replace(/"/g, '&quot;')}" data-caption="${(img.caption || '').replace(/"/g, '&quot;')}">
+                            <img src="${img.imageUrl}" alt="${escapeHTML(img.caption || g.title)}" loading="lazy" decoding="async">
+                            ${img.caption ? `<div class="irb-cap">${escapeHTML(img.caption)}</div>` : ''}
+                        </div>`).join('')}
+                </div>
+            </div>`).join('');
+    }
+
     function renderDesktopMenu(items) {
         const build = (list) => list.map(item => {
             const slug = item.slug || item.id;
@@ -2893,6 +2917,7 @@
                 if (ps.length) {
                     secHtml += `<div class="dynamic-section"><div class="section-color-bar" style="background:${sec.stickerColor}"></div><div class="section-header"><span>${sec.title}</span><button onclick="loadSection('${sec.id}','${sec.title}')" style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer;">همه محصولات ❯</button></div><div class="section-slider">${ps.map(p => renderCard(p, [sec])).join('')}</div></div>`;
                     secHtml += renderSectionBanners(sec.id);
+                    secHtml += renderSectionImageRows(sec.id);
                 }
             });
             document.getElementById('landingSections').innerHTML = secHtml;
