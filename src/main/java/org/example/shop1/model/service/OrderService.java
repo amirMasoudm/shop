@@ -4,8 +4,10 @@ import org.example.shop1.exeption.InsufficientStockException;
 import org.example.shop1.model.dto.OrderRequestDto;
 import org.example.shop1.model.dto.ShippingOption;
 import org.example.shop1.model.entity.*;
+import org.example.shop1.model.enums.OrderItemType;
 import org.example.shop1.model.enums.OrderStatus;
 import org.example.shop1.model.enums.Role;
+import org.example.shop1.model.reposritory.CourseRepository;
 import org.example.shop1.model.reposritory.OrderRepository;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.example.shop1.model.reposritory.UserRepository;
@@ -37,16 +39,18 @@ public class OrderService {
 
     private final OrderRepository orderRepo;
     private final ProductRepository productRepo;
+    private final CourseRepository courseRepo;
     private final UserRepository userRepo;
     private final ShippingService shippingService;
     private final MellatGatewayService mellatGatewayService;
     private final PaymentRefNumberGenerator paymentRefNumberGenerator;
 
-    public OrderService(OrderRepository orderRepo, ProductRepository productRepo, UserRepository userRepo,
-                        ShippingService shippingService, MellatGatewayService mellatGatewayService,
+    public OrderService(OrderRepository orderRepo, ProductRepository productRepo, CourseRepository courseRepo,
+                        UserRepository userRepo, ShippingService shippingService, MellatGatewayService mellatGatewayService,
                         PaymentRefNumberGenerator paymentRefNumberGenerator) {
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;
+        this.courseRepo = courseRepo;
         this.userRepo = userRepo;
         this.shippingService = shippingService;
         this.mellatGatewayService = mellatGatewayService;
@@ -123,17 +127,43 @@ public class OrderService {
         BigDecimal itemsTotal = BigDecimal.ZERO;
 
         for (OrderRequestDto.CartItemDto itemDto : dtos) {
-            Product product = productRepo.findById(itemDto.getProductId()).orElseThrow(() -> new RuntimeException("محصول پیدا نشد"));
+            OrderItem orderItem;
+            BigDecimal lineTotal;
 
-            BigDecimal finalPrice = product.getOnlinePrice() != null ? product.getOnlinePrice() : product.getPrice();
-            if (product.getDiscountPercent() != null && product.getDiscountPercent() > 0) {
-                BigDecimal discount = finalPrice.multiply(BigDecimal.valueOf(product.getDiscountPercent())).divide(BigDecimal.valueOf(100));
-                finalPrice = finalPrice.subtract(discount);
+            if (itemDto.getItemType() == OrderItemType.COURSE) {
+                // 🔴 دوره از همان خطِ لولهٔ فروش رد می‌شود، ولی موجودیتِ جداست — طبقِ
+                // docs/prompt-tech-chat-course-system.md. تخفیفِ محصول اینجا معنا ندارد.
+                Course course = courseRepo.findById(itemDto.getProductId())
+                        .orElseThrow(() -> new RuntimeException("دوره پیدا نشد"));
+                if (!course.isActive()) {
+                    throw new RuntimeException("این دوره دیگر برایِ ثبت‌نام باز نیست: " + course.getTitle());
+                }
+                BigDecimal price = course.getPrice() != null ? course.getPrice() : BigDecimal.ZERO;
+                String img = course.getBannerImage() != null && !course.getBannerImage().isBlank()
+                        ? course.getBannerImage()
+                        : (course.getImages() != null && !course.getImages().isEmpty() ? course.getImages().get(0) : null);
+
+                orderItem = new OrderItem(course.getId(), course.getTitle(), img, price, itemDto.getQuantity());
+                orderItem.setItemType(OrderItemType.COURSE);
+                orderItem.setCourseMode(course.getMode());
+                lineTotal = price.multiply(BigDecimal.valueOf(itemDto.getQuantity()));
+            } else {
+                Product product = productRepo.findById(itemDto.getProductId()).orElseThrow(() -> new RuntimeException("محصول پیدا نشد"));
+
+                BigDecimal finalPrice = product.getOnlinePrice() != null ? product.getOnlinePrice() : product.getPrice();
+                if (product.getDiscountPercent() != null && product.getDiscountPercent() > 0) {
+                    BigDecimal discount = finalPrice.multiply(BigDecimal.valueOf(product.getDiscountPercent())).divide(BigDecimal.valueOf(100));
+                    finalPrice = finalPrice.subtract(discount);
+                }
+
+                String img = (product.getImages() != null && !product.getImages().isEmpty()) ? product.getImages().get(0) : null;
+                orderItem = new OrderItem(product.getId(), product.getName(), img, finalPrice, itemDto.getQuantity());
+                orderItem.setItemType(OrderItemType.PRODUCT);
+                lineTotal = finalPrice.multiply(BigDecimal.valueOf(itemDto.getQuantity()));
             }
 
-            String img = (product.getImages() != null && !product.getImages().isEmpty()) ? product.getImages().get(0) : null;
-            orderItems.add(new OrderItem(product.getId(), product.getName(), img, finalPrice, itemDto.getQuantity()));
-            itemsTotal = itemsTotal.add(finalPrice.multiply(BigDecimal.valueOf(itemDto.getQuantity())));
+            orderItems.add(orderItem);
+            itemsTotal = itemsTotal.add(lineTotal);
         }
 
         order.setItems(orderItems);
@@ -160,6 +190,7 @@ public class OrderService {
         Order order = getOwnedOrder(orderId);
         double totalWeight = 0;
         for (OrderItem item : order.getItems()) {
+            if (item.getItemType() == OrderItemType.COURSE) continue; // دوره وزن ندارد، پست نمی‌شود
             Product product = productRepo.findById(item.getProductId()).orElse(null);
             if (product != null && product.getWeight() != null) {
                 totalWeight += (product.getWeight() * item.getQuantity());
@@ -187,6 +218,22 @@ public class OrderService {
 
         while (iterator.hasNext()) {
             OrderItem item = iterator.next();
+
+            if (item.getItemType() == OrderItemType.COURSE) {
+                Course course = courseRepo.findById(item.getProductId())
+                        .orElseThrow(() -> new RuntimeException("دوره پیدا نشد: " + item.getProductName()));
+                int remaining = course.getRemainingCapacity();
+                if (!course.isActive() || remaining < item.getQuantity()) {
+                    stockModified = true;
+                    if (!course.isActive() || remaining <= 0) {
+                        iterator.remove();
+                    } else {
+                        item.setQuantity(remaining);
+                    }
+                }
+                continue;
+            }
+
             Product product = productRepo.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("محصول پیدا نشد: " + item.getProductName()));
 
@@ -434,6 +481,18 @@ public class OrderService {
         // =========================================================================
         if (status == OrderStatus.PAID_PREPARING && order.getStatus() != OrderStatus.PAID_PREPARING) {
             for (OrderItem item : order.getItems()) {
+                if (item.getItemType() == OrderItemType.COURSE) {
+                    // به‌جایِ کاهشِ موجودیِ کالا، ظرفیتِ کلاس پر می‌شود (enrolledCount زیاد می‌شود)
+                    Course course = courseRepo.findById(item.getProductId())
+                            .orElseThrow(() -> new RuntimeException("دوره پیدا نشد: " + item.getProductName()));
+                    if (course.getRemainingCapacity() < item.getQuantity()) {
+                        throw new RuntimeException("متأسفانه در زمانِ پرداخت، ظرفیتِ دوره تکمیل شد: " + course.getTitle());
+                    }
+                    course.setEnrolledCount(course.getEnrolledCount() + item.getQuantity());
+                    courseRepo.save(course);
+                    continue;
+                }
+
                 Product product = productRepo.findById(item.getProductId())
                         .orElseThrow(() -> new RuntimeException("محصول پیدا نشد: " + item.getProductName()));
 
@@ -450,6 +509,30 @@ public class OrderService {
         // =========================================================================
 
         order.setStatus(status);
+        return orderRepo.save(order);
+    }
+
+    /**
+     * ثبتِ دستیِ لایسنس/لینکِ دانلودِ اسپات‌پلیر برایِ یک قلمِ دوره‌ی آنلاینِ داخلِ یک سفارش —
+     * طبقِ تصمیمِ مالک (docs/prompt-tech-chat-course-system.md، بخشِ ۵) کاملاً دستی است،
+     * بدونِ اتصال به APIِ اسپات‌پلیر. فقط ادمین (کنترلرِ رده‌بندی می‌کند).
+     */
+    @Transactional
+    public Order setItemLicense(String orderId, String courseId, String licenseKey, String downloadLink) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("سفارش یافت نشد"));
+
+        boolean found = false;
+        for (OrderItem item : order.getItems()) {
+            if (item.getItemType() == OrderItemType.COURSE && courseId.equals(item.getProductId())) {
+                item.setLicenseKey(licenseKey);
+                item.setDownloadLink(downloadLink);
+                found = true;
+            }
+        }
+        if (!found) {
+            throw new RuntimeException("قلمِ دوره در این سفارش پیدا نشد");
+        }
         return orderRepo.save(order);
     }
 }

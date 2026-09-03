@@ -155,4 +155,17 @@ public class OrderController {
         }
     }
 
+    // ثبتِ دستیِ لایسنس/لینکِ دانلودِ اسپات‌پلیر برایِ یک قلمِ دوره‌ی آنلاین — فقط ادمین
+    @PutMapping("/admin/{orderId}/items/{courseId}/license")
+    public ResponseEntity<?> setItemLicense(
+            @PathVariable String orderId, @PathVariable String courseId,
+            @RequestBody Map<String, String> body) {
+        try {
+            return ResponseEntity.ok(orderService.setItemLicense(
+                    orderId, courseId, body.get("licenseKey"), body.get("downloadLink")));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

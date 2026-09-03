@@ -390,6 +390,10 @@
 
         <!-- ===== بخش: مدیریتِ آموزش ===== -->
         <div id="section-group-education" class="admin-section-group space-y-1 hidden">
+        <div onclick="switchTab('courses')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>🎓</span> دوره‌ها
+        </div>
         <div onclick="switchTab('education')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🖼️</span> آرشیو تصویری کلاس‌ها
@@ -641,7 +645,22 @@
         <div id="home-banners-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
     </div>
 
-    <!-- 4c. آرشیوِ تصویریِ آموزش -->
+    <!-- 4c. دوره‌های آموزشی (حضوری/آنلاین) -->
+    <div id="tab-courses" class="hidden-section fade-in">
+        <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">دوره‌های آموزشی</h2>
+                <p class="text-xs text-gray-400 mt-1">دوره‌ی حضوری و آنلاین — از همان سبد/تسویه‌حسابِ فروشگاه خریداری می‌شود. لایسنسِ اسپات‌پلیرِ دوره‌های آنلاین از تبِ «مدیریت سفارشات» روی سفارشِ پرداخت‌شده ثبت می‌شود.</p>
+            </div>
+            <button onclick="openCourseModal()"
+                    class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 flex items-center justify-center gap-2">
+                <span>✨</span> دوره‌ی جدید
+            </button>
+        </div>
+        <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- 4d. آرشیوِ تصویریِ آموزش -->
     <div id="tab-education" class="hidden-section fade-in">
         <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
             <div>
@@ -1703,6 +1722,117 @@
     </div>
 </div>
 
+<!-- Course Modal (دوره‌های آموزشی) -->
+<div id="courseModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-4">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col" style="max-height:90vh;">
+        <div data-drag-handle class="shrink-0 flex justify-between items-center px-5 py-4 bg-gray-800 text-white rounded-t-2xl select-none">
+            <h3 id="course-modal-title" class="text-lg font-bold">دوره‌ی جدید</h3>
+            <button onclick="closeModalSafe('courseModal')" class="text-white/70 hover:text-white text-2xl font-bold leading-none px-1 outline-none">✕</button>
+        </div>
+        <input type="hidden" id="course-id">
+        <div class="flex-1 overflow-y-auto px-5 md:px-6 py-4 md:py-5" style="min-height:0;">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">عنوانِ دوره <span class="text-red-500">*</span></label>
+                <input type="text" id="course-title" placeholder="مثلاً: دوره‌ی مقدماتیِ میکروتیک (MTCNA)"
+                       class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">حالتِ برگزاری</label>
+                <select id="course-mode" onchange="onCourseModeChange()" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+                    <option value="IN_PERSON">حضوری</option>
+                    <option value="ONLINE">آنلاین (اسپات‌پلیر)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">مدرس</label>
+                <input type="text" id="course-instructor" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div id="course-location-wrap">
+                <label class="block text-sm text-gray-600 mb-1">مکانِ برگزاری (حضوری)</label>
+                <input type="text" id="course-location" placeholder="مثلاً: اصفهان، خیابان آبان" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">ظرفیتِ کلاس <span class="text-red-500">*</span></label>
+                <input type="number" id="course-capacity" min="1" value="20" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">تاریخِ شروع (آزاد، مثلاً «تیر ۱۴۰۵»)</label>
+                <input type="text" id="course-start-date" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">تاریخِ پایان (آزاد)</label>
+                <input type="text" id="course-end-date" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">ساعتِ تئوری</label>
+                <input type="number" id="course-theory-hours" min="0" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">ساعتِ عملی</label>
+                <input type="number" id="course-practical-hours" min="0" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">قیمت (تومان) <span class="text-red-500">*</span></label>
+                <input type="number" id="course-price" min="0" class="w-full p-2.5 border rounded-lg outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">وضعیت</label>
+                <select id="course-active" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+                    <option value="true">فعال (قابلِ ثبت‌نام)</option>
+                    <option value="false">غیرفعال</option>
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">سرفصل‌ها (هر خط یک سرفصل)</label>
+                <textarea id="course-syllabus" rows="4" class="w-full p-2.5 border rounded-lg outline-none"></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">توضیحات</label>
+                <textarea id="course-description" rows="3" class="w-full p-2.5 border rounded-lg outline-none"></textarea>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">بنرِ اختصاصیِ دوره (اختیاری)</label>
+                <label for="course-banner-file"
+                       class="relative flex flex-col items-center justify-center gap-1 w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition overflow-hidden bg-gray-50">
+                    <img id="course-banner-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden">
+                    <span id="course-banner-placeholder" class="flex flex-col items-center gap-1 text-gray-400 text-xs pointer-events-none px-2 text-center">
+                        <span class="text-2xl">🖼️</span><span>برای انتخاب بنر کلیک کنید</span>
+                    </span>
+                    <span id="course-banner-hint"
+                          class="hidden absolute bottom-0 inset-x-0 bg-black/55 text-white text-[10px] text-center py-1 pointer-events-none">برای تغییرِ بنر کلیک کنید</span>
+                </label>
+                <input type="file" id="course-banner-file" accept="image/*" class="hidden" onchange="uploadCourseBanner(this)">
+                <input type="hidden" id="course-banner">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">عکس‌هایِ دوره (می‌توانید چند عکس با هم انتخاب کنید)</label>
+                <div id="course-images-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2"></div>
+                <label for="course-image-file"
+                       class="flex items-center justify-center gap-2 w-full h-16 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition text-gray-400 text-xs">
+                    <span id="course-upload-label">➕ افزودنِ عکس (چندتایی مجاز است)</span>
+                </label>
+                <input type="file" id="course-image-file" accept="image/*" multiple class="hidden" onchange="uploadCourseImages(this)">
+                <p class="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                    ⚠️ طبقِ قانونِ فروشگاه، هیچ شماره تماس، ایمیل یا لینکِ شبکه‌ی اجتماعی — نه در عکس‌ها نه در توضیحات. ثبت‌نام فقط از مسیرِ خریدِ خودِ سایت.
+                </p>
+            </div>
+        </div>
+        </div>
+        <div class="shrink-0 flex flex-col md:flex-row justify-end gap-3 px-5 py-4 border-t bg-white rounded-b-2xl">
+            <button onclick="closeModalSafe('courseModal')"
+                    class="w-full md:w-auto px-4 py-2 text-gray-500 border rounded-lg">انصراف
+            </button>
+            <button onclick="saveCourseItem()"
+                    class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">ذخیره
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Article Modal (مقالات بلاگ) -->
 <div id="articleModal"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-4">
@@ -1861,6 +1991,7 @@
         sections: [],
         banners: [],
         education: [],
+        courses: [],
         orders: [],
         comments: [],
         currentCommentStatus: 'PENDING',
@@ -2059,7 +2190,7 @@
     // ============================================================
     // سیستمِ مودالِ پیشرفته: backdrop-close، dirty-check، resize
     // ============================================================
-    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'bannerModal', 'educationModal', 'articleModal', 'staffModal']);
+    const FORM_MODALS = new Set(['productModal', 'categoryModal', 'sectionModal', 'bannerModal', 'educationModal', 'courseModal', 'articleModal', 'staffModal']);
     const _modalSnap = {};
 
     function snapshotModalForm(id) {
@@ -2211,12 +2342,13 @@
     async function fetchAllData() {
         toggleLoader(true);
         try {
-            const [prods, cats, secs, banners, education] = await Promise.all([
+            const [prods, cats, secs, banners, education, courses] = await Promise.all([
                 axios.get(`${API}/v1/products/admin`),
                 axios.get(`${API}/categories/tree?type=ONLINE`),
                 axios.get(`${API}/v1/landing-sections/admin`),
                 axios.get(`${API}/v1/banners/admin`),
-                axios.get(`${API}/v1/education-archive/admin`)
+                axios.get(`${API}/v1/education-archive/admin`),
+                axios.get(`${API}/v1/courses/admin/all`)
             ]);
 
             state.products = prods.data;
@@ -2225,6 +2357,7 @@
             state.sections = secs.data;
             state.banners = banners.data;
             state.education = education.data;
+            state.courses = courses.data;
 
             try {
                 const ordersRes = await axios.get(`${API}/orders/admin/all`);
@@ -2240,6 +2373,7 @@
             renderSections();
             renderBanners();
             renderEducation();
+            renderCourses();
 
         } catch (err) {
             console.error(err);
@@ -2431,18 +2565,45 @@
             </div>
             <div class="space-y-2 mt-4">
                 <p class="font-bold text-indigo-700 mb-2 text-xs md:text-sm">🛒 اقلام سفارش:</p>
-                ${o.items.map(item => `
-                    <div class="flex justify-between items-center bg-gray-50 p-2 md:p-3 rounded-lg border">
-                        <div class="flex items-center gap-3">
-                            <img src="${item.imageUrl || FALLBACK_IMG}" class="w-10 h-10 rounded object-cover border shadow-sm">
-                            <div class="w-32 md:w-auto truncate"><p class="font-bold text-[10px] md:text-xs truncate">${item.productName}</p><p class="text-[9px] md:text-[10px] text-gray-500">${item.unitPrice.toLocaleString()} ت</p></div>
+                ${o.items.map((item, idx) => `
+                    <div class="bg-gray-50 p-2 md:p-3 rounded-lg border">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <img src="${item.productImage || FALLBACK_IMG}" class="w-10 h-10 rounded object-cover border shadow-sm">
+                                <div class="w-32 md:w-auto truncate">
+                                    <p class="font-bold text-[10px] md:text-xs truncate">${escapeHTML(item.productName)} ${item.itemType === 'COURSE' ? `<span class="text-[9px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">دوره${item.courseMode === 'ONLINE' ? ' — آنلاین' : ' — حضوری'}</span>` : ''}</p>
+                                    <p class="text-[9px] md:text-[10px] text-gray-500">${item.unitPrice.toLocaleString()} ت</p>
+                                </div>
+                            </div>
+                            <div class="text-xs font-black bg-white px-2 py-1 rounded border shadow-sm">x ${item.quantity}</div>
                         </div>
-                        <div class="text-xs font-black bg-white px-2 py-1 rounded border shadow-sm">x ${item.quantity}</div>
+                        ${item.itemType === 'COURSE' && item.courseMode === 'ONLINE' ? `
+                        <div class="mt-2 pt-2 border-t grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input type="text" id="lic-key-${o.id}-${idx}" placeholder="کلیدِ لایسنسِ اسپات‌پلیر" value="${escapeHTML(item.licenseKey || '')}"
+                                   class="text-[11px] p-1.5 border rounded-lg outline-none" dir="ltr">
+                            <input type="text" id="lic-link-${o.id}-${idx}" placeholder="لینکِ دانلود" value="${escapeHTML(item.downloadLink || '')}"
+                                   class="text-[11px] p-1.5 border rounded-lg outline-none" dir="ltr">
+                            <button onclick="saveItemLicense('${o.id}', '${item.productId}', '${o.id}-${idx}')"
+                                    class="md:col-span-2 text-[11px] bg-indigo-600 text-white py-1.5 rounded-lg font-bold hover:bg-indigo-700">ذخیره‌ی لایسنس</button>
+                        </div>` : ''}
                     </div>
                 `).join('')}
             </div>
         `;
         openModal('orderDetailsModal');
+    }
+
+    // ثبتِ دستیِ لایسنس/لینکِ دانلودِ اسپات‌پلیر برایِ یک قلمِ دوره‌ی آنلاینِ داخلِ سفارش
+    async function saveItemLicense(orderId, courseId, inputSuffix) {
+        const licenseKey = document.getElementById(`lic-key-${inputSuffix}`).value.trim();
+        const downloadLink = document.getElementById(`lic-link-${inputSuffix}`).value.trim();
+        try {
+            await axios.put(`${API}/orders/admin/${orderId}/items/${courseId}/license`, {licenseKey, downloadLink});
+            Swal.fire({icon: 'success', title: 'لایسنس ذخیره شد', timer: 1200, showConfirmButton: false});
+            fetchAllData();
+        } catch (e) {
+            Swal.fire('خطا', (e.response && e.response.data) || 'ذخیره‌ی لایسنس ناموفق بود', 'error');
+        }
     }
 
     // ==========================================
@@ -3934,6 +4095,168 @@
         axios.post(`${API}/v1/education-archive`, data)
             .then(() => { closeModal('educationModal'); fetchAllData(); Swal.fire({icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false}); })
             .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'ذخیره‌ی عکس‌ها ناموفق بود', 'error'));
+    }
+
+    // ==========================================
+    // دوره‌های آموزشی (Courses) — از همان سبد/تسویه‌حسابِ فروشگاه خریداری می‌شود
+    // ==========================================
+    function courseStatusInfo(c) {
+        if (!c.active) return {label: 'غیرفعال', cls: 'bg-gray-100 text-gray-500'};
+        if ((c.enrolledCount || 0) >= (c.capacity || 0)) return {label: 'ظرفیت تکمیل', cls: 'bg-red-100 text-red-700'};
+        return {label: 'ثبت‌نام باز', cls: 'bg-green-100 text-green-700'};
+    }
+
+    function renderCourses() {
+        document.getElementById('courses-container').innerHTML = (state.courses || []).map(c => {
+            const st = courseStatusInfo(c);
+            const cover = c.bannerImage || (c.images && c.images[0]) || '';
+            return `
+            <div class="bg-white rounded-xl shadow-sm border p-4 md:p-5 relative overflow-hidden group hover:shadow-md transition">
+                <img src="${cover}" class="w-full h-28 object-cover rounded-lg bg-gray-100" onerror="this.src='${FALLBACK_IMG}'">
+                <h4 class="font-bold text-sm md:text-base text-gray-800 mt-3">${escapeHTML(c.title || '(بدون عنوان)')}</h4>
+                <div class="mt-2 flex gap-2 text-[10px] md:text-xs text-gray-500 flex-wrap">
+                    <span class="px-2 py-1 rounded ${st.cls}">${st.label}</span>
+                    <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${c.mode === 'ONLINE' ? 'آنلاین' : 'حضوری'}</span>
+                    <span class="bg-gray-100 px-2 py-1 rounded">${c.enrolledCount || 0} / ${c.capacity || 0} نفر</span>
+                    <span class="bg-gray-100 px-2 py-1 rounded">${Number(c.price || 0).toLocaleString()} ت</span>
+                </div>
+                <div class="mt-4 flex gap-2 border-t pt-3">
+                    <button onclick='editCourseItem("${c.id}")' class="flex-1 bg-indigo-50 text-indigo-700 py-1.5 md:py-2 rounded text-xs md:text-sm hover:bg-indigo-100 font-bold transition">ویرایش</button>
+                    <button onclick="deleteItem('v1/courses/admin', '${c.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 rounded hover:bg-red-100 transition">🗑️</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function onCourseModeChange() {
+        const online = document.getElementById('course-mode').value === 'ONLINE';
+        document.getElementById('course-location-wrap').classList.toggle('hidden', online);
+    }
+
+    // آرایه‌ی عکس‌هایِ دوره که الان داخلِ مودال در حالِ ساخت/ویرایش است — دقیقاً همان
+    // الگویِ eduModalImages (آرشیوِ آموزش)، اینجا برایِ فیلدِ images دوره.
+    let courseModalImages = [];
+
+    function renderCourseImagesGrid() {
+        document.getElementById('course-images-grid').innerHTML = courseModalImages.map((url, i) => `
+            <div class="relative group/img">
+                <img src="${url}" class="w-full h-16 object-cover rounded-lg border" onerror="this.src='${FALLBACK_IMG}'">
+                <button type="button" onclick="removeCourseImage(${i})"
+                        class="absolute -top-1.5 -left-1.5 w-5 h-5 flex items-center justify-center bg-red-500 text-white rounded-full text-[10px] shadow hover:bg-red-600">✕</button>
+            </div>
+        `).join('');
+    }
+
+    function removeCourseImage(index) {
+        courseModalImages.splice(index, 1);
+        renderCourseImagesGrid();
+    }
+
+    async function uploadCourseImages(input) {
+        if (!input.files || !input.files.length) return;
+        const label = document.getElementById('course-upload-label');
+        const labelOriginal = label.innerText;
+        const files = Array.from(input.files);
+        for (let i = 0; i < files.length; i++) {
+            label.innerText = `در حال آپلود... (${i + 1}/${files.length})`;
+            const fd = new FormData(); fd.append('file', files[i]);
+            try {
+                const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
+                courseModalImages.push(res.data);
+                renderCourseImagesGrid();
+            } catch (e) {
+                Swal.fire('خطا', `آپلودِ «${files[i].name}» ناموفق بود`, 'error');
+            }
+        }
+        label.innerText = labelOriginal;
+        input.value = '';
+    }
+
+    async function uploadCourseBanner(input) {
+        if (!input.files || !input.files[0]) return;
+        const placeholder = document.getElementById('course-banner-placeholder');
+        const placeholderOriginal = placeholder.innerHTML;
+        placeholder.innerHTML = '<span class="text-xs text-gray-400">در حال آپلود...</span>';
+        const fd = new FormData(); fd.append('file', input.files[0]);
+        try {
+            const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
+            document.getElementById('course-banner').value = res.data;
+            setBannerImagePreview('course-banner', res.data);
+        } catch (e) {
+            placeholder.innerHTML = placeholderOriginal;
+            Swal.fire('خطا', 'آپلود بنر ناموفق بود', 'error');
+        }
+    }
+
+    function openCourseModal() {
+        resetForm('course');
+        document.getElementById('course-mode').value = 'IN_PERSON';
+        document.getElementById('course-active').value = 'true';
+        document.getElementById('course-capacity').value = '20';
+        courseModalImages = [];
+        renderCourseImagesGrid();
+        setBannerImagePreview('course-banner', null);
+        onCourseModeChange();
+        document.getElementById('course-modal-title').innerText = 'دوره‌ی جدید';
+        openModal('courseModal');
+    }
+
+    function editCourseItem(id) {
+        const c = (state.courses || []).find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('course-id').value = c.id;
+        document.getElementById('course-title').value = c.title || '';
+        document.getElementById('course-mode').value = c.mode || 'IN_PERSON';
+        document.getElementById('course-instructor').value = c.instructor || '';
+        document.getElementById('course-location').value = c.location || '';
+        document.getElementById('course-capacity').value = c.capacity || 0;
+        document.getElementById('course-start-date').value = c.startDate || '';
+        document.getElementById('course-end-date').value = c.endDate || '';
+        document.getElementById('course-theory-hours').value = c.theoryHours != null ? c.theoryHours : '';
+        document.getElementById('course-practical-hours').value = c.practicalHours != null ? c.practicalHours : '';
+        document.getElementById('course-price').value = c.price || 0;
+        document.getElementById('course-active').value = String(c.active);
+        document.getElementById('course-syllabus').value = (c.syllabus || []).join('\n');
+        document.getElementById('course-description').value = c.description || '';
+        document.getElementById('course-banner').value = c.bannerImage || '';
+        setBannerImagePreview('course-banner', c.bannerImage);
+        courseModalImages = (c.images || []).slice();
+        renderCourseImagesGrid();
+        onCourseModeChange();
+        document.getElementById('course-modal-title').innerText = 'ویرایشِ دوره';
+        openModal('courseModal');
+    }
+
+    function saveCourseItem() {
+        const title = document.getElementById('course-title').value.trim();
+        const capacity = Number(document.getElementById('course-capacity').value) || 0;
+        const price = Number(document.getElementById('course-price').value);
+        if (!title) { Swal.fire('خطا', 'عنوانِ دوره را وارد کنید', 'error'); return; }
+        if (capacity <= 0) { Swal.fire('خطا', 'ظرفیتِ دوره باید عددی بزرگ‌تر از صفر باشد', 'error'); return; }
+        if (isNaN(price) || price < 0) { Swal.fire('خطا', 'قیمتِ دوره را وارد کنید', 'error'); return; }
+
+        const data = {
+            id: document.getElementById('course-id').value || null,
+            title: title,
+            mode: document.getElementById('course-mode').value,
+            instructor: document.getElementById('course-instructor').value.trim() || null,
+            location: document.getElementById('course-location').value.trim() || null,
+            capacity: capacity,
+            startDate: document.getElementById('course-start-date').value.trim() || null,
+            endDate: document.getElementById('course-end-date').value.trim() || null,
+            theoryHours: document.getElementById('course-theory-hours').value ? Number(document.getElementById('course-theory-hours').value) : null,
+            practicalHours: document.getElementById('course-practical-hours').value ? Number(document.getElementById('course-practical-hours').value) : null,
+            price: price,
+            active: document.getElementById('course-active').value === 'true',
+            syllabus: document.getElementById('course-syllabus').value.split('\n').map(s => s.trim()).filter(Boolean),
+            description: document.getElementById('course-description').value.trim() || null,
+            bannerImage: document.getElementById('course-banner').value || null,
+            images: courseModalImages
+        };
+
+        axios.post(`${API}/v1/courses/admin`, data)
+            .then(() => { closeModal('courseModal'); fetchAllData(); Swal.fire({icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false}); })
+            .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'ذخیره‌ی دوره ناموفق بود', 'error'));
     }
 
     // ==========================================

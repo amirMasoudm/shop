@@ -106,6 +106,10 @@
         window.SERVER_CATEGORY_NAME = [[${cat.name}]];
     </script>
 
+    <script th:inline="javascript" th:if="${courseSlug != null}">
+        window.SERVER_COURSE_SLUG = [[${courseSlug}]];
+    </script>
+
     <!-- فونت لوکال -->
     <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
     <!-- نوارِ هویتِ سایت — مشترک بینِ همه‌ی صفحه‌ها، تا با آمدن به فروشگاه از بین نرود -->
@@ -1520,8 +1524,18 @@
         </nav>
         <div style="display:flex; flex-wrap:wrap; gap:24px;">
             <img th:src="${p.images != null and !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'}"
-                 th:alt="${p.imageAlts != null and !p.imageAlts.isEmpty() and p.imageAlts[0] != null and !p.imageAlts[0].isEmpty() ? p.imageAlts[0] : p.name}" decoding="async"
+                 th:alt="${p.imageAlts != null and !p.imageAlts.isEmpty() and p.imageAlts[0] != null and !p.imageAlts[0].isEmpty() ? p.imageAlts[0] : p.name}"
+                 fetchpriority="high" decoding="async"
                  style="width:320px; max-width:100%; aspect-ratio:1; border-radius:12px; border:1px solid #eee; object-fit:cover;">
+            <!-- 🔴 بقیه‌ی گالری هم اینجا SSR می‌شود (نه فقط images[0]) — گوگل کلیک نمی‌کند تا
+                 عکس‌هایی را ببیند که فقط جاوااسکریپتِ بعدی می‌سازد. پنهان با CSS مشکلی ندارد
+                 (طبقِ خودِ راهنمای گوگل)، چون این بلوک به‌محضِ لودِ کاملِ SPA حذف می‌شود. -->
+            <div th:if="${p.images != null and p.images.size() > 1}" style="display:none;">
+                <img th:each="img, imgStat : ${p.images}" th:if="${imgStat.index > 0}"
+                     th:src="${img}"
+                     th:alt="${p.imageAlts != null and p.imageAlts.size() > imgStat.index and p.imageAlts[imgStat.index] != null and !p.imageAlts[imgStat.index].isEmpty() ? p.imageAlts[imgStat.index] : p.name}"
+                     loading="lazy" decoding="async">
+            </div>
             <div style="flex:1; min-width:260px;">
                 <h1 th:text="${p.name}" style="font-size:24px; margin:0 0 12px; color:#1f2937;">نام محصول</h1>
                 <div style="font-size:22px; font-weight:bold; color:#059669; margin-bottom:16px;">
@@ -1552,6 +1566,51 @@
                 <div th:text="${f.question}" style="font-weight:bold; color:#1f2937; margin-bottom:4px;">سوال</div>
                 <div th:text="${f.answer}" style="color:#374151; line-height:1.9; font-size:14px;">جواب</div>
             </div>
+        </div>
+
+        <p style="margin-top:24px; color:#9ca3af; font-size:13px;">در حال بارگذاری فروشگاه…</p>
+    </div>
+</div>
+
+<!-- بلوک سروریِ صفحه‌ی دوره — طبقِ بخشِ ۶ (docs/prompt-tech-chat-course-system.md):
+     کلِ گالری اینجاست (نه فقط عکسِ اول)، فقط عکسِ اول fetchpriority بالا دارد. -->
+<div id="ssr-course" th:if="${course != null}"
+     style="position:fixed; inset:0; z-index:5000; background:#fff; overflow:auto; padding:24px 16px; direction:rtl;">
+    <div style="max-width:900px; margin:0 auto;">
+        <nav style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            <a th:href="${baseUrl + '/learn'}" style="color:#1b4f8a; text-decoration:none;">آموزش</a>
+        </nav>
+        <div style="display:flex; flex-wrap:wrap; gap:24px;">
+            <img th:if="${course.bannerImage != null and !course.bannerImage.isEmpty()}"
+                 th:src="${course.bannerImage}" th:alt="${course.title}" fetchpriority="high" decoding="async"
+                 style="width:320px; max-width:100%; aspect-ratio:1; border-radius:12px; border:1px solid #eee; object-fit:cover;">
+            <img th:if="${(course.bannerImage == null or course.bannerImage.isEmpty()) and course.images != null and !course.images.isEmpty()}"
+                 th:src="${course.images[0]}" th:alt="${course.title}" fetchpriority="high" decoding="async"
+                 style="width:320px; max-width:100%; aspect-ratio:1; border-radius:12px; border:1px solid #eee; object-fit:cover;">
+            <div th:if="${course.images != null and course.images.size() > 1}" style="display:none;">
+                <img th:each="img, imgStat : ${course.images}" th:if="${imgStat.index > 0}"
+                     th:src="${img}" th:alt="${course.title}" loading="lazy" decoding="async">
+            </div>
+            <div style="flex:1; min-width:260px;">
+                <h1 th:text="${course.title}" style="font-size:24px; margin:0 0 12px; color:#1f2937;">عنوان دوره</h1>
+                <div style="font-size:13px; color:#6b7280; margin-bottom:10px;">
+                    <span th:text="${course.mode?.name() == 'ONLINE' ? 'آنلاین' : 'حضوری'}">حضوری</span>
+                    <span th:if="${course.instructor != null and !course.instructor.isEmpty()}"> — مدرس: <span th:text="${course.instructor}">استاد</span></span>
+                    <span th:if="${course.location != null and !course.location.isEmpty()}"> — <span th:text="${course.location}">مکان</span></span>
+                </div>
+                <div style="font-size:22px; font-weight:bold; color:#059669; margin-bottom:16px;">
+                    <span th:text="${#numbers.formatInteger(course.price != null ? course.price : 0, 1, 'COMMA')}">0</span>
+                    <span>تومان</span>
+                </div>
+                <p th:text="${course.description}" style="color:#374151; line-height:1.9; font-size:15px; white-space:pre-line;">توضیحات دوره</p>
+            </div>
+        </div>
+
+        <div th:if="${course.syllabus != null and !course.syllabus.isEmpty()}" style="margin-top:24px;">
+            <h2 style="font-size:18px; margin-bottom:10px; color:#1f2937;">سرفصل‌ها</h2>
+            <ul style="padding-right:20px; color:#374151; line-height:2;">
+                <li th:each="s : ${course.syllabus}" th:text="${s}">سرفصل</li>
+            </ul>
         </div>
 
         <p style="margin-top:24px; color:#9ca3af; font-size:13px;">در حال بارگذاری فروشگاه…</p>
@@ -1784,6 +1843,10 @@
     <div class="product-page" id="productPageContent"></div>
 </div>
 
+<div id="courseView" class="view">
+    <div class="product-page" id="coursePageContent"></div>
+</div>
+
 <!-- OVERLAYS -->
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
 
@@ -2007,6 +2070,13 @@
                 await loadCat(window.SERVER_CATEGORY_ID, window.SERVER_CATEGORY_NAME || 'محصولات', true);
                 const ssrCat = document.getElementById('ssr-category');
                 if (ssrCat) ssrCat.remove();
+            } else if (window.SERVER_COURSE_SLUG) {
+                document.getElementById('landingSections').style.display = 'block';
+                setTrustStrip(true);
+                setBannerSlider(true);
+                document.getElementById('latestSectionHeader').style.display = 'block';
+                renderGrid(state.all.slice(0, 20));
+                await openCourseDetail(window.SERVER_COURSE_SLUG, true);
             } else {
                 // چک کردن پارامترهای آدرس برای بازیابی لیست قبلی
                 const params = new URLSearchParams(window.location.search);
@@ -2043,6 +2113,120 @@
         } catch (e) {
             return null;
         }
+    }
+
+    async function fetchCourseBySlugOrId(key) {
+        try {
+            const res = await fetch(`${API}/api/v1/courses/single/${encodeURIComponent(key)}`);
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function coursePath(c) {
+        return '/shop/course/' + (c.slug || c.id);
+    }
+
+    function courseStatusBadge(c) {
+        if (!c.active) return {label: 'غیرفعال', color: '#9ca3af'};
+        if ((c.enrolledCount || 0) >= (c.capacity || 0)) return {label: 'ظرفیت تکمیل', color: 'var(--danger)'};
+        return {label: 'ثبت‌نام باز', color: '#059669'};
+    }
+
+    async function openCourseDetail(courseIdOrSlug, isInitialLoad = false) {
+        const c = await fetchCourseBySlugOrId(courseIdOrSlug);
+        if (!c) return;
+
+        if (!state.originalTitle) state.originalTitle = document.title;
+        document.title = c.seoTitle || `${c.title} | داده نما`;
+
+        const newPath = coursePath(c);
+        const newUrl = window.location.protocol + "//" + window.location.host + newPath;
+        if (!isInitialLoad && decodeURIComponent(window.location.pathname) !== newPath) {
+            window.history.pushState({path: newUrl}, '', newUrl);
+        }
+
+        window.scrollTo(0, 0);
+        document.getElementById('homeView').classList.remove('active');
+        document.getElementById('courseView').classList.add('active');
+
+        const ssrBlock = document.getElementById('ssr-course');
+        if (ssrBlock) ssrBlock.remove();
+
+        const images = (c.bannerImage ? [c.bannerImage] : []).concat(c.images || []);
+        lbImages = images.slice();
+        lbAlts = images.map(() => c.title);
+        const thumbs = images.map((img, i) =>
+            `<div class="p-thumb ${i === 0 ? 'active' : ''}" onclick="changePImage(this, '${img}', ${i})" ondblclick="openLightbox(${i})">
+                <img src="${img}" alt="${escapeHTML(c.title)}" loading="lazy">
+            </div>`
+        ).join('');
+
+        const modeLabel = c.mode === 'ONLINE' ? 'آنلاین (اسپات‌پلیر)' : 'حضوری';
+        const status = courseStatusBadge(c);
+        const canBuy = c.active && (c.enrolledCount || 0) < (c.capacity || 0);
+        const remaining = Math.max((c.capacity || 0) - (c.enrolledCount || 0), 0);
+
+        const metaRows = [
+            ['حالتِ برگزاری', modeLabel],
+            c.instructor ? ['مدرس', escapeHTML(c.instructor)] : null,
+            c.location ? ['مکانِ برگزاری', escapeHTML(c.location)] : null,
+            (c.startDate || c.endDate) ? ['بازه‌ی برگزاری', escapeHTML([c.startDate, c.endDate].filter(Boolean).join(' تا '))] : null,
+            (c.theoryHours || c.practicalHours) ? ['ساعتِ تئوری/عملی', `${c.theoryHours || 0} + ${c.practicalHours || 0} ساعت`] : null,
+        ].filter(Boolean).map(([k, v]) => `<tr><td class="p-spec-label">${k}</td><td>${v}</td></tr>`).join('');
+
+        const syllabusHtml = (c.syllabus && c.syllabus.length)
+            ? `<h2 style="font-size:18px; margin:24px 0 10px; color:#1f2937;">سرفصل‌ها</h2>
+               <ul style="padding-right:20px; color:#374151; line-height:2;">${c.syllabus.map(s => `<li>${escapeHTML(s)}</li>`).join('')}</ul>`
+            : '';
+
+        document.getElementById('coursePageContent').innerHTML = `
+        <div class="back-nav" onclick="loadHome(); return false;">❮ بازگشت به لیست</div>
+
+        <nav style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8c9cb5; margin-bottom: 20px; background: #fff; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+            <a href="/shop" onclick="loadHome(); return false;" style="text-decoration: none; color: var(--primary); font-weight: bold;">خانه</a>
+            <span>/</span>
+            <a href="/learn" style="text-decoration: none; color: var(--primary); font-weight: bold;">آموزش</a>
+            <span>/</span>
+            <span style="color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(c.title)}</span>
+        </nav>
+
+        <div class="p-grid">
+            <div class="p-gallery">
+                <div class="p-main-img">
+                    <img id="targetPImg" src="${images[0] || ''}" alt="${escapeHTML(c.title)}"
+                         title="برای نمایشِ بزرگ و زوم کلیک کنید" decoding="async" onclick="openLightbox(lbIndex)">
+                </div>
+                <div class="p-thumbs">${thumbs}</div>
+            </div>
+            <div class="p-info">
+                <div class="p-meta" style="align-items: center; display: flex; flex-wrap: wrap; gap: 15px;">
+                    <span style="display:inline-block; padding:3px 12px; border-radius:100px; font-size:.78rem; font-weight:800; color:#fff; background:${status.color};">${status.label}${status.label === 'ثبت‌نام باز' ? ' — ' + remaining + ' جایِ خالی' : ''}</span>
+                    <span>${modeLabel}</span>
+                </div>
+                <h1>${escapeHTML(c.title)}</h1>
+                <div class="p-section-title">مشخصاتِ دوره</div>
+                <table class="p-specs">${metaRows || '<tr><td>موردی ثبت نشده است</td></tr>'}</table>
+                <div class="p-section-title">توضیحات</div>
+                <div class="p-desc">${escapeHTML(c.description || 'بدون توضیحات')}</div>
+                ${syllabusHtml}
+            </div>
+            <div class="p-buy-box">
+                <div style="font-weight:700; color:${canBuy ? '#27ae60' : '#e74c3c'}; margin-bottom:15px;">
+                    ${canBuy ? '● ثبت‌نام باز است' : (c.active ? '✕ ظرفیت تکمیل شده' : '✕ غیرفعال')}
+                </div>
+                <div style="text-align:left; border-top:1px solid #eee; padding-top:15px;">
+                    <div style="font-size:1.8rem; font-weight:900; color:var(--primary)">
+                        ${Math.round(Number(c.price || 0)).toLocaleString()} <span style="font-size:1rem">تومان</span>
+                    </div>
+                </div>
+                ${canBuy
+                    ? `<button class="p-buy-btn" onclick="addToCart('${c.id}','${escapeHTML(c.title).replace(/'/g, "")}',${Number(c.price || 0)},'${images[0] || ''}','COURSE'); toggleDr('cartDrawer');">افزودن به سبد و ثبت‌نام</button>`
+                    : `<button class="p-buy-btn" disabled style="opacity:.5; cursor:not-allowed;">${c.active ? 'ظرفیت تکمیل شده' : 'غیرفعال'}</button>`}
+            </div>
+        </div>`;
     }
 
     // قانونِ سختِ دُمِ فارسی (هم‌ارزِ SlugUtil.sanitizeTail سمت سرور)
@@ -2695,6 +2879,7 @@
     async function loadHome(isPopState = false) {
         resetSearchUi();
         document.getElementById('productView').classList.remove('active');
+        document.getElementById('courseView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
 
         document.getElementById('filterPanel').classList.remove('visible');
@@ -2743,6 +2928,7 @@
     async function loadCat(id, name, isPopState = false) {
         resetSearchUi();
         document.getElementById('productView').classList.remove('active');
+        document.getElementById('courseView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         setTrustStrip(false);
@@ -2765,6 +2951,7 @@
     async function loadSection(id, title, isPopState = false) {
         resetSearchUi();
         document.getElementById('productView').classList.remove('active');
+        document.getElementById('courseView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         setTrustStrip(false);
@@ -2812,6 +2999,7 @@
         }
 
         document.getElementById('productView').classList.remove('active');
+        document.getElementById('courseView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         document.getElementById('landingSections').style.display = 'none';
         setTrustStrip(false);
@@ -2990,9 +3178,10 @@
     }
 
     // CART
-    function addToCart(id, name, price, img) {
+    // type: 'PRODUCT' (پیش‌فرض) یا 'COURSE' — دوره از همون سبد/تسویه‌حسابِ محصولات رد می‌شود
+    function addToCart(id, name, price, img, type) {
         const i = state.cart.find(x => x.id === id);
-        if (i) i.qty++; else state.cart.push({id, name, price, img, qty: 1});
+        if (i) i.qty++; else state.cart.push({id, name, price, img, qty: 1, type: type || 'PRODUCT'});
         saveCart();
         updateCartCount();
 
@@ -3206,7 +3395,8 @@
                     name: i.productName || 'کالا',
                     price: i.unitPrice || 0,
                     img: i.productImage || '',
-                    qty: i.quantity || 1
+                    qty: i.quantity || 1,
+                    type: i.itemType || 'PRODUCT'
                 }));
                 saveCart();
                 await fetch(`${API}/api/orders/${id}`, {method: 'DELETE', credentials: 'include'});
@@ -3252,7 +3442,7 @@
                     'Authorization': 'Bearer ' + localStorage.getItem('token')
                 },
                 credentials: 'include',
-                body: JSON.stringify({items: state.cart.map(i => ({productId: i.id, quantity: i.qty || 1}))})
+                body: JSON.stringify({items: state.cart.map(i => ({productId: i.id, quantity: i.qty || 1, itemType: i.type || 'PRODUCT'}))})
             });
             if (res.ok) {
                 const data = await res.json();
@@ -3621,6 +3811,10 @@
                 // محصول در حافظه نیست؛ تکی واکشی و باز کن
                 fetchProductBySlugOrId(slug).then(fp => { if (fp) openProductDetail(fp.id, true); });
             }
+        }
+        else if (path.startsWith('/shop/course/')) {
+            const slug = decodeURIComponent(path.split('/')[3]);
+            openCourseDetail(slug, true);
         }
         else if (path.startsWith('/shop/category/')) {
             // بازگشت به لیست دسته با آدرس تمیز /shop/category/{slug}

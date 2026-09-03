@@ -75,7 +75,7 @@ public class SecurityConfig {
                         // ۱. حتما صفحه خطا را کاملا باز بگذارید
                         .requestMatchers("/error", "/favicon.ico", "/robots.txt", "/sitemap.xml").permitAll()
 
-                        .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/shop/product/**", "/shop/category/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
+                        .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/shop/product/**", "/shop/category/**", "/shop/course/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         // پوشهٔ واقعیِ تصاویرِ ثابت `/img/` است؛ `/images/**` هرگز وجود نداشت و
                         // به همین دلیل لوگو در کلِ سایت ۴۰۱ می‌گرفت.
                         .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**").permitAll()
@@ -86,6 +86,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/products/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/settings/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/courses/admin/**").hasRole("ADMIN")
 
                         // آستانه‌ی RFQ خواندنی و عمومی است (فرانت دکمه را شرطی می‌کند)
                         .requestMatchers(HttpMethod.GET, "/api/v1/settings/rfq-threshold").permitAll()
@@ -112,6 +113,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/education-archive/admin").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/education-archive").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/education-archive/**").hasRole("ADMIN")
+
+                        // دوره‌های آموزشی — خواندنِ عمومی (فهرست + جزئیاتِ یک دوره)، نوشتن فقط ADMIN
+                        // (بالاتر با /api/v1/courses/admin/** پوشش داده شد).
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/active", "/api/v1/courses/single/**").permitAll()
 
                         // ۲. مسیرهای عمومی API را با دقت بیشتر باز کنید (حذف HttpMethod.GET برای تست اگر جواب نداد)
                         .requestMatchers(

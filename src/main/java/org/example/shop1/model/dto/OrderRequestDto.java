@@ -1,5 +1,7 @@
 package org.example.shop1.model.dto;
 
+import org.example.shop1.model.enums.OrderItemType;
+
 import java.util.List;
 
 public class OrderRequestDto {
@@ -21,10 +23,14 @@ public class OrderRequestDto {
     public static class CartItemDto {
         private String productId;
         private int quantity;
+        // نبودش یعنی PRODUCT (سازگاریِ عقب با سبدِ فعلی که این فیلد را نمی‌فرستد)
+        private OrderItemType itemType;
 
         public String getProductId() { return productId; }
         public void setProductId(String productId) { this.productId = productId; }
         public int getQuantity() { return quantity; }
         public void setQuantity(int quantity) { this.quantity = quantity; }
+        public OrderItemType getItemType() { return itemType != null ? itemType : OrderItemType.PRODUCT; }
+        public void setItemType(OrderItemType itemType) { this.itemType = itemType; }
     }
 }

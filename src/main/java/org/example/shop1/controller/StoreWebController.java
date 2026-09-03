@@ -9,6 +9,7 @@ import org.example.shop1.model.reposritory.CategoryRepository;
 import org.example.shop1.model.service.ArticleService;
 import org.example.shop1.model.service.BannerService;
 import org.example.shop1.model.service.CategoryService;
+import org.example.shop1.model.service.CourseService;
 import org.example.shop1.model.service.EducationArchiveService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -30,6 +31,7 @@ public class StoreWebController {
     private final ArticleService articleService;
     private final BannerService bannerService;
     private final EducationArchiveService educationArchiveService;
+    private final CourseService courseService;
     private final org.example.shop1.model.service.ProductRedirectService productRedirectService;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
@@ -42,6 +44,7 @@ public class StoreWebController {
     public StoreWebController(ProductRepository productRepo, CategoryRepository categoryRepo,
                               CategoryService categoryService, ArticleService articleService,
                               BannerService bannerService, EducationArchiveService educationArchiveService,
+                              CourseService courseService,
                               org.example.shop1.model.service.ProductRedirectService productRedirectService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
@@ -49,6 +52,7 @@ public class StoreWebController {
         this.articleService = articleService;
         this.bannerService = bannerService;
         this.educationArchiveService = educationArchiveService;
+        this.courseService = courseService;
         this.productRedirectService = productRedirectService;
     }
 
@@ -220,6 +224,38 @@ public class StoreWebController {
         Optional<Product> productOpt = productRepo.findBySlug(resolver);
         if (productOpt.isEmpty()) productOpt = productRepo.findById(resolver);
         return productOpt;
+    }
+
+    // ================= صفحه‌ی جزئیاتِ دوره — همان قالبِ CL.html (SPA) =================
+    // 🔴 دوره از همان CL.html رندر می‌شود (نه قالبِ جدا) چون خریدش باید از همان سبد/تسویه‌حسابِ
+    // فروشگاه رد شود؛ ساختنِ صفحه‌ی مستقل یعنی بازسازیِ کارتِ خرید برایِ دوره.
+    @GetMapping("/shop/course/{slugOrId}")
+    public Object coursePage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+        Optional<org.example.shop1.model.entity.Course> found = courseService.findBySlugOrId(slugOrId);
+        if (found.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "دوره یافت نشد");
+        }
+        populateCourseModel(found.get(), model, request);
+        return "CL";
+    }
+
+    private void populateCourseModel(org.example.shop1.model.entity.Course c, Model model, HttpServletRequest request) {
+        String baseUrl = buildBaseUrl(request);
+        model.addAttribute("course", c);
+        model.addAttribute("seoTitle", c.getSeoTitle() != null ? c.getSeoTitle() : c.getTitle());
+        model.addAttribute("seoDescription", c.getSeoDescription() != null ? c.getSeoDescription()
+                : "ثبت‌نامِ دوره‌ی " + c.getTitle() + " در داده‌نما");
+        String slug = (c.getSlug() != null && !c.getSlug().isEmpty()) ? c.getSlug() : c.getId();
+        model.addAttribute("canonicalUrl", baseUrl + "/shop/course/" + slug);
+        if (c.getBannerImage() != null && !c.getBannerImage().isEmpty()) {
+            model.addAttribute("ogImage", c.getBannerImage().startsWith("http") ? c.getBannerImage() : baseUrl + c.getBannerImage());
+        } else if (c.getImages() != null && !c.getImages().isEmpty()) {
+            String img = c.getImages().get(0);
+            model.addAttribute("ogImage", img.startsWith("http") ? img : baseUrl + img);
+        }
+        // resolver پایدار برایِ SPA (window.SERVER_COURSE_SLUG)
+        model.addAttribute("courseSlug", slug);
     }
 
     // این سه تابع به ProductUrlUtil منتقل شدند تا Torob API هم دقیقاً همان آدرسِ
@@ -523,6 +559,8 @@ public class StoreWebController {
                 "آرشیوِ تصویریِ دوره‌ها، کلاس‌ها و سمینارهایِ برگزارشده‌ی داده‌نما در حوزه‌ی شبکه و ارتباطاتِ بی‌سیم.");
         model.addAttribute("canonicalUrl", baseUrl + "/learn");
         model.addAttribute("educationArchiveItems", educationArchiveService.getActive());
+        // دوره‌های زنده بالا، آرشیو پایین — طبقِ docs/prompt-tech-chat-course-system.md
+        model.addAttribute("courses", courseService.getAllForLearnPage());
         return "learn";
     }
 

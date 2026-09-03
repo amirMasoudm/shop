@@ -137,6 +137,7 @@
         <nav class="flex-1">
             <button onclick="showTab('dashboard')" id="link-dashboard" class="nav-link active">📊 پیشخوان</button>
             <button onclick="showTab('orders')" id="link-orders" class="nav-link">📦 سفارش‌های من</button>
+            <button onclick="showTab('courses')" id="link-courses" class="nav-link">🎓 دوره‌های من</button>
             <button onclick="showTab('rfq')" id="link-rfq" class="nav-link">📝 استعلام‌های من</button>
             <button onclick="showTab('comments')" id="link-comments" class="nav-link">💬 نظرات من</button>
             <button onclick="showTab('addresses')" id="link-addresses" class="nav-link">📍 آدرس‌ها</button>
@@ -204,6 +205,13 @@
                 <h2 class="text-2xl font-black text-gray-800">تاریخچه کامل سفارشات</h2>
                 <div id="all-orders-list" class="grid grid-cols-1 gap-4"></div>
             </section>
+            <!-- ── TAB: COURSES (دوره‌های من) ── -->
+            <section id="tab-courses" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-gray-800">دوره‌های من</h2>
+                <div id="my-courses-list" class="grid grid-cols-1 gap-4">
+                    <p class="text-center py-10 text-gray-400">در حال بارگذاری...</p>
+                </div>
+            </section>
             <!-- ── TAB: RFQ (استعلام‌های من) ── -->
             <section id="tab-rfq" class="hidden space-y-6">
                 <h2 class="text-2xl font-black text-gray-800">استعلام‌های پیش‌فاکتور من</h2>
@@ -255,6 +263,7 @@
     <nav class="bottom-nav">
         <div onclick="showTab('dashboard')" class="nav-item active" id="mob-dashboard"><span class="text-xl">📊</span><span>خانه</span></div>
         <div onclick="showTab('orders')" class="nav-item" id="mob-orders"><span class="text-xl">📦</span><span>سفارشات</span></div>
+        <div onclick="showTab('courses')" class="nav-item" id="mob-courses"><span class="text-xl">🎓</span><span>دوره‌ها</span></div>
         <div onclick="showTab('rfq')" class="nav-item" id="mob-rfq"><span class="text-xl">📝</span><span>استعلام</span></div>
         <div onclick="showTab('comments')" class="nav-item" id="mob-comments"><span class="text-xl">💬</span><span>نظرات</span></div>
         <div onclick="showTab('addresses')" class="nav-item" id="mob-addresses"><span class="text-xl">📍</span><span>آدرس</span></div>
@@ -491,6 +500,7 @@
 
         renderOrders();
         renderAddresses();
+        renderMyCourses();
     }
 
     // --- CHECKOUT WIZARD LOGIC ---
@@ -578,7 +588,8 @@
                 credentials: 'include',
                 body: JSON.stringify(state.currentOrder.items.map(i => ({
                     productId: i.productId,
-                    quantity: i.quantity
+                    quantity: i.quantity,
+                    itemType: i.itemType || 'PRODUCT'
                 })))
             });
 
@@ -859,7 +870,7 @@
     // --- SHARED UI & RENDERERS ---
     function showTab(id) {
         // ۱. حتماً چک کنید کلمه 'comments' در این آرایه باشد
-        ['dashboard', 'orders', 'rfq', 'addresses', 'profile', 'comments'].forEach(t => {
+        ['dashboard', 'orders', 'courses', 'rfq', 'addresses', 'profile', 'comments'].forEach(t => {
             const section = document.getElementById(`tab-${t}`);
             const link = document.getElementById(`link-${t}`);
             const mobLink = document.getElementById(`mob-${t}`);
@@ -1039,6 +1050,91 @@
 
         if(cont) cont.innerHTML = state.orders.length ? state.orders.map(o => build(o)).join('') : '<p class="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed">سفارشی یافت نشد</p>';
         if(latest) latest.innerHTML = state.orders.slice(0, 3).map(o => build(o)).join('');
+    }
+
+    // ── دوره‌های من — قلم‌هایِ itemType=COURSE از داخلِ همان state.orders (بدونِ اندپوینتِ جدید) ──
+    async function renderMyCourses() {
+        const wrap = document.getElementById('my-courses-list');
+        if (!wrap) return;
+
+        const courseItems = [];
+        (state.orders || []).forEach(o => {
+            (o.items || []).filter(i => i.itemType === 'COURSE').forEach(i => courseItems.push({order: o, item: i}));
+        });
+
+        if (!courseItems.length) {
+            wrap.innerHTML = '<p class="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed">هنوز دوره‌ای خریداری نکرده‌اید.</p>';
+            return;
+        }
+
+        // اطلاعاتِ زنده‌ی هر دوره (مکان/تاریخِ حضوری ممکن است بعداً تصحیح شده باشد) — با کش
+        const courseCache = {};
+        for (const {item} of courseItems) {
+            if (item.itemType === 'COURSE' && item.courseMode !== 'ONLINE' && !(item.productId in courseCache)) {
+                try {
+                    const res = await fetch(`${API}/v1/courses/single/${item.productId}`);
+                    courseCache[item.productId] = res.ok ? await res.json() : null;
+                } catch (e) { courseCache[item.productId] = null; }
+            }
+        }
+
+        const statusInfo = (status) => {
+            if (status === 'PENDING_PAYMENT') return {label: '💳 در انتظارِ پرداخت', cls: 'bg-yellow-50 text-yellow-700'};
+            if (status === 'PAYMENT_FAILED') return {label: '✕ پرداخت ناموفق', cls: 'bg-red-50 text-red-700'};
+            return {label: '✅ ثبت‌نام تکمیل شد', cls: 'bg-green-50 text-green-700'};
+        };
+
+        wrap.innerHTML = courseItems.map(({order, item}) => {
+            const st = statusInfo(order.status);
+            const paid = order.status !== 'PENDING_PAYMENT' && order.status !== 'PAYMENT_FAILED';
+            const c = courseCache[item.productId];
+
+            let detailsHtml = '';
+            if (item.courseMode === 'ONLINE') {
+                if (paid && item.licenseKey) {
+                    const keyId = `lic-${order.id}-${item.productId}`;
+                    detailsHtml = `
+                    <div class="mt-3 bg-indigo-50 border border-indigo-100 rounded-xl p-3">
+                        <div class="text-[11px] text-gray-500 mb-1">کلیدِ لایسنسِ اسپات‌پلیر</div>
+                        <div class="flex items-center gap-2">
+                            <code class="flex-1 text-xs bg-white border rounded-lg px-2 py-1.5 overflow-x-auto" dir="ltr" id="${keyId}">${escapeHTML(item.licenseKey)}</code>
+                            <button onclick="copyLicenseKey('${keyId}', this)" class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold shrink-0">کپی</button>
+                        </div>
+                        ${item.downloadLink ? `<a href="${escapeHTML(item.downloadLink)}" target="_blank" rel="noopener" class="inline-block mt-2 text-xs font-bold text-indigo-700">⬇ لینکِ دانلود</a>` : ''}
+                    </div>`;
+                } else if (paid) {
+                    detailsHtml = `<div class="mt-3 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl p-3">لایسنس به‌زودی توسطِ پشتیبانی برایتان ثبت می‌شود.</div>`;
+                }
+            } else if (paid && c) {
+                detailsHtml = `<div class="mt-3 text-xs text-gray-600 space-y-1">
+                    ${c.startDate ? `<div>📅 ${escapeHTML([c.startDate, c.endDate].filter(Boolean).join(' تا '))}</div>` : ''}
+                    ${c.location ? `<div>📍 ${escapeHTML(c.location)}</div>` : ''}
+                    ${(c.theoryHours || c.practicalHours) ? `<div>⏱ ${(c.theoryHours || 0) + (c.practicalHours || 0)} ساعت (تئوری+عملی)</div>` : ''}
+                </div>`;
+            }
+
+            return `<div class="yas-card p-4">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="flex items-center gap-3">
+                        <img src="${item.productImage || ''}" class="w-14 h-14 rounded-lg object-cover border bg-gray-50">
+                        <div>
+                            <div class="font-bold text-sm">${escapeHTML(item.productName)} <span class="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded">${item.courseMode === 'ONLINE' ? 'آنلاین' : 'حضوری'}</span></div>
+                            <div class="text-[11px] text-gray-400 mt-1">${new Date(order.orderDate).toLocaleDateString('fa-IR')}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded ${st.cls}">${st.label}</span>
+                </div>
+                ${detailsHtml}
+            </div>`;
+        }).join('');
+    }
+
+    function copyLicenseKey(elId, btn) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        navigator.clipboard.writeText(el.innerText).then(() => {
+            if (btn) { const old = btn.innerText; btn.innerText = 'کپی شد ✓'; setTimeout(() => btn.innerText = old, 1500); }
+        });
     }
 
     function deleteOrder(orderId) {
