@@ -83,6 +83,14 @@ public class StoreWebController {
         // نردبانِ گواهی‌نامه‌هایِ میکروتیک (اعدادِ مستندشده در docs/company-profile-source.md).
         model.addAttribute("heroCourseCountFa",
                 faDigits(String.valueOf(articleService.countHubArticles(COURSES_HUB_SLUG))));
+
+        // بلاکِ خلاصه‌ی «سابقه و اعتبار» — قبلاً در فروشگاه بود، طبقِ خواسته‌ی مالک
+        // به همین صفحه (خانه‌ی داده‌نما) منتقل شد. شمارشِ دوره از هَمین heroCourseCountFa
+        // بالا استفاده می‌شود (محاسبه‌ی تکراری لازم نیست).
+        model.addAttribute("trustSinceFa", ONLINE_SINCE_JALALI);
+        model.addAttribute("trustYearsFa", faDigits(String.valueOf(
+                java.time.Period.between(ONLINE_SINCE, java.time.LocalDate.now()).getYears())));
+
         model.addAttribute("certLadder", CERT_LADDER);
         model.addAttribute("certLadderTotalFa", faDigits(String.valueOf(
                 CERT_LADDER.stream().mapToInt(CertRung::getCount).sum())));
@@ -144,13 +152,6 @@ public class StoreWebController {
         // ذخیره‌ی بنر) resolve می‌شوند تا تغییرِ بعدیِ نامِ محصول/دسته/مقاله لینک را نشکند.
         model.addAttribute("banners", bannerService.getHeroBannersResolved());
 
-        // بلاکِ خلاصه‌ی «سابقه و اعتبار» (SSR؛ لینک به /about). شمارشِ سبک است تا
-        // صفحه‌ی اصلی برای یک عدد، ۴۹ سندِ کامل نخواند.
-        model.addAttribute("trustCourseCountFa",
-                faDigits(String.valueOf(articleService.countHubArticles(COURSES_HUB_SLUG))));
-        model.addAttribute("trustSinceFa", ONLINE_SINCE_JALALI);
-        model.addAttribute("trustYearsFa", faDigits(String.valueOf(
-                java.time.Period.between(ONLINE_SINCE, java.time.LocalDate.now()).getYears())));
         return "CL";
     }
 
