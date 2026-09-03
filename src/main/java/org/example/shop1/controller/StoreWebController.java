@@ -256,6 +256,21 @@ public class StoreWebController {
         }
         // resolver پایدار برایِ SPA (window.SERVER_COURSE_SLUG)
         model.addAttribute("courseSlug", slug);
+
+        // اسکیمای FAQPage (همان الگویِ محصول — فقط وقتی پرسش متداولِ واقعی وجود دارد)
+        if (c.getFaqs() != null && !c.getFaqs().isEmpty()) {
+            StringBuilder fq = new StringBuilder();
+            fq.append("{\"@context\":\"https://schema.org/\",\"@type\":\"FAQPage\",\"mainEntity\":[");
+            for (int i = 0; i < c.getFaqs().size(); i++) {
+                var f = c.getFaqs().get(i);
+                if (i > 0) fq.append(",");
+                fq.append("{\"@type\":\"Question\",\"name\":\"").append(esc(f.getQuestion()))
+                        .append("\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"")
+                        .append(esc(f.getAnswer())).append("\"}}");
+            }
+            fq.append("]}");
+            model.addAttribute("faqJsonLd", fq.toString());
+        }
     }
 
     // این سه تابع به ProductUrlUtil منتقل شدند تا Torob API هم دقیقاً همان آدرسِ

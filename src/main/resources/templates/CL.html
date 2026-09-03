@@ -1602,15 +1602,35 @@
                     <span th:text="${#numbers.formatInteger(course.price != null ? course.price : 0, 1, 'COMMA')}">0</span>
                     <span>تومان</span>
                 </div>
-                <p th:text="${course.description}" style="color:#374151; line-height:1.9; font-size:15px; white-space:pre-line;">توضیحات دوره</p>
             </div>
+        </div>
+
+        <div th:if="${course.instructorDescription != null and !course.instructorDescription.isEmpty()}" style="margin-top:24px;">
+            <h2 style="font-size:18px; margin-bottom:10px; color:#1f2937;">دربارهٔ مدرس</h2>
+            <p th:text="${course.instructorDescription}" style="color:#374151; line-height:1.9; font-size:15px; white-space:pre-line;">توضیحاتِ استاد</p>
+        </div>
+
+        <div th:if="${course.organizerDescription != null and !course.organizerDescription.isEmpty()}" style="margin-top:24px;">
+            <h2 style="font-size:18px; margin-bottom:10px; color:#1f2937;">دربارهٔ مجموعه</h2>
+            <p th:text="${course.organizerDescription}" style="color:#374151; line-height:1.9; font-size:15px; white-space:pre-line;">توضیحاتِ مجموعه</p>
         </div>
 
         <div th:if="${course.syllabus != null and !course.syllabus.isEmpty()}" style="margin-top:24px;">
             <h2 style="font-size:18px; margin-bottom:10px; color:#1f2937;">سرفصل‌ها</h2>
             <ul style="padding-right:20px; color:#374151; line-height:2;">
-                <li th:each="s : ${course.syllabus}" th:text="${s}">سرفصل</li>
+                <li th:each="s : ${course.syllabus}">
+                    <b th:if="${s.group != null and !s.group.isEmpty()}" th:text="${s.group + ': '}"></b><span th:text="${s.title}">سرفصل</span>
+                </li>
             </ul>
+        </div>
+
+        <!-- پرسش‌های متداولِ دوره (سروری — هماهنگ با اسکیمای FAQPage) -->
+        <div th:if="${course.faqs != null and !course.faqs.isEmpty()}" style="margin-top:24px;">
+            <h2 style="font-size:18px; margin-bottom:10px; color:#1f2937;">پرسش‌های متداول</h2>
+            <div th:each="f : ${course.faqs}" style="margin-bottom:12px;">
+                <div th:text="${f.question}" style="font-weight:bold; color:#1f2937; margin-bottom:4px;">سوال</div>
+                <div th:text="${f.answer}" style="color:#374151; line-height:1.9; font-size:14px;">جواب</div>
+            </div>
         </div>
 
         <p style="margin-top:24px; color:#9ca3af; font-size:13px;">در حال بارگذاری فروشگاه…</p>
@@ -2173,9 +2193,23 @@
         ].filter(Boolean).map(([k, v]) => `<tr><td class="p-spec-label">${k}</td><td>${v}</td></tr>`).join('');
 
         const syllabusHtml = (c.syllabus && c.syllabus.length)
-            ? `<h2 style="font-size:18px; margin:24px 0 10px; color:#1f2937;">سرفصل‌ها</h2>
-               <ul style="padding-right:20px; color:#374151; line-height:2;">${c.syllabus.map(s => `<li>${escapeHTML(s)}</li>`).join('')}</ul>`
+            ? `<div class="p-section-title">سرفصل‌ها</div>
+               <ul style="padding-right:20px; color:#374151; line-height:2;">${c.syllabus.map(s => `<li>${s.group ? `<b>${escapeHTML(s.group)}: </b>` : ''}${escapeHTML(s.title || '')}</li>`).join('')}</ul>`
             : '';
+
+        const instructorDescHtml = c.instructorDescription
+            ? `<div class="p-section-title">دربارهٔ مدرس</div><div class="p-desc">${escapeHTML(c.instructorDescription)}</div>` : '';
+        const organizerDescHtml = c.organizerDescription
+            ? `<div class="p-section-title">دربارهٔ مجموعه</div><div class="p-desc">${escapeHTML(c.organizerDescription)}</div>` : '';
+
+        let courseFaqHtml = '';
+        if (c.faqs && c.faqs.length) {
+            courseFaqHtml = `<div class="p-section-title">پرسش‌های متداول</div>` + c.faqs.map(f => `
+                <details style="border:1px solid var(--border); border-radius:10px; margin-bottom:8px; padding:10px 14px; background:#fff;">
+                    <summary style="font-weight:700; cursor:pointer;">${escapeHTML(f.question)}</summary>
+                    <div style="margin-top:8px; line-height:1.9; color:#374151; font-size:0.9rem;">${escapeHTML(f.answer)}</div>
+                </details>`).join('');
+        }
 
         document.getElementById('coursePageContent').innerHTML = `
         <div class="back-nav" onclick="loadHome(); return false;">❮ بازگشت به لیست</div>
@@ -2204,9 +2238,10 @@
                 <h1>${escapeHTML(c.title)}</h1>
                 <div class="p-section-title">مشخصاتِ دوره</div>
                 <table class="p-specs">${metaRows || '<tr><td>موردی ثبت نشده است</td></tr>'}</table>
-                <div class="p-section-title">توضیحات</div>
-                <div class="p-desc">${escapeHTML(c.description || 'بدون توضیحات')}</div>
+                ${instructorDescHtml}
+                ${organizerDescHtml}
                 ${syllabusHtml}
+                ${courseFaqHtml}
             </div>
             <div class="p-buy-box">
                 <div style="font-weight:700; color:${canBuy ? '#27ae60' : '#e74c3c'}; margin-bottom:15px;">

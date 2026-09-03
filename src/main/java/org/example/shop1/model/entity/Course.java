@@ -32,8 +32,9 @@ public class Course {
 
     private CourseMode mode = CourseMode.IN_PERSON;
 
-    // عناوینِ آموزشی — فهرستِ سرفصل‌ها
-    private List<String> syllabus = new ArrayList<>();
+    // عناوینِ آموزشی — فهرستِ سرفصل‌ها (سیستمِ ردیف‌افزودنی، عیناً هم‌ساختارِ
+    // TechSpecRowِ محصول — نگاه کن به SyllabusItem)
+    private List<SyllabusItem> syllabus = new ArrayList<>();
 
     private Integer theoryHours;
     private Integer practicalHours;
@@ -58,7 +59,12 @@ public class Course {
 
     private boolean isActive = true;
 
-    private String description;
+    // به‌جایِ یک توضیحِ عمومی، دو بخشِ جدا — طبقِ خواسته‌ی مالک
+    private String instructorDescription;
+    private String organizerDescription;
+
+    private List<FaqItem> faqs = new ArrayList<>();
+
     private String slug;
     private String seoTitle;
     private String seoDescription;
@@ -74,8 +80,8 @@ public class Course {
     public CourseMode getMode() { return mode; }
     public void setMode(CourseMode mode) { this.mode = mode; }
 
-    public List<String> getSyllabus() { return syllabus; }
-    public void setSyllabus(List<String> syllabus) { this.syllabus = syllabus; }
+    public List<SyllabusItem> getSyllabus() { return syllabus; }
+    public void setSyllabus(List<SyllabusItem> syllabus) { this.syllabus = syllabus; }
 
     public Integer getTheoryHours() { return theoryHours; }
     public void setTheoryHours(Integer theoryHours) { this.theoryHours = theoryHours; }
@@ -113,8 +119,14 @@ public class Course {
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getInstructorDescription() { return instructorDescription; }
+    public void setInstructorDescription(String instructorDescription) { this.instructorDescription = instructorDescription; }
+
+    public String getOrganizerDescription() { return organizerDescription; }
+    public void setOrganizerDescription(String organizerDescription) { this.organizerDescription = organizerDescription; }
+
+    public List<FaqItem> getFaqs() { return faqs; }
+    public void setFaqs(List<FaqItem> faqs) { this.faqs = faqs; }
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }

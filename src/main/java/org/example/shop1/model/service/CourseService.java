@@ -70,7 +70,9 @@ public class CourseService {
         course.setBannerImage(input.getBannerImage());
         course.setPrice(input.getPrice());
         course.setActive(input.isActive());
-        course.setDescription(input.getDescription());
+        course.setInstructorDescription(input.getInstructorDescription());
+        course.setOrganizerDescription(input.getOrganizerDescription());
+        course.setFaqs(input.getFaqs());
         course.setSeoTitle(input.getSeoTitle());
         course.setSeoDescription(input.getSeoDescription());
 
