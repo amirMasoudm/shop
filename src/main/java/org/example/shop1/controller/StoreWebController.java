@@ -32,6 +32,7 @@ public class StoreWebController {
     private final BannerService bannerService;
     private final EducationArchiveService educationArchiveService;
     private final CourseService courseService;
+    private final org.example.shop1.model.service.ImageRowBannerService imageRowBannerService;
     private final org.example.shop1.model.service.ProductRedirectService productRedirectService;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
@@ -45,6 +46,7 @@ public class StoreWebController {
                               CategoryService categoryService, ArticleService articleService,
                               BannerService bannerService, EducationArchiveService educationArchiveService,
                               CourseService courseService,
+                              org.example.shop1.model.service.ImageRowBannerService imageRowBannerService,
                               org.example.shop1.model.service.ProductRedirectService productRedirectService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
@@ -53,6 +55,7 @@ public class StoreWebController {
         this.bannerService = bannerService;
         this.educationArchiveService = educationArchiveService;
         this.courseService = courseService;
+        this.imageRowBannerService = imageRowBannerService;
         this.productRedirectService = productRedirectService;
     }
 
@@ -105,6 +108,9 @@ public class StoreWebController {
         // تعدادِ محصولاتِ جعبهٔ خرید — زنده از دیتابیس (نه عددِ ثابت که با اضافه/حذفِ محصول قدیمی می‌شود)
         model.addAttribute("productCountFa", faDigits(String.valueOf(productRepo.count())));
 
+        // پنجره‌هایِ ردیفیِ بنرِ تصویری — جایگاهِ HOME
+        model.addAttribute("imageRowBanners", imageRowBannerService.getActiveByPlacement("HOME"));
+
         return "home";
     }
 
@@ -151,6 +157,9 @@ public class StoreWebController {
         // اسلایدرِ بنر — بالاترینِ عنصرِ صفحه (LCP)؛ لینک‌ها همین‌جا (نه در زمانِ
         // ذخیره‌ی بنر) resolve می‌شوند تا تغییرِ بعدیِ نامِ محصول/دسته/مقاله لینک را نشکند.
         model.addAttribute("banners", bannerService.getHeroBannersResolved());
+
+        // پنجره‌هایِ ردیفیِ بنرِ تصویری — جایگاهِ SHOP
+        model.addAttribute("imageRowBanners", imageRowBannerService.getActiveByPlacement("SHOP"));
 
         return "CL";
     }

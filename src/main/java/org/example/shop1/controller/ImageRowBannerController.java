@@ -1,0 +1,42 @@
+package org.example.shop1.controller;
+
+import org.example.shop1.model.entity.ImageRowBanner;
+import org.example.shop1.model.service.ImageRowBannerService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/** پنجره‌هایِ ردیفیِ بنرِ تصویری — الگویِ دقیقاً مشابهِ Banner/EducationArchive. */
+@RestController
+@RequestMapping("/api/v1/image-row-banners")
+@CrossOrigin
+public class ImageRowBannerController {
+
+    private final ImageRowBannerService service;
+
+    public ImageRowBannerController(ImageRowBannerService service) {
+        this.service = service;
+    }
+
+    // --- عمومی ---
+    @GetMapping("/active")
+    public List<ImageRowBanner> active(@RequestParam String placement) {
+        return service.getActiveByPlacement(placement);
+    }
+
+    // --- ادمین ---
+    @GetMapping("/admin")
+    public List<ImageRowBanner> admin() {
+        return service.getAllForAdmin();
+    }
+
+    @PostMapping("/admin")
+    public ImageRowBanner save(@RequestBody ImageRowBanner banner) {
+        return service.save(banner);
+    }
+
+    @DeleteMapping("/admin/{id}")
+    public void delete(@PathVariable String id) {
+        service.delete(id);
+    }
+}

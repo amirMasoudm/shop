@@ -114,6 +114,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/education-archive").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/education-archive/**").hasRole("ADMIN")
 
+                        // پنجره‌هایِ ردیفیِ بنرِ تصویری — همان الگو: فقط خواندنِ فعال‌ها عمومی، نوشتن فقط ADMIN.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/image-row-banners/active").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/image-row-banners/admin").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/image-row-banners/admin").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/image-row-banners/**").hasRole("ADMIN")
+
                         // دوره‌های آموزشی — خواندنِ عمومی (فهرست + جزئیاتِ یک دوره)، نوشتن فقط ADMIN
                         // (بالاتر با /api/v1/courses/admin/** پوشش داده شد).
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/active", "/api/v1/courses/single/**").permitAll()
