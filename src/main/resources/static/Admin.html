@@ -1914,6 +1914,18 @@
                 <input type="text" id="cc-slug" dir="ltr" class="w-full p-2.5 border rounded-lg outline-none text-left bg-gray-50" placeholder="network-seminars">
                 <p class="text-[11px] text-gray-400 mt-1">اگر خالی بگذارید، خودکار از رویِ نام ساخته می‌شود.</p>
             </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">عنوان سئو (Meta Title)</label>
+                <input type="text" id="cc-seo-title" class="w-full p-2.5 border rounded-lg outline-none" placeholder="مثلاً: دوره‌ها و سمینارهای شبکه | داده‌نما">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">توضیحاتِ متا (Meta Description)</label>
+                <textarea id="cc-seo-desc" rows="2" class="w-full p-2.5 border rounded-lg outline-none text-xs" placeholder="توضیحِ جذاب برای نمایش در گوگل..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">متنِ معرفی (اختیاری)</label>
+                <textarea id="cc-intro" rows="3" class="w-full p-2.5 border rounded-lg outline-none text-xs"></textarea>
+            </div>
         </div>
         <div class="shrink-0 flex flex-col md:flex-row justify-end gap-3 px-5 py-4 border-t bg-white rounded-b-2xl">
             <button onclick="closeModalSafe('courseCategoryModal')" class="w-full md:w-auto px-4 py-2 text-gray-500 border rounded-lg">انصراف</button>
@@ -4457,6 +4469,9 @@
         document.getElementById('cc-id').value = c.id;
         document.getElementById('cc-name').value = c.name || '';
         document.getElementById('cc-slug').value = c.slug || '';
+        document.getElementById('cc-seo-title').value = c.seoTitle || '';
+        document.getElementById('cc-seo-desc').value = c.seoDescription || '';
+        document.getElementById('cc-intro').value = c.introText || '';
         document.getElementById('course-category-modal-title').innerText = 'ویرایشِ دسته‌بندی';
         openModal('courseCategoryModal');
     }
@@ -4471,7 +4486,10 @@
             parentId: null,
             type: 'COURSE',
             filterKeys: [],
-            slug: document.getElementById('cc-slug').value.trim() || null
+            slug: document.getElementById('cc-slug').value.trim() || null,
+            seoTitle: document.getElementById('cc-seo-title').value.trim() || null,
+            seoDescription: document.getElementById('cc-seo-desc').value.trim() || null,
+            introText: document.getElementById('cc-intro').value.trim() || null
         };
 
         const req = id ? axios.put(`${API}/categories/${id}`, data) : axios.post(`${API}/categories`, data);

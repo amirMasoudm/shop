@@ -118,10 +118,17 @@ public class SecurityConfig {
                         // (بالاتر با /api/v1/courses/admin/** پوشش داده شد).
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/active", "/api/v1/courses/single/**").permitAll()
 
+                        // دسته‌بندی‌ها — قبلاً کاملاً permitAll بود (حتی POST/PUT/DELETE، یعنی هرکسِ
+                        // ناشناس می‌توانست دسته بسازد/حذف کند)؛ همان الگویِ بالا: فقط خواندن عمومی،
+                        // نوشتن فقط ADMIN.
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN")
+
                         // ۲. مسیرهای عمومی API را با دقت بیشتر باز کنید (حذف HttpMethod.GET برای تست اگر جواب نداد)
                         .requestMatchers(
                                 "/api/v1/products/**",
-                                "/api/categories/**",
                                 "/api/v1/landing-sections/**", // اینجا در لاگ خطا میداد
                                 "/api/comments/product/**",
                                 "/api/v1/articles/**",
