@@ -361,16 +361,58 @@ public class StoreWebController {
                 ? cat.getSeoDescription()
                 : "خرید انواع " + cat.getName() + " با بهترین قیمت و گارانتی معتبر از فروشگاه داده نما";
 
-        List<Product> catProducts = categoryService.getProductsInSubtree(cat.getId(), 60);
-
         model.addAttribute("cat", cat);
-        model.addAttribute("catProducts", catProducts);
         model.addAttribute("seoTitle", title);
         model.addAttribute("seoDescription", description);
         model.addAttribute("canonicalUrl", canonical);
-        model.addAttribute("categoryJsonLd", buildCategoryJsonLd(cat, catProducts, baseUrl, canonical, description));
+
+        // دسته‌بندیِ نوعِ COURSE — به‌جایِ محصول، دوره‌هایِ همان دسته (نگاه کن به
+        // Course.categoryId که در تسکِ دسته‌بندیِ آموزش اضافه شد)
+        if ("COURSE".equalsIgnoreCase(cat.getType())) {
+            List<org.example.shop1.model.entity.Course> catCourses = courseService.getByCategoryId(cat.getId());
+            model.addAttribute("catCourses", catCourses);
+            model.addAttribute("categoryJsonLd", buildCourseCategoryJsonLd(cat, catCourses, baseUrl, canonical, description));
+        } else {
+            List<Product> catProducts = categoryService.getProductsInSubtree(cat.getId(), 60);
+            model.addAttribute("catProducts", catProducts);
+            model.addAttribute("categoryJsonLd", buildCategoryJsonLd(cat, catProducts, baseUrl, canonical, description));
+        }
 
         return "CL";
+    }
+
+    // ساخت JSON-LD صفحه‌ی دسته‌یِ آموزش (لینک‌ها به /shop/course/{slug}، نه محصول)
+    private String buildCourseCategoryJsonLd(Category cat, List<org.example.shop1.model.entity.Course> courses,
+                                              String baseUrl, String canonical, String description) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[");
+
+        sb.append("{\"@type\":\"CollectionPage\",\"name\":\"").append(esc(cat.getName()))
+                .append("\",\"description\":\"").append(esc(description))
+                .append("\",\"url\":\"").append(esc(canonical)).append("\"}");
+
+        sb.append(",{\"@type\":\"BreadcrumbList\",\"itemListElement\":[")
+                .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"فروشگاه\",\"item\":\"")
+                .append(esc(baseUrl)).append("/shop\"},")
+                .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"").append(esc(cat.getName()))
+                .append("\",\"item\":\"").append(esc(canonical)).append("\"}]}");
+
+        if (courses != null && !courses.isEmpty()) {
+            sb.append(",{\"@type\":\"ItemList\",\"itemListElement\":[");
+            int pos = 1;
+            int max = Math.min(courses.size(), 30);
+            for (int i = 0; i < max; i++) {
+                var c = courses.get(i);
+                String slug = (c.getSlug() != null && !c.getSlug().isEmpty()) ? c.getSlug() : c.getId();
+                if (i > 0) sb.append(",");
+                sb.append("{\"@type\":\"ListItem\",\"position\":").append(pos++)
+                        .append(",\"url\":\"").append(esc(baseUrl + "/shop/course/" + slug)).append("\"}");
+            }
+            sb.append("]}");
+        }
+
+        sb.append("]}");
+        return sb.toString();
     }
 
     // ساخت JSON-LD صفحه دسته به صورت سروری (CollectionPage + BreadcrumbList + ItemList)

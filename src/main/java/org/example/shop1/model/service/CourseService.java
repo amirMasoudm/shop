@@ -29,6 +29,11 @@ public class CourseService {
         return repo.findAll();
     }
 
+    /** دوره‌هایِ یک دسته‌بندیِ آموزش (برایِ /shop/category/{slug} وقتی نوعِ دسته COURSE است). */
+    public List<Course> getByCategoryId(String categoryId) {
+        return repo.findByCategoryId(categoryId);
+    }
+
     public Optional<Course> findBySlugOrId(String slugOrId) {
         Optional<Course> found = repo.findBySlug(slugOrId);
         if (found.isEmpty()) found = repo.findById(slugOrId);

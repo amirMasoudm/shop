@@ -22,6 +22,11 @@ public class CategoryRequestDto {
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+
+    // ترتیبِ نمایش دستی — اختیاری؛ اگر ندهید مثلِ قبل به انتهای هم‌ردیف‌ها اضافه می‌شود
+    private Integer position;
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
     // اضافه کردن به DTO ورودی
     private List<String> filterKeys;
 

@@ -48,8 +48,9 @@ public class CategoryService {
             category.setLevel(0);
         }
 
-        // ترتیب: انتهای هم‌ردیف‌های همان والد قرار بگیرد
-        category.setPosition(nextPositionAmongSiblings(typeToSave, category.getParentId()));
+        // ترتیب: اگر ادمین صریح داد همان اعمال شود، وگرنه مثلِ قبل به انتهای هم‌ردیف‌ها اضافه شود
+        category.setPosition(dto.getPosition() != null ? dto.getPosition()
+                : nextPositionAmongSiblings(typeToSave, category.getParentId()));
 
         // ---> سئو: اسلاگ یکتا + عنوان/توضیح <---
         String slugBase = (dto.getSlug() == null || dto.getSlug().trim().isEmpty()) ? dto.getName() : dto.getSlug();
@@ -72,6 +73,9 @@ public class CategoryService {
         category.setFilterKeys(dto.getFilterKeys());
         if (dto.getType() != null && !dto.getType().isEmpty()) {
             category.setType(dto.getType());
+        }
+        if (dto.getPosition() != null) {
+            category.setPosition(dto.getPosition());
         }
 
         // ---> سئو <---
@@ -234,6 +238,7 @@ public class CategoryService {
         dto.setId(c.getId());
         dto.setName(c.getName());
         dto.setParentId(c.getParentId());
+        dto.setType(c.getType());
         dto.setLevel(c.getLevel());
         dto.setPosition(c.getPosition());
         dto.setFilterKeys(c.getFilterKeys());

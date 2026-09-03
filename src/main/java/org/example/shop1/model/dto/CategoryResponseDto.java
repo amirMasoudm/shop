@@ -7,6 +7,7 @@ public class CategoryResponseDto {
     private String id;
     private String name;
     private String parentId;
+    private String type;
     private Integer level;
     private Integer position;
     // *** این فیلد را اضافه کنید ***
@@ -23,6 +24,9 @@ public class CategoryResponseDto {
 
     public String getParentId() { return parentId; }
     public void setParentId(String parentId) { this.parentId = parentId; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
     public Integer getLevel() { return level; }
     public void setLevel(Integer level) { this.level = level; }

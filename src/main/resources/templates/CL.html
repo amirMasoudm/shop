@@ -104,6 +104,7 @@
     <script th:inline="javascript" th:if="${cat != null}">
         window.SERVER_CATEGORY_ID = [[${cat.id}]];
         window.SERVER_CATEGORY_NAME = [[${cat.name}]];
+        window.SERVER_CATEGORY_TYPE = [[${cat.type}]];
     </script>
 
     <script th:inline="javascript" th:if="${courseSlug != null}">
@@ -1650,7 +1651,7 @@
         <h1 th:text="${cat.name}" style="font-size:26px; margin:0 0 10px; color:#1f2937;">نام دسته</h1>
         <p th:text="${seoDescription}" style="color:#374151; line-height:1.9; font-size:15px; margin-bottom:24px;">توضیح دسته</p>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
+        <div th:if="${cat.type == null or !cat.type.equals('COURSE')}" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
             <a th:each="prod : ${catProducts}"
                th:href="${baseUrl + '/shop/product/' + (prod.slug != null and !prod.slug.isEmpty() ? prod.slug : prod.id) + (prod.persianTail != null and !prod.persianTail.isEmpty() ? '/' + prod.persianTail : '')}"
                style="display:block; border:1px solid #e5e7eb; border-radius:12px; padding:12px; text-decoration:none; color:inherit; background:#fff;">
@@ -1660,6 +1661,23 @@
                 <div th:text="${prod.name}" style="font-size:14px; font-weight:bold; color:#1f2937; margin-bottom:6px;">نام محصول</div>
                 <div style="font-size:14px; color:#059669; font-weight:bold;">
                     <span th:text="${#numbers.formatInteger(prod.onlinePrice != null ? prod.onlinePrice : (prod.price != null ? prod.price : 0), 1, 'COMMA')}">0</span>
+                    <span>تومان</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- دسته‌بندیِ نوعِ COURSE — به‌جایِ محصول، دوره‌هایِ همان دسته نمایش داده می‌شوند -->
+        <div th:if="${cat.type != null and cat.type.equals('COURSE')}" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
+            <a th:each="c : ${catCourses}"
+               th:href="${baseUrl + '/shop/course/' + (c.slug != null and !c.slug.isEmpty() ? c.slug : c.id)}"
+               style="display:block; border:1px solid #e5e7eb; border-radius:12px; padding:12px; text-decoration:none; color:inherit; background:#fff;">
+                <img th:if="${c.bannerImage != null and !c.bannerImage.isEmpty()}" th:src="${c.bannerImage}" th:alt="${c.title}" loading="lazy" decoding="async"
+                     style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <img th:if="${(c.bannerImage == null or c.bannerImage.isEmpty()) and c.images != null and !c.images.isEmpty()}" th:src="${c.images[0]}" th:alt="${c.title}" loading="lazy" decoding="async"
+                     style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <div th:text="${c.title}" style="font-size:14px; font-weight:bold; color:#1f2937; margin-bottom:6px;">عنوان دوره</div>
+                <div style="font-size:14px; color:#059669; font-weight:bold;">
+                    <span th:text="${#numbers.formatInteger(c.price != null ? c.price : 0, 1, 'COMMA')}">0</span>
                     <span>تومان</span>
                 </div>
             </a>
@@ -2033,11 +2051,17 @@
         setupMenuScroll();
         syncSearchPlaceholder();
         window.addEventListener('resize', syncSearchPlaceholder);
-        fetch(`${API}/api/categories/tree?type=ONLINE`).then(r => r.json()).then(c => {
-            state.cats = c;
-            renderDesktopMenu(c);
-            renderMobileMenu(c);
-            populateSearchCats(c);
+        Promise.all([
+            fetch(`${API}/api/categories/tree?type=ONLINE`).then(r => r.json()),
+            fetch(`${API}/api/categories/tree?type=COURSE`).then(r => r.json()).catch(() => [])
+        ]).then(([onlineCats, courseCats]) => {
+            // منویِ فروشگاه هر دو نوع دسته‌بندی را با هم نشان می‌دهد (ترتیب با همان
+            // position قابلِ‌تنظیمِ ادمین)؛ سرچِ محصول فقط دسته‌های ONLINE را می‌بیند.
+            const merged = onlineCats.concat(courseCats).sort((a, b) => (a.position || 0) - (b.position || 0));
+            state.cats = merged;
+            renderDesktopMenu(merged);
+            renderMobileMenu(merged);
+            populateSearchCats(onlineCats);
             // اگر ورودِ مستقیمِ SSR به دسته بود و درخت دیرتر رسید، متنِ معرفی را حالا رندر کن (رفعِ ریس)
             if (state.feed && state.feed.type === 'cat') renderCatIntro(state.feed.param);
         });
@@ -2081,8 +2105,13 @@
                     loadHome(true);
                 }
             } else if (window.SERVER_CATEGORY_ID) {
-                // ورود از آدرس تمیز /category/{slug}: همان دسته در SPA لود شود (بدون تغییر URL)
-                await loadCat(window.SERVER_CATEGORY_ID, window.SERVER_CATEGORY_NAME || 'محصولات', true);
+                // ورود از آدرس تمیز /category/{slug}: همان دسته در SPA لود شود (بدون تغییر URL).
+                // نوع را مستقیم از سرور می‌گیریم (نه از state.cats که ممکن است هنوز نرسیده باشد — ریس).
+                if (window.SERVER_CATEGORY_TYPE === 'COURSE') {
+                    await loadCourseCat(window.SERVER_CATEGORY_ID, window.SERVER_CATEGORY_NAME || 'دوره‌ها', true);
+                } else {
+                    await loadCat(window.SERVER_CATEGORY_ID, window.SERVER_CATEGORY_NAME || 'محصولات', true);
+                }
                 const ssrCat = document.getElementById('ssr-category');
                 if (ssrCat) ssrCat.remove();
             } else if (window.SERVER_COURSE_SLUG) {
@@ -2956,6 +2985,9 @@
     }
 
     async function loadCat(id, name, isPopState = false) {
+        const cat = getCatById(id);
+        if (cat && cat.type === 'COURSE') return loadCourseCat(id, name, isPopState);
+
         resetSearchUi();
         document.getElementById('productView').classList.remove('active');
         document.getElementById('courseView').classList.remove('active');
@@ -2976,6 +3008,45 @@
             const slug = getCatSlug(id);
             window.history.pushState({type: 'cat', id}, '', `/shop/category/${encodeURIComponent(slug)}`);
         }
+    }
+
+    // دسته‌بندیِ نوعِ COURSE داخلِ فروشگاه — به‌جایِ صفحه‌بندیِ سروریِ محصول،
+    // یک واکشیِ ساده‌ی همه‌ی دوره‌ها + فیلترِ کلاینتی (تعدادِ دوره‌ها کم است، نیازی به صفحه‌بندی نیست)
+    async function loadCourseCat(id, name, isPopState = false) {
+        resetSearchUi();
+        document.getElementById('productView').classList.remove('active');
+        document.getElementById('courseView').classList.remove('active');
+        document.getElementById('homeView').classList.add('active');
+        document.getElementById('landingSections').style.display = 'none';
+        setTrustStrip(false);
+        setBannerSlider(false);
+        document.getElementById('latestSectionHeader').innerText = 'دسته: ' + name;
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+
+        const all = await fetch(`${API}/api/v1/courses/active`).then(r => r.json()).catch(() => []);
+        const list = all.filter(c => c.categoryId === id);
+        document.getElementById('productsGrid').innerHTML = list.length
+            ? list.map(c => renderCourseCard(c)).join('')
+            : `<p style="grid-column:1/-1; text-align:center; padding:50px;">دوره‌ای در این دسته یافت نشد</p>`;
+
+        renderCatIntro(id);
+
+        if (!isPopState) {
+            const slug = getCatSlug(id);
+            window.history.pushState({type: 'coursecat', id}, '', `/shop/category/${encodeURIComponent(slug)}`);
+        }
+    }
+
+    function renderCourseCard(c) {
+        const img = c.bannerImage || (c.images && c.images[0]) || '';
+        const status = courseStatusBadge(c);
+        return `<div class="product-card" onclick="openCourseDetail('${c.id}')">
+            <div class="badge-list"><span class="tag" style="background:${status.color}">${status.label}</span></div>
+            <div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div>
+            <div class="prod-title">${escapeHTML(c.title)}</div>
+            <div class="price-box"><div class="cur-price">${Math.round(Number(c.price || 0)).toLocaleString()} تومان</div></div>
+        </div>`;
     }
 
     async function loadSection(id, title, isPopState = false) {
