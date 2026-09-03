@@ -1070,7 +1070,7 @@
         // اطلاعاتِ زنده‌ی هر دوره (مکان/تاریخِ حضوری ممکن است بعداً تصحیح شده باشد) — با کش
         const courseCache = {};
         for (const {item} of courseItems) {
-            if (item.itemType === 'COURSE' && item.courseMode !== 'ONLINE' && !(item.productId in courseCache)) {
+            if (item.itemType === 'COURSE' && item.courseMode === 'IN_PERSON' && !(item.productId in courseCache)) {
                 try {
                     const res = await fetch(`${API}/v1/courses/single/${item.productId}`);
                     courseCache[item.productId] = res.ok ? await res.json() : null;
@@ -1105,12 +1105,14 @@
                 } else if (paid) {
                     detailsHtml = `<div class="mt-3 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl p-3">لایسنس به‌زودی توسطِ پشتیبانی برایتان ثبت می‌شود.</div>`;
                 }
-            } else if (paid && c) {
+            } else if (item.courseMode === 'IN_PERSON' && paid && c) {
                 detailsHtml = `<div class="mt-3 text-xs text-gray-600 space-y-1">
                     ${c.startDate ? `<div>📅 ${escapeHTML([c.startDate, c.endDate].filter(Boolean).join(' تا '))}</div>` : ''}
                     ${c.location ? `<div>📍 ${escapeHTML(c.location)}</div>` : ''}
                     ${(c.theoryHours || c.practicalHours) ? `<div>⏱ ${(c.theoryHours || 0) + (c.practicalHours || 0)} ساعت (تئوری+عملی)</div>` : ''}
                 </div>`;
+            } else if (item.courseMode === 'PHYSICAL_CONTENT' && paid) {
+                detailsHtml = `<div class="mt-3 text-xs text-teal-700 bg-teal-50 border border-teal-100 rounded-xl p-3">📦 محتوای این دوره برایتان ارسال خواهد شد.</div>`;
             }
 
             return `<div class="yas-card p-4">
@@ -1118,7 +1120,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${item.productImage || ''}" class="w-14 h-14 rounded-lg object-cover border bg-gray-50">
                         <div>
-                            <div class="font-bold text-sm">${escapeHTML(item.productName)} <span class="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded">${item.courseMode === 'ONLINE' ? 'آنلاین' : 'حضوری'}</span></div>
+                            <div class="font-bold text-sm">${escapeHTML(item.productName)} <span class="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded">${item.courseMode === 'ONLINE' ? 'آنلاین' : (item.courseMode === 'PHYSICAL_CONTENT' ? 'ارسال فیزیکی' : 'حضوری')}</span></div>
                             <div class="text-[11px] text-gray-400 mt-1">${new Date(order.orderDate).toLocaleDateString('fa-IR')}</div>
                         </div>
                     </div>

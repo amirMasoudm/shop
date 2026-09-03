@@ -118,7 +118,7 @@
                 <span class="status" th:if="${c.active and c.enrolledCount lt c.capacity}" style="background:#059669;">ثبت‌نام باز</span>
                 <div class="n" th:text="${c.title}">عنوانِ دوره</div>
                 <div class="meta">
-                    <span th:text="${c.mode?.name() == 'ONLINE' ? 'آنلاین' : 'حضوری'}">حضوری</span>
+                    <span th:text="${c.mode?.name() == 'ONLINE' ? 'آنلاین' : (c.mode?.name() == 'PHYSICAL_CONTENT' ? 'ارسال محتوای فیزیکی' : 'حضوری')}">حضوری</span>
                     <span th:if="${c.instructor != null and !c.instructor.isEmpty()}"> · <span th:text="${c.instructor}">استاد</span></span><br>
                     <span th:if="${c.startDate != null and !c.startDate.isEmpty()}" th:text="${c.startDate}">تاریخ</span>
                     <span th:if="${c.location != null and !c.location.isEmpty()}"> · <span th:text="${c.location}">مکان</span></span><br>

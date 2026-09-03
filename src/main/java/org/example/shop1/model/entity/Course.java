@@ -32,6 +32,10 @@ public class Course {
 
     private CourseMode mode = CourseMode.IN_PERSON;
 
+    // دسته‌بندیِ اختصاصیِ آموزش — همان موجودیتِ Category محصول با type=COURSE
+    // (نگاه کن به CourseService.save و مدیریتِ «دسته‌بندیِ آموزش» در ادمین)
+    private String categoryId;
+
     // عناوینِ آموزشی — فهرستِ سرفصل‌ها (سیستمِ ردیف‌افزودنی، عیناً هم‌ساختارِ
     // TechSpecRowِ محصول — نگاه کن به SyllabusItem)
     private List<SyllabusItem> syllabus = new ArrayList<>();
@@ -79,6 +83,9 @@ public class Course {
 
     public CourseMode getMode() { return mode; }
     public void setMode(CourseMode mode) { this.mode = mode; }
+
+    public String getCategoryId() { return categoryId; }
+    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
 
     public List<SyllabusItem> getSyllabus() { return syllabus; }
     public void setSyllabus(List<SyllabusItem> syllabus) { this.syllabus = syllabus; }

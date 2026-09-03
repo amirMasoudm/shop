@@ -57,6 +57,7 @@ public class CourseService {
 
         course.setTitle(input.getTitle());
         course.setMode(input.getMode() != null ? input.getMode() : org.example.shop1.model.enums.CourseMode.IN_PERSON);
+        course.setCategoryId(input.getCategoryId());
         course.setSyllabus(input.getSyllabus());
         course.setTheoryHours(input.getTheoryHours());
         course.setPracticalHours(input.getPracticalHours());

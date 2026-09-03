@@ -1594,7 +1594,7 @@
             <div style="flex:1; min-width:260px;">
                 <h1 th:text="${course.title}" style="font-size:24px; margin:0 0 12px; color:#1f2937;">عنوان دوره</h1>
                 <div style="font-size:13px; color:#6b7280; margin-bottom:10px;">
-                    <span th:text="${course.mode?.name() == 'ONLINE' ? 'آنلاین' : 'حضوری'}">حضوری</span>
+                    <span th:text="${course.mode?.name() == 'ONLINE' ? 'آنلاین' : (course.mode?.name() == 'PHYSICAL_CONTENT' ? 'ارسال محتوای فیزیکی' : 'حضوری')}">حضوری</span>
                     <span th:if="${course.instructor != null and !course.instructor.isEmpty()}"> — مدرس: <span th:text="${course.instructor}">استاد</span></span>
                     <span th:if="${course.location != null and !course.location.isEmpty()}"> — <span th:text="${course.location}">مکان</span></span>
                 </div>
@@ -2179,7 +2179,7 @@
             </div>`
         ).join('');
 
-        const modeLabel = c.mode === 'ONLINE' ? 'آنلاین (اسپات‌پلیر)' : 'حضوری';
+        const modeLabel = c.mode === 'ONLINE' ? 'آنلاین (اسپات‌پلیر)' : (c.mode === 'PHYSICAL_CONTENT' ? 'ارسال محتوای فیزیکی' : 'حضوری');
         const status = courseStatusBadge(c);
         const canBuy = c.active && (c.enrolledCount || 0) < (c.capacity || 0);
         const remaining = Math.max((c.capacity || 0) - (c.enrolledCount || 0), 0);
