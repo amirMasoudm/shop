@@ -45,6 +45,12 @@ public class ImageRowBannerService {
         if (!"SHOP_AFTER_SECTION".equals(input.getPlacement())) {
             input.setAfterSectionId(null);
         }
+        if (input.getDisplayMode() == null || input.getDisplayMode().isBlank()) {
+            input.setDisplayMode("STATIC");
+        }
+        if (input.getRotationSpeedSeconds() <= 0) {
+            input.setRotationSpeedSeconds(5);
+        }
         return repo.save(input);
     }
 

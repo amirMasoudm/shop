@@ -1994,6 +1994,26 @@
                 </div>
             </div>
 
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">شماره‌یِ ترتیب (ایندکس — عددِ کوچک‌تر جلوتر)</label>
+                    <input type="number" id="irb-position" value="0" class="w-full p-2.5 border rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">حالتِ نمایش</label>
+                    <select id="irb-display-mode" onchange="onImageRowDisplayModeChange()" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+                        <option value="STATIC">ثابت (اسکرولِ دستی)</option>
+                        <option value="ROTATING">چرخشی (یک عکس در هر لحظه)</option>
+                        <option value="MARQUEE">متحرک (نوارِ درحالِ‌حرکتِ پیوسته)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="irb-speed-wrap" class="hidden">
+                <label class="block text-sm text-gray-600 mb-1">سرعتِ چرخش/حرکت (ثانیه)</label>
+                <input type="number" id="irb-speed" value="5" min="1" class="w-full p-2.5 border rounded-lg outline-none">
+                <p class="text-[11px] text-gray-400 mt-1">برایِ حالتِ چرخشی: فاصله‌ی هر تعویض. برایِ حالتِ متحرک: مدتِ یک دورِ کاملِ حرکت (عددِ بزرگ‌تر یعنی کندتر).</p>
+            </div>
+
             <div>
                 <label class="block text-sm text-gray-600 mb-1">عکس‌ها</label>
                 <p class="text-[11px] text-gray-400 mb-2">هر عکس می‌تواند لینک و عنوانِ خودش را داشته باشد. لینک یا با / شروع شود (داخلی، مثلاً /shop/product/...) یا با http (خارجی) — خالی هم مجاز است.</p>
@@ -4595,18 +4615,25 @@
         return p;
     }
 
+    function displayModeLabel(m) {
+        if (m === 'ROTATING') return 'چرخشی';
+        if (m === 'MARQUEE') return 'متحرک';
+        return 'ثابت';
+    }
+
     function renderImageRowBannersTab() {
         const wrap = document.getElementById('image-row-banners-container');
         if (!wrap) return;
-        const rows = state.imageRowBanners || [];
+        const rows = (state.imageRowBanners || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
         wrap.innerHTML = rows.length ? rows.map(g => `
             <div class="bg-white rounded-xl shadow-sm border p-4 md:p-5">
                 <div class="flex justify-between items-start gap-3">
                     <div>
-                        <h4 class="font-bold text-sm md:text-base text-gray-800">${escapeHTML(g.title || '(بدون عنوان)')}</h4>
+                        <h4 class="font-bold text-sm md:text-base text-gray-800">${escapeHTML(g.title || '(بدون عنوان)')} <span class="text-[10px] text-gray-400 font-normal">(ترتیب: ${g.position != null ? g.position : 0})</span></h4>
                         <div class="mt-1 flex gap-2 text-[10px] md:text-xs text-gray-500 flex-wrap">
                             <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${placementLabel(g.placement)}</span>
                             <span class="px-2 py-1 rounded ${g.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">${g.active ? 'فعال' : 'غیرفعال'}</span>
+                            <span class="bg-purple-50 text-purple-700 px-2 py-1 rounded">${displayModeLabel(g.displayMode)}${g.displayMode !== 'STATIC' ? ` — ${g.rotationSpeedSeconds || 5} ثانیه` : ''}</span>
                             <span class="bg-gray-100 px-2 py-1 rounded">${(g.images || []).length} عکس</span>
                         </div>
                     </div>
@@ -4682,12 +4709,21 @@
         }
     }
 
+    function onImageRowDisplayModeChange() {
+        const mode = document.getElementById('irb-display-mode').value;
+        document.getElementById('irb-speed-wrap').classList.toggle('hidden', mode === 'STATIC');
+    }
+
     function openImageRowModal() {
         resetForm('irb');
         renderImageRowItems([]);
         document.getElementById('irb-placement').value = 'HOME';
         document.getElementById('irb-active').value = 'true';
+        document.getElementById('irb-position').value = '0';
+        document.getElementById('irb-display-mode').value = 'STATIC';
+        document.getElementById('irb-speed').value = '5';
         onImageRowPlacementChange();
+        onImageRowDisplayModeChange();
         document.getElementById('irb-modal-title').innerText = 'پنجره‌ی جدید';
         openModal('imageRowModal');
     }
@@ -4699,7 +4735,11 @@
         document.getElementById('irb-title').value = g.title || '';
         document.getElementById('irb-placement').value = g.placement || 'HOME';
         document.getElementById('irb-active').value = String(g.active);
+        document.getElementById('irb-position').value = g.position != null ? g.position : 0;
+        document.getElementById('irb-display-mode').value = g.displayMode || 'STATIC';
+        document.getElementById('irb-speed').value = g.rotationSpeedSeconds || 5;
         onImageRowPlacementChange();
+        onImageRowDisplayModeChange();
         if (g.placement === 'SHOP_AFTER_SECTION') populateImageRowSectionSelect(g.afterSectionId);
         renderImageRowItems(g.images || []);
         document.getElementById('irb-modal-title').innerText = 'ویرایشِ پنجره';
@@ -4722,6 +4762,9 @@
             placement: placement,
             afterSectionId: afterSectionId,
             active: document.getElementById('irb-active').value === 'true',
+            position: Number(document.getElementById('irb-position').value) || 0,
+            displayMode: document.getElementById('irb-display-mode').value,
+            rotationSpeedSeconds: Number(document.getElementById('irb-speed').value) || 5,
             images: collectImageRowItems()
         };
 

@@ -29,6 +29,14 @@ public class ImageRowBanner {
     private int position = 0;
     private boolean active = true;
 
+    // نحوه‌ی نمایشِ ردیف: STATIC (اسکرولِ دستی — پیش‌فرض)، ROTATING (اسلایدرِ
+    // یک‌عکسی با چرخشِ خودکار)، MARQUEE (نوارِ درحالِ‌حرکتِ پیوسته)
+    private String displayMode = "STATIC";
+
+    // فقط برایِ ROTATING/MARQUEE معنا دارد: ROTATING = فاصله‌ی چرخش (ثانیه)،
+    // MARQUEE = مدتِ یک دورِ کاملِ حرکت (ثانیه — عددِ بزرگ‌تر یعنی کندتر)
+    private int rotationSpeedSeconds = 5;
+
     private List<ImageRowItem> images = new ArrayList<>();
 
     public ImageRowBanner() {}
@@ -50,6 +58,12 @@ public class ImageRowBanner {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public String getDisplayMode() { return displayMode; }
+    public void setDisplayMode(String displayMode) { this.displayMode = displayMode; }
+
+    public int getRotationSpeedSeconds() { return rotationSpeedSeconds; }
+    public void setRotationSpeedSeconds(int rotationSpeedSeconds) { this.rotationSpeedSeconds = rotationSpeedSeconds; }
 
     public List<ImageRowItem> getImages() { return images; }
     public void setImages(List<ImageRowItem> images) { this.images = images; }
