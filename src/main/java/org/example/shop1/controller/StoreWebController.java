@@ -606,14 +606,18 @@ public class StoreWebController {
             new CourseTrack("MTCUME", "مدیریت کاربران میکروتیک", 2, "شهریور ۱۳۹۴", "دی ۱۳۹۴", "mtcume-course")
     );
 
-    // صفحه‌ی معرفیِ WimaxNear — خطِ تولیدِ رادیویِ خودِ داده‌نما (بخشی از نوارِ هویتِ سایت)
+    // صفحه‌ی معرفیِ WimaxNear — برندِ خودِ داده‌نما (بخشی از نوارِ هویتِ سایت).
+    // 🔴 متنِ سئو عمداً «آنتن» می‌گوید و نه «رادیو»، و «مونتاژ» و نه «تولید» —
+    // چون تنها سندِ موجود (کاتالوگِ خودِ شرکت + دیتاشیتِ مدل‌ها) همین را می‌گوید:
+    // «مونتاژ و فروش رادیوهای حرفه‌ای WimaxNear»، و همه‌ی دیتاشیت‌ها آنتنِ دیش‌اند.
+    // اگر بعداً سندی برای رادیوهایِ WimaxNear رسید، صفحه و این متن باید گسترده شود.
     @GetMapping("/wimaxnear")
     public String wimaxNearPage(Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
         String baseUrl = buildBaseUrl(request);
-        model.addAttribute("seoTitle", "WimaxNear | رادیوی حرفه‌ای، خط تولید داده نما");
+        model.addAttribute("seoTitle", "WimaxNear | آنتن‌های دوقطبیِ پهن‌باندِ داده‌نما");
         model.addAttribute("seoDescription",
-                "WimaxNear رادیوی حرفه‌ای و خط تولید خودِ داده‌نما است — حاصلِ بیش از دو دهه تجربه در اجرای لینک‌های رادیویی پرظرفیت.");
+                "خانوادهٔ آنتنِ دیشِ SP62 با برندِ WimaxNear داده‌نما — دوقطبی، ۴٫۸ تا ۶٫۲ گیگاهرتز، بهرهٔ ۲۵ تا ۳۴ dBi، سازگار با ETSI EN 302.326-3، همراه با نمودارهای اندازه‌گیریِ آزمایشگاه.");
         model.addAttribute("canonicalUrl", baseUrl + "/wimaxnear");
         return "wimaxnear";
     }

@@ -30,29 +30,80 @@
     <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
     <link href="/css/site-nav.css" rel="stylesheet">
     <style>
-        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; --border:#e5e7eb; }
+        :root { --primary:#1b4f8a; --primary-lt:#2563ad; --accent:#e8861a; --text:#1f2937;
+                --mid:#6b7280; --bg:#f6f8fb; --border:#e5e7eb; --radius:16px; }
         * { box-sizing:border-box; margin:0; }
         body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
-        main { max-width:920px; margin:0 auto; padding:28px 16px 8px; }
+        main { max-width:980px; margin:0 auto; padding:24px 16px 8px; }
         .crumb { font-size:.8rem; color:var(--mid); margin-bottom:16px; }
         .crumb a { color:var(--primary); text-decoration:none; }
-        .hero-banner { width:100%; border-radius:16px; overflow:hidden; margin-bottom:24px; box-shadow:0 10px 26px rgba(27,79,138,.12); }
+
+        .hero-banner { width:100%; border-radius:var(--radius); overflow:hidden; margin-bottom:22px;
+                       box-shadow:0 10px 26px rgba(27,79,138,.12); }
         .hero-banner img { display:block; width:100%; height:auto; }
-        h1 { font-size:1.5rem; line-height:1.7; margin-bottom:12px; }
-        .lead { font-size:.98rem; line-height:2.1; margin-bottom:8px; }
+
+        h1 { font-size:1.55rem; line-height:1.75; margin-bottom:10px; }
+        .lead { font-size:1rem; line-height:2.1; color:#374151; }
+
+        /* نوارِ ادعاهایِ کلیدی — عددها از دیتاشیتِ خودِ محصول می‌آیند */
+        .keyfacts { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+                    gap:12px; margin-top:20px; }
+        .keyfacts div { background:#fff; border:1px solid var(--border); border-radius:12px;
+                        padding:14px 12px; text-align:center; }
+        .keyfacts b { display:block; font-size:1.15rem; color:var(--primary); margin-bottom:3px;
+                      letter-spacing:.2px; }
+        .keyfacts span { font-size:.78rem; color:var(--mid); }
+
+        section { background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+                  padding:22px; margin-top:22px; }
+        section h2 { font-size:1.12rem; margin-bottom:14px; border-right:4px solid var(--accent);
+                     padding-right:10px; }
+        section h3 { font-size:.95rem; margin:18px 0 8px; color:var(--primary); }
         p { line-height:2.1; font-size:.93rem; }
-        section { background:#fff; border:1px solid var(--border); border-radius:16px; padding:22px; margin-top:22px; }
-        section h2 { font-size:1.1rem; margin-bottom:12px; border-right:4px solid var(--accent); padding-right:10px; }
+
+        /* جدول‌ها روی موبایل افقی اسکرول می‌شوند، بدنه‌ی صفحه هرگز نه */
+        .tw { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:6px; }
+        table { border-collapse:collapse; width:100%; min-width:520px; font-size:.86rem; }
+        caption { caption-side:top; text-align:right; font-size:.82rem; color:var(--mid);
+                  padding-bottom:8px; }
+        th, td { border:1px solid var(--border); padding:9px 10px; text-align:right; }
+        thead th { background:#eef3fa; color:var(--primary); font-weight:800; white-space:nowrap; }
+        tbody th { background:#fafbfd; font-weight:700; white-space:nowrap; }
+        tbody tr:nth-child(even) td { background:#fcfdfe; }
+        td.num { font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+        .charts { display:grid; gap:14px; margin-top:8px; }
+        .charts figure { margin:0; border:1px solid var(--border); border-radius:12px;
+                         overflow:hidden; background:#fff; }
+        .charts img { display:block; width:100%; height:auto; }
+        .charts figcaption { font-size:.78rem; color:var(--mid); padding:9px 12px;
+                             border-top:1px solid var(--border); line-height:1.8; }
+
+        ul.use { list-style:none; padding:0; margin-top:6px; }
+        ul.use li { position:relative; padding:7px 22px 7px 0; font-size:.91rem; line-height:1.9; }
+        ul.use li::before { content:""; position:absolute; right:4px; top:16px; width:8px; height:8px;
+                            border-radius:2px; background:var(--accent); }
+
         .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
-        .tags span { background:#eef3fa; color:var(--primary); border-radius:100px; padding:5px 13px; font-size:.8rem; font-weight:700; }
+        .tags span { background:#eef3fa; color:var(--primary); border-radius:100px;
+                     padding:5px 13px; font-size:.8rem; font-weight:700; }
+
         .cta { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
-        .cta a { padding:12px 22px; border-radius:100px; text-decoration:none; font-weight:700; font-size:.9rem; }
+        .cta a { padding:12px 22px; border-radius:100px; text-decoration:none; font-weight:700;
+                 font-size:.9rem; }
         .cta .fill { background:var(--primary); color:#fff; }
         .cta .out { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+
         footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
-        footer .in { max-width:920px; margin:0 auto; }
+        footer .in { max-width:980px; margin:0 auto; }
         footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
         footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+
+        @media (max-width:640px) {
+            h1 { font-size:1.25rem; }
+            section { padding:18px 14px; }
+            .keyfacts b { font-size:1rem; }
+        }
     </style>
 </head>
 <body>
@@ -75,31 +126,129 @@
     </nav>
 
     <div class="hero-banner">
-        <img src="/img/wimaxnear-banner.jpg" alt="WimaxNear — رادیوی حرفه‌ای، خط تولید داده‌نما">
+        <img src="/img/wimaxnear-banner.jpg" width="1280" height="492" fetchpriority="high"
+             alt="WimaxNear — برندِ آنتن‌های دوقطبیِ پهن‌باندِ داده‌نما">
     </div>
 
-    <h1>WimaxNear — رادیوی حرفه‌ای، خط تولید خودِ داده‌نما</h1>
+    <h1>WimaxNear — آنتنِ دوقطبیِ پهن‌باند، برندِ خودِ داده‌نما</h1>
 
     <p class="lead">
-        از سال ۱۳۸۰ کارِ ما ارتباطاتِ بی‌سیم است. در همین مسیر، داده‌نما خطِ تولیدِ رادیویِ حرفه‌ایِ
-        <b>WimaxNear</b> را راه انداخته — محصولی که کنارِ نمایندگیِ تجهیزاتِ برندهایِ جهانی
-        (میکروتیک و سایرین)، حاصلِ تجربه‌ی مستقیمِ ما در اجرایِ لینک‌هایِ رادیوییِ پرظرفیت است.
+        داده‌نما از سال ۱۳۸۰ لینک‌های رادیوییِ پرظرفیت را طراحی و اجرا کرده است. <b>WimaxNear</b>
+        برندِ خودِ ماست: خانواده‌ای از آنتن‌های دیشِ دوقطبیِ پهن‌باند در بازهٔ ۴٫۸ تا ۶٫۲ گیگاهرتز
+        که داده‌نما مونتاژ و عرضه می‌کند — نتیجهٔ همان چیزی که سالها در میدان با آن کار کرده‌ایم.
     </p>
 
+    <div class="keyfacts">
+        <div><b>۴٫۸ – ۶٫۲ GHz</b><span>بازهٔ کاریِ پیوسته</span></div>
+        <div><b>۲۵ تا ۳۴ dBi</b><span>گسترهٔ بهرهٔ خانواده</span></div>
+        <div><b>دوقطبی (V &amp; H)</b><span>آمادهٔ رادیوهای MIMO</span></div>
+        <div><b>۲۰۰ km/h</b><span>تحملِ بارِ باد</span></div>
+    </div>
+
     <section>
-        <h2>چرا WimaxNear</h2>
+        <h2>از اجرایِ لینک، تا ساختِ آنتن</h2>
         <p>
-            بیش از دو دهه، تیمِ داده‌نما لینک‌هایِ رادیوییِ پرظرفیت را برایِ اتصالِ شعب و کارخانه‌ها،
-            انتقالِ داده/صوت/اینترنت، و پروژه‌هایِ ارتباطاتِ بی‌سیم اجرا کرده است. WimaxNear خروجیِ
-            همین تجربه است — رادیویی که خودِ داده‌نما طراحی و تولید می‌کند، نه صرفاً واردات یا نمایندگی.
+            بیشترِ ناپایداریِ لینک‌های وایرلس ریشه در خودِ آنتن دارد: جدایشِ ناکافیِ پلاریته، پرتوِ
+            جانبیِ بلند، و افتِ بهره در لبه‌های بازهٔ فرکانسی. تیمِ داده‌نما این را نه از کاتالوگ،
+            که از پروژه‌های واقعی — اتصالِ شعب و کارخانه‌ها، لینک‌های شهری و مسیرهای طولانی —
+            یاد گرفته است. WimaxNear پاسخِ همان تجربه است: آنتنی که مشخصاتش با معیارِ همان
+            لینک‌هایی انتخاب شده که خودمان اجرا و پشتیبانی می‌کنیم.
         </p>
         <div class="tags">
-            <span>ارتباطاتِ بی‌سیم</span><span>خطِ تولیدِ داخلی</span><span>لینکِ رادیوییِ پرظرفیت</span>
+            <span>برندِ اختصاصیِ داده‌نما</span><span>دوقطبیِ پهن‌باند</span>
+            <span>کاربردِ تجاری و نظامی</span><span>سازگار با ETSI EN 302.326-3</span>
         </div>
     </section>
 
+    <section>
+        <h2>خانوادهٔ محصول SP62</h2>
+
+        <h3>مدل‌های دوقطبیِ پهن‌باند</h3>
+        <div class="tw">
+            <table>
+                <caption>ارقام از دیتاشیتِ رسمیِ هر مدل. بهره در سرتاسرِ بازه اندازه‌گیری شده، نه در یک نقطه.</caption>
+                <thead>
+                <tr><th>مدل</th><th>بهره</th><th>قطرِ دیش</th><th>وزن</th>
+                    <th>پهنای پرتوِ ۳dB</th><th>بازهٔ فرکانسی</th></tr>
+                </thead>
+                <tbody>
+                <tr><th>SP62-27D</th><td class="num">۲۵٫۲ – ۲۷٫۷ dBi</td><td class="num">۴۵ cm</td>
+                    <td class="num">۳ kg</td><td class="num">۸°</td><td class="num">۴۸۰۰ – ۶۲۰۰ MHz</td></tr>
+                <tr><th>SP62-28D</th><td class="num">۲۷٫۳ – ۲۹٫۱ dBi</td><td class="num">۵۵ cm</td>
+                    <td class="num">۴ kg</td><td class="num">۹°</td><td class="num">۴۸۰۰ – ۶۲۰۰ MHz</td></tr>
+                <tr><th>SP62-32D</th><td class="num">۳۰٫۲ – ۳۲٫۲ dBi</td><td class="num">۸۰ cm</td>
+                    <td class="num">۶٫۵ kg</td><td class="num">۴٫۱°</td><td class="num">۴۸۰۰ – ۶۲۰۰ MHz</td></tr>
+                <tr><th>SP62-34.5D Ultra-HP</th><td class="num">۳۴ dBi</td><td class="num">۱۱۰ cm</td>
+                    <td class="num">۲۵ kg</td><td class="num">۳٫۰°</td><td class="num">۴۸۰۰ – ۶۱۰۰ MHz</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>مقایسهٔ دو سریِ خانواده</h3>
+        <div class="tw">
+            <table>
+                <caption>سریِ High Performance برای محیط‌های پرنویز بهینه شده و جدایشِ پورت‌به‌پورتِ آن جداگانه تضمین می‌شود.</caption>
+                <thead>
+                <tr><th>پارامتر</th><th>سریِ پهن‌باند (Broadband)</th><th>سریِ High Performance</th></tr>
+                </thead>
+                <tbody>
+                <tr><th>بازهٔ فرکانسی</th><td class="num">۴۸۰۰ – ۶۲۰۰ MHz</td><td class="num">۴۸۰۰ – ۶۱۰۰ MHz</td></tr>
+                <tr><th>بهره‌های موجود</th><td class="num">۲۷ / ۲۸ / ۳۰ / ۳۲ / ۳۳ dBi</td><td class="num">۲۳ / ۲۶ / ۲۹ / ۳۲ dBi</td></tr>
+                <tr><th>VSWR</th><td class="num">۱٫۷:۱ (typ)</td><td class="num">۱٫۴:۱ (typ)</td></tr>
+                <tr><th>توانِ ورودی</th><td class="num">۱۰۰ W</td><td class="num">۲۵ W</td></tr>
+                <tr><th>نسبت جلو به عقب</th><td class="num">−۴۰ dB</td><td class="num">−۳۷ تا −۴۰ dB</td></tr>
+                <tr><th>پلاریزاسیونِ متقاطع</th><td class="num">−۳۰ dB</td><td class="num">−۲۸ (max) / −۳۲ (typ) dB</td></tr>
+                <tr><th>جدایشِ پورت‌به‌پورت</th><td>در دیتاشیت قید نشده</td><td class="num">−۳۲ (max) / −۴۵ (typ) dB</td></tr>
+                <tr><th>امپدانس</th><td class="num">۵۰ Ω</td><td class="num">۵۰ Ω</td></tr>
+                <tr><th>کانکتور</th><td>۲ × N-Female</td><td>۲ × N-Female</td></tr>
+                <tr><th>ردهٔ پرتوِ جانبی</th><td>ETSI EN 302.326-3 DN1-DN5</td><td>ETSI EN 302.326-3 DN1-DN5</td></tr>
+                <tr><th>جنسِ دیش</th><td>آلیاژ آلومینیوم</td><td>آلیاژ آلومینیوم</td></tr>
+                <tr><th>تحملِ باد</th><td class="num">۲۰۰ km/h</td><td class="num">۲۰۰ km/h</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section>
+        <h2>نمودارهای اندازه‌گیریِ آزمایشگاه</h2>
+        <p>
+            این نمودارها از آزمایشِ واقعیِ آنتن گرفته شده‌اند، نه از شبیه‌سازی. نکتهٔ مهمشان
+            <b>ثباتِ رفتار در سرتاسرِ بازه</b> است: بسیاری از آنتن‌ها فقط در فرکانسِ مرکزی
+            عددِ خوب می‌دهند و در لبه‌ها افت می‌کنند.
+        </p>
+        <div class="charts">
+            <figure>
+                <img src="/img/wimaxnear/pattern-polar.jpg" loading="lazy" width="558" height="266"
+                     alt="الگویِ تشعشعِ قطبیِ آنتن WimaxNear در صفحاتِ E و H در فرکانس ۵٫۵ گیگاهرتز">
+                <figcaption>
+                    الگویِ تشعشع در صفحاتِ E و H (۵٫۵ گیگاهرتز) — پرتوِ اصلیِ باریک و پرتوهای جانبیِ
+                    کوتاه، یعنی انرژی به‌جای پخش‌شدن در محیط، روی مسیرِ لینک متمرکز می‌ماند.
+                </figcaption>
+            </figure>
+            <figure>
+                <img src="/img/wimaxnear/charts-sweep.jpg" loading="lazy" width="1082" height="205"
+                     alt="نمودارهای پلاریزاسیونِ متقاطع، جدایشِ پورت‌به‌پورت و VSWR آنتن WimaxNear در بازهٔ ۴۸۰۰ تا ۶۱۰۰ مگاهرتز">
+                <figcaption>
+                    از راست به چپ: پلاریزاسیونِ متقاطع، جدایشِ پورت‌به‌پورت، و VSWR — هر سه در کلِ
+                    بازهٔ ۴۸۰۰ تا ۶۱۰۰ مگاهرتز جاروب شده‌اند. VSWR در تمامِ بازه زیرِ ۲ می‌ماند.
+                </figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section>
+        <h2>کجا به کار می‌آید</h2>
+        <ul class="use">
+            <li>لینک‌های نقطه‌به‌نقطهٔ شهری، جایی که آلودگیِ فرکانسی بالاست و جدایشِ پلاریته تعیین‌کننده است.</li>
+            <li>مسیرهای طولانی و لینک‌های روی دریا، که به بهرهٔ بالا و پرتوِ باریک نیاز دارند.</li>
+            <li>رادیوهای MIMO با دو پورتِ مجزا — ساختارِ دوقطبیِ آنتن دقیقاً برای همین است.</li>
+            <li>محیط‌های پرنویز، که سریِ High Performance با جدایشِ پورتِ بهتر برایشان ساخته شده.</li>
+            <li>کاربردهای تجاری و نظامی، با سازهٔ مقاوم و تحملِ بادِ ۲۰۰ کیلومتر بر ساعت.</li>
+        </ul>
+    </section>
+
     <div class="cta">
-        <a class="fill" href="/shop">مشاهده‌ی فروشگاه ❯</a>
+        <a class="fill" href="/shop">آنتن‌ها در فروشگاه ❯</a>
         <a class="out" href="/about">سابقه و اعتبار داده‌نما ❯</a>
     </div>
 </main>
