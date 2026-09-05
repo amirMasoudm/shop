@@ -104,6 +104,19 @@
             section { padding:18px 14px; }
             .keyfacts b { font-size:1rem; }
         }
+
+        /* ── گالریِ کاتالوگ و برگه‌های مشخصات ───────────────────────── */
+        .cat-lead { font-size:.86rem; color:var(--mid); line-height:1.95; margin:2px 0 14px; }
+        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(178px,1fr)); gap:14px; }
+        .cat-grid + .cat-grid { margin-top:16px; }
+        .cat-card { display:block; border:1px solid var(--border); border-radius:12px; overflow:hidden;
+                    background:#fff; text-decoration:none; transition:box-shadow .18s ease, transform .18s ease; }
+        .cat-card:hover { box-shadow:0 9px 22px rgba(27,79,138,.16); transform:translateY(-2px); }
+        .cat-card img { display:block; width:100%; height:224px; object-fit:cover; object-position:top center; background:#fff; }
+        .cat-card b { display:block; padding:9px 11px 10px; font-size:.79rem; font-weight:700;
+                      color:var(--primary); border-top:1px solid var(--border); line-height:1.7; }
+        .cat-kind { font-size:.83rem; font-weight:800; color:var(--text); margin:18px 0 9px; }
+        .cat-kind:first-of-type { margin-top:4px; }
     </style>
 </head>
 <body>
@@ -247,8 +260,49 @@
         </ul>
     </section>
 
+
+    <section id="catalog">
+        <h2>کاتالوگ و برگه‌های مشخصات</h2>
+        <p class="cat-lead">
+            برگه‌های اصلیِ خودِ محصول — همان سندی که همهٔ عددهای این صفحه از آن برداشته شده است.
+            روی هر تصویر بزنید تا در اندازهٔ کامل باز شود.
+        </p>
+
+        <div class="cat-kind">برگهٔ مشخصاتِ مدل‌ها</div>
+        <div class="cat-grid">
+            <a class="cat-card" href="/img/wimaxnear/ds-sp62-27d.jpg" target="_blank" rel="noopener">
+                <img src="/img/wimaxnear/ds-sp62-27d.jpg" loading="lazy" alt="برگهٔ مشخصات آنتن WimaxNear SP62-27D">
+                <b>SP62-27D — ۴۵ سانتی‌متر</b>
+            </a>
+            <a class="cat-card" href="/img/wimaxnear/ds-sp62-28d.jpg" target="_blank" rel="noopener">
+                <img src="/img/wimaxnear/ds-sp62-28d.jpg" loading="lazy" alt="برگهٔ مشخصات آنتن WimaxNear SP62-28D">
+                <b>SP62-28D — ۵۵ سانتی‌متر</b>
+            </a>
+            <a class="cat-card" href="/img/wimaxnear/ds-sp62-32d.jpg" target="_blank" rel="noopener">
+                <img src="/img/wimaxnear/ds-sp62-32d.jpg" loading="lazy" alt="برگهٔ مشخصات آنتن WimaxNear SP62-32D">
+                <b>SP62-32D — ۸۰ سانتی‌متر</b>
+            </a>
+            <a class="cat-card" href="/img/wimaxnear/ds-sp62-345d.jpg" target="_blank" rel="noopener">
+                <img src="/img/wimaxnear/ds-sp62-345d.jpg" loading="lazy" alt="برگهٔ مشخصات آنتن WimaxNear SP62-34.5D Ultra-HP">
+                <b>SP62-34.5D Ultra-HP — ۱۱۰ سانتی‌متر</b>
+            </a>
+        </div>
+
+        <div class="cat-kind">صفحه‌های کاتالوگِ شرکت</div>
+        <div class="cat-grid">
+            <a class="cat-card" href="/img/wimaxnear/cat-broadband.jpg" target="_blank" rel="noopener">
+                <img src="/img/wimaxnear/cat-broadband.jpg" loading="lazy" alt="صفحهٔ کاتالوگ سری پهن‌باند WimaxNear">
+                <b>سریِ پهن‌باند (۴٫۸ تا ۶٫۲ گیگاهرتز)</b>
+            </a>
+            <a class="cat-card" href="/img/wimaxnear/cat-high-performance.jpg" target="_blank" rel="noopener">
+                <img src="/img/wimaxnear/cat-high-performance.jpg" loading="lazy" alt="صفحهٔ کاتالوگ سری High Performance WimaxNear">
+                <b>سریِ High Performance + نمودارها</b>
+            </a>
+        </div>
+    </section>
+
     <div class="cta">
-        <a class="fill" href="/shop">آنتن‌ها در فروشگاه ❯</a>
+        <a class="fill" href="/shop/category/antenna-dish">آنتن‌ها در فروشگاه ❯</a>
         <a class="out" href="/about">سابقه و اعتبار داده‌نما ❯</a>
     </div>
 </main>
