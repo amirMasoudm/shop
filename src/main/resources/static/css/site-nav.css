@@ -5,9 +5,13 @@
 :root {
     --nav-primary: #1b4f8a;
     --nav-accent: #e8861a;
+    --nav-h: 56px;
 }
 header.topnav {
-    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    height: var(--nav-h);
     background: linear-gradient(135deg, #1a3f6f, var(--nav-primary));
     display: flex;
     align-items: center;
@@ -21,6 +25,10 @@ header.topnav .brand {
     color: #fff;
     white-space: nowrap;
     text-decoration: none;
+}
+header.topnav .brand.active {
+    border-bottom: 2px solid var(--nav-accent);
+    padding-bottom: 3px;
 }
 header.topnav nav {
     display: flex;

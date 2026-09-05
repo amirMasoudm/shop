@@ -62,10 +62,13 @@ public class AuthController {
         User admin = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "نام کاربری یا رمز عبور اشتباه است"));
 
-        // ورود به پنل: ادمین + نقش‌هایِ کارکنانِ میزِ کارِ قیمت‌گذاری.
+        // ورود به پنل: ادمین + نقش‌هایِ کارکنانِ میزِ کارِ قیمت‌گذاری + کارشناسِ محصولات.
         // USER و SUPPORT (نقشِ قدیمیِ بلااستفاده) عمداً بلاک می‌مانند — SUPPORT طبقِ
         // تصمیمِ صریحِ پرامپت نباید دسترسیِ ناخواسته بگیرد.
-        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.PRICER && admin.getRole() != Role.SALES) {
+        // ⚠️ تله‌ای که پرامپتِ نقشِ جدید به آن اشاره نکرده بود: بدونِ اضافه‌شدنِ
+        // PRODUCT_EDITOR اینجا، این نقش اصلاً به مرحله‌ی دومِ ورود نمی‌رسید (۴۰۳ همینجا).
+        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.PRICER
+                && admin.getRole() != Role.SALES && admin.getRole() != Role.PRODUCT_EDITOR) {
             return ResponseEntity.status(403).body("شما اجازه ورود از این بخش را ندارید");
         }
 

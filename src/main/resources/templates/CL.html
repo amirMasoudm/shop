@@ -147,10 +147,12 @@
         }
 
         /* ═════════ HEADER ═════════ */
+        /* دقیقاً زیرِ header.topnavِ چسبان می‌چسبد (نه رویش) — top: var(--nav-h)،
+           نه ۰. var(--nav-h) در site-nav.css تعریف شده. */
         .top-bar {
             background: linear-gradient(135deg, #1a3f6f, #1b4f8a);
             position: sticky;
-            top: 0;
+            top: var(--nav-h);
             z-index: 1000;
             height: var(--hdr);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
@@ -342,7 +344,7 @@
            fixedِ زیرمنوها (top: var(--hdr)) دست‌نخورده بماند. */
         .search-row {
             position: sticky;
-            top: var(--hdr);
+            top: calc(var(--nav-h) + var(--hdr));
             z-index: 900;
             background: #fff;
             border-bottom: 1px solid var(--border);
@@ -500,7 +502,7 @@
             width: 260px;
             flex-shrink: 0;
             position: sticky;
-            top: 85px;
+            top: calc(var(--nav-h) + 85px);
             height: fit-content;
             background: var(--surface);
             border-radius: var(--radius);
@@ -863,7 +865,7 @@
 
         .p-gallery {
             position: sticky;
-            top: 90px;
+            top: calc(var(--nav-h) + 90px);
         }
 
         .p-main-img {
@@ -1057,7 +1059,7 @@
             padding: 20px;
             height: fit-content;
             position: sticky;
-            top: 90px;
+            top: calc(var(--nav-h) + 90px);
         }
 
         .p-buy-btn {
@@ -1597,7 +1599,6 @@
 <header class="topnav">
     <a class="brand" href="/">داده نما</a>
     <nav>
-        <a href="/">داده نما</a>
         <a href="/wimaxnear">WimaxNear</a>
         <a href="/shop" class="active">فروشگاه</a>
         <a href="/learn">آموزش</a>
@@ -1971,6 +1972,12 @@
         setupMenuScroll();
         syncSearchPlaceholder();
         window.addEventListener('resize', syncSearchPlaceholder);
+        // تعدادِ ستون‌هایِ گرید با تغییرِ عرضِ پنجره عوض می‌شود — دوباره‌محاسبهٔ ردیفِ کامل
+        let gridResizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(gridResizeTimer);
+            gridResizeTimer = setTimeout(renderGridTrimmed, 150);
+        });
         Promise.all([
             fetch(`${API}/api/categories/tree?type=ONLINE`).then(r => r.json()),
             fetch(`${API}/api/categories/tree?type=COURSE`).then(r => r.json()).catch(() => [])
@@ -3158,13 +3165,50 @@
         clearTimeout(searchDebounceTimer);
     }
 
+    // تعدادِ واقعیِ ستون‌هایِ گرید را از خودِ CSS بخوان (نه از روی عرضِ حدسی) — چون
+    // grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)) یعنی تعدادِ ستون به
+    // عرضِ پنجره بستگی دارد.
+    function getGridColumnCount(grid) {
+        const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean);
+        return cols.length || 1;
+    }
+
+    // دکمهٔ «نمایش محصولات بیشتر» همیشه باید زیرِ یک ردیفِ کاملِ کارت بنشیند، نه ردیفِ
+    // ناقص. لیستِ کامل را نگه می‌داریم (state.gridFullList) و فقط
+    // floor(n/cols)*cols تا رندر می‌شود؛ باقی‌مانده تا صفحهٔ بعد (یا resize) بافر
+    // می‌ماند — بدونِ درخواستِ اضافه به سرور. اگر صفحه‌ای در کار نیست
+    // (state.feed.last === true) همه نشان داده می‌شود، وگرنه چند محصولِ آخرِ
+    // فروشگاه برای همیشه پنهان می‌مانند.
     function renderGrid(list) {
         const empty = (state.feed && state.feed.type === 'search')
             ? 'نتیجه‌ای برای این جست‌وجو پیدا نشد — املا را بررسی کنید یا عبارتِ کوتاه‌تری امتحان کنید'
             : 'محصولی یافت نشد';
-        document.getElementById('productsGrid').innerHTML = list.length
-            ? list.map(p => renderCard(p)).join('')
-            : `<p style="grid-column:1/-1; text-align:center; padding:50px;">${empty}</p>`;
+
+        state.gridFullList = list;
+        state.gridEmptyMsg = empty;
+        renderGridTrimmed();
+    }
+
+    function renderGridTrimmed() {
+        const grid = document.getElementById('productsGrid');
+        if (!grid) return;
+        const list = state.gridFullList || [];
+
+        if (!list.length) {
+            grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px;">${state.gridEmptyMsg || 'محصولی یافت نشد'}</p>`;
+            return;
+        }
+
+        const isLast = !state.feed || state.feed.last === true;
+        let toShow = list;
+        if (!isLast) {
+            const cols = getGridColumnCount(grid);
+            const completeCount = Math.floor(list.length / cols) * cols;
+            // اگر حتی یک ردیفِ کامل هم نداریم، بهتر است همینِ ناقص را نشان بدهیم
+            // تا این‌که هیچ‌چیز نشان ندهیم
+            if (completeCount > 0) toShow = list.slice(0, completeCount);
+        }
+        grid.innerHTML = toShow.map(p => renderCard(p)).join('');
     }
 
     // ========= صفحه‌بندی گرید («نمایش بیشتر») =========

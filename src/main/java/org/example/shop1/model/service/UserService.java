@@ -87,7 +87,7 @@ public class UserService {
         // ورودِ پنل دو مرحله‌ای است و کد تایید پیامک می‌شود؛ بدون شماره اصلاً نمی‌تواند وارد شود.
         // این برایِ هر سه نقشِ کارکنان صدق می‌کند، نه فقط ادمین — قبلاً فقط ADMIN چک
         // می‌شد و کارشناسِ بدونِ شماره موقعِ ورود با خطای نامفهومِ «شماره معتبر نیست» گیر می‌کرد.
-        if ((role == Role.ADMIN || role == Role.PRICER || role == Role.SALES) && phone.isEmpty()) {
+        if ((role == Role.ADMIN || role == Role.PRICER || role == Role.SALES || role == Role.PRODUCT_EDITOR) && phone.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "برای این نقش شماره موبایل الزامی است، چون کد ورود پیامک می‌شود");
         }
@@ -167,6 +167,7 @@ public class UserService {
         List<User> staff = new ArrayList<>(userRepository.findByRole(Role.ADMIN));
         staff.addAll(userRepository.findByRole(Role.PRICER));
         staff.addAll(userRepository.findByRole(Role.SALES));
+        staff.addAll(userRepository.findByRole(Role.PRODUCT_EDITOR));
         // نقشِ قدیمی؛ اگر کاربری هنوز داشته باشد از فهرستِ کارکنان نیفتد
         staff.addAll(userRepository.findByRole(Role.SUPPORT));
         return staff;

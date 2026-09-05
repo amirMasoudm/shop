@@ -46,25 +46,37 @@
             </div>
         </div>
 
-        <!-- دقیقاً دو تب (تصمیمِ مالک): میزِ کار و لاگ. تبِ محصولات اینجا نیست. -->
+        <!-- میزِ کار/لاگ برایِ ADMIN/PRICER/SALES؛ تبِ محصولات فقط برایِ نقشِ
+             PRODUCT_EDITOR (پنهان به‌صورتِ پیش‌فرض، window.onload بازش می‌کند). -->
         <nav class="max-w-[1400px] mx-auto px-4 flex gap-2 pb-2">
             <button id="tabbtn-workspace" onclick="showSalesTab('workspace')"
-                    class="tab-btn active px-4 py-2 rounded-lg text-sm font-bold bg-white/10">میز کار</button>
+                    class="tab-btn active px-4 py-2 rounded-lg text-sm font-bold bg-white/10">میز قیمت‌گذاری و موجودی</button>
             <button id="tabbtn-log" onclick="showSalesTab('log')"
                     class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">تاریخچه تغییرات</button>
+            <button id="tabbtn-products" onclick="showSalesTab('products')"
+                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">محصولات</button>
         </nav>
     </header>
 
     <main class="max-w-[1400px] mx-auto p-4">
-        <!-- هر دو از /js/pricing-workspace.js تزریق می‌شوند — همان کدِ پنلِ ادمین -->
+        <!-- tab-pricing/tab-activityLog از /js/pricing-workspace.js تزریق می‌شوند،
+             tab-products از /js/products-tab.js — همان کدِ پنلِ ادمین -->
         <div id="tab-pricing"></div>
         <div id="tab-activityLog" class="hidden-section"></div>
+        <div id="tab-products" class="hidden-section"></div>
     </main>
 </div>
+
+<!-- مودالِ افزودن/ویرایشِ محصول — مارک‌آپش از /js/products-tab.js تزریق می‌شود -->
+<div id="productModalMount"></div>
 
 <script src="/js/axios.min.js"></script>
 <script src="/js/sweetalert2.all.min.js"></script>
 <script src="/js/pricing-workspace.js"></script>
+<!-- تبِ محصولات — همان فایل‌هایی که پنلِ ادمین استفاده می‌کند (فقط برایِ نقشِ PRODUCT_EDITOR mount می‌شود) -->
+<script src="/js/Sortable.min.js"></script>
+<script src="/js/admin-modal-utils.js"></script>
+<script src="/js/products-tab.js"></script>
 
 <script>
     const API = "/api";
@@ -117,8 +129,10 @@
     function showSalesTab(id) {
         document.getElementById('tab-pricing').classList.toggle('hidden-section', id !== 'workspace');
         document.getElementById('tab-activityLog').classList.toggle('hidden-section', id !== 'log');
+        document.getElementById('tab-products').classList.toggle('hidden-section', id !== 'products');
         document.getElementById('tabbtn-workspace').classList.toggle('active', id === 'workspace');
         document.getElementById('tabbtn-log').classList.toggle('active', id === 'log');
+        document.getElementById('tabbtn-products').classList.toggle('active', id === 'products');
         if (id === 'log') fetchActivityLogs();
     }
 
@@ -135,15 +149,28 @@
 
             const user = await res.json();
             const roles = (user && user.roles) || [];
-            const allowed = ['ROLE_ADMIN', 'ROLE_PRICER', 'ROLE_SALES'].some(r => roles.includes(r));
+            const allowed = ['ROLE_ADMIN', 'ROLE_PRICER', 'ROLE_SALES', 'ROLE_PRODUCT_EDITOR'].some(r => roles.includes(r));
             if (!allowed) throw new Error('forbidden');
-
-            // هر سه نقشِ کارکنان ویرایش دارند؛ تنها تفاوت ستونِ «فروش تعدادی» است
-            // که خودِ ماژول از /pricing/capabilities تشخیص می‌دهد.
-            window.pricingCanEdit = true;
 
             document.getElementById('sales-username').innerText = user.firstName || user.username || '';
             document.getElementById('salesPanel').style.display = 'block';
+
+            // کارشناسِ محصولات هیچ دسترسیِ قیمت‌گذاری‌ای ندارد (/api/v1/pricing/**
+            // برایِ این نقش ۴۰۳ می‌دهد)، پس میزِ کار/لاگ اصلاً برایش نشان داده
+            // نمی‌شود — فقط تبِ محصولات، و همان هم تبِ پیش‌فرضِ باز است.
+            const isProductEditor = roles.includes('ROLE_PRODUCT_EDITOR');
+            if (isProductEditor) {
+                document.getElementById('tabbtn-workspace').classList.add('hidden');
+                document.getElementById('tabbtn-log').classList.add('hidden');
+                document.getElementById('tabbtn-products').classList.remove('hidden');
+                await ProductsTab.mount(document.getElementById('tab-products'), document.getElementById('productModalMount'));
+                showSalesTab('products');
+                return;
+            }
+
+            // هر سه نقشِ کارکنانِ میزِ کار ویرایش دارند؛ تنها تفاوت ستونِ «فروش
+            // تعدادی» است که خودِ ماژول از /pricing/capabilities تشخیص می‌دهد.
+            window.pricingCanEdit = true;
 
             PricingWorkspace.mountWorkspace(document.getElementById('tab-pricing'));
             // پنلِ فروش: لاگِ فقط-محصولات (رویدادهایِ مدیریتی دیده نشود)

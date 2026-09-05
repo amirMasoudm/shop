@@ -78,12 +78,15 @@ public class SecurityConfig {
                         .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/shop/product/**", "/shop/category/**", "/shop/course/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         // پوشهٔ واقعیِ تصاویرِ ثابت `/img/` است؛ `/images/**` هرگز وجود نداشت و
                         // به همین دلیل لوگو در کلِ سایت ۴۰۱ می‌گرفت.
-                        .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**").permitAll()
+                        // ⚠️ /fragments/** هم باید همینجا باشد: مارک‌آپِ خامِ تبِ محصولات
+                        // (products-tab-fragment.html) را products-tab.js با fetch می‌گیرد؛
+                        // بدونِ این خط، ۴۰۱ می‌گرفت چون به anyRequest().authenticated() پایین می‌افتاد.
+                        .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**", "/fragments/**").permitAll()
 
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
                         .requestMatchers("/api/v1/product-redirects/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/products/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/products/admin/**").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/settings/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/courses/admin/**").hasRole("ADMIN")
@@ -93,11 +96,12 @@ public class SecurityConfig {
                         // فاصله‌ی چرخشِ بنر هم خواندنی و عمومی است (CL.html این را می‌خواند)
                         .requestMatchers(HttpMethod.GET, "/api/v1/settings/banner-rotation-seconds").permitAll()
 
-                        // نوشتن محصول فقط ادمین؛ جستجو (POST) عمومی می‌ماند چون فرانت با آن فیلتر می‌کند
+                        // نوشتن محصول: ادمین + کارشناسِ محصولات (نقشِ جدید، کمینه‌ی دسترسی —
+                        // فقط همین سه خط، نه بیشتر). جستجو (POST) عمومی می‌ماند چون فرانت با آن فیلتر می‌کند
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/search").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
 
                         // بنرهایِ خانه — عمداً الگویِ landing-sections را کپی نکردم: آن مسیر
                         // فعلاً کاملاً permitAll است (حتی POST/DELETE)، یعنی هرکسِ ناشناس هم
@@ -171,7 +175,9 @@ public class SecurityConfig {
                         // پنلِ فروشِ حضوری — مسیرِ صفحه از همان اول تعریف می‌شود.
                         // ⚠️ دوبار در همین پروژه API محافظت شد ولی مسیرِ صفحه جا ماند
                         // (/img/** و ورودِ نقش‌هایِ جدید به Admin.html). تکرارش نمی‌کنیم.
-                        .requestMatchers("/SalesPanel.html").hasAnyRole("ADMIN", "PRICER", "SALES")
+                        // PRODUCT_EDITOR عمداً فقط اینجا اضافه شد، نه به /Admin.html
+                        // (خطِ ۱۶۹) — این نقش فقط از تبِ محصولاتِ همین پنل کار می‌کند.
+                        .requestMatchers("/SalesPanel.html").hasAnyRole("ADMIN", "PRICER", "SALES", "PRODUCT_EDITOR")
 
                         // ۴. مسیرهای ادمین
                         .requestMatchers(
