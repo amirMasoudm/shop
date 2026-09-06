@@ -4,6 +4,10 @@
 (نامش با لوکال فرق دارد: لوکال `shop_mongodb`) · دیتابیس `shopdb` · یوزرِ روت `shopadmin`.
 
 > دستورها **تک‌خطی** نوشته شده‌اند چون چندخطیِ `\` موقعِ پیست به‌هم می‌ریزد.
+> مالک خودش روی سرور نشسته است (`root@srv5197010364`)، پس دستورهایِ این سند بدونِ
+> `ssh` نوشته شده‌اند و مستقیم همان‌جا پیست می‌شوند. انتقالِ فایل هم با **FileZilla**
+> در مسیرِ **`/root/`** انجام می‌شود، نه با `scp`.
+>
 > هرجا `PASTE` دیدید یعنی همان‌جا مقدارِ واقعی را از KeePassXC بگذارید.
 > **هیچ رمزی را در چت نگذارید.**
 
@@ -68,21 +72,23 @@
 ### ۱-۱ بکاپِ سرور، قبل از هر چیز
 
 ```
-ssh root@185.239.3.236 "docker exec shop_mongo mongodump --username=shopadmin --password='PASTE' --authenticationDatabase=admin --db=shopdb --archive=/tmp/pre-migrate.gz --gzip && docker cp shop_mongo:/tmp/pre-migrate.gz /root/pre-migrate-20260906.gz && ls -la /root/pre-migrate-20260906.gz"
+docker exec shop_mongo mongodump --username=shopadmin --password='PASTE' --authenticationDatabase=admin --db=shopdb --archive=/tmp/pre-migrate.gz --gzip && docker cp shop_mongo:/tmp/pre-migrate.gz /root/pre-migrate-20260906.gz && ls -la /root/pre-migrate-20260906.gz
 ```
 
 خروجی باید یک فایلِ چندصد کیلوبایتی نشان دهد. **تا این را ندیده‌اید جلو نروید.**
 
 ### ۱-۲ آپلودِ دامپ و دلتای عکس‌ها
 
-```
-scp shopdb-migrate-20260906.gz uploads-delta-20260906.tar.gz root@185.239.3.236:/root/
-```
+**با FileZilla** این دو فایل را از ریشهٔ پروژه بگذار در **`/root/`** روی سرور
+(نه `/root/shop/`):
+
+- `shopdb-migrate-20260906.gz`
+- `uploads-delta-20260906.tar.gz`
 
 ### ۱-۳ بازگردانیِ داده
 
 ```
-ssh root@185.239.3.236 "docker cp /root/shopdb-migrate-20260906.gz shop_mongo:/tmp/in.gz && docker exec shop_mongo mongorestore --username=shopadmin --password='PASTE' --authenticationDatabase=admin --archive=/tmp/in.gz --gzip --drop --nsInclude='shopdb.*'"
+docker cp /root/shopdb-migrate-20260906.gz shop_mongo:/tmp/in.gz && docker exec shop_mongo mongorestore --username=shopadmin --password='PASTE' --authenticationDatabase=admin --archive=/tmp/in.gz --gzip --drop --nsInclude='shopdb.*'
 ```
 
 `--drop` فقط کالکشن‌هایی را که **داخلِ همین آرشیو هستند** پاک می‌کند — یعنی
@@ -91,7 +97,7 @@ ssh root@185.239.3.236 "docker cp /root/shopdb-migrate-20260906.gz shop_mongo:/t
 ### ۱-۴ بازکردنِ عکس‌ها داخلِ ولیوم
 
 ```
-ssh root@185.239.3.236 "docker cp /root/uploads-delta-20260906.tar.gz shop_backend:/tmp/up.tar.gz && docker exec shop_backend sh -c 'cd /opt/shop/uploads && tar -xzf /tmp/up.tar.gz && ls -1 | wc -l'"
+docker cp /root/uploads-delta-20260906.tar.gz shop_backend:/tmp/up.tar.gz && docker exec shop_backend sh -c 'cd /opt/shop/uploads && tar -xzf /tmp/up.tar.gz && ls -1 | wc -l'
 ```
 
 عددِ آخر باید حدودِ **۱۱۸۰** باشد.
@@ -99,7 +105,7 @@ ssh root@185.239.3.236 "docker cp /root/uploads-delta-20260906.tar.gz shop_backe
 ### ۱-۵ تأیید
 
 ```
-ssh root@185.239.3.236 "docker exec shop_mongo mongosh -u shopadmin -p 'PASTE' --authenticationDatabase admin shopdb --quiet --eval 'print(\"products=\"+db.products.countDocuments({})); print(\"courses=\"+db.courses.countDocuments({})); print(\"archive=\"+db.education_archive_items.countDocuments({})); print(\"users=\"+db.users.countDocuments({}))'"
+docker exec shop_mongo mongosh -u shopadmin -p 'PASTE' --authenticationDatabase admin shopdb --quiet --eval 'print("products="+db.products.countDocuments({})); print("courses="+db.courses.countDocuments({})); print("archive="+db.education_archive_items.countDocuments({})); print("users="+db.users.countDocuments({}))'
 ```
 
 انتظار: `products=227` · `courses=12` · `archive=122` · و `users` **همان عددِ قبلیِ سرور**
@@ -117,12 +123,15 @@ ssh root@185.239.3.236 "docker exec shop_mongo mongosh -u shopadmin -p 'PASTE' -
 بیاید، ایمپورتِ وردپرس را دوباره اجرا می‌کند.** بعد از بیلد تأیید می‌کنم که آن کلاس داخلِ
 jar نیست، و آن‌وقت این دستورها را می‌دهم:
 
+**با FileZilla** فایلِ `target/shop1-0.0.1-SNAPSHOT.jar` را بگذار در **`/root/`**،
+بعد سمتِ سرور سرِ جایش ببر:
+
 ```
-scp target/shop1-0.0.1-SNAPSHOT.jar root@185.239.3.236:/root/shop/target/shop1-0.0.1-SNAPSHOT.jar
+cp /root/shop1-0.0.1-SNAPSHOT.jar /root/shop/target/shop1-0.0.1-SNAPSHOT.jar
 ```
 
 ```
-ssh root@185.239.3.236 "cd /root/shop && docker compose build backend && docker compose up -d backend && sleep 10 && docker ps --format '{{.Names}} {{.Status}}' | grep shop_"
+cd /root/shop && docker compose build backend && docker compose up -d backend && sleep 10 && docker ps --format '{{.Names}} {{.Status}}' | grep shop_
 ```
 
 **⚠️ یادآوریِ ۵۰۲:** اگر این نسخه پراپرتیِ `${ENV_VAR}`ِ جدیدِ بدونِ دیفالت داشته باشد،
@@ -133,7 +142,7 @@ composeِ **سرور** که هرگز از لوکال کپی نمی‌شود. د�
 ### تستِ بعد از دیپلوی
 
 ```
-ssh root@185.239.3.236 "for p in / /shop /learn /wimaxnear /blog; do printf '%-12s %s\n' \$p \$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: dadehnama.com' http://localhost\$p); done"
+for p in / /shop /learn /wimaxnear /blog; do printf '%-12s %s\n' \$p \$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: dadehnama.com' http://localhost\$p); done
 ```
 
 هر پنج تا باید `200` بدهند. (هدرِ `Host` لازم است چون nginx قفلِ Host دارد.)
@@ -145,7 +154,7 @@ ssh root@185.239.3.236 "for p in / /shop /learn /wimaxnear /blog; do printf '%-1
 ### ۳-۱ برگرداندنِ داده
 
 ```
-ssh root@185.239.3.236 "docker cp /root/pre-migrate-20260906.gz shop_mongo:/tmp/rb.gz && docker exec shop_mongo mongorestore --username=shopadmin --password='PASTE' --authenticationDatabase=admin --archive=/tmp/rb.gz --gzip --drop"
+docker cp /root/pre-migrate-20260906.gz shop_mongo:/tmp/rb.gz && docker exec shop_mongo mongorestore --username=shopadmin --password='PASTE' --authenticationDatabase=admin --archive=/tmp/rb.gz --gzip --drop
 ```
 
 ### ۳-۲ برگرداندنِ اپ
