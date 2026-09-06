@@ -8,33 +8,24 @@
 > `ssh` نوشته شده‌اند و مستقیم همان‌جا پیست می‌شوند. انتقالِ فایل هم با **FileZilla**
 > در مسیرِ **`/root/`** انجام می‌شود، نه با `scp`.
 >
-> هرجا `PASTE` دیدید یعنی همان‌جا مقدارِ واقعی را از KeePassXC بگذارید.
-> **هیچ رمزی را در چت نگذارید.**
+> **رمزی لازم نیست دستی وارد شود:** هر دستور اول `/root/shop/.env` خودِ سرور را
+> `source` می‌کند و یوزر/رمزِ مونگو را از همان‌جا برمی‌دارد.
 
 ---
 
 ## بخش ۰ — قبل از شروع بخوانید
 
-### 🔴 اپ هنوز آمادهٔ دیپلوی نیست (داده هست)
+### ✅ اپ آمادهٔ دیپلوی است
 
-درختِ کاری الان **تمیز نیست** — هشت فایل تغییرِ کامیت‌نشده دارند
-(`SecurityConfig`، `Role`، `AuthController`، `UserResource`، `UserService`،
-`PricingWorkspaceService`، `Admin.html`، `SalesPanel.html`) و چت الف هم‌زمان دارد
-روی «اعتبارسنجیِ سشن بدونِ رفرش» کار می‌کند.
+چت الف کارش را در کامیتِ `1d8faaa` بست و درختِ کاری تمیز است. تأییدهای انجام‌شده:
+`grep -r PRODUCT_EDITOR src/` خالی · enum نهایی `ADMIN · USER · PRICER · SALES · SUPPORT` ·
+`session-watch.js` سرِ جایش · **هیچ پراپرتیِ env جدیدی اضافه نشده** (یعنی خطرِ ۵۰۲ِ
+دفعهٔ قبل اینجا وجود ندارد) · بیلدِ ورک‌تری موفق.
 
-مسئله فقط «تمیز نبودنِ درخت» نیست. کامیتِ فعلیِ `HEAD` (`b887e97`) نقشِ
-**`PRODUCT_EDITOR`** را دارد و `SUPPORT` را حذف کرده — ولی همان تغییراتِ کامیت‌نشده
-دقیقاً **برعکسش** را می‌کنند: `PRODUCT_EDITOR` را برمی‌دارند و `SUPPORT` را با معنیِ
-تازه برمی‌گردانند. یعنی طراحیِ نقش‌ها بینِ `HEAD` و درختِ کاری با هم **در تضاد** است.
-
-اگر همین `HEAD` را دیپلوی کنیم، نقشی روی پراد می‌نشیند که خودِ چت الف کنارش گذاشته.
-و چون **نقشِ هر کاربر در دیتابیس ذخیره می‌شود**، اگر روی پراد کاربری با
-`PRODUCT_EDITOR` ساخته شود، دیپلویِ بعدی که آن مقدار را از enum برداشته، موقعِ خواندنِ
-همان کاربر خطا می‌دهد — دقیقاً همان خطری که کامنتِ خودِ `Role.java` دربارهٔ `SUPPORT`
-هشدار داده بود.
-
-**پس: بخشِ ۱ (داده) الان قابلِ اجراست. بخشِ ۲ (اپ) فقط بعد از اینکه چت الف کارش را
-کامیت کرد و درخت تمیز شد.**
+**⚠️ کارِ لازم بعد از دیپلوی:** معنیِ نقشِ `SALES` عوض شده — حالا قیمت‌گذاریِ کامل دارد
+(شاملِ ستونِ «فروش تعدادی»). چون `users` عمداً منتقل نمی‌شود، نقش‌های فعلیِ سرور
+دست‌نخورده می‌مانند؛ اگر روی پراد کاربری با `SALES` هست که منظور «فقط مشاهده» بوده،
+باید بعد از دیپلوی از پنل به `SUPPORT` تغییرش دهی.
 
 ### 🔑 چرخاندنِ کلیدهای لو‌رفته
 
@@ -72,7 +63,7 @@
 ### ۱-۱ بکاپِ سرور، قبل از هر چیز
 
 ```
-docker exec shop_mongo mongodump --username=shopadmin --password='PASTE' --authenticationDatabase=admin --db=shopdb --archive=/tmp/pre-migrate.gz --gzip && docker cp shop_mongo:/tmp/pre-migrate.gz /root/pre-migrate-20260906.gz && ls -la /root/pre-migrate-20260906.gz
+cd /root/shop && set -a && . ./.env && set +a && docker exec shop_mongo mongodump --username="$MONGO_ROOT_USERNAME" --password="$MONGO_ROOT_PASSWORD" --authenticationDatabase=admin --db=shopdb --archive=/tmp/pre-migrate.gz --gzip && docker cp shop_mongo:/tmp/pre-migrate.gz /root/pre-migrate-20260906.gz && ls -la /root/pre-migrate-20260906.gz
 ```
 
 خروجی باید یک فایلِ چندصد کیلوبایتی نشان دهد. **تا این را ندیده‌اید جلو نروید.**
@@ -88,7 +79,7 @@ docker exec shop_mongo mongodump --username=shopadmin --password='PASTE' --authe
 ### ۱-۳ بازگردانیِ داده
 
 ```
-docker cp /root/shopdb-migrate-20260906.gz shop_mongo:/tmp/in.gz && docker exec shop_mongo mongorestore --username=shopadmin --password='PASTE' --authenticationDatabase=admin --archive=/tmp/in.gz --gzip --drop --nsInclude='shopdb.*'
+cd /root/shop && set -a && . ./.env && set +a && docker cp /root/shopdb-migrate-20260906.gz shop_mongo:/tmp/in.gz && docker exec shop_mongo mongorestore --username="$MONGO_ROOT_USERNAME" --password="$MONGO_ROOT_PASSWORD" --authenticationDatabase=admin --archive=/tmp/in.gz --gzip --drop --nsInclude='shopdb.*'
 ```
 
 `--drop` فقط کالکشن‌هایی را که **داخلِ همین آرشیو هستند** پاک می‌کند — یعنی
@@ -105,7 +96,7 @@ docker cp /root/uploads-delta-20260906.tar.gz shop_backend:/tmp/up.tar.gz && doc
 ### ۱-۵ تأیید
 
 ```
-docker exec shop_mongo mongosh -u shopadmin -p 'PASTE' --authenticationDatabase admin shopdb --quiet --eval 'print("products="+db.products.countDocuments({})); print("courses="+db.courses.countDocuments({})); print("archive="+db.education_archive_items.countDocuments({})); print("users="+db.users.countDocuments({}))'
+cd /root/shop && set -a && . ./.env && set +a && docker exec shop_mongo mongosh -u "$MONGO_ROOT_USERNAME" -p "$MONGO_ROOT_PASSWORD" --authenticationDatabase admin shopdb --quiet --eval 'print("products="+db.products.countDocuments({})); print("courses="+db.courses.countDocuments({})); print("archive="+db.education_archive_items.countDocuments({})); print("users="+db.users.countDocuments({}))'
 ```
 
 انتظار: `products=227` · `courses=12` · `archive=122` · و `users` **همان عددِ قبلیِ سرور**
@@ -154,7 +145,7 @@ for p in / /shop /learn /wimaxnear /blog; do printf '%-12s %s\n' \$p \$(curl -s 
 ### ۳-۱ برگرداندنِ داده
 
 ```
-docker cp /root/pre-migrate-20260906.gz shop_mongo:/tmp/rb.gz && docker exec shop_mongo mongorestore --username=shopadmin --password='PASTE' --authenticationDatabase=admin --archive=/tmp/rb.gz --gzip --drop
+cd /root/shop && set -a && . ./.env && set +a && docker cp /root/pre-migrate-20260906.gz shop_mongo:/tmp/rb.gz && docker exec shop_mongo mongorestore --username="$MONGO_ROOT_USERNAME" --password="$MONGO_ROOT_PASSWORD" --authenticationDatabase=admin --archive=/tmp/rb.gz --gzip --drop
 ```
 
 ### ۳-۲ برگرداندنِ اپ
@@ -162,4 +153,4 @@ docker cp /root/pre-migrate-20260906.gz shop_mongo:/tmp/rb.gz && docker exec sho
 jarِ قبلی روی سرور با `docker compose build` جایگزین شده، پس نسخهٔ قبلی روی سرور
 نمانده. برایِ برگشت باید از کامیتِ قبلی دوباره بیلد شود — بگویید تا بزنم.
 (بهتر است قبل از بخشِ ۲، jarِ فعلیِ سرور را با
-`ssh root@185.239.3.236 "cp /root/shop/target/shop1-0.0.1-SNAPSHOT.jar /root/jar-backup-20260906.jar"` کنار بگذاریم.)
+`cp /root/shop/target/shop1-0.0.1-SNAPSHOT.jar /root/jar-backup-20260906.jar` کنار بگذاریم.)
