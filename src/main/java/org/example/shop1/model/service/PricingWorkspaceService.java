@@ -259,14 +259,14 @@ public class PricingWorkspaceService {
         p.setFloorPriceCheckedBy(activityLog.currentUsername());
     }
 
-    /** فقط ADMIN و PRICER می‌توانند فیلدهایِ ویژهٔ قیمت‌گذاری را تغییر دهند. */
+    /** ADMIN، PRICER و SALES می‌توانند فیلدهایِ ویژهٔ قیمت‌گذاری («فروش تعدادی») را تغییر دهند؛ SUPPORT فقط‌مشاهده است. */
     public boolean canEditPricerOnlyFields() {
         var auth = org.springframework.security.core.context.SecurityContextHolder
                 .getContext().getAuthentication();
         if (auth == null) return false;
         return auth.getAuthorities().stream()
                 .map(Object::toString)
-                .anyMatch(r -> r.equals("ROLE_ADMIN") || r.equals("ROLE_PRICER"));
+                .anyMatch(r -> r.equals("ROLE_ADMIN") || r.equals("ROLE_PRICER") || r.equals("ROLE_SALES"));
     }
 
     /** جهشِ مشکوک: بیش از ۱۰ برابر یا کمتر از یک‌دهم. مقدارِ قبلیِ خالی/صفر جهش حساب نمی‌شود. */

@@ -11,6 +11,9 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +27,18 @@ public class UserService {
     /** حداقل طولِ رمز برای حساب‌های کارکنان. */
     private static final int MIN_PASSWORD_LENGTH = 8;
 
+    /** نامِ پیش‌فرضِ کالکشنِ spring-session-data-mongodb (در تنظیمات بازنویسی نشده). */
+    private static final String SESSION_COLLECTION = "sessions";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MongoOperations mongoOperations;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       MongoOperations mongoOperations) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.mongoOperations = mongoOperations;
     }
     // دریافت همه کاربران برای پنل ادمین
     public List<User> getAllUsers() {
@@ -87,7 +96,7 @@ public class UserService {
         // ورودِ پنل دو مرحله‌ای است و کد تایید پیامک می‌شود؛ بدون شماره اصلاً نمی‌تواند وارد شود.
         // این برایِ هر سه نقشِ کارکنان صدق می‌کند، نه فقط ادمین — قبلاً فقط ADMIN چک
         // می‌شد و کارشناسِ بدونِ شماره موقعِ ورود با خطای نامفهومِ «شماره معتبر نیست» گیر می‌کرد.
-        if ((role == Role.ADMIN || role == Role.PRICER || role == Role.SALES || role == Role.PRODUCT_EDITOR) && phone.isEmpty()) {
+        if ((role == Role.ADMIN || role == Role.PRICER || role == Role.SALES || role == Role.SUPPORT) && phone.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "برای این نقش شماره موبایل الزامی است، چون کد ورود پیامک می‌شود");
         }
@@ -135,7 +144,28 @@ public class UserService {
         }
 
         target.setRole(newRole);
-        return userRepository.save(target);
+        User saved = userRepository.save(target);
+        // نقشِ کاربر تازه عوض شد؛ اگر سشنِ فعالی با نقشِ قدیمی روی مرورگرش باز
+        // مانده، همان‌جا باطلش کن تا مجبور شود دوباره لاگین کند و نقشِ تازه از
+        // سرور خوانده شود — بدونِ این، تا لاگ‌اوتِ دستی، نقشِ کهنه اعمال می‌ماند.
+        invalidateSessionsFor(saved.getUsername());
+        return saved;
+    }
+
+    /**
+     * سشن‌هایِ این پروژه در مانگو ذخیره می‌شوند (spring-session-data-mongodb)، نه
+     * در حافظه‌یِ تامکت؛ برایِ همین با ری‌استارتِ بک‌اند هم زنده می‌مانند. پس
+     * باطل‌کردنشان باید از همان مخزن انجام شود — SessionRegistryِ درون‌حافظه‌ای
+     * اینجا بی‌اثر است (با هر ری‌استارت خالی می‌شود و سشنِ مانگو دست‌نخورده می‌ماند).
+     * <p>
+     * عمداً حذفِ مستقیم است، نه {@code findByPrincipalName}: آن متد هر سندِ سشن را
+     * دیسریالایز می‌کند و یک سندِ خرابِ قدیمی کلِ تغییرِ نقش را با ۵۰۰ می‌انداخت.
+     * این کوئری همهٔ سشن‌هایِ کاربر را روی هر دستگاهی که باشد یک‌جا پاک می‌کند.
+     */
+    private void invalidateSessionsFor(String username) {
+        mongoOperations.remove(
+                Query.query(Criteria.where("principal").is(username)),
+                SESSION_COLLECTION);
     }
 
     /** بازنشانیِ رمزِ یک کاربر توسط ادمین. */
@@ -167,8 +197,6 @@ public class UserService {
         List<User> staff = new ArrayList<>(userRepository.findByRole(Role.ADMIN));
         staff.addAll(userRepository.findByRole(Role.PRICER));
         staff.addAll(userRepository.findByRole(Role.SALES));
-        staff.addAll(userRepository.findByRole(Role.PRODUCT_EDITOR));
-        // نقشِ قدیمی؛ اگر کاربری هنوز داشته باشد از فهرستِ کارکنان نیفتد
         staff.addAll(userRepository.findByRole(Role.SUPPORT));
         return staff;
     }

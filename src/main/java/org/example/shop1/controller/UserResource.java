@@ -75,6 +75,20 @@ public class UserResource {
         return ResponseEntity.ok("کاربر حذف شد");
     }
 
+    /**
+     * چکِ سبکِ زنده‌بودنِ سشن برایِ پنل‌ها (نگهبانِ سشن در /js/session-watch.js).
+     * <p>
+     * عمداً هیچ خواندنی از دیتابیس ندارد و بدنه هم برنمی‌گرداند: اگر سشن باطل شده
+     * باشد (مثلاً بعد از تغییرِ نقش) خودِ لایه‌ی امنیت ۴۰۱ می‌دهد و همین برایِ
+     * بیرون‌انداختنِ کاربر کافی است. هزینه‌اش یک درخواستِ خالی در دقیقه است، آن هم
+     * فقط وقتی تبِ کاربر باز و دیده‌شدنی باشد.
+     */
+    @GetMapping("/api/session-check")
+    @ResponseBody
+    public ResponseEntity<Void> sessionCheck() {
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/api/current-user")
     @ResponseBody
     public Map<String, Object> currentUser(Authentication authentication) {

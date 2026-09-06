@@ -86,7 +86,7 @@ public class SecurityConfig {
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
                         .requestMatchers("/api/v1/product-redirects/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/products/admin/**").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
+                        .requestMatchers("/api/v1/products/admin/**").hasAnyRole("ADMIN", "PRICER")
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/settings/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/courses/admin/**").hasRole("ADMIN")
@@ -96,12 +96,12 @@ public class SecurityConfig {
                         // فاصله‌ی چرخشِ بنر هم خواندنی و عمومی است (CL.html این را می‌خواند)
                         .requestMatchers(HttpMethod.GET, "/api/v1/settings/banner-rotation-seconds").permitAll()
 
-                        // نوشتن محصول: ادمین + کارشناسِ محصولات (نقشِ جدید، کمینه‌ی دسترسی —
-                        // فقط همین سه خط، نه بیشتر). جستجو (POST) عمومی می‌ماند چون فرانت با آن فیلتر می‌کند
+                        // نوشتن محصول: ادمین + کارشناسِ ارشد (PRICER). جستجو (POST) عمومی
+                        // می‌ماند چون فرانت با آن فیلتر می‌کند
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/search").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAnyRole("ADMIN", "PRODUCT_EDITOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAnyRole("ADMIN", "PRICER")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAnyRole("ADMIN", "PRICER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAnyRole("ADMIN", "PRICER")
 
                         // بنرهایِ خانه — عمداً الگویِ landing-sections را کپی نکردم: آن مسیر
                         // فعلاً کاملاً permitAll است (حتی POST/DELETE)، یعنی هرکسِ ناشناس هم
@@ -146,10 +146,17 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // میزِ کارِ قیمت‌گذاری — محافظت در سطحِ مسیر، نه فقط پنهان‌کردنِ دکمه در UI.
-                        // ترتیب مهم است: قواعدِ خاص‌ترِ نوشتن/لاگ باید قبل از قاعده‌ی کلیِ خواندن بیایند.
+                        // ترتیب مهم است: قواعدِ خاص‌ترِ نوشتن/لاگ/خواندنِ-فقط‌مشاهده باید قبل از
+                        // قاعده‌ی کلیِ خواندن/نوشتن بیایند.
                         .requestMatchers(HttpMethod.GET, "/api/v1/pricing/logs").hasRole("ADMIN")
-                        // کارشناسِ فروش هم می‌نویسد؛ تنها استثنا فیلدِ «فروش تعدادی» است که
-                        // در PricingWorkspaceService به‌صورتِ فیلدی رد می‌شود (نه مسیری).
+                        // کارشناسِ فروش (SUPPORT) فقط مشاهده دارد؛ هیچ POSTی برایش مجاز نیست
+                        // (نه batch، نه marketplace) — همان سه GETِ زیر برایِ نمایشِ
+                        // میزِ کار در حالتِ فقط-خواندنی کافی است.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/pricing/rows", "/api/v1/pricing/capabilities", "/api/v1/pricing/logs/products")
+                                .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
+                        // کارشناسِ فروش‌وقیمت‌گذاری (SALES) هم می‌نویسد؛ تنها استثنا فیلدِ
+                        // «فروش تعدادی» است که در PricingWorkspaceService به‌صورتِ فیلدی رد
+                        // می‌شود (نه مسیری) — الان PRICER/SALES هر دو اجازه‌ی آن فیلد را دارند.
                         .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasAnyRole("ADMIN", "PRICER", "SALES")
                         .requestMatchers(HttpMethod.POST, "/api/v1/pricing/marketplace/**").hasAnyRole("ADMIN", "PRICER", "SALES")
                         .requestMatchers("/api/v1/pricing/**").hasAnyRole("ADMIN", "PRICER", "SALES")
@@ -175,9 +182,9 @@ public class SecurityConfig {
                         // پنلِ فروشِ حضوری — مسیرِ صفحه از همان اول تعریف می‌شود.
                         // ⚠️ دوبار در همین پروژه API محافظت شد ولی مسیرِ صفحه جا ماند
                         // (/img/** و ورودِ نقش‌هایِ جدید به Admin.html). تکرارش نمی‌کنیم.
-                        // PRODUCT_EDITOR عمداً فقط اینجا اضافه شد، نه به /Admin.html
-                        // (خطِ ۱۶۹) — این نقش فقط از تبِ محصولاتِ همین پنل کار می‌کند.
-                        .requestMatchers("/SalesPanel.html").hasAnyRole("ADMIN", "PRICER", "SALES", "PRODUCT_EDITOR")
+                        // SUPPORT (کارشناسِ فروش، فقط‌مشاهده) عمداً فقط اینجا اضافه شد، نه
+                        // به /Admin.html (خطِ ۱۶۹).
+                        .requestMatchers("/SalesPanel.html").hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
 
                         // ۴. مسیرهای ادمین
                         .requestMatchers(
@@ -209,6 +216,11 @@ public class SecurityConfig {
                             }
                         })
                 )
+                // سشن‌ها در مانگو ذخیره می‌شوند (spring-session-data-mongodb)؛ باطل‌کردنِ
+                // سشنِ یک کاربر بعد از تغییرِ نقشش در UserService.changeUserRole انجام
+                // می‌شود (حذفِ مستقیم از همان مخزن). SessionRegistryِ درون‌حافظه‌ای اینجا
+                // عمداً استفاده نشده چون با هر ری‌استارت خالی می‌شود و سشنِ مانگو را
+                // اصلاً لمس نمی‌کند.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation(
                                 SessionManagementConfigurer.SessionFixationConfigurer::migrateSession
