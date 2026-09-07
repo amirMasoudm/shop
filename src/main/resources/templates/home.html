@@ -835,13 +835,22 @@
 
 <script>
     // ── ویترینِ مدارک ──────────────────────────────────────────
-    const CERT_FILES = [["zycoo-partner", "نمایندگی Platinum زایکو در ایران"], ["mikrotik-mtcwe", "MTCWE — مهندسی تخصصی وایرلس"], ["mikrotik-mtcna", "MTCNA — مهندسی عمومی شبکه"], ["arc-wireless", "دورهٔ تخصصی محصولات ARC Wireless"], ["cablefree", "پشتیبانی فنی و نصبِ CableFree"], ["ligowave", "دورهٔ حرفه‌ای شبکهٔ LigoWave"], ["zycoo-zcpt", "ZCPT — مدرسِ رسمی زایکو"]];
+    // ⚠️ اینجا عمداً هیچ آرایه‌ی درون‌خطی نداریم: این اسکریپت th:inline="javascript"
+    //    است و در تایم‌لیف «[[» نشانه‌ی عبارتِ درون‌خطی است. یک آرایه‌ی JS که با
+    //    [[ شروع شود، رندر را از همان نقطه قطع می‌کند و بقیه‌ی صفحه (تا </html>)
+    //    اصلاً فرستاده نمی‌شود — صفحه‌ی سفید. پس داده از خودِ DOM خوانده می‌شود.
     let certIdx = 0;
+    function certCards(){ return Array.prototype.slice.call(document.querySelectorAll('.creds-strip .cert')); }
     function openCertLb(i){
+        var cards = certCards(), c = cards[i];
+        if(!c) return;
         certIdx = i;
-        document.getElementById('certLbImg').src = '/img/certs/' + CERT_FILES[i][0] + '.jpg';
-        document.getElementById('certLbImg').alt = CERT_FILES[i][1];
-        document.getElementById('certLbCap').textContent = CERT_FILES[i][1];
+        var thumb = c.querySelector('img').getAttribute('src');
+        var cap = c.querySelector('.n').textContent;
+        var img = document.getElementById('certLbImg');
+        img.src = thumb.replace('-t.jpg', '.jpg');
+        img.alt = cap;
+        document.getElementById('certLbCap').textContent = cap;
         document.getElementById('certLb').classList.add('open');
         document.body.style.overflow = 'hidden';
     }
@@ -849,7 +858,10 @@
         document.getElementById('certLb').classList.remove('open');
         document.body.style.overflow = '';
     }
-    function certLbNav(d){ openCertLb((certIdx + d + CERT_FILES.length) % CERT_FILES.length); }
+    function certLbNav(d){
+        var n = certCards().length;
+        if(n) openCertLb((certIdx + d + n) % n);
+    }
     document.addEventListener('keydown', function(e){
         var lb = document.getElementById('certLb');
         if(!lb || !lb.classList.contains('open')) return;
