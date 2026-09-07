@@ -86,14 +86,17 @@ public class FileStorageService {
     }
 
     /** نتیجهٔ بهینه‌سازی؛ چون فرمت ممکن است از PNG به JPEG تغییر کند، پسوند هم برمی‌گردد. */
-    private record Optimized(byte[] bytes, String extension) {
+    public record Optimized(byte[] bytes, String extension) {
     }
 
     /**
      * عکس را در صورت نیاز کوچک و دوباره فشرده می‌کند.
      * اگر فایل قابل خواندن نباشد یا نتیجه از اصل بهتر نشود، null برمی‌گرداند تا فایلِ اصلی ذخیره شود.
+     * <p>
+     * عمداً public است: ضمیمهٔ عکسِ چت هم از همین مسیر رد می‌شود تا عکسِ چند مگابایتیِ
+     * گوشی قبل از ذخیره کوچک شود. دو پیاده‌سازیِ موازیِ فشرده‌سازی نمی‌خواهیم.
      */
-    private Optimized optimize(byte[] original, boolean isPng) {
+    public Optimized optimize(byte[] original, boolean isPng) {
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(original));
             if (image == null) {

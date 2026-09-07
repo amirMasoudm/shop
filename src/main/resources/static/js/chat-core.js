@@ -165,7 +165,11 @@
                 <div class="chat-composer" style="display:flex;gap:6px;padding:8px;border-top:1px solid #e5e7eb;align-items:flex-end;">
                     <button type="button" class="chat-attach" title="پیوستِ فایل"
                             style="border:1px solid #d1d5db;background:#fff;border-radius:8px;padding:6px 9px;cursor:pointer;">📎</button>
-                    <input type="file" class="chat-file" style="display:none;">
+                    <!-- accept تا پیکرِ مرورگر همان اول فیلتر کند؛ کاربر نباید فایلی
+                         انتخاب کند که سرور بعدش با ۴۱۵ ردش می‌کند. مرزِ واقعی همچنان
+                         لیستِ سفیدِ ChatAttachmentService است، نه این صفت. -->
+                    <input type="file" class="chat-file" style="display:none;"
+                           accept="image/*,.pdf,.txt,.csv,.zip,.rar,.7z,.doc,.docx,.xls,.xlsx">
                     <textarea class="chat-input" rows="1" placeholder="پیام خود را بنویسید…"
                               style="flex:1;resize:none;max-height:110px;border:1px solid #d1d5db;border-radius:8px;padding:8px;font-family:inherit;font-size:13px;outline:none;"></textarea>
                     <button type="button" class="chat-send"

@@ -30,8 +30,18 @@ import java.util.UUID;
 @Service
 public class ChatAttachmentService {
 
-    /** سقفِ حجمِ هر ضمیمه. با {@code spring.servlet.multipart.max-file-size} هم‌تراز است. */
+    /**
+     * سقفِ حجمِ ضمیمهٔ <b>غیرتصویری</b>.
+     * <p>
+     * عکس‌ها این سقف را ندارند چون قبل از ذخیره فشرده می‌شوند (نگاه کن به {@link #store}):
+     * عکسِ ۸ مگابایتیِ گوشی بعد از کوچک‌شدن چند صد کیلوبایت می‌شود. اگر اینجا هم رد
+     * می‌شد، معمول‌ترین کاربردِ ضمیمه در پشتیبانیِ تجهیزات — «عکسِ لیبل/دستگاه را
+     * بفرست» — عملاً کار نمی‌کرد.
+     */
     public static final long MAX_SIZE_BYTES = 5L * 1024 * 1024;
+
+    /** سقفِ عکس بعد از فشرده‌سازی؛ اگر باز هم بزرگ‌تر بود یعنی واقعاً غیرعادی است. */
+    private static final long MAX_IMAGE_STORED_BYTES = 8L * 1024 * 1024;
 
     /**
      * لیستِ سفیدِ MIME → پسوندی که <b>ما</b> تعیین می‌کنیم.
@@ -39,16 +49,42 @@ public class ChatAttachmentService {
      * پسوند عمداً از نامِ فایلِ کاربر گرفته نمی‌شود: کاربر می‌تواند
      * {@code x.html} یا {@code x.svg} بفرستد و اگر روزی مسیرِ ذخیره اشتباهی سرو شود،
      * همان فایل در دامنهٔ ما اجرا می‌شود. با نگاشتِ زیر، خروجی همیشه یکی از همین‌هاست.
+     * <p>
+     * فرمت‌های اداری و آرشیو عمداً هستند: مشتریِ تجهیزاتِ شبکه پیش‌فاکتور و لیستِ
+     * قطعات را با همین‌ها می‌فرستد. خطرشان مهار شده — هیچ‌کدام تصویر نیستند، پس با
+     * {@code Content-Disposition: attachment} و {@code nosniff} تحویل می‌شوند و در
+     * دامنهٔ ما اجرا نمی‌شوند.
      */
-    private static final Map<String, String> ALLOWED_MIME = Map.of(
-            "image/jpeg", ".jpg",
-            "image/png", ".png",
-            "image/gif", ".gif",
-            "image/webp", ".webp",
-            "application/pdf", ".pdf",
-            "text/plain", ".txt",
-            "application/zip", ".zip"
+    private static final Map<String, String> ALLOWED_MIME = Map.ofEntries(
+            Map.entry("image/jpeg", ".jpg"),
+            Map.entry("image/png", ".png"),
+            Map.entry("image/gif", ".gif"),
+            Map.entry("image/webp", ".webp"),
+            Map.entry("image/heic", ".heic"),
+            Map.entry("application/pdf", ".pdf"),
+            Map.entry("text/plain", ".txt"),
+            Map.entry("text/csv", ".csv"),
+            Map.entry("application/zip", ".zip"),
+            Map.entry("application/x-zip-compressed", ".zip"),
+            Map.entry("application/x-rar-compressed", ".rar"),
+            Map.entry("application/vnd.rar", ".rar"),
+            Map.entry("application/x-7z-compressed", ".7z"),
+            Map.entry("application/msword", ".doc"),
+            Map.entry("application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx"),
+            Map.entry("application/vnd.ms-excel", ".xls"),
+            Map.entry("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx")
     );
+
+    /** برایِ صفتِ {@code accept} در فرم — تا پیکرِ مرورگر همان اول فیلتر کند. */
+    public static String allowedMimeList() {
+        return String.join(",", ALLOWED_MIME.keySet());
+    }
+
+    private final FileStorageService fileStorageService;
+
+    public ChatAttachmentService(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
+    }
 
     @Value("${app.chat.dir}")
     private String chatDir;
@@ -62,29 +98,48 @@ public class ChatAttachmentService {
         if (file == null || file.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "فایلی انتخاب نشده است");
         }
-        if (file.getSize() > MAX_SIZE_BYTES) {
-            throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE,
-                    "حجمِ فایل نباید از ۵ مگابایت بیشتر باشد");
-        }
 
         String mime = file.getContentType() == null
                 ? "" : file.getContentType().toLowerCase(Locale.ROOT).split(";")[0].trim();
         String extension = ALLOWED_MIME.get(mime);
         if (extension == null) {
             throw new ApiException(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    "این نوع فایل مجاز نیست. عکس، PDF، متن یا zip بفرستید.");
+                    "این نوع فایل مجاز نیست. عکس، PDF، فایلِ آفیس، متن یا فایلِ فشرده بفرستید.");
+        }
+        boolean image = isImage(mime);
+        if (!image && file.getSize() > MAX_SIZE_BYTES) {
+            throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE,
+                    "حجمِ فایل نباید از ۵ مگابایت بیشتر باشد");
         }
 
         try {
+            byte[] bytes = file.getBytes();
+
+            // عکس قبل از ذخیره کوچک و دوباره فشرده می‌شود — همان مسیری که عکسِ محصول
+            // از آن رد می‌شود. بدونِ این، عکسِ معمولیِ گوشی رد می‌شد.
+            if (image) {
+                FileStorageService.Optimized optimized =
+                        fileStorageService.optimize(bytes, ".png".equals(extension));
+                if (optimized != null) {
+                    bytes = optimized.bytes();
+                    extension = optimized.extension();
+                    mime = ".png".equals(extension) ? "image/png" : "image/jpeg";
+                }
+                if (bytes.length > MAX_IMAGE_STORED_BYTES) {
+                    throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE,
+                            "این عکس حتی بعد از فشرده‌سازی هم خیلی بزرگ است");
+                }
+            }
+
             Path dir = Paths.get(chatDir);
             Files.createDirectories(dir);
             String storedName = UUID.randomUUID() + extension;
-            Files.write(dir.resolve(storedName), file.getBytes());
+            Files.write(dir.resolve(storedName), bytes);
 
             ChatMessage.Attachment attachment = new ChatMessage.Attachment();
             attachment.setStoredName(storedName);
             attachment.setName(safeDisplayName(file.getOriginalFilename(), extension));
-            attachment.setSizeBytes(file.getSize());
+            attachment.setSizeBytes(bytes.length);
             attachment.setMime(mime);
             return attachment;
         } catch (IOException e) {
