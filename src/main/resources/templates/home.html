@@ -321,39 +321,28 @@
         footer.site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
         footer.site-footer a { color: #cbd5e1; text-decoration: none; font-size: .8rem; }
 
-        /* ===== ویترینِ مدارک — لایهٔ اول، بدونِ کلیک ===== */
-        .creds{background:#fff;border:1px solid var(--border);border-radius:16px;
-               padding:20px 20px 16px;box-shadow:0 10px 26px rgba(27,79,138,.08);
-               max-width:1080px;margin:0 auto 22px}
-        .creds-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-        .creds-head .t{font-size:1.05rem;font-weight:800;border-right:4px solid var(--accent);padding-right:10px}
-        .creds-head .h{font-size:.79rem;color:#6b7280}
-        .creds-sub{font-size:.83rem;color:#4b5563;line-height:2;margin:8px 0 16px}
-        .creds-strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
-        .creds-strip::-webkit-scrollbar{height:6px}
-        .creds-strip::-webkit-scrollbar-thumb{background:#cfdcec;border-radius:100px}
-        .cert{flex:0 0 176px;scroll-snap-align:start;border:1px solid var(--border);border-radius:12px;
-              background:#fff;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;
-              transition:box-shadow .18s ease,transform .18s ease,border-color .18s}
-        .cert:hover{box-shadow:0 10px 22px rgba(27,79,138,.16);transform:translateY(-3px);border-color:#c3d5ea}
-        .cert .shot{position:relative;aspect-ratio:4/3;background:#fff;border-bottom:1px solid var(--border)}
-        /* contain نه cover — مدرک سند است، باید کامل دیده شود نه بریده */
-        .cert .shot img{width:100%;height:100%;object-fit:contain;display:block;padding:6px}
-        .cert .zoom{position:absolute;top:7px;left:7px;background:rgba(27,79,138,.9);color:#fff;
-                    width:23px;height:23px;border-radius:50%;display:flex;align-items:center;
-                    justify-content:center;font-size:.76rem;opacity:0;transition:opacity .18s}
-        .cert:hover .zoom{opacity:1}
-        .cert .meta{padding:9px 11px 11px;display:flex;flex-direction:column;gap:3px;flex:1}
-        .cert .meta .n{font-size:.79rem;font-weight:700;line-height:1.75}
-        .cert .meta .d{font-size:.7rem;color:#6b7280;line-height:1.7;margin-top:auto}
-        .cert .tag{display:inline-block;font-size:.63rem;font-weight:700;padding:2px 7px;
-                   border-radius:100px;align-self:flex-start;margin-bottom:2px}
-        .cert .tag.co{background:#fdf0e0;color:#a4610c}
-        .cert .tag.pe{background:#eaf1f9;color:var(--primary)}
-        .creds-foot{display:flex;justify-content:space-between;align-items:center;
-                    border-top:1px solid #eef2f7;margin-top:12px;padding-top:11px;flex-wrap:wrap;gap:8px}
-        .creds-foot .c{font-size:.75rem;color:#6b7280}
-        .creds-foot a{font-size:.78rem;font-weight:700;color:var(--primary);text-decoration:none}
+        /* ===== ویترینِ مدارک — مینیمال: سند تنها شیءِ بصری است ===== */
+        .creds{background:#fff;border:1px solid #e6ecf4;border-radius:16px;
+               padding:26px 26px 22px;max-width:1080px;margin:0 auto 22px}
+        .creds-head{display:flex;justify-content:space-between;align-items:baseline;
+                    gap:14px;flex-wrap:wrap;margin-bottom:22px}
+        .creds-head .t{font-size:1.02rem;font-weight:800}
+        .creds-head .h{font-size:.76rem;color:#8a94a3}
+        .creds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:26px 20px}
+        .cert{cursor:pointer}
+        .cert .doc{position:relative;aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;
+                   background:#fff;border:1px solid #e6ecf4;border-radius:8px;padding:13px;
+                   transition:box-shadow .2s ease,transform .2s ease}
+        .cert:hover .doc{box-shadow:0 12px 26px rgba(20,40,70,.13);transform:translateY(-3px)}
+        /* contain نه cover — مدرک سند است، بریده‌شدنش بی‌اعتمادی می‌سازد */
+        .cert .doc img{max-width:100%;max-height:100%;object-fit:contain}
+        .cert .brand{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.95);color:var(--primary);
+                     font-size:.66rem;font-weight:800;padding:3px 9px;border-radius:100px;border:1px solid #dbe5f1}
+        .cert .tag{position:absolute;top:8px;left:8px;font-size:.62rem;font-weight:800;
+                   padding:3px 9px;border-radius:100px}
+        .cert .tag.co{background:var(--accent);color:#fff}
+        .cert .tag.pe{background:rgba(255,255,255,.95);color:#8a94a3;border:1px solid #dbe5f1}
+        .cert .n{margin-top:11px;font-size:.82rem;font-weight:600;line-height:1.8}
         /* لایت‌باکسِ مدارک — عمداً مستقل از لایت‌باکسِ پنجره‌های ردیفی (تزویجِ کمتر) */
         .cert-lb{display:none;position:fixed;inset:0;background:rgba(10,20,34,.92);z-index:9999;
                  align-items:center;justify-content:center;padding:26px}
@@ -366,7 +355,10 @@
         .cert-lb .nv{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.14);
                      color:#fff;border:0;width:42px;height:42px;border-radius:50%;font-size:1.4rem;cursor:pointer}
         .cert-lb .pv{right:18px} .cert-lb .nx{left:18px}
-        @media(max-width:600px){ .cert{flex-basis:150px} .creds{padding:16px} }
+        @media(max-width:600px){
+            .creds{padding:18px}
+            .creds-grid{grid-template-columns:repeat(auto-fill,minmax(144px,1fr));gap:20px 14px}
+        }
     </style>
 </head>
 <body>
@@ -555,57 +547,42 @@
         <div class="t">مدارک و نمایندگی‌های بین‌المللی</div>
         <div class="h">روی هر مدرک بزنید تا اصلِ آن باز شود</div>
     </div>
-    <p class="creds-sub">
-        داده‌نما و کارشناسانش مستقیماً از سازندگان تجهیزات آموزش دیده‌اند — میکروتیک، زایکو،
-        ARC Wireless، CableFree و LigoWave. اصلِ اسکنِ هر مدرک اینجا قابل مشاهده است.
-    </p>
-    <div class="creds-strip">
+    <div class="creds-grid">
         <div class="cert" onclick="openCertLb(0)">
-            <div class="shot"><span class="zoom">&#10530;</span>
-                <img src="/img/certs/zycoo-partner-t.jpg" loading="lazy" alt="نمایندگی Platinum زایکو در ایران — داده‌نما"></div>
-            <div class="meta"><span class="tag co">به نام شرکت</span>
-                <div class="n">نمایندگی Platinum زایکو در ایران</div><div class="d">مراکز تلفن تحت شبکه</div></div>
+            <div class="doc"><span class="brand">ZYCOO</span><span class="tag co">به نام شرکت</span>
+                <img src="/img/certs/zycoo-partner-t.jpg" loading="lazy" alt="نمایندگی Platinum زایکو — داده‌نما"></div>
+            <div class="n">نمایندگی Platinum زایکو</div>
         </div>
         <div class="cert" onclick="openCertLb(1)">
-            <div class="shot"><span class="zoom">&#10530;</span>
-                <img src="/img/certs/mikrotik-mtcwe-t.jpg" loading="lazy" alt="MTCWE — مهندسی تخصصی وایرلس — داده‌نما"></div>
-            <div class="meta"><span class="tag pe">مدیرعامل</span>
-                <div class="n">MTCWE — مهندسی تخصصی وایرلس</div><div class="d">گواهی‌نامهٔ رسمی میکروتیک</div></div>
+            <div class="doc"><span class="brand">MikroTik</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/mikrotik-mtcwe-t.jpg" loading="lazy" alt="MTCWE — تخصصی وایرلس — داده‌نما"></div>
+            <div class="n">MTCWE — تخصصی وایرلس</div>
         </div>
         <div class="cert" onclick="openCertLb(2)">
-            <div class="shot"><span class="zoom">&#10530;</span>
-                <img src="/img/certs/mikrotik-mtcna-t.jpg" loading="lazy" alt="MTCNA — مهندسی عمومی شبکه — داده‌نما"></div>
-            <div class="meta"><span class="tag pe">مدیرعامل</span>
-                <div class="n">MTCNA — مهندسی عمومی شبکه</div><div class="d">گواهی‌نامهٔ رسمی میکروتیک</div></div>
+            <div class="doc"><span class="brand">MikroTik</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/mikrotik-mtcna-t.jpg" loading="lazy" alt="MTCNA — عمومی شبکه — داده‌نما"></div>
+            <div class="n">MTCNA — عمومی شبکه</div>
         </div>
         <div class="cert" onclick="openCertLb(3)">
-            <div class="shot"><span class="zoom">&#10530;</span>
-                <img src="/img/certs/arc-wireless-t.jpg" loading="lazy" alt="دورهٔ تخصصی محصولات ARC Wireless — داده‌نما"></div>
-            <div class="meta"><span class="tag pe">مدیرعامل</span>
-                <div class="n">دورهٔ تخصصی محصولات ARC Wireless</div><div class="d">آمریکا — برگزارشده در دبی</div></div>
+            <div class="doc"><span class="brand">ARC</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/arc-wireless-t.jpg" loading="lazy" alt="ARC Wireless — داده‌نما"></div>
+            <div class="n">ARC Wireless</div>
         </div>
         <div class="cert" onclick="openCertLb(4)">
-            <div class="shot"><span class="zoom">&#10530;</span>
-                <img src="/img/certs/cablefree-t.jpg" loading="lazy" alt="پشتیبانی فنی و نصبِ CableFree — داده‌نما"></div>
-            <div class="meta"><span class="tag pe">مدیرعامل</span>
-                <div class="n">پشتیبانی فنی و نصبِ CableFree</div><div class="d">FSO، رادیو OFDM و مایکروویو</div></div>
+            <div class="doc"><span class="brand">CableFree</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/cablefree-t.jpg" loading="lazy" alt="CableFree — داده‌نما"></div>
+            <div class="n">CableFree</div>
         </div>
         <div class="cert" onclick="openCertLb(5)">
-            <div class="shot"><span class="zoom">&#10530;</span>
-                <img src="/img/certs/ligowave-t.jpg" loading="lazy" alt="دورهٔ حرفه‌ای شبکهٔ LigoWave — داده‌نما"></div>
-            <div class="meta"><span class="tag pe">مدیرعامل</span>
-                <div class="n">دورهٔ حرفه‌ای شبکهٔ LigoWave</div><div class="d">لاتویا</div></div>
+            <div class="doc"><span class="brand">LigoWave</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/ligowave-t.jpg" loading="lazy" alt="LigoWave — داده‌نما"></div>
+            <div class="n">LigoWave</div>
         </div>
         <div class="cert" onclick="openCertLb(6)">
-            <div class="shot"><span class="zoom">&#10530;</span>
-                <img src="/img/certs/zycoo-zcpt-t.jpg" loading="lazy" alt="ZCPT — مدرسِ رسمی زایکو — داده‌نما"></div>
-            <div class="meta"><span class="tag pe">مدیرعامل</span>
-                <div class="n">ZCPT — مدرسِ رسمی زایکو</div><div class="d">مراکز تلفن تحت شبکه</div></div>
+            <div class="doc"><span class="brand">ZYCOO</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/zycoo-zcpt-t.jpg" loading="lazy" alt="ZCPT — مدرسِ زایکو — داده‌نما"></div>
+            <div class="n">ZCPT — مدرسِ زایکو</div>
         </div>
-    </div>
-    <div class="creds-foot">
-        <div class="c">۷ مدرک · ۵ سازندهٔ بین‌المللی</div>
-        <a href="#panel-permits" onclick="switchHeritageTab('permits')">همهٔ مجوزها و مدارک &#10095;</a>
     </div>
 </div>
 
@@ -840,7 +817,7 @@
     //    [[ شروع شود، رندر را از همان نقطه قطع می‌کند و بقیه‌ی صفحه (تا </html>)
     //    اصلاً فرستاده نمی‌شود — صفحه‌ی سفید. پس داده از خودِ DOM خوانده می‌شود.
     let certIdx = 0;
-    function certCards(){ return Array.prototype.slice.call(document.querySelectorAll('.creds-strip .cert')); }
+    function certCards(){ return Array.prototype.slice.call(document.querySelectorAll('.creds-grid .cert')); }
     function openCertLb(i){
         var cards = certCards(), c = cards[i];
         if(!c) return;
