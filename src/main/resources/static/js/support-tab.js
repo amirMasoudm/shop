@@ -176,7 +176,11 @@
     }
 
     async function postJson(url) {
-        const res = await fetch(url, {method: 'POST', credentials: 'include'});
+        // توکنِ CSRF خودمان فرستاده می‌شود و به رَپرِ fetchِ میزبان تکیه نمی‌کنیم —
+        // همان دلیلی که در chat-core.js توضیح داده شده.
+        const m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+        const headers = m ? {'X-XSRF-TOKEN': decodeURIComponent(m[1])} : {};
+        const res = await fetch(url, {method: 'POST', credentials: 'include', headers: headers});
         if (!res.ok) throw new Error(await res.text());
         return res.json();
     }

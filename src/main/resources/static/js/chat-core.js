@@ -199,6 +199,7 @@
 
     /** بازکردنِ یک گفت‌وگو: تاریخچه + عضویت در اتاقِ زنده. */
     async function openConversation(id) {
+        if (!id) throw new Error('شناسهٔ گفت‌وگو داده نشده است');
         conversationId = id;
         oldestLoadedId = null;
         newestLoadedId = null;
@@ -375,7 +376,7 @@
     // ==========================================================
 
     async function sendCurrent() {
-        if (!composerEnabled) return;
+        if (!composerEnabled || !hasTarget()) return;
         const input = el('.chat-input');
         const text = input.value.trim();
         if (!text) return;
@@ -401,7 +402,7 @@
     async function onFilePicked(ev) {
         const file = ev.target.files && ev.target.files[0];
         ev.target.value = '';
-        if (!file || !composerEnabled) return;
+        if (!file || !composerEnabled || !hasTarget()) return;
 
         const form = new FormData();
         form.append('file', file);
@@ -410,7 +411,10 @@
         setReply(null);
 
         try {
-            const res = await fetch(`${API}/upload`, {method: 'POST', body: form, credentials: 'include'});
+            // بدونِ Content-Type دستی — مرورگر خودش boundaryِ multipart را می‌گذارد
+            const res = await fetch(`${API}/upload`, {
+                method: 'POST', body: form, credentials: 'include', headers: withCsrf({})
+            });
             if (!res.ok) throw new Error(await res.text());
             const saved = await res.json();
             appendMessage(saved, true);
@@ -419,6 +423,17 @@
         } catch (err) {
             showError(err);
         }
+    }
+
+    /**
+     * کارشناس بدونِ انتخابِ گفت‌وگو نباید چیزی بفرستد.
+     * بدونِ این چک، درخواست به سرور می‌رفت و با «شناسهٔ گفت‌وگو لازم است» برمی‌گشت —
+     * پیامی درست ولی گیج‌کننده، چون کاربر فقط دکمهٔ ارسال را زده بود.
+     */
+    function hasTarget() {
+        if (conversationId) return true;
+        if (isAgent) showError(new Error('اول یک گفت‌وگو را از فهرست باز کنید.'));
+        return false;
     }
 
     function notifyTyping() {
@@ -466,7 +481,7 @@
         if (!conversationId) return;
         try {
             await fetch(`${API}/conversations/${encodeURIComponent(conversationId)}/read`,
-                {method: 'POST', credentials: 'include'});
+                {method: 'POST', credentials: 'include', headers: withCsrf({})});
         } catch (e) { /* بی‌اهمیت است؛ دفعهٔ بعد دوباره تلاش می‌شود */ }
     }
 
@@ -502,6 +517,26 @@
         box.scrollTop = box.scrollHeight;
     }
 
+    /**
+     * توکنِ CSRF از کوکی.
+     * <p>
+     * ⚠️ این ماژول عمداً خودش توکن را می‌فرستد و به میزبان تکیه نمی‌کند: پنلِ فروش و
+     * صفحهٔ فروشگاه هرکدام رَپرِ fetchِ خودشان را دارند که توکن را تزریق می‌کند، ولی
+     * صفحه‌های عمومیِ دیگر (خانه، بلاگ، آموزش…) ندارند. بدونِ این، حبابِ چت روی همان
+     * صفحه‌ها موقعِ ارسال ۴۰۳ می‌گرفت — و چون ۴۰۳ی CSRF بدنهٔ عمومی دارد، پیامش هم
+     * گیج‌کننده بود.
+     */
+    function csrfToken() {
+        const m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+        return m ? decodeURIComponent(m[1]) : null;
+    }
+
+    function withCsrf(headers) {
+        const token = csrfToken();
+        if (token) headers['X-XSRF-TOKEN'] = token;
+        return headers;
+    }
+
     async function fetchJson(url) {
         const res = await fetch(url, {credentials: 'include'});
         if (!res.ok) throw new Error(await res.text());
@@ -512,7 +547,7 @@
         const res = await fetch(url, {
             method: 'POST',
             credentials: 'include',
-            headers: {'Content-Type': 'application/json'},
+            headers: withCsrf({'Content-Type': 'application/json'}),
             body: JSON.stringify(body)
         });
         if (!res.ok) throw new Error(await res.text());

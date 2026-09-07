@@ -78,6 +78,20 @@
             return;
         }
 
+        // حسابِ کارکنان گفت‌وگوی مشتریِ خودش را ندارد، پس /session عمداً conversation
+        // برنمی‌گرداند. بدونِ این شاخه، ویجت گفت‌وگوی نداشته را باز می‌کرد، شناسه خالی
+        // می‌ماند و اولین ارسال با «شناسهٔ گفت‌وگو لازم است» رد می‌شد — خطایی که هیچ
+        // ربطی به کارِ کاربر نداشت و فهمیدنش سخت بود.
+        if (session.isAgent) {
+            setState('شما با حسابِ کارکنان وارد شده‌اید. گفت‌وگو با مشتریان در پنلِ فروش، تبِ «پشتیبانی مشتریان» است.');
+            const link = document.createElement('a');
+            link.href = '/SalesPanel.html';
+            link.textContent = 'رفتن به پنل فروش';
+            link.style.cssText = 'display:inline-block;margin-top:8px;color:#4338ca;font-weight:bold;';
+            panel.querySelector('[data-state]').appendChild(link);
+            return;
+        }
+
         started = true;
         setState('');
         const threadHost = panel.querySelector('[data-thread]');
@@ -124,11 +138,15 @@
         const ctx = window.supportChatContext;
         if (!ctx || !ctx.productName) return;
         contextSent = true;
+        // توکنِ CSRF — صفحه‌های عمومی رَپرِ fetch ندارند (توضیح در chat-core.js)
+        const m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+        const headers = {'Content-Type': 'application/json'};
+        if (m) headers['X-XSRF-TOKEN'] = decodeURIComponent(m[1]);
         try {
             await fetch(`${API}/context`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: {'Content-Type': 'application/json'},
+                headers: headers,
                 body: JSON.stringify({
                     productName: ctx.productName,
                     productUrl: ctx.productUrl || location.href
