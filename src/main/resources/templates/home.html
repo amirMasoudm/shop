@@ -321,43 +321,48 @@
         footer.site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
         footer.site-footer a { color: #cbd5e1; text-decoration: none; font-size: .8rem; }
 
-        /* ===== ویترینِ مدارک — مینیمال: سند تنها شیءِ بصری است ===== */
-        .creds{background:#fff;border:1px solid #e6ecf4;border-radius:16px;
-               padding:26px 26px 22px;max-width:1080px;margin:0 auto 22px}
-        .creds-head{display:flex;justify-content:space-between;align-items:baseline;
-                    gap:14px;flex-wrap:wrap;margin-bottom:22px}
-        .creds-head .t{font-size:1.02rem;font-weight:800}
-        .creds-head .h{font-size:.76rem;color:#8a94a3}
-        .creds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:26px 20px}
-        .cert{cursor:pointer}
-        .cert .doc{position:relative;aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;
-                   background:#fff;border:1px solid #e6ecf4;border-radius:8px;padding:13px;
-                   transition:box-shadow .2s ease,transform .2s ease}
-        .cert:hover .doc{box-shadow:0 12px 26px rgba(20,40,70,.13);transform:translateY(-3px)}
+        /* ===== ویترینِ مدارک — مینیمال؛ عیناً ظرف و تیترِ .heritage ===== */
+        .creds-wrap { max-width: 1360px; margin: 0 auto; padding: 34px 20px 0; }
+        .creds-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .creds-head .t { font-size: 1.28rem; font-weight: 900; letter-spacing: -.3px; }
+        .creds-head .h { font-size: .85rem; color: var(--text-muted); }
+        .creds { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+                 box-shadow: 0 18px 46px rgba(27,79,138,.11); padding: 26px 26px 24px; }
+        .creds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 26px 22px; }
+        .cert { cursor: pointer; }
+        .cert .doc { position: relative; aspect-ratio: 3/2; display: flex; align-items: center;
+                     justify-content: center; background: #fff; border: 1px solid var(--border);
+                     border-radius: 8px; padding: 14px; transition: box-shadow .2s ease, transform .2s ease; }
+        .cert:hover .doc { box-shadow: 0 12px 26px rgba(20,40,70,.13); transform: translateY(-3px); }
         /* contain نه cover — مدرک سند است، بریده‌شدنش بی‌اعتمادی می‌سازد */
-        .cert .doc img{max-width:100%;max-height:100%;object-fit:contain}
-        .cert .brand{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.95);color:var(--primary);
-                     font-size:.66rem;font-weight:800;padding:3px 9px;border-radius:100px;border:1px solid #dbe5f1}
-        .cert .tag{position:absolute;top:8px;left:8px;font-size:.62rem;font-weight:800;
-                   padding:3px 9px;border-radius:100px}
-        .cert .tag.co{background:var(--accent);color:#fff}
-        .cert .tag.pe{background:rgba(255,255,255,.95);color:#8a94a3;border:1px solid #dbe5f1}
-        .cert .n{margin-top:11px;font-size:.82rem;font-weight:600;line-height:1.8}
+        .cert .doc img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .cert .brand { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.95);
+                       color: var(--primary); font-size: .68rem; font-weight: 800; padding: 3px 10px;
+                       border-radius: 100px; border: 1px solid #dbe5f1; }
+        .cert .tag { position: absolute; top: 8px; left: 8px; font-size: .64rem; font-weight: 800;
+                     padding: 3px 10px; border-radius: 100px; }
+        .cert .tag.co { background: var(--accent); color: #fff; }
+        .cert .tag.pe { background: rgba(255,255,255,.95); color: var(--text-muted); border: 1px solid #dbe5f1; }
+        .cert .n { margin-top: 12px; font-size: .86rem; font-weight: 600; line-height: 1.8; }
         /* لایت‌باکسِ مدارک — عمداً مستقل از لایت‌باکسِ پنجره‌های ردیفی (تزویجِ کمتر) */
-        .cert-lb{display:none;position:fixed;inset:0;background:rgba(10,20,34,.92);z-index:9999;
-                 align-items:center;justify-content:center;padding:26px}
-        .cert-lb.open{display:flex}
-        .cert-lb img{max-width:92vw;max-height:82vh;background:#fff;border-radius:8px;padding:8px}
-        .cert-lb .cap{position:absolute;bottom:20px;left:0;right:0;text-align:center;color:#e6eefb;
-                      font-size:.85rem;padding:0 20px}
-        .cert-lb .x{position:absolute;top:16px;left:18px;background:rgba(255,255,255,.14);color:#fff;
-                    border:0;width:38px;height:38px;border-radius:50%;font-size:1.1rem;cursor:pointer}
-        .cert-lb .nv{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.14);
-                     color:#fff;border:0;width:42px;height:42px;border-radius:50%;font-size:1.4rem;cursor:pointer}
-        .cert-lb .pv{right:18px} .cert-lb .nx{left:18px}
-        @media(max-width:600px){
-            .creds{padding:18px}
-            .creds-grid{grid-template-columns:repeat(auto-fill,minmax(144px,1fr));gap:20px 14px}
+        .cert-lb { display: none; position: fixed; inset: 0; background: rgba(10,20,34,.92); z-index: 9999;
+                   align-items: center; justify-content: center; padding: 26px; }
+        .cert-lb.open { display: flex; }
+        .cert-lb img { max-width: 92vw; max-height: 82vh; background: #fff; border-radius: 8px; padding: 8px; }
+        .cert-lb .cap { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center;
+                        color: #e6eefb; font-size: .85rem; padding: 0 20px; }
+        .cert-lb .x { position: absolute; top: 16px; left: 18px; background: rgba(255,255,255,.14);
+                      color: #fff; border: 0; width: 38px; height: 38px; border-radius: 50%;
+                      font-size: 1.1rem; cursor: pointer; }
+        .cert-lb .nv { position: absolute; top: 50%; transform: translateY(-50%);
+                       background: rgba(255,255,255,.14); color: #fff; border: 0; width: 42px; height: 42px;
+                       border-radius: 50%; font-size: 1.4rem; cursor: pointer; }
+        .cert-lb .pv { right: 18px } .cert-lb .nx { left: 18px }
+        @media (max-width: 700px) {
+            .creds-wrap { padding: 26px 12px 0; }
+            .creds { padding: 18px; }
+            .creds-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 14px; }
+            .creds-head .t { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -542,11 +547,12 @@
 
 
 <!-- ===== ویترینِ مدارک ===== -->
-<div class="creds">
+<div class="creds-wrap">
     <div class="creds-head">
         <div class="t">مدارک و نمایندگی‌های بین‌المللی</div>
         <div class="h">روی هر مدرک بزنید تا اصلِ آن باز شود</div>
     </div>
+    <div class="creds">
     <div class="creds-grid">
         <div class="cert" onclick="openCertLb(0)">
             <div class="doc"><span class="brand">ZYCOO</span><span class="tag co">به نام شرکت</span>
@@ -583,6 +589,7 @@
                 <img src="/img/certs/zycoo-zcpt-t.jpg" loading="lazy" alt="ZCPT — مدرسِ زایکو — داده‌نما"></div>
             <div class="n">ZCPT — مدرسِ زایکو</div>
         </div>
+    </div>
     </div>
 </div>
 
