@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap">
+  <style>
+    .t { --primary:#1b4f8a; --accent:#e8861a; --text:#1a2235; --mid:#5a6b83;
+         --muted:#8c9cb5; --bg:#f2f5fb; --line:#e0e8f2; --bad:#c0392b; --ok:#1e8449; }
+    .t * { box-sizing:border-box; margin:0; }
+    .t { font-family:Vazirmatn,Tahoma,sans-serif; background:#fff; color:var(--text);
+         direction:rtl; padding:26px 28px; height:100%; overflow:hidden;
+         display:flex; flex-direction:column; gap:18px; }
+    .t h2 { font-size:1.06rem; font-weight:900; }
+    .t h2 small { font-weight:500; font-size:.76rem; color:var(--mid); margin-right:9px; }
+    .t h3 { font-size:.82rem; font-weight:800; color:var(--primary);
+            border-right:3px solid var(--accent); padding-right:9px; margin-bottom:9px; }
+
+    table { border-collapse:collapse; width:100%; font-size:.7rem; }
+    th,td { border:1px solid var(--line); padding:6px 8px; text-align:right; white-space:nowrap; }
+    thead th { background:var(--primary); color:#fff; font-weight:700; font-size:.68rem; }
+    tbody tr:nth-child(even) { background:#f9fbfd; }
+    td.k { font-weight:700; color:var(--mid); }
+    .x { color:var(--bad); font-weight:800; }
+    .same { color:var(--ok); font-weight:800; }
+
+    .cols { display:grid; grid-template-columns:1.35fr 1fr; gap:22px; flex:1; overflow:hidden; }
+
+    .sw { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:12px; }
+    .sw div { border-radius:9px; width:70px; height:52px; display:flex; align-items:flex-end;
+              justify-content:center; font-size:.56rem; font-weight:700; padding-bottom:4px;
+              border:1px solid rgba(0,0,0,.07); }
+
+    .prop { font-size:.7rem; line-height:2.05; background:#f7fafd; border:1px solid var(--line);
+            border-radius:10px; padding:12px 14px; font-family:ui-monospace,Menlo,Consolas,monospace;
+            direction:ltr; text-align:left; color:#26364d; overflow:auto; }
+    .prop b { color:var(--primary); }
+    .prop i { color:var(--muted); font-style:normal; }
+
+    .lead { font-size:.76rem; color:var(--mid); line-height:2; }
+    .lead b { color:var(--bad); }
+  </style>
+</helmet>
+
+<div class="t">
+  <h2>ممیزیِ توکن‌ها <small>اعدادِ واقعی، از خودِ شش قالبِ پروژه استخراج شده — نه حدس</small></h2>
+
+  <p class="lead">
+    فقط <b>دو</b> توکن در همهٔ صفحه‌ها یکی است: رنگِ اصلی و رنگِ تأکید. بقیه واگرا شده‌اند —
+    شعاع از ۱۰ تا ۲۲ پیکسل، رنگِ متنِ خاکستری <b>چهار</b> مقدارِ متفاوت، و نامِ توکن‌ها هم یکسان نیست
+    (<code>--text-muted</code> · <code>--mid</code> · <code>--text-gray</code>).
+  </p>
+
+  <div class="cols">
+    <div>
+      <h3>وضعِ امروز</h3>
+      <table>
+        <thead><tr>
+          <th>توکن</th><th>فروشگاه</th><th>خانه</th><th>آموزش</th><th>بلاگ</th><th>وایمکس</th><th>پنل کاربر</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="k">رنگِ اصلی</td><td class="same">#1b4f8a</td><td class="same">↑</td><td class="same">↑</td><td class="same">↑</td><td class="same">↑</td><td class="same">↑</td></tr>
+          <tr><td class="k">تأکید</td><td class="same">#e8861a</td><td class="same">↑</td><td class="same">↑</td><td class="same">↑</td><td class="same">↑</td><td class="same">↑</td></tr>
+          <tr><td class="k">متن</td><td>#1a2235</td><td>#1a2235</td><td class="x">#1f2937</td><td class="x">#1f2937</td><td class="x">#1f2937</td><td>#1a2235</td></tr>
+          <tr><td class="k">متنِ کم‌رنگ</td><td>#8c9cb5</td><td>#8c9cb5</td><td class="x">#6b7280</td><td class="x">#6b7280</td><td class="x">#6b7280</td><td class="x">#64748b</td></tr>
+          <tr><td class="k">پس‌زمینه</td><td>#f2f5fb</td><td>#f2f5fb</td><td class="x">#f6f8fb</td><td class="x">#f6f8fb</td><td class="x">#f6f8fb</td><td>#f2f5fb</td></tr>
+          <tr><td class="k">خط</td><td>#e0e8f2</td><td class="x">#dbe5f2</td><td class="x">#e5e7eb</td><td>—</td><td class="x">#e5e7eb</td><td>—</td></tr>
+          <tr><td class="k">شعاع</td><td class="x">12px</td><td class="x">22px</td><td>—</td><td>—</td><td class="x">16px</td><td class="x">18px</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:16px">حرکت و کنش</h3>
+      <table>
+        <thead><tr><th>سنجه</th><th>فروشگاه</th><th>خانه</th><th>آموزش</th><th>بلاگ</th><th>پنل کاربر</th></tr></thead>
+        <tbody>
+          <tr><td class="k">تعدادِ transition متمایز</td><td class="x">۱۱</td><td class="x">۸</td><td>۲</td><td class="x">۱</td><td>۲</td></tr>
+          <tr><td class="k">منحنیِ سفارشی</td><td>۱</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td></tr>
+          <tr><td class="k">حالتِ ‎:hover</td><td>۱۵</td><td>۸</td><td>۲</td><td>۱</td><td>۵</td></tr>
+          <tr><td class="k">حالتِ ‎:active (فشردن)</td><td>۱</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td></tr>
+          <tr><td class="k">گاردِ (hover:hover)</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td></tr>
+          <tr><td class="k">‎:focus-visible</td><td class="x">۰</td><td>۳</td><td class="x">۰</td><td class="x">۰</td><td class="x">۰</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h3>پالت — دست‌نخورده می‌ماند</h3>
+      <div class="sw">
+        <div style="background:#1b4f8a;color:#fff">‎#1b4f8a</div>
+        <div style="background:#2563ad;color:#fff">‎#2563ad</div>
+        <div style="background:#e8861a;color:#fff">‎#e8861a</div>
+        <div style="background:#1a2235;color:#fff">‎#1a2235</div>
+        <div style="background:#5a6b83;color:#fff">‎#5a6b83</div>
+        <div style="background:#8c9cb5;color:#fff">‎#8c9cb5</div>
+        <div style="background:#e0e8f2">‎#e0e8f2</div>
+        <div style="background:#f2f5fb">‎#f2f5fb</div>
+      </div>
+
+      <h3>یک فایلِ توکنِ مشترک</h3>
+      <div class="prop">
+<i>/* tokens.css — یک منبع، شش صفحه */</i><br>
+:root {<br>
+&nbsp;&nbsp;<b>--primary</b>: #1b4f8a;<br>
+&nbsp;&nbsp;<b>--primary-lt</b>: #2563ad;<br>
+&nbsp;&nbsp;<b>--accent</b>: #e8861a;<br>
+&nbsp;&nbsp;<b>--text</b>: #1a2235;<br>
+&nbsp;&nbsp;<b>--text-mid</b>: #5a6b83;<br>
+&nbsp;&nbsp;<b>--text-muted</b>: #8c9cb5;<br>
+&nbsp;&nbsp;<b>--surface</b>: #ffffff;<br>
+&nbsp;&nbsp;<b>--bg</b>: #f2f5fb;<br>
+&nbsp;&nbsp;<b>--border</b>: #e0e8f2;<br>
+<br>
+&nbsp;&nbsp;<i>/* خط‌کشی‌شده و فشرده */</i><br>
+&nbsp;&nbsp;<b>--radius</b>: 0;<br>
+&nbsp;&nbsp;<b>--line</b>: #dce4ee;<br>
+&nbsp;&nbsp;<b>--line-s</b>: #edf1f6;<br>
+&nbsp;&nbsp;<b>--dur</b>: 150ms;<br>
+&nbsp;&nbsp;<b>--ease</b>: cubic-bezier(.2,.7,.3,1);<br>
+&nbsp;&nbsp;<b>--ctl-h</b>: 36px <i>(mobile 44px)</i>;<br>
+<br>
+&nbsp;&nbsp;<i>/* space scale — tight, regular */</i><br>
+&nbsp;&nbsp;<b>--s1</b>: 6px;&nbsp;&nbsp;<b>--s2</b>: 10px;<br>
+&nbsp;&nbsp;<b>--s3</b>: 14px;&nbsp;<b>--s4</b>: 18px;<br>
+}
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

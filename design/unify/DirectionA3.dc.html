@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    /* ── الف‌۳ — «نمایه» ──────────────────────────────────────────────
+       بی‌رنگ‌ترین. هر سلول شمارهٔ نمایه دارد (۰۱…۰۶) — نشانهٔ ویرایشیِ
+       دقت. رنگ فقط یک جا: زیرِ تبِ فعال. بقیه سیاه و خاکستری.        */
+    .i { --ink:#080c12; --ink-2:#3d4757; --ink-3:#9aa5b4;
+         --line:#e7eaee; --line-2:#f1f3f6; --surface:#fff;
+         --accent:#e8861a;
+         --ease:cubic-bezier(.2,.8,.3,1); --dur:140ms; }
+    .i * { box-sizing:border-box; margin:0; }
+    .i { font-family:Vazirmatn,Tahoma,sans-serif; background:var(--surface); color:var(--ink);
+         direction:rtl; height:100%; overflow:hidden; display:flex; flex-direction:column; }
+    .mono { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; }
+
+    .hd { height:50px; display:flex; align-items:center; gap:26px; padding:0 18px;
+          border-bottom:1px solid var(--ink); flex-shrink:0; }
+    .hd .bd { font-weight:800; font-size:.94rem; letter-spacing:-.4px; }
+    .hd nav { display:flex; gap:20px; font-size:.77rem; }
+    .hd nav span { color:var(--ink-3); position:relative; padding:3px 0; cursor:pointer;
+                   transition:color var(--dur) var(--ease); }
+    .hd nav span.on { color:var(--ink); font-weight:600; }
+    .hd nav span.on::after { content:''; position:absolute; bottom:-16px; right:0; left:0;
+                             height:2px; background:var(--accent); }
+    .hd nav span:not(.on):hover { color:var(--ink-2); }
+    .hd .sp { flex:1; }
+    .hd .cnt { font-size:.67rem; color:var(--ink-3); }
+
+    /* تیتر + خط‌کشِ مدرج — نشانهٔ دقت */
+    .ttl { padding:20px 18px 0; }
+    .ttl .lb { font-size:.61rem; color:var(--ink-3); letter-spacing:1.5px;
+               text-transform:uppercase; display:block; margin-bottom:7px; }
+    .ttl h1 { font-size:1.46rem; font-weight:800; letter-spacing:-.8px; line-height:1.18; }
+    .ruler { height:9px; margin:14px 18px 0; border-top:1px solid var(--ink);
+             background-image:repeating-linear-gradient(to left,
+               var(--ink) 0 1px, transparent 1px 28px); background-size:28px 4px;
+             background-repeat:repeat-x; background-position:top right; opacity:.34; }
+
+    .bar { display:flex; align-items:center; gap:22px; padding:0 18px; height:36px;
+           margin-top:10px; border-bottom:1px solid var(--line); }
+    .bar b { font-size:.7rem; font-weight:700; color:var(--ink); cursor:pointer;
+             position:relative; padding:10px 0; }
+    .bar b::after { content:''; position:absolute; bottom:0; right:0; left:0; height:2px;
+                    background:var(--accent); }
+    .bar span { font-size:.7rem; color:var(--ink-3); cursor:pointer; padding:10px 0;
+                transition:color var(--dur) var(--ease); }
+    .bar span:hover { color:var(--ink); }
+    .bar .sp { flex:1; }
+    .bar input { border:0; outline:0; background:transparent; font-family:inherit;
+                 font-size:.7rem; color:var(--ink); width:145px; height:36px; }
+    .bar input::placeholder { color:var(--ink-3); }
+
+    .cells { display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+             background:var(--line); gap:1px; border-bottom:1px solid var(--line); }
+    .cell { background:var(--surface); padding:12px 14px 14px; cursor:pointer;
+            position:relative; transition:background var(--dur) var(--ease); }
+    .cell:hover { background:#fafbfc; }
+    .cell:active { background:#f3f5f8; }
+    .cell .ix { font-size:.58rem; color:var(--ink-3); letter-spacing:1px; }
+    .cell .sku { font-size:.59rem; color:var(--ink-3); float:left; letter-spacing:.4px; }
+    .cell .nm { font-size:.81rem; font-weight:600; line-height:1.6; margin-top:8px;
+                height:2.55em; overflow:hidden; clear:both; }
+    .cell .ft { display:flex; align-items:baseline; justify-content:space-between;
+                margin-top:11px; padding-top:9px; border-top:1px solid var(--line-2); }
+    .cell .pr { font-size:.9rem; font-weight:700; letter-spacing:-.3px; }
+    .cell .pr i { font-style:normal; font-size:.6rem; color:var(--ink-3);
+                  font-weight:400; margin-right:3px; }
+    .cell .st { font-size:.59rem; color:var(--ink-3); letter-spacing:.3px; }
+
+    .tbl .r { display:grid; grid-template-columns:34px 118px 1fr; padding:0 18px;
+              border-bottom:1px solid var(--line-2);
+              transition:background var(--dur) var(--ease); }
+    .tbl .r:hover { background:#fafbfc; }
+    .tbl .r em { padding:8px 0; font-style:normal; font-size:.58rem; color:var(--ink-3); }
+    .tbl .r span { padding:8px 0; font-size:.65rem; color:var(--ink-3);
+                   letter-spacing:.4px; text-transform:uppercase; }
+    .tbl .r b { padding:8px 0; font-size:.73rem; font-weight:500; }
+
+    .note { margin-top:auto; font-size:.64rem; color:var(--ink-3); line-height:1.9;
+            padding:12px 18px; border-top:1px solid var(--ink); }
+    .note b { color:var(--ink); font-weight:600; }
+  </style>
+</helmet>
+
+<div class="i">
+  <div class="hd">
+    <span class="bd">داده نما</span>
+    <nav><span class="on">داده‌نما</span><span>فروشگاه</span><span>آموزش</span><span>بلاگ</span></nav>
+    <span class="sp"></span>
+    <span class="cnt mono">۲۲۷ / ۲۶</span>
+  </div>
+
+  <div class="ttl">
+    <span class="lb mono">CATALOG — 06</span>
+    <h1>آنتن و دیش</h1>
+  </div>
+  <div class="ruler"></div>
+
+  <div class="bar">
+    <b>محصولات</b><span>مشخصات</span><span>پرسش‌ها</span>
+    <span class="sp"></span>
+    <input type="text" placeholder="جست‌وجو…">
+  </div>
+
+  <div class="cells">
+    <div class="cell"><span class="ix mono">۰۱</span><span class="sku mono">SP62-32D</span>
+      <div class="nm">آنتن دیش وایمکس‌نیر ۳۲dBi دوقطبی</div>
+      <div class="ft"><div class="pr mono">۴٬۱۰۴٬۰۰۰<i>تومان</i></div><div class="st mono">موجود</div></div></div>
+    <div class="cell"><span class="ix mono">۰۲</span><span class="sku mono">RB4011iGS+</span>
+      <div class="nm">روتربرد میکروتیک RB4011</div>
+      <div class="ft"><div class="pr mono">۹٬۸۵۰٬۰۰۰<i>تومان</i></div><div class="st mono">۳ عدد</div></div></div>
+    <div class="cell"><span class="ix mono">۰۳</span><span class="sku mono">B5c</span>
+      <div class="nm">رادیو میموسا B5c پرظرفیت</div>
+      <div class="ft"><div class="pr mono">۱۸٬۲۰۰٬۰۰۰<i>تومان</i></div><div class="st mono">در راه</div></div></div>
+    <div class="cell"><span class="ix mono">۰۴</span><span class="sku mono">U-POE-at</span>
+      <div class="nm">آداپتور PoE یوبیکیوتی ۸۰۲.۳at</div>
+      <div class="ft"><div class="pr mono">۴٬۱۰۴٬۰۰۰<i>تومان</i></div><div class="st mono">موجود</div></div></div>
+    <div class="cell"><span class="ix mono">۰۵</span><span class="sku mono">CRS310</span>
+      <div class="nm">سوئیچ میکروتیک CRS310-1G-5S</div>
+      <div class="ft"><div class="pr mono">۱۲٬۴۰۰٬۰۰۰<i>تومان</i></div><div class="st mono">۱ عدد</div></div></div>
+    <div class="cell"><span class="ix mono">۰۶</span><span class="sku mono">SPA-34.5x-D</span>
+      <div class="nm">آنتن دیش وای‌لینک ۳۴dBi دوقطبی</div>
+      <div class="ft"><div class="pr mono">۷٬۹۵۰٬۰۰۰<i>تومان</i></div><div class="st mono">موجود</div></div></div>
+  </div>
+
+  <div class="tbl">
+    <div class="r"><em class="mono">۰۱</em><span class="mono">FREQUENCY</span><b>۴۸۰۰ تا ۶۲۰۰ مگاهرتز</b></div>
+    <div class="r"><em class="mono">۰۲</em><span class="mono">CONNECTOR</span><b>۲ × N-Female</b></div>
+    <div class="r"><em class="mono">۰۳</em><span class="mono">GAIN</span><b>۳۰٫۲ تا ۳۲٫۲ dBi</b></div>
+  </div>
+
+  <div class="note">
+    <b>الف‌۳ — نمایه.</b> بی‌رنگ‌ترین نسخه: شمارهٔ نمایه روی هر سلول، خط‌کشِ مدرج زیرِ تیتر،
+    و رنگِ نارنجی فقط زیرِ تبِ فعال. سلسله‌مراتب تماماً از تایپ می‌آید.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
