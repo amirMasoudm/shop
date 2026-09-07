@@ -35,6 +35,50 @@ public class StoreSettings {
     /** ضریبِ پیش‌فرض وقتی هنوز در تنظیمات ست نشده است. */
     public static final BigDecimal DEFAULT_SITE_PRICE_FACTOR = new BigDecimal("1.08");
 
+    // ===============================
+    // ساعتِ کاریِ چتِ پشتیبانی
+    // ===============================
+    // ⚠️ عمداً هیچ‌کدام مقدارِ پیش‌فرضِ هاردکد ندارند و هیچ فرضِ کسب‌وکاریِ مشخصی
+    //    (روزِ کاریِ ایران، منطقهٔ زمانیِ تهران) در کدِ core ننشسته است. اگر تنظیم
+    //    نشده باشند، چت «همیشه باز» است — خنثی‌ترین رفتارِ ممکن برایِ اپِ ژنریک.
+    //    تنظیمِ واقعی کارِ ادمینِ همان فروشگاه است.
+
+    /** روزهای کاری با شمارهٔ ISO-8601: ۱=دوشنبه … ۷=یکشنبه. خالی/نال = همیشه باز. */
+    private java.util.List<Integer> chatWorkingDays;
+
+    /** ساعتِ شروع، قالبِ {@code HH:mm}. نال = همیشه باز. */
+    private String chatStartTime;
+
+    /** ساعتِ پایان، قالبِ {@code HH:mm}. نال = همیشه باز. */
+    private String chatEndTime;
+
+    /**
+     * شناسهٔ منطقهٔ زمانی (مثلاً {@code Asia/Tehran}). نال = منطقهٔ زمانیِ خودِ سرور.
+     * <p>
+     * وجودِ این فیلد اختیاری نیست: ساعتِ دستگاهِ کاربر قابلِ اعتماد نیست و بررسی سمتِ
+     * سرور انجام می‌شود، پس سرور باید بداند «۹ صبح» یعنی ۹ صبحِ کجا.
+     */
+    private String chatTimeZone;
+
+    public java.util.List<Integer> getChatWorkingDays() { return chatWorkingDays; }
+    public void setChatWorkingDays(java.util.List<Integer> chatWorkingDays) { this.chatWorkingDays = chatWorkingDays; }
+
+    public String getChatStartTime() { return chatStartTime; }
+    public void setChatStartTime(String chatStartTime) { this.chatStartTime = chatStartTime; }
+
+    public String getChatEndTime() { return chatEndTime; }
+    public void setChatEndTime(String chatEndTime) { this.chatEndTime = chatEndTime; }
+
+    public String getChatTimeZone() { return chatTimeZone; }
+    public void setChatTimeZone(String chatTimeZone) { this.chatTimeZone = chatTimeZone; }
+
+    /** آیا ساعتِ کاری اصلاً تنظیم شده؟ اگر نه، قفلِ خارج از ساعت اعمال نمی‌شود. */
+    public boolean hasChatSchedule() {
+        return chatWorkingDays != null && !chatWorkingDays.isEmpty()
+                && chatStartTime != null && !chatStartTime.isBlank()
+                && chatEndTime != null && !chatEndTime.isBlank();
+    }
+
     // فاصله‌ی چرخشِ خودکارِ اسلایدرِ بنرِ خانه (ثانیه). null یا نامعتبر یعنی پیش‌فرض.
     private Integer bannerRotationSeconds;
 

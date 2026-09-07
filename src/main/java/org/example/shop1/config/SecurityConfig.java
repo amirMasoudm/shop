@@ -170,6 +170,16 @@ public class SecurityConfig {
                         // anyRequest().authenticated() پایین ۴۰۱ می‌داد و تراکنشِ واقعی گم می‌شد.
                         .requestMatchers(HttpMethod.POST, "/api/orders/mellat-callback").permitAll()
 
+                        // چتِ پشتیبانی — همه‌چیزش احرازِ هویت می‌خواهد. تفکیکِ مشتری/کارشناس
+                        // در سطحِ مسیر ممکن نیست (هر دو از یک اندپوینت استفاده می‌کنند)، پس
+                        // ChatService.assertMember در هر فراخوانی عضویت را چک می‌کند.
+                        // ⚠️ ساعتِ کاری فقط خواندنی و عمومی است تا حبابِ چت بتواند پیشِ ورود
+                        //    هم بگوید چه ساعتی فعال می‌شود؛ تغییرش زیرِ /settings/admin/** است.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/settings/chat-hours").permitAll()
+                        .requestMatchers("/api/v1/chat/**").authenticated()
+                        // هندشیکِ وب‌سوکت؛ ChatHandshakeInterceptor مستقلاً هم سشن را چک می‌کند.
+                        .requestMatchers("/ws/**").authenticated()
+
                         // ۳. باقی مسیرها
                         .requestMatchers("/api/auth/**").permitAll()
 

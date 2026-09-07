@@ -810,6 +810,44 @@
         </div>
 
         <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border mb-6">
+            <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2"><span>💬</span> ساعتِ کاریِ چتِ پشتیبانی</h3>
+            <p class="text-xs text-gray-500 mb-3">
+                بیرونِ این بازه، پنجرهٔ چت برای مشتری <b>قفل</b> می‌شود (تاریخچه خوانا می‌ماند) و
+                ارسالِ مستقیم به API هم رد می‌شود. اگر هیچ روزی انتخاب نشود، چت همیشه باز است.
+            </p>
+            <div class="mb-3">
+                <label class="block text-sm font-bold text-gray-700 mb-2">روزهای کاری</label>
+                <div id="chat-days" class="flex flex-wrap gap-2 text-xs"></div>
+            </div>
+            <div class="flex flex-wrap gap-3 items-end">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">از ساعت</label>
+                    <input type="time" id="chat-start-time" dir="ltr"
+                           class="p-3 border border-gray-300 rounded-lg outline-none focus:border-indigo-500 text-left">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">تا ساعت</label>
+                    <input type="time" id="chat-end-time" dir="ltr"
+                           class="p-3 border border-gray-300 rounded-lg outline-none focus:border-indigo-500 text-left">
+                </div>
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">منطقهٔ زمانی</label>
+                    <input type="text" id="chat-timezone" placeholder="Asia/Tehran" dir="ltr"
+                           class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-indigo-500 text-left">
+                </div>
+                <button onclick="saveChatHours()"
+                        class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                    ذخیره ساعت کاری
+                </button>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-3">
+                منطقهٔ زمانی خالی یعنی ساعتِ خودِ سرور. چون بررسی سمتِ سرور انجام می‌شود،
+                ساعتِ دستگاهِ مشتری هیچ اثری روی قفل ندارد.
+            </p>
+            <p id="chat-hours-state" class="text-[11px] text-indigo-700 bg-indigo-50 border border-indigo-200 rounded p-2 mt-3"></p>
+        </div>
+
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border mb-6">
             <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2"><span>💹</span> ضریب قیمت سایت</h3>
             <p class="text-xs text-gray-500 mb-3">
                 قیمت سایت هر محصول از روی «فروش تعدادی» ضربدر این ضریب محاسبه می‌شود.
@@ -2028,6 +2066,7 @@
             fetchRfqThreshold();
             fetchBannerRotationSeconds();
             fetchSitePriceFactor();
+            fetchChatHours();
             setTimeout(() => {
                 if (!adminMap) initAdminMap();
                 else adminMap.invalidateSize();
@@ -4581,6 +4620,59 @@
         axios.post(`${API}/v1/settings/admin/banner-rotation-seconds`, {seconds})
             .then(() => Swal.fire('موفق', 'فاصله‌ی چرخشِ بنر ذخیره شد.', 'success'))
             .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'مشکل در ذخیره.', 'error'));
+    }
+
+    // ---- ساعتِ کاریِ چتِ پشتیبانی ----
+    // شماره‌ها ISO-8601 هستند (۱=دوشنبه … ۷=یک‌شنبه) و همان‌ها به سرور می‌روند؛
+    // ترتیبِ نمایش عمداً از شنبه شروع می‌شود چون هفتهٔ کاری اینجا این‌طور است.
+    const CHAT_DAYS = [
+        {iso: 6, label: 'شنبه'}, {iso: 7, label: 'یک‌شنبه'}, {iso: 1, label: 'دوشنبه'},
+        {iso: 2, label: 'سه‌شنبه'}, {iso: 3, label: 'چهارشنبه'}, {iso: 4, label: 'پنج‌شنبه'},
+        {iso: 5, label: 'جمعه'}
+    ];
+
+    async function fetchChatHours() {
+        const box = document.getElementById('chat-days');
+        if (!box) return;
+        let data = {};
+        try {
+            const res = await axios.get(`${API}/v1/settings/chat-hours`);
+            data = res.data || {};
+        } catch (e) { }
+
+        const selected = data.workingDays || [];
+        box.innerHTML = CHAT_DAYS.map(d => `
+            <label class="flex items-center gap-1 border rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50">
+                <input type="checkbox" class="chat-day" value="${d.iso}" ${selected.includes(d.iso) ? 'checked' : ''}>
+                <span>${d.label}</span>
+            </label>`).join('');
+
+        document.getElementById('chat-start-time').value = data.startTime || '';
+        document.getElementById('chat-end-time').value = data.endTime || '';
+        document.getElementById('chat-timezone').value = data.timeZone || '';
+
+        const state = document.getElementById('chat-hours-state');
+        const status = data.status || {};
+        state.textContent = status.open
+            ? 'وضعیتِ الان: چت باز است.'
+            : 'وضعیتِ الان: چت بسته است' + (status.schedule ? ' — ' + status.schedule : '') + '.';
+    }
+
+    async function saveChatHours() {
+        const days = Array.from(document.querySelectorAll('.chat-day:checked')).map(c => Number(c.value));
+        const payload = {
+            workingDays: days,
+            startTime: document.getElementById('chat-start-time').value || null,
+            endTime: document.getElementById('chat-end-time').value || null,
+            timeZone: document.getElementById('chat-timezone').value.trim() || null
+        };
+        try {
+            await axios.post(`${API}/v1/settings/admin/chat-hours`, payload);
+            await fetchChatHours();
+            Swal.fire('موفق', 'ساعتِ کاریِ چت ذخیره شد.', 'success');
+        } catch (err) {
+            Swal.fire('خطا', (err.response && err.response.data) || 'مشکل در ذخیره ساعت کاری.', 'error');
+        }
     }
 
     async function fetchSitePriceFactor() {

@@ -64,7 +64,29 @@ public class MongoIndexInitializer implements CommandLineRunner {
             // findByFromSlug نامعین می‌شود — یعنی ۳۰۱ به محصولِ تصادفی. مسیرِ APIِ ثبت
             // خودش با existsByFromSlug چک می‌کند، ولی نوشتنِ مستقیم در دیتابیس (مثلِ
             // ادغامِ دسته‌ای) و دو درخواستِ هم‌زمان هر دو از آن چک رد می‌شوند.
-            new UniqueField("product_redirects", "fromSlug", "uk_product_redirects_fromSlug", "string")
+            new UniqueField("product_redirects", "fromSlug", "uk_product_redirects_fromSlug", "string"),
+            // چتِ پشتیبانی: یک گفت‌وگو به‌ازای هر مشتری (نه هر تیکت). بدونِ این ایندکس،
+            // دو درخواستِ هم‌زمانِ همان مشتری دو گفت‌وگو می‌سازند و تاریخچه دو تکه می‌شود.
+            new UniqueField("conversations", "customerId", "uk_conversations_customerId", "string")
+    );
+
+    /**
+     * ایندکس‌های ترکیبیِ غیر-unique.
+     * <p>
+     * اینجا خبری از چکِ تکراری نیست چون unique نیستند؛ فقط برای سرعتِ کوئری‌اند.
+     * ولی عمداً در همین کلاس‌اند: انوتیشنِ {@code @Indexed} در این پروژه بی‌اثر است
+     * (auto-index-creation خاموش)، پس اگر جای دیگری ساخته می‌شدند، دو جا باید دنبالِ
+     * فهرستِ ایندکس‌ها می‌گشتیم.
+     */
+    private record CompoundIndex(String collection, String indexName, Document keys) {}
+
+    private static final List<CompoundIndex> COMPOUND_INDEXES = List.of(
+            // صفحه‌بندیِ تاریخچهٔ یک گفت‌وگو (اسکرول به بالا و جبرانِ قطعیِ وب‌سوکت)
+            new CompoundIndex("messages", "ix_messages_conversation_createdAt",
+                    new Document("conversationId", 1).append("createdAt", 1)),
+            // صفِ کارشناس: تصاحب‌نشده‌ها و «چت‌های من»
+            new CompoundIndex("conversations", "ix_conversations_status_agent",
+                    new Document("status", 1).append("assignedAgentId", 1))
     );
 
     private final MongoTemplate mongoTemplate;
@@ -78,6 +100,21 @@ public class MongoIndexInitializer implements CommandLineRunner {
         for (UniqueField uniqueField : UNIQUE_FIELDS) {
             MongoCollection<Document> collection = mongoTemplate.getCollection(uniqueField.collection());
             ensureUniqueIndex(collection, uniqueField);
+        }
+        for (CompoundIndex index : COMPOUND_INDEXES) {
+            ensureCompoundIndex(index);
+        }
+    }
+
+    private void ensureCompoundIndex(CompoundIndex index) {
+        try {
+            mongoTemplate.getCollection(index.collection())
+                    .createIndex(index.keys(), new IndexOptions().name(index.indexName()));
+            log.info("✅ ایندکسِ ترکیبیِ {} رویِ {} آماده است.", index.indexName(), index.collection());
+        } catch (MongoCommandException e) {
+            // ایندکسِ کند فقط کوئری را آهسته می‌کند؛ ارزشِ پایین‌نگه‌داشتنِ کلِ اپ را ندارد.
+            log.error("❌ ساختِ ایندکسِ {} رویِ {} شکست خورد: {}",
+                    index.indexName(), index.collection(), e.getErrorMessage());
         }
     }
 

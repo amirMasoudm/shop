@@ -38,6 +38,8 @@ build/
 !.env.example
 uploads/
 uploads_sim/
+# ضمیمه‌هایِ چتِ لوکال — فایلِ خصوصیِ مشتری است و هرگز نباید در گیت بنشیند
+chat_files/
 javacore.*.txt
 *.hprof
 heapdump.*

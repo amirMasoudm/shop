@@ -2250,6 +2250,13 @@
             items: [{item_id: p.id, item_name: p.name}]
         });
 
+        // زمینهٔ خودکارِ چتِ پشتیبانی: اگر مشتری از همین صفحه حباب را باز کند، یک
+        // پیامِ SYSTEM با نامِ همین محصول ثبت می‌شود و کارشناس بدونِ پرسیدن می‌داند
+        // موضوع چیست. (نگاه کن به /js/support-chat-widget.js)
+        // آدرس عمداً اینجا ست نمی‌شود: URLِ محصول چند خط پایین‌تر عوض می‌شود و اینجا
+        // هنوز آدرسِ صفحهٔ قبلی است. ویجت خودش موقعِ باز شدن location.href را می‌خواند.
+        window.supportChatContext = {productName: p.name};
+
         // --- بخش ۱: به‌روزرسانی سئو و آدرس (URL) ---
         if (!state.originalTitle) state.originalTitle = document.title;
         document.title = p.seoTitle || `${p.name} | فروشگاه داده نما`;
@@ -4015,5 +4022,8 @@
         <div style="margin-top:20px; font-size:12px; color:#94a3b8;">© فروشگاه داده نما</div>
     </div>
 </footer>
+<!-- حبابِ چتِ پشتیبانی — هستهٔ مشترک با پنلِ کارشناس (/js/chat-core.js) -->
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-chat-widget.js"></script>
 </body>
 </html>

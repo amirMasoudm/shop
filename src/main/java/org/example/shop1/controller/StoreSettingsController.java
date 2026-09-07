@@ -16,11 +16,14 @@ public class StoreSettingsController {
 
     private final StoreSettingsService settingsService;
     private final org.example.shop1.model.service.ActivityLogService activityLog;
+    private final org.example.shop1.model.service.BusinessHoursService businessHours;
 
     public StoreSettingsController(StoreSettingsService settingsService,
-                                   org.example.shop1.model.service.ActivityLogService activityLog) {
+                                   org.example.shop1.model.service.ActivityLogService activityLog,
+                                   org.example.shop1.model.service.BusinessHoursService businessHours) {
         this.settingsService = settingsService;
         this.activityLog = activityLog;
+        this.businessHours = businessHours;
     }
 
     @GetMapping("/store-location")
@@ -57,6 +60,36 @@ public class StoreSettingsController {
     @PostMapping("/admin/banner-rotation-seconds")
     public ResponseEntity<StoreSettings> setBannerRotationSeconds(@RequestBody Map<String, Integer> body) {
         return ResponseEntity.ok(settingsService.updateBannerRotationSeconds(body.get("seconds")));
+    }
+
+    /**
+     * ساعتِ کاریِ چتِ پشتیبانی — خواندنی و عمومی.
+     * <p>
+     * عمومی است چون حبابِ چت باید <b>پیش از ورودِ کاربر</b> هم بتواند بگوید چه ساعتی
+     * فعال می‌شود؛ سکوتِ بدونِ زمان بدتر از نبودنِ چت است.
+     */
+    @GetMapping("/chat-hours")
+    public ResponseEntity<Map<String, Object>> getChatHours() {
+        var s = settingsService.getSettings();
+        Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("workingDays", s.getChatWorkingDays());
+        out.put("startTime", s.getChatStartTime());
+        out.put("endTime", s.getChatEndTime());
+        out.put("timeZone", s.getChatTimeZone());
+        out.put("status", businessHours.status());
+        return ResponseEntity.ok(out);
+    }
+
+    /** تنظیمِ ساعتِ کاریِ چت — فقط ADMIN. */
+    @PostMapping("/admin/chat-hours")
+    public ResponseEntity<StoreSettings> setChatHours(@RequestBody Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        java.util.List<Integer> days = (java.util.List<Integer>) body.get("workingDays");
+        return ResponseEntity.ok(settingsService.updateChatHours(
+                days,
+                (String) body.get("startTime"),
+                (String) body.get("endTime"),
+                (String) body.get("timeZone")));
     }
 
     /**

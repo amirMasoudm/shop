@@ -55,15 +55,20 @@
                     class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">تاریخچه تغییرات</button>
             <button id="tabbtn-products" onclick="showSalesTab('products')"
                     class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">محصولات</button>
+            <!-- پشتیبانی عمداً برایِ هر چهار نقش باز است (ADMIN/PRICER/SALES/SUPPORT):
+                 صف مشترک است و هر کارشناسی می‌تواند تصاحب کند. -->
+            <button id="tabbtn-support" onclick="showSalesTab('support')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">پشتیبانی مشتریان</button>
         </nav>
     </header>
 
     <main class="max-w-[1400px] mx-auto p-4">
         <!-- tab-pricing/tab-activityLog از /js/pricing-workspace.js تزریق می‌شوند،
-             tab-products از /js/products-tab.js — همان کدِ پنلِ ادمین -->
+             tab-products از /js/products-tab.js، tab-support از /js/support-tab.js -->
         <div id="tab-pricing"></div>
         <div id="tab-activityLog" class="hidden-section"></div>
         <div id="tab-products" class="hidden-section"></div>
+        <div id="tab-support" class="hidden-section"></div>
     </main>
 </div>
 
@@ -77,6 +82,9 @@
 <script src="/js/Sortable.min.js"></script>
 <script src="/js/admin-modal-utils.js"></script>
 <script src="/js/products-tab.js"></script>
+<!-- چتِ پشتیبانی — chat-core.js همان هسته‌ای است که حبابِ مشتری هم استفاده می‌کند -->
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-tab.js"></script>
 <!-- بیرون‌انداختنِ خودکار وقتی دسترسیِ کاربر عوض شده (بدونِ نیاز به رفرشِ دستی) -->
 <script src="/js/session-watch.js"></script>
 
@@ -132,10 +140,14 @@
         document.getElementById('tab-pricing').classList.toggle('hidden-section', id !== 'workspace');
         document.getElementById('tab-activityLog').classList.toggle('hidden-section', id !== 'log');
         document.getElementById('tab-products').classList.toggle('hidden-section', id !== 'products');
+        document.getElementById('tab-support').classList.toggle('hidden-section', id !== 'support');
         document.getElementById('tabbtn-workspace').classList.toggle('active', id === 'workspace');
         document.getElementById('tabbtn-log').classList.toggle('active', id === 'log');
         document.getElementById('tabbtn-products').classList.toggle('active', id === 'products');
+        document.getElementById('tabbtn-support').classList.toggle('active', id === 'support');
         if (id === 'log') fetchActivityLogs();
+        // mount تنبل است: تا کارشناس تبِ پشتیبانی را باز نکند، وب‌سوکت وصل نمی‌شود.
+        if (id === 'support') SupportTab.mount(document.getElementById('tab-support'));
     }
 
     async function logoutSales() {
