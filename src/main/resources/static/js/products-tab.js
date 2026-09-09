@@ -29,6 +29,8 @@
     let currentImageAlts = [];
     let currentSpecs = {};
     let mounted = false;
+    /** پیش‌فرض true چون پنلِ ادمین همیشه ADMIN است؛ پنلِ فروش صریح ست می‌کند. */
+    let canEdit = true;
     let onRefreshedCb = null;
 
     function getApi() { return window.API || '/api'; }
@@ -38,6 +40,10 @@
     // ==========================================
     async function mount(tabEl, modalEl, opts) {
         opts = opts || {};
+        // فقط ADMIN ویرایش دارد؛ بقیهٔ نقش‌ها همین تب را فقط می‌بینند. مرزِ واقعی
+        // سمتِ سرور است (POST/PUT/DELETEِ /v1/products فقط ADMIN)؛ این فقط برایِ
+        // این است که دکمه‌ای نشان داده نشود که کلیکش حتماً ۴۰۳ می‌گیرد.
+        if (opts.canEdit !== undefined) canEdit = !!opts.canEdit;
         if (!mounted) {
             const html = await fetch(FRAGMENT_URL).then(r => r.text());
             const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -48,6 +54,8 @@
             bindEvents();
             mounted = true;
         }
+        const addBtn = tabEl.querySelector('[data-add-product]');
+        if (addBtn) addBtn.style.display = canEdit ? '' : 'none';
         if (typeof opts.onRefreshed === 'function') onRefreshedCb = opts.onRefreshed;
         await refresh();
     }
@@ -170,8 +178,10 @@
                 <td class="p-3 md:p-4 text-indigo-700 font-bold hidden md:table-cell">${(p.price || 0).toLocaleString()}</td>
                 <td class="p-3 md:p-4 text-center"><span class="px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold ${p.stock > 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}">${p.stock}</span></td>
                 <td class="p-3 md:p-4 text-center flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
+                    ${canEdit ? `
                     <button onclick='editProduct("${p.id}")' class="text-indigo-600 hover:bg-indigo-50 p-1 md:p-2 rounded transition">✏️</button>
-                    <button onclick="deleteProductWithRedirect('${p.id}')" class="text-red-500 hover:bg-red-50 p-1 md:p-2 rounded transition">🗑️</button>
+                    <button onclick="deleteProductWithRedirect('${p.id}')" class="text-red-500 hover:bg-red-50 p-1 md:p-2 rounded transition">🗑️</button>`
+                    : '<span class="text-[10px] text-gray-400">فقط مشاهده</span>'}
                 </td>
             </tr>
         `).join('');

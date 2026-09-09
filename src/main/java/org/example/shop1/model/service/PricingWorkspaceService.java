@@ -259,14 +259,20 @@ public class PricingWorkspaceService {
         p.setFloorPriceCheckedBy(activityLog.currentUsername());
     }
 
-    /** ADMIN، PRICER و SALES می‌توانند فیلدهایِ ویژهٔ قیمت‌گذاری («فروش تعدادی») را تغییر دهند؛ SUPPORT فقط‌مشاهده است. */
+    /**
+     * فقط ADMIN می‌تواند قیمت‌ها را تغییر دهد؛ بقیهٔ نقش‌ها فقط مشاهده‌اند.
+     * <p>
+     * این متد قبلاً مرزِ «فروش تعدادی» بود (تفاوتِ PRICER با SALES). حالا که نوشتنِ
+     * کلِ میزِ کار در SecurityConfig به ADMIN محدود شده، عملاً لایهٔ دوم است — ولی
+     * می‌ماند چون UI با همین تصمیم می‌گیرد کدام خانه قابلِ تایپ باشد.
+     */
     public boolean canEditPricerOnlyFields() {
         var auth = org.springframework.security.core.context.SecurityContextHolder
                 .getContext().getAuthentication();
         if (auth == null) return false;
         return auth.getAuthorities().stream()
                 .map(Object::toString)
-                .anyMatch(r -> r.equals("ROLE_ADMIN") || r.equals("ROLE_PRICER") || r.equals("ROLE_SALES"));
+                .anyMatch(r -> r.equals("ROLE_ADMIN"));
     }
 
     /** جهشِ مشکوک: بیش از ۱۰ برابر یا کمتر از یک‌دهم. مقدارِ قبلیِ خالی/صفر جهش حساب نمی‌شود. */

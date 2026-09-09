@@ -173,18 +173,21 @@
             pricingDirty.clear();
             updatePricingDirtyUi();
             // کارشناسِ فروش باید بداند چرا خانه‌ها قابلِ تایپ نیستند، وگرنه فکر می‌کند خراب است
-            // کارشناسِ فروش هم ویرایش دارد؛ فقط یک ستون برایش قفل است، پس به‌جایِ
-            // «فقط مشاهده» همان محدودیتِ واقعی نوشته می‌شود.
             const note = document.getElementById('pricing-readonly-note');
             if (!pricingCanEdit) {
-                note.innerText = 'شما دسترسی «فقط مشاهده» دارید؛ ویرایش قیمت‌ها برای نقش شما فعال نیست.';
+                note.innerText = 'شما دسترسی «فقط مشاهده» دارید؛ ویرایش قیمت‌ها فقط برای ادمین فعال است.';
                 note.classList.remove('hidden');
             } else if (!canEditBulkPrice) {
-                note.innerText = 'ستون «فروش تعدادی» فقط توسط کارشناس قیمت‌گذاری قابل تغییر است؛ بقیه ستون‌ها برای شما باز است.';
+                note.innerText = 'ستون «فروش تعدادی» فقط توسط ادمین قابل تغییر است؛ بقیه ستون‌ها برای شما باز است.';
                 note.classList.remove('hidden');
             } else {
                 note.classList.add('hidden');
             }
+            // دکمهٔ ذخیره برایِ نقشِ فقط-مشاهده اصلاً نباشد: کلیکش قطعاً ۴۰۳ می‌گیرد
+            // و دکمه‌ای که همیشه شکست می‌خورد بدتر از نبودنش است. (پنلِ ادمین این را
+            // در restrictPanelToPricingWorkspace هم انجام می‌داد؛ حالا هر دو میزبان.)
+            const saveBtn = document.getElementById('pricing-save-btn');
+            if (saveBtn) saveBtn.style.display = pricingCanEdit ? '' : 'none';
             renderPricingRows();
         } catch (err) {
             if (err.response && err.response.status === 403) {

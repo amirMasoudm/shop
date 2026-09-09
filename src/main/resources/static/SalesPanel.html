@@ -191,11 +191,10 @@
             const hasProducts = isAdmin || isPricer;
 
             if (hasPricing) {
-                // ADMIN/PRICER/SALES ویرایش دارند؛ SUPPORT فقط مشاهده — خودِ ماژول با
+                // 🔒 فقط ADMIN ویرایش دارد؛ PRICER/SALES/SUPPORT فقط مشاهده. ماژول با
                 // pricingCanEdit=false دکمه‌ی ذخیره را قایم و پیامِ «فقط مشاهده» را
-                // نشان می‌دهد. تفاوتِ ستونِ «فروش تعدادی» بینِ ADMIN/PRICER/SALES را
-                // خودِ ماژول از /pricing/capabilities می‌خواند.
-                window.pricingCanEdit = !isSupport;
+                // نشان می‌دهد. مرزِ واقعی سمتِ سرور است (POSTهایِ /v1/pricing فقط ADMIN).
+                window.pricingCanEdit = isAdmin;
 
                 PricingWorkspace.mountWorkspace(document.getElementById('tab-pricing'));
                 // پنلِ فروش: لاگِ فقط-محصولات (رویدادهایِ مدیریتی دیده نشود)
@@ -209,7 +208,8 @@
 
             if (hasProducts) {
                 document.getElementById('tabbtn-products').classList.remove('hidden');
-                await ProductsTab.mount(document.getElementById('tab-products'), document.getElementById('productModalMount'));
+                await ProductsTab.mount(document.getElementById('tab-products'),
+                        document.getElementById('productModalMount'), {canEdit: isAdmin});
             }
 
             if (!hasPricing && hasProducts) {
