@@ -43,7 +43,8 @@ class ProductServiceUpdateSemanticsTest {
     void setUp() {
         productRepo = mock(ProductRepository.class);
         CategoryRepository categoryRepo = mock(CategoryRepository.class);
-        service = new ProductService(productRepo, categoryRepo, mock(StockNotificationService.class));
+        service = new ProductService(productRepo, categoryRepo, mock(StockNotificationService.class),
+                mock(ActivityLogService.class));
 
         when(productRepo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
         when(productRepo.findBySlug(anyString())).thenReturn(Optional.empty());

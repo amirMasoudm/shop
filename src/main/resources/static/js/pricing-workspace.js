@@ -611,7 +611,9 @@
     // ==========================================
     const LOG_ACTION_LABELS = {
         PRICE_CHANGE: 'تغییر قیمت', FLOOR_PRICE_CHANGE: 'تغییر کف رقبا',
-        FLAG_CHANGE: 'تغییر پرچم فروش', LOGIN: 'ورود به سیستم'
+        FLAG_CHANGE: 'تغییر پرچم فروش', LOGIN: 'ورود به سیستم',
+        PRODUCT_CREATE: 'افزودن محصول', PRODUCT_UPDATE: 'ویرایش محصول',
+        PRODUCT_DELETE: 'حذف محصول'
     };
     const LOG_SOURCE_LABELS = {MANUAL: 'دستی', DERIVED: 'خودکار (فرمول)', BATCH: 'دسته‌ای', HOLOO: 'هلو'};
     // نوعِ موجودیت — پایه‌ی دوقسمتی‌شدنِ لاگ؛ نوعِ جدید فقط یک ردیف اینجا می‌خواهد

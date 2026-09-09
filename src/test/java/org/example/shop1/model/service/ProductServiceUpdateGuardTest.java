@@ -38,7 +38,8 @@ class ProductServiceUpdateGuardTest {
         productRepo = mock(ProductRepository.class);
         categoryRepo = mock(CategoryRepository.class);
         StockNotificationService notifications = mock(StockNotificationService.class);
-        service = new ProductService(productRepo, categoryRepo, notifications);
+        service = new ProductService(productRepo, categoryRepo, notifications,
+                mock(ActivityLogService.class));
 
         // save فقط همان شیء را برمی‌گرداند تا وضعیتِ نهایی قابلِ بازرسی باشد
         when(productRepo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));

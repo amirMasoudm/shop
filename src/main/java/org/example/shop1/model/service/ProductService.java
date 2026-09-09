@@ -1,6 +1,7 @@
 package org.example.shop1.model.service;
 
 import org.example.shop1.model.dto.ProductRequest;
+import org.example.shop1.model.entity.ActivityLog;
 import org.example.shop1.model.entity.Category;
 import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.reposritory.CategoryRepository;
@@ -25,11 +26,60 @@ public class ProductService {
     private final CategoryRepository categoryRepo;
     private final StockNotificationService stockNotificationService;
 
+    private final ActivityLogService activityLog;
+
     public ProductService(ProductRepository productRepo, CategoryRepository categoryRepo,
-                          StockNotificationService stockNotificationService) {
+                          StockNotificationService stockNotificationService,
+                          ActivityLogService activityLog) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.stockNotificationService = stockNotificationService;
+        this.activityLog = activityLog;
+    }
+
+    /**
+     * فیلدهایی که تغییرشان در تبِ محصولات ارزشِ لاگ‌شدن دارد.
+     * <p>
+     * عمداً همه‌ی فیلدها نیست: توضیحات و سئو و مشخصاتِ فنی مدام عوض می‌شوند و لاگ را
+     * پر می‌کنند بدونِ اینکه به سؤالِ واقعی («چه کسی قیمت/موجودی/دسته را عوض کرد؟»)
+     * جواب بدهند.
+     */
+    private record LoggedField(String label, java.util.function.Function<Product, Object> reader) {}
+
+    private static final java.util.List<LoggedField> LOGGED_FIELDS = java.util.List.of(
+            new LoggedField("name", Product::getName),
+            new LoggedField("onlinePrice", Product::getOnlinePrice),
+            new LoggedField("price", Product::getPrice),
+            new LoggedField("basePrice", Product::getBasePrice),
+            new LoggedField("stock", Product::getStock),
+            new LoggedField("discountPercent", Product::getDiscountPercent),
+            new LoggedField("unit", Product::getUnit),
+            new LoggedField("slug", Product::getSlug),
+            new LoggedField("categoryId", Product::getCategoryId));
+
+    /**
+     * عکسِ فیلدهایِ لاگ‌شدنی <b>پیش از</b> تغییر.
+     * <p>
+     * لازم است چون updateProduct همان انتیتیِ لودشده را در جا تغییر می‌دهد؛ اگر بعد
+     * از تغییر مقایسه می‌کردیم، «قبل» و «بعد» یکی بودند و هیچ تغییری لاگ نمی‌شد.
+     */
+    private java.util.Map<String, Object> snapshot(Product product) {
+        java.util.Map<String, Object> values = new java.util.LinkedHashMap<>();
+        for (LoggedField f : LOGGED_FIELDS) {
+            values.put(f.label(), f.reader().apply(product));
+        }
+        return values;
+    }
+
+    /** یک ردیفِ لاگ به‌ازای هر فیلدی که واقعاً عوض شده. */
+    private void logProductDiff(java.util.Map<String, Object> before, Product after) {
+        for (LoggedField f : LOGGED_FIELDS) {
+            Object oldValue = before.get(f.label());
+            Object newValue = f.reader().apply(after);
+            if (java.util.Objects.equals(String.valueOf(oldValue), String.valueOf(newValue))) continue;
+            activityLog.recordProduct(ActivityLog.Action.PRODUCT_UPDATE, ActivityLog.Source.MANUAL,
+                    after.getId(), after.getName(), f.label(), oldValue, newValue);
+        }
     }
 
     // متد کمکی برای اعمال تخفیف
@@ -144,7 +194,10 @@ public class ProductService {
         product.setHeight(request.getHeight());
 
         product.setWarehouseCategoryId(request.getWarehouseCategoryId());
-        return productRepo.save(product);
+        Product created = productRepo.save(product);
+        activityLog.recordProduct(ActivityLog.Action.PRODUCT_CREATE, ActivityLog.Source.MANUAL,
+                created.getId(), created.getName(), null, null, created.getName());
+        return created;
     }
 
     // متد به‌روزرسانی محصول
@@ -159,6 +212,7 @@ public class ProductService {
         // ⚠️ stock از نوعِ Integer است: unboxingِ بی‌گارد روی رکوردِ قدیمیِ نال‌دار NPE می‌داد
         // و محصول را برای همیشه غیرقابلِ‌آپدیت می‌کرد. نالِ کهنه = «ناموجود» تفسیر می‌شود.
         int oldStock = product.getStock() != null ? product.getStock() : 0;
+        java.util.Map<String, Object> before = snapshot(product);
 
         product.setName(request.getName());
         product.setPrice(request.getPrice());
@@ -220,6 +274,7 @@ public class ProductService {
             stockNotificationService.notifyBackInStock(saved.getId(), saved.getName());
         }
 
+        logProductDiff(before, saved);
         return saved;
     }
 
@@ -375,6 +430,11 @@ public class ProductService {
     }
 
     public void deleteProduct(String id) {
+        // نامِ محصول پیش از حذف خوانده می‌شود، وگرنه لاگ فقط یک شناسه می‌شد و
+        // «چه چیزی حذف شد؟» بی‌جواب می‌ماند.
+        String name = productRepo.findById(id).map(Product::getName).orElse(null);
         productRepo.deleteById(id);
+        activityLog.recordProduct(ActivityLog.Action.PRODUCT_DELETE, ActivityLog.Source.MANUAL,
+                id, name, null, name, null);
     }
 }

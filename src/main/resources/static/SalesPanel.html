@@ -37,11 +37,11 @@
                 <span class="text-xl">🧾</span>
                 <div>
                     <div class="font-bold">پنل فروش حضوری</div>
-                    <div class="text-[11px] text-indigo-200">قیمت‌ها و موجودی — فقط مشاهده</div>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <span id="sales-username" class="text-xs text-indigo-200"></span>
+                <span id="sales-username" class="text-xs font-bold"></span>
+                <span id="sales-role" class="text-[11px] bg-white/15 px-2 py-1 rounded-lg"></span>
                 <button onclick="logoutSales()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg">خروج</button>
             </div>
         </div>
@@ -166,7 +166,18 @@
             const allowed = ['ROLE_ADMIN', 'ROLE_PRICER', 'ROLE_SALES', 'ROLE_SUPPORT'].some(r => roles.includes(r));
             if (!allowed) throw new Error('forbidden');
 
-            document.getElementById('sales-username').innerText = user.firstName || user.username || '';
+            // نام و نقشِ کاربر. برچسبِ نقش همان چیزی است که در پنلِ ادمین هم نوشته
+            // می‌شود؛ اگر نقشی اضافه/حذف شد، این جدول هم باید به‌روز شود.
+            const ROLE_LABELS = {
+                ADMIN: 'ادمین',
+                PRICER: 'کارشناس ارشد',
+                SALES: 'کارشناس فروش و قیمت‌گذاری',
+                SUPPORT: 'کارشناس فروش'
+            };
+            const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+            document.getElementById('sales-username').innerText = fullName || user.username || '';
+            const roleKey = (roles.find(r => ROLE_LABELS[r.replace('ROLE_', '')]) || '').replace('ROLE_', '');
+            document.getElementById('sales-role').innerText = ROLE_LABELS[roleKey] || '';
             document.getElementById('salesPanel').style.display = 'block';
 
             // دسترسیِ میزِ کار (قیمت‌گذاری) و دسترسیِ محصولات مستقل از هم‌اند —
