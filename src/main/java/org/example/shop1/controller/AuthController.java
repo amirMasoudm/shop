@@ -38,8 +38,12 @@ public class AuthController {
     private final org.example.shop1.model.service.ActivityLogService activityLogService;
 
     private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    private final org.example.shop1.model.service.analytics.UserEventRecorder analytics;
+
     public AuthController(AuthService authService, UserRepository userRepository, PasswordEncoder passwordEncoder,
-                          org.example.shop1.model.service.ActivityLogService activityLogService) {
+                          org.example.shop1.model.service.ActivityLogService activityLogService,
+                          org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
+        this.analytics = analytics;
         this.authService = authService;
         this.userRepository = userRepository;
 
@@ -153,6 +157,10 @@ public class AuthController {
                 admin.getRole()
         );
 
+        // دوختنِ هویت: از این لحظه، شناسهٔ ناشناسِ این دستگاه به این کاربر می‌چسبد و
+        // رفتارِ قبل از ورودش هم زیرِ همین کاربر پیدا می‌شود.
+        analytics.identify(admin.getId());
+        analytics.record(org.example.shop1.model.enums.EventType.LOGIN, "USER", admin.getId(), null);
 
         return ResponseEntity.ok(result);
     }
@@ -172,7 +180,9 @@ public class AuthController {
         String code = payload.get("code");
 
         try {
-            User user = authService.verifyCodeAndLogin(phone, code);
+            org.example.shop1.model.service.AuthService.LoginResult login =
+                    authService.verifyCodeAndLogin(phone, code);
+            User user = login.user();
 
             // ۱. ایجاد توکن احراز هویت
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
@@ -190,6 +200,15 @@ public class AuthController {
             securityContextRepository.saveContext(context, request, response);
 
             boolean isProfileComplete = (user.getFirstName() != null && !user.getFirstName().isEmpty());
+
+            // ⚠️ «تازه ساخته شد» را فقط سرویس می‌داند و نباید از خالی‌بودنِ نام حدس زده
+            // شود: مشتریِ برگشتی‌ای که پروفایلش را پر نکرده هر بار REGISTER می‌گرفت و
+            // قیفِ فازِ ۲ عددِ ثبت‌نامِ باددار و ورودِ صفر نشان می‌داد.
+            analytics.identify(user.getId());
+            analytics.record(login.created()
+                            ? org.example.shop1.model.enums.EventType.REGISTER
+                            : org.example.shop1.model.enums.EventType.LOGIN,
+                    "USER", user.getId(), null);
 
             Map<String, Object> resp = new HashMap<>();
             resp.put("user", user);
@@ -230,6 +249,9 @@ public class AuthController {
     // خروجِ سمتِ سرور انجام نمی‌شد (فقط localStorage پاک می‌شد و سشن زنده می‌ماند).
     @RequestMapping(value = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+
+        // پیش از نابودکردنِ کانتکست ثبت شود، وگرنه شناسهٔ کاربر دیگر در دسترس نیست.
+        analytics.record(org.example.shop1.model.enums.EventType.LOGOUT, "USER", null, null);
 
         // ۱. نابود کردن Security Context
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -45,9 +45,13 @@ public class OrderService {
     private final MellatGatewayService mellatGatewayService;
     private final PaymentRefNumberGenerator paymentRefNumberGenerator;
 
+    private final org.example.shop1.model.service.analytics.UserEventRecorder analytics;
+
     public OrderService(OrderRepository orderRepo, ProductRepository productRepo, CourseRepository courseRepo,
                         UserRepository userRepo, ShippingService shippingService, MellatGatewayService mellatGatewayService,
-                        PaymentRefNumberGenerator paymentRefNumberGenerator) {
+                        PaymentRefNumberGenerator paymentRefNumberGenerator,
+                        org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
+        this.analytics = analytics;
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;
         this.courseRepo = courseRepo;
@@ -273,7 +277,14 @@ public class OrderService {
         applyTotals(order);
 
         order.setFinalized(true);
-        return orderRepo.save(order);
+        Order placed = orderRepo.save(order);
+
+        // ثبتِ سروری و بیرونِ هر تراکنش — عددِ قیف باید با عددِ واقعیِ فروش بخواند،
+        // پس این رویداد نباید به بیکنِ مرورگر سپرده شود.
+        analytics.record(org.example.shop1.model.enums.EventType.ORDER_PLACED,
+                "ORDER", placed.getId(), placed.getOrderCode(),
+                java.util.Map.of("total", placed.getTotalAmount() == null ? 0 : placed.getTotalAmount()));
+        return placed;
     }
 
     public List<Order> getMyOrders() { return orderRepo.findByUserOrderByOrderDateDesc(getCurrentUser()); }

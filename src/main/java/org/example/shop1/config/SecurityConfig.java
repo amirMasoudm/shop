@@ -65,6 +65,15 @@ public class SecurityConfig {
                             // خودمان. امنیتِ واقعی‌اش با bpVerifyRequestِ سرور-به-سرور تضمین
                             // می‌شود (OrderService.handleMellatCallback)، نه با CSRF/سشن.
                             .ignoringRequestMatchers("/api/orders/mellat-callback")
+
+                            // بیکنِ ردگیری: navigator.sendBeacon توکنِ CSRF نمی‌فرستد و
+                            // اصلاً هدرِ دلخواه هم نمی‌تواند بگذارد. بدونِ این معافیت هر
+                            // بسته ۴۰۳ می‌گرفت و هیچ رویدادی ثبت نمی‌شد — همان باگی که
+                            // در کامیتِ 9a8b36c خوردیم.
+                            // خطرِ CSRF اینجا بی‌معنی است: این مسیر هیچ کنشی به‌نامِ کاربر
+                            // انجام نمی‌دهد و هویت را هم از کوکیِ HttpOnly و SecurityContext
+                            // می‌گیرد، نه از بدنه.
+                            .ignoringRequestMatchers("/api/v1/track")
                             ;
 
                 })
@@ -90,6 +99,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/settings/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/courses/admin/**").hasRole("ADMIN")
+
+                        // بیکنِ ردگیریِ رفتار — عمومی است چون بازدیدکنندهٔ ناشناس هم باید
+                        // ثبت شود. هویت از کوکیِ HttpOnly می‌آید، نه از بدنه.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/track").permitAll()
 
                         // آستانه‌ی RFQ خواندنی و عمومی است (فرانت دکمه را شرطی می‌کند)
                         .requestMatchers(HttpMethod.GET, "/api/v1/settings/rfq-threshold").permitAll()

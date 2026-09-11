@@ -108,16 +108,26 @@ public class AuthService {
     /*
        Login مشتری با OTP
     */
-    public User verifyCodeAndLogin(String phoneNumber, String code) {
+    /**
+     * نتیجهٔ ورود با کدِ پیامکی.
+     * <p>
+     * {@code created} لازم است چون فقط همین‌جا معلوم است که کاربر تازه ساخته شد یا از
+     * قبل بود. کنترلر قبلاً این را از «خالی‌بودنِ نام» حدس می‌زد، که غلط بود: مشتریِ
+     * برگشتی که پروفایلش را پر نکرده، هر بار {@code REGISTER} ثبت می‌شد و شمارشِ
+     * ثبت‌نام برای همیشه باد می‌کرد.
+     */
+    public record LoginResult(User user, boolean created) {}
+
+    public LoginResult verifyCodeAndLogin(String phoneNumber, String code) {
 
         if (!verifyOnlyCode(phoneNumber, code)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "کد تایید اشتباه است یا منقضی شده");
         }
 
-        return userRepository.findByPhoneNumber(phoneNumber).orElseGet(() -> {
-            User newUser = new User(phoneNumber, Role.USER);
-            return userRepository.save(newUser);
-        });
+        return userRepository.findByPhoneNumber(phoneNumber)
+                .map(existing -> new LoginResult(existing, false))
+                .orElseGet(() -> new LoginResult(
+                        userRepository.save(new User(phoneNumber, Role.USER)), true));
     }
 
 

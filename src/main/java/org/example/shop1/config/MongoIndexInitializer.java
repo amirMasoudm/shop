@@ -86,7 +86,29 @@ public class MongoIndexInitializer implements CommandLineRunner {
                     new Document("conversationId", 1).append("createdAt", 1)),
             // صفِ کارشناس: تصاحب‌نشده‌ها و «چت‌های من»
             new CompoundIndex("conversations", "ix_conversations_status_agent",
-                    new Document("status", 1).append("assignedAgentId", 1))
+                    new Document("status", 1).append("assignedAgentId", 1)),
+
+            // ---- ردگیریِ رفتارِ کاربر ----
+            // 🔴 هیچ‌کدام از این‌ها TTL نیستند و نباید بشوند. TTL بی‌صدا و بی‌قید حذف
+            //    می‌کند و نمی‌شود شرطِ «فقط اگر آرشیو گرفته شده» را به آن داد — درست
+            //    همان چیزی که مالک خواسته. حذفِ دادهٔ کهنه کارِ جابِ آرشیو-سپس-حذفِ
+            //    فازِ ۲ است. اگر روزی کسی اینجا expireAfterSeconds اضافه کرد، دادهٔ
+            //    مالک بی‌آرشیو از بین می‌رود.
+            new CompoundIndex("user_events", "ix_user_events_user_at",
+                    new Document("userId", 1).append("at", -1)),
+            new CompoundIndex("user_events", "ix_user_events_anon_at",
+                    new Document("anonId", 1).append("at", -1)),
+            new CompoundIndex("user_events", "ix_user_events_type_at",
+                    new Document("type", 1).append("at", -1)),
+            new CompoundIndex("user_events", "ix_user_events_session_at",
+                    new Document("sessionId", 1).append("at", 1)),
+            new CompoundIndex("user_events", "ix_user_events_at",
+                    new Document("at", -1)),
+            // پایهٔ جمع‌بندیِ کانالیِ فازِ ۲ — به‌خاطرِ همین، channel روی هر رویداد تکرار می‌شود
+            new CompoundIndex("user_events", "ix_user_events_channel_at",
+                    new Document("channel", 1).append("at", -1)),
+            new CompoundIndex("visitors", "ix_visitors_userId",
+                    new Document("userId", 1))
     );
 
     private final MongoTemplate mongoTemplate;

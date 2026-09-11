@@ -2249,6 +2249,8 @@
             value: Number(p.onlinePrice || p.price || 0),
             items: [{item_id: p.id, item_name: p.name}]
         });
+        // ردگیریِ خودمان — کنارِ گوگل، نه به‌جایش (گوگل تکمیلی است، دادهٔ ما مرجع)
+        dnTrack('PRODUCT_VIEW', {entityType: 'PRODUCT', entityId: p.id, entityName: p.name});
 
         // زمینهٔ خودکارِ چتِ پشتیبانی: اگر مشتری از همین صفحه حباب را باز کند، یک
         // پیامِ SYSTEM با نامِ همین محصول ثبت می‌شود و کارشناس بدونِ پرسیدن می‌داند
@@ -3127,6 +3129,12 @@
 
         // رویدادِ استانداردِ گوگل برای سرچِ داخلیِ سایت
         gaEvent('search', {search_term: q});
+        dnTrack('SEARCH', {props: {
+            q: q,
+            resultCount: (state.feed && state.feed.totalResults !== undefined)
+                    ? state.feed.totalResults : (state.current || []).length,
+            categoryId: cat || null
+        }});
 
         if (!isPopState) {
             const params = new URLSearchParams({q});
@@ -3249,6 +3257,10 @@
                 }).then(r => r.json());
                 content = (res.products && res.products.content) || [];
                 last = (res.products && res.products.last !== undefined) ? res.products.last : true;
+                // تعدادِ کل برایِ رویدادِ SEARCH — جست‌وجوی بی‌نتیجه ارزشمندترین دادهٔ
+                // این سامانه است و بدونِ این عدد قابلِ تشخیص نیست.
+                f.totalResults = (res.products && res.products.totalElements !== undefined)
+                        ? res.products.totalElements : content.length;
             } else {
                 let url = `${API}/api/v1/products?page=${f.page}&size=${f.size}`;
                 if (f.type === 'cat') url += `&categoryId=${encodeURIComponent(f.param)}`;
@@ -3343,6 +3355,7 @@
             value: Number(price || 0),
             items: [{item_id: id, item_name: name}]
         });
+        dnTrack('ADD_TO_CART', {entityType: 'PRODUCT', entityId: id, entityName: name});
     }
 
     function saveCart() {
@@ -3605,6 +3618,7 @@
                     value: Number(data.itemsTotal || 0),
                     items: (state.cart || []).map(i => ({item_id: i.id, item_name: i.name, quantity: i.qty || 1}))
                 });
+                dnTrack('BEGIN_CHECKOUT', {props: {itemCount: (state.cart || []).length}});
 
                 state.cart = [];
                 saveCart();
@@ -3632,6 +3646,9 @@
             });
             if (res.ok) {
                 const rfq = await res.json();
+                // ⚠️ اینجا عمداً dnTrack نداریم: RFQ_SUBMIT را خودِ RfqService سمتِ سرور
+                // ثبت می‌کند و بیکنِ موازی فقط رویداد را دوبار می‌شمرد. بیکن فقط برای
+                // چیزی است که سرور نمی‌بیند.
                 // رویداد آنالیتیکس: تولید سرنخ فروش (قیف RFQ)
                 gaEvent('generate_lead', {
                     currency: 'IRR',
@@ -4025,5 +4042,7 @@
 <!-- حبابِ چتِ پشتیبانی — هستهٔ مشترک با پنلِ کارشناس (/js/chat-core.js) -->
 <script src="/js/chat-core.js"></script>
 <script src="/js/support-chat-widget.js"></script>
+<!-- بیکنِ ردگیریِ رفتار — فقط برایِ چیزی که سرور نمی‌بیند (SPA، فیلتر، عمقِ مطالعه) -->
+<script src="/js/dn-track.js"></script>
 </body>
 </html>

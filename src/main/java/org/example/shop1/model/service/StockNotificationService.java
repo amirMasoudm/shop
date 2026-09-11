@@ -34,8 +34,12 @@ public class StockNotificationService {
     private final UserRepository userRepo;
     private final SmsService smsService;
 
+    private final org.example.shop1.model.service.analytics.UserEventRecorder analytics;
+
     public StockNotificationService(StockNotificationRepository repo, ProductRepository productRepo,
-                                    UserRepository userRepo, SmsService smsService) {
+                                    UserRepository userRepo, SmsService smsService,
+                                    org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
+        this.analytics = analytics;
         this.repo = repo;
         this.productRepo = productRepo;
         this.userRepo = userRepo;
@@ -58,6 +62,8 @@ public class StockNotificationService {
             return;
         }
         repo.save(new StockNotification(productId, mobile));
+        analytics.record(org.example.shop1.model.enums.EventType.STOCK_NOTIFY_SUBSCRIBE,
+                "PRODUCT", productId, p.getName());
     }
 
     /**

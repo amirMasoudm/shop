@@ -62,11 +62,15 @@ public class ChatService {
     private final Map<String, Deque<Long>> messageHits = new ConcurrentHashMap<>();
     private final Map<String, Deque<Long>> uploadHits = new ConcurrentHashMap<>();
 
+    private final org.example.shop1.model.service.analytics.UserEventRecorder analytics;
+
     public ChatService(ConversationRepository conversationRepository,
                        ChatMessageRepository messageRepository,
                        MongoOperations mongoOperations,
                        MessageBroadcaster broadcaster,
-                       BusinessHoursService businessHours) {
+                       BusinessHoursService businessHours,
+                       org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
+        this.analytics = analytics;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.mongoOperations = mongoOperations;
@@ -199,6 +203,11 @@ public class ChatService {
         touch(conversation, saved);
 
         if (wasInQueue) broadcaster.broadcastToAgents(Map.of("event", "queue"));
+
+        // فقط «پیام فرستاد» ثبت می‌شود — متنِ پیام عمداً وارد کالکشنِ رفتار نمی‌شود،
+        // جایش همین کالکشنِ چت است.
+        analytics.record(org.example.shop1.model.enums.EventType.CHAT_MESSAGE_SENT,
+                "CONVERSATION", conversation.getId(), null);
         return saved;
     }
 

@@ -40,8 +40,12 @@ public class RfqService {
     private final OrderRepository orderRepo;
     private final StoreSettingsService settingsService;
 
+    private final org.example.shop1.model.service.analytics.UserEventRecorder analytics;
+
     public RfqService(RfqRepository rfqRepo, ProductRepository productRepo, UserRepository userRepo,
-                      OrderRepository orderRepo, StoreSettingsService settingsService) {
+                      OrderRepository orderRepo, StoreSettingsService settingsService,
+                      org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
+        this.analytics = analytics;
         this.rfqRepo = rfqRepo;
         this.productRepo = productRepo;
         this.userRepo = userRepo;
@@ -139,6 +143,9 @@ public class RfqService {
 
         // اعلان بهترین‌تلاش (در MVP فقط لاگ؛ اتصال SMS واقعی فاز بعد)
         notifyBestEffort("ثبت استعلام جدید " + saved.getCode() + " توسط کاربر");
+        // ثبتِ سروری — مرجع است، نه بیکنِ مرورگر که با هر افزونهٔ مسدودکننده گم می‌شود.
+        analytics.record(org.example.shop1.model.enums.EventType.RFQ_SUBMIT,
+                "RFQ", saved.getId(), saved.getCode());
         return saved;
     }
 

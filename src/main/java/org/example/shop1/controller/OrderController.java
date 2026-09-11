@@ -24,8 +24,12 @@ public class OrderController {
     private static final Logger log = LoggerFactory.getLogger(OrderController.class);
     private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
+    private final org.example.shop1.model.service.analytics.UserEventRecorder analytics;
+
+    public OrderController(OrderService orderService,
+                           org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
         this.orderService = orderService;
+        this.analytics = analytics;
     }
 
     @PostMapping("/create-draft")
@@ -131,6 +135,13 @@ public class OrderController {
             log.error("خطایِ پیش‌بینی‌نشده در پردازشِ callbackِ ملت: {}", e.toString());
             location = "/profile?paymentError=1";
         }
+
+        // نتیجهٔ پرداخت از روی خودِ مقصدِ ریدایرکت خوانده می‌شود — تک نقطهٔ اتصال، به‌جایِ
+        // قلاب‌گذاری روی هر شاخهٔ handleMellatCallback. کالبک در مرورگرِ کاربر باز می‌شود،
+        // پس کوکیِ ردگیری هست و رویداد به همان بازدید می‌چسبد.
+        analytics.record(org.example.shop1.model.enums.EventType.PAYMENT_RESULT, "ORDER", null, null,
+                java.util.Map.of("result", location.contains("paid=1") ? "SUCCESS" : "FAILED"));
+
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, location)
                 .build();
