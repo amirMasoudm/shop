@@ -148,9 +148,16 @@ entityName   String?          // اسنپ‌شات — اگر محصول حذف 
 props        Map<String,Object>?
 device       Device           // MOBILE | DESKTOP | TABLET
 city         String?
+channel      Channel          // تکرارشده از بازدید — عمدی
+campaign     String?          // تکرارشده از بازدید — عمدی
 ```
 
-ایندکس‌ها: `{userId, at}` · `{anonId, at}` · `{type, at}` · `{sessionId, at}` · `{at}`.
+**چرا `channel` و `campaign` روی هر رویداد تکرار می‌شوند:** جمع‌بندیِ شبانه باید
+بگوید «کانالِ تلگرام چند سفارش داد». اگر کانال فقط روی `SESSION_START` باشد، جاب
+مجبور است هر شب برایِ ده‌ها هزار بازدید یک اتصالِ سنگین بزند. با ~۱۵ بایت تکرار،
+جمع‌بندی به یک `group by` ساده تبدیل می‌شود و گزارشِ کارزارِ فازِ ۳ هم همین‌طور.
+
+ایندکس‌ها: `{userId, at}` · `{anonId, at}` · `{type, at}` · `{sessionId, at}` · `{at}` · `{channel, at}`.
 
 **⚠️ ایندکسِ TTL گذاشته نشود** — دلیلش در بندِ ۸. حذف کارِ یک جابِ خودمان است، نه مونگو.
 
