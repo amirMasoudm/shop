@@ -90,21 +90,41 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
         String sessionId;
         Channel channel;
         String campaign;
+        Channel channelFromCookie = Channel.DIRECT;
+        String campaignFromCookie = null;
         boolean newSession = false;
 
-        if (sessionCookie == null || sessionCookie.isBlank()) {
-            // بازدیدِ تازه: همین‌جا و فقط همین‌جا منبعِ ورود حساب می‌شود.
+        // ⚠️ کوکی HttpOnly است، ولی این یعنی «جاوااسکریپتِ صفحه نمی‌تواند دستکاری کند»،
+        // نه «قابلِ جعل نیست»: هر کلاینتی می‌تواند هدرِ Cookie را دستی بفرستد. پس هر
+        // چیزی که از این کوکی بیرون می‌آید ورودیِ بیرونی است و اعتبارسنجی می‌خواهد —
+        // دقیقاً همان کاری که برایِ dn_aid انجام می‌شود.
+        String cookieSessionId = null;
+        if (sessionCookie != null && !sessionCookie.isBlank()) {
+            String[] parts = sessionCookie.split("\\.", 3);
+            String candidate = decode(parts[0]);
+            if (isUuid(candidate)) {
+                cookieSessionId = candidate;
+                channelFromCookie = parts.length > 1 ? parseChannel(parts[1]) : Channel.DIRECT;
+                // سقفِ ۱۲۰ کاراکتریِ ChannelResolver.param فقط روی اولین درخواست اعمال
+                // می‌شود؛ مسیرِ خواندن از کوکی دورش می‌زد و کارزارِ بلند روی تک‌تکِ
+                // رویدادهای آن بازدید تکرار می‌شد.
+                campaignFromCookie = trimCampaign(parts.length > 2 ? decode(parts[2]) : null);
+            }
+        }
+
+        if (cookieSessionId == null) {
+            // بازدیدِ تازه — یا چون کوکی نبود، یا چون شناسه‌اش معتبر نبود. در هر دو
+            // حالت منبعِ ورود همین‌جا و فقط همین‌جا حساب می‌شود.
             TrafficSource source = channelResolver.resolve(request);
             sessionId = UUID.randomUUID().toString();
             channel = source.channel();
-            campaign = source.campaign();
+            campaign = trimCampaign(source.campaign());
             newSession = true;
             request.setAttribute(TrafficSource.class.getName(), source);
         } else {
-            String[] parts = sessionCookie.split("\\.", 3);
-            sessionId = decode(parts[0]);
-            channel = parts.length > 1 ? parseChannel(parts[1]) : Channel.DIRECT;
-            campaign = parts.length > 2 ? decode(parts[2]) : null;
+            sessionId = cookieSessionId;
+            channel = channelFromCookie;
+            campaign = campaignFromCookie;
         }
 
         // تمدید در هر درخواست — پنجرهٔ بی‌حرکتی از «آخرین فعالیت» شمرده می‌شود، نه از شروعِ بازدید.
@@ -166,6 +186,16 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             return Channel.DIRECT;
         }
+    }
+
+    /** همان سقفی که {@code ChannelResolver.param} روی UTMِ درخواستِ اول می‌گذارد. */
+    private static final int MAX_CAMPAIGN_LENGTH = 120;
+
+    private String trimCampaign(String campaign) {
+        if (campaign == null) return null;
+        String c = campaign.trim();
+        if (c.isEmpty()) return null;
+        return c.length() > MAX_CAMPAIGN_LENGTH ? c.substring(0, MAX_CAMPAIGN_LENGTH) : c;
     }
 
     private boolean isUuid(String value) {
