@@ -38,6 +38,8 @@ public class ActivityLogService {
     /** نوع‌هایِ شناخته‌شده‌ی موجودیت (رشته‌اند تا افزودنِ نوعِ جدید نیازی به تغییرِ هسته نداشته باشد). */
     public static final String ENTITY_PRODUCT = "PRODUCT";
     public static final String ENTITY_SETTINGS = "SETTINGS";
+    /** دادهٔ رفتاریِ مشتریان — خروجی‌گرفتن و حذفش کنشِ کارمندیِ قابلِ ممیزی است. */
+    public static final String ENTITY_ANALYTICS = "ANALYTICS";
 
     public void record(ActivityLog.Action action, ActivityLog.Source source,
                        String entityType, String entityId, String entityName,

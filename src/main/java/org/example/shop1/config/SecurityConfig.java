@@ -218,7 +218,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/users/admin/**",
                                 "/api/orders/admin/**",
-                                "/api/comments/admin/**"
+                                "/api/comments/admin/**",
+                                // 🔴 تبِ رفتارِ کاربران: «سفرِ کاربر»، خروجی و فایل‌های
+                                // آرشیو همه دادهٔ شخصیِ مشتریانِ واقعی‌اند. برخلافِ تبِ
+                                // پشتیبانیِ چت که عمداً برای هر چهار نقش باز است، این
+                                // یکی فقط ADMIN — نه PRICER، نه SALES، نه SUPPORT.
+                                "/api/v1/analytics/**"
                         ).hasRole("ADMIN")
 
                         .anyRequest().authenticated()

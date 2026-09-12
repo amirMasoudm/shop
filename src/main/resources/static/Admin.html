@@ -378,6 +378,10 @@
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>💹</span> میز کار قیمت‌گذاری
         </div>
+        <div onclick="switchTab('userBehavior')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>📈</span> رفتار کاربران
+        </div>
         <div onclick="switchTab('activityLog')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🧾</span> لاگ فعالیت
@@ -976,6 +980,9 @@
     <!-- میز کار قیمت‌گذاری — مارک‌آپ از /js/pricing-workspace.js تزریق می‌شود
          (فایلِ مشترک با پنلِ فروشِ حضوری؛ عمداً inline نیست) -->
     <div id="tab-pricing" class="hidden-section fade-in"></div>
+
+    <!-- رفتار کاربران — مارک‌آپ و منطق در /js/user-behavior-tab.js -->
+    <div id="tab-userBehavior" class="hidden-section fade-in"></div>
 
     <!-- لاگ فعالیت — همان ماژول -->
     <div id="tab-activityLog" class="hidden-section fade-in"></div>
@@ -1873,6 +1880,8 @@
      استفاده می‌کند؛ باید قبل از اسکریپتِ اصلیِ همین صفحه لود شوند -->
 <script src="/js/admin-modal-utils.js"></script>
 <script src="/js/products-tab.js"></script>
+<!-- تبِ رفتارِ کاربران — فقط ADMIN؛ مرزِ واقعی در SecurityConfig است -->
+<script src="/js/user-behavior-tab.js"></script>
 <!-- میزِ کارِ قیمت‌گذاری — همان فایلی که پنلِ فروشِ حضوری هم استفاده می‌کند -->
 <script src="/js/pricing-workspace.js"></script>
 <!-- بیرون‌انداختنِ خودکار وقتی دسترسیِ کاربر عوض شده (بدونِ نیاز به رفرشِ دستی) -->
@@ -2057,6 +2066,8 @@
         if (id === 'staff') fetchStaff();
         if (id === 'pricing') { mountPricingUi(); fetchPricingRows(); }
         if (id === 'activityLog') { mountLogUi(); fetchActivityLogs(); }
+        // mount تنبل: تا ادمین تبِ رفتار را باز نکند، هیچ کوئریِ آماری زده نمی‌شود.
+        if (id === 'userBehavior') UserBehaviorTab.mount(document.getElementById('tab-userBehavior'));
         if (id === 'articles') fetchArticles();
         if (id === 'banners' && !state.articles) fetchArticles();
         if (id === 'homeBanners' && !state.articles) fetchArticles();

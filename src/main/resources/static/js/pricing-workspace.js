@@ -616,11 +616,12 @@
         PRICE_CHANGE: 'تغییر قیمت', FLOOR_PRICE_CHANGE: 'تغییر کف رقبا',
         FLAG_CHANGE: 'تغییر پرچم فروش', LOGIN: 'ورود به سیستم',
         PRODUCT_CREATE: 'افزودن محصول', PRODUCT_UPDATE: 'ویرایش محصول',
-        PRODUCT_DELETE: 'حذف محصول'
+        PRODUCT_DELETE: 'حذف محصول',
+        ANALYTICS_EXPORT: 'خروجیِ دادهٔ رفتاری', ANALYTICS_ERASE: 'حذفِ دادهٔ رفتاریِ کاربر'
     };
     const LOG_SOURCE_LABELS = {MANUAL: 'دستی', DERIVED: 'خودکار (فرمول)', BATCH: 'دسته‌ای', HOLOO: 'هلو'};
     // نوعِ موجودیت — پایه‌ی دوقسمتی‌شدنِ لاگ؛ نوعِ جدید فقط یک ردیف اینجا می‌خواهد
-    const LOG_ENTITY_LABELS = {PRODUCT: 'محصول', SETTINGS: 'تنظیمات', CATEGORY: 'دسته', ARTICLE: 'مقاله', USER: 'کاربر'};
+    const LOG_ENTITY_LABELS = {PRODUCT: 'محصول', SETTINGS: 'تنظیمات', CATEGORY: 'دسته', ARTICLE: 'مقاله', USER: 'کاربر', ANALYTICS: 'دادهٔ رفتاری'};
 
     async function fetchActivityLogs() {
         toggleLoader(true);

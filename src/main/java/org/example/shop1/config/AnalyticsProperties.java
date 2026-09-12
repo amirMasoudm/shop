@@ -20,8 +20,22 @@ import java.util.List;
 @ConfigurationProperties(prefix = "app.analytics")
 public class AnalyticsProperties {
 
-    /** مدتِ نگه‌داریِ دادهٔ خام. فازِ ۲ (آرشیو-سپس-حذف) از همین می‌خواند. */
+    /** مدتِ نگه‌داریِ دادهٔ خام. جابِ آرشیو-سپس-حذف از همین می‌خواند. */
     private int retentionDays = 90;
+
+    /**
+     * منطقهٔ زمانی‌ای که مرزِ «یک روز» را در جمع‌بندی تعیین می‌کند. خالی = زمانِ سرور.
+     * <p>
+     * بدونِ این، مرزِ روز به منطقهٔ زمانیِ ماشین گره می‌خورد و جابه‌جاییِ سرور
+     * عددهای تاریخیِ جمع‌بندی را بی‌صدا جابه‌جا می‌کرد.
+     */
+    private String zone = "";
+
+    /** پوشهٔ آرشیو — بیرونِ هر مسیری که سرو می‌شود. */
+    private String archiveDir = "/opt/shop/analytics-archive";
+
+    /** از این حجم که گذشت هشدار داده می‌شود؛ هیچ آرشیوی خودکار حذف نمی‌شود. */
+    private long archiveWarnMb = 2048;
 
     /** کرانِ بالای صفِ درون‌حافظه‌ای. پر که شد، رویداد دور ریخته می‌شود. */
     private int queueCapacity = 10_000;
@@ -63,6 +77,15 @@ public class AnalyticsProperties {
 
     public int getRetentionDays() { return retentionDays; }
     public void setRetentionDays(int retentionDays) { this.retentionDays = retentionDays; }
+
+    public String getZone() { return zone; }
+    public void setZone(String zone) { this.zone = zone; }
+
+    public String getArchiveDir() { return archiveDir; }
+    public void setArchiveDir(String archiveDir) { this.archiveDir = archiveDir; }
+
+    public long getArchiveWarnMb() { return archiveWarnMb; }
+    public void setArchiveWarnMb(long archiveWarnMb) { this.archiveWarnMb = archiveWarnMb; }
 
     public int getQueueCapacity() { return queueCapacity; }
     public void setQueueCapacity(int queueCapacity) { this.queueCapacity = queueCapacity; }

@@ -45,3 +45,6 @@ javacore.*.txt
 heapdump.*
 data-import/
 content-dump/
+
+# آرشیوِ دادهٔ رفتاری — دادهٔ شخصیِ مشتریانِ واقعی، هرگز در مخزن
+analytics_archive/
