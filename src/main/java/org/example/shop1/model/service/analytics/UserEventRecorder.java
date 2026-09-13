@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -97,6 +98,7 @@ public class UserEventRecorder {
                        String entityType, String entityId, String entityName,
                        Map<String, Object> rawProps, Instant clientAt) {
         if (ctx == null || type == null) return;
+        if (isStaffTraffic()) return;
 
         UserEvent event = new UserEvent();
         event.setAt(clampTime(clientAt));
@@ -139,6 +141,9 @@ public class UserEventRecorder {
      */
     public void touchVisitor(AnalyticsContext ctx, TrafficSource source) {
         if (ctx == null || ctx.anonId() == null) return;
+        // بدونِ این، کارمند در جدولِ «کاربران» به‌عنوان بازدیدکننده ظاهر می‌شد حتی
+        // وقتی هیچ رویدادی برایش ثبت نمی‌شود.
+        if (isStaffTraffic()) return;
 
         Visitor.FirstTouch firstTouch = new Visitor.FirstTouch();
         firstTouch.setChannel(source.channel());
@@ -177,6 +182,9 @@ public class UserEventRecorder {
         if (request == null || userId == null) return;
         AnalyticsContext ctx = (AnalyticsContext) request.getAttribute(AnalyticsContext.REQUEST_ATTRIBUTE);
         if (ctx == null || ctx.anonId() == null) return;
+        // ورودِ کارمند سندِ بازدیدکننده نمی‌سازد. ورودِ خودِ کارکنان جای دیگری ثبت
+        // می‌شود: activity_logs، که لاگِ ممیزیِ کارکنان است.
+        if (isStaffTraffic()) return;
         try {
             mongo.upsert(Query.query(Criteria.where("_id").is(ctx.anonId())),
                     new Update().set("userId", userId).set("lastSeenAt", Instant.now()),
@@ -219,6 +227,38 @@ public class UserEventRecorder {
      * بدنهٔ درخواست. اگر از بدنه خوانده می‌شد، هرکسی می‌توانست تاریخچهٔ جعلی برایِ هر
      * کاربری بسازد.
      */
+    /**
+     * 🔴 ترافیکِ کارکنان رفتارِ مشتری نیست و هیچ رویدادی نمی‌سازد.
+     * <p>
+     * خطرِ این یکی از باگ‌های معمولی بیشتر است چون <b>عددها معقول به‌نظر می‌رسند</b>،
+     * فقط مالِ مشتری نیستند: کارشناسی که روزانه در فروشگاه می‌گردد
+     * {@code PRODUCT_VIEW} و {@code SEARCH} و حتی {@code ADD_TO_CART} می‌سازد و در
+     * جدولِ «کاربران» به‌عنوان بازدیدکننده ظاهر می‌شود. با ترافیکِ واقعیِ کمِ امروز،
+     * آمارِ تیم می‌تواند بر کلِ داده غلبه کند و هر تصمیمی که از آن دربیاید غلط باشد.
+     * <p>
+     * و چون {@code daily_stats} هرگز پاک نمی‌شود، هر روزی که آلوده جمع‌بندی شود برای
+     * همیشه آلوده می‌ماند — پس این چک باید پیش از استقرار سرِ جایش باشد.
+     * <p>
+     * تشخیص از همان {@code SecurityContext}ی است که {@code userId} از آن خوانده
+     * می‌شود؛ فهرستِ مسیرها به‌تنهایی کافی نیست چون کارمند از مسیرهای عمومی می‌گذرد.
+     */
+    private boolean isStaffTraffic() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) return false;
+
+        // ⚠️ بازدیدکنندهٔ ناشناس در اسپرینگ «احرازشده» است و نقشِ ROLE_ANONYMOUS
+        // دارد. اگر صرفاً «هر نقشی جز ROLE_USER» را کارمند حساب کنیم، همین ناشناس‌ها
+        // هم کارمند شمرده می‌شوند و کلِ آمارِ مشتریان — که بیشترش ناشناس است — بی‌صدا
+        // از بین می‌رود. این در تست دیده شد، وگرنه روی سرور خاموش و بی‌نشانه بود.
+        if (auth instanceof AnonymousAuthenticationToken) return false;
+
+        return auth.getAuthorities().stream()
+                .map(Object::toString)
+                .anyMatch(r -> r.startsWith("ROLE_")
+                        && !r.equals("ROLE_USER")
+                        && !r.equals("ROLE_ANONYMOUS"));
+    }
+
     private String currentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) return null;
