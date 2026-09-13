@@ -171,11 +171,19 @@ public class DailyStatsService {
                         .append("addToCart", sumIfType(EventType.ADD_TO_CART))
                         .append("beginCheckout", sumIfType(EventType.BEGIN_CHECKOUT))
                         .append("orders", sumIfType(EventType.ORDER_PLACED))),
+                // 🔴 قیف باید «یکنوا» باشد: هر بازدید در پلهٔ N شمرده می‌شود اگر به
+                // پلهٔ N «یا هر پلهٔ بعدتر» رسیده باشد.
+                //
+                // چرا صرفِ یکسان‌کردنِ واحدها کافی نبود: کارتِ محصول در فهرست دکمهٔ
+                // «افزودن به سبد» دارد، پس بازدیدکننده می‌تواند بدونِ بازکردنِ صفحهٔ
+                // محصول به سبد اضافه کند. آن بازدید در addToCart می‌آمد ولی در
+                // productViews نه، و پلهٔ سوم از دومی بزرگ‌تر می‌شد — یعنی ریزشِ منفی،
+                // عددی که هیچ معنایی ندارد. با این شکل، ریزشِ منفی ناممکن است.
                 new Document("$group", new Document("_id", null)
-                        .append("productViews", countIfPositive("$productViews"))
-                        .append("addToCart", countIfPositive("$addToCart"))
-                        .append("beginCheckout", countIfPositive("$beginCheckout"))
-                        .append("orders", countIfPositive("$orders"))));
+                        .append("productViews", countIfAny("$productViews", "$addToCart", "$beginCheckout", "$orders"))
+                        .append("addToCart", countIfAny("$addToCart", "$beginCheckout", "$orders"))
+                        .append("beginCheckout", countIfAny("$beginCheckout", "$orders"))
+                        .append("orders", countIfAny("$orders"))));
 
         DailyStats.Funnel f = new DailyStats.Funnel();
         f.setVisits(visits);
@@ -189,10 +197,19 @@ public class DailyStatsService {
         return f;
     }
 
-    /** «این بازدید حداقل یک‌بار این کار را کرد» — یک، نه تعدادِ دفعات. */
-    private Document countIfPositive(String field) {
+    /**
+     * «این بازدید به این پله یا هر پلهٔ بعدتر رسید» — یک، نه تعدادِ دفعات.
+     * <p>
+     * پله‌های بعدی عمداً شمرده می‌شوند: کسی که سفارش داده قطعاً از پلهٔ سبد هم گذشته،
+     * حتی اگر رویدادش (مثلاً به‌خاطرِ افزودن از کارتِ فهرست) ثبت نشده باشد.
+     */
+    private Document countIfAny(String... fields) {
+        List<Object> conditions = new ArrayList<>();
+        for (String f : fields) {
+            conditions.add(new Document("$gt", List.of(f, 0)));
+        }
         return new Document("$sum", new Document("$cond",
-                List.of(new Document("$gt", List.of(field, 0)), 1, 0)));
+                List.of(new Document("$or", conditions), 1, 0)));
     }
 
     private Document sumIfType(EventType type) {
