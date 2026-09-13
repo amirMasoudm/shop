@@ -232,7 +232,14 @@ public class AnalyticsAdminController {
     @GetMapping("/export")
     public ResponseEntity<StreamingResponseBody> export(
             @RequestParam String from, @RequestParam String to,
-            @RequestParam(required = false) String type) {
+            @RequestParam(required = false) String type,
+            jakarta.servlet.http.HttpServletRequest request) {
+
+        // ستونِ url باید واقعاً قابلِ کلیک باشد، پس از همان میزبانی ساخته می‌شود که
+        // ادمین با آن وارد پنل شده — نه از یک مقدارِ هاردکد.
+        String baseUrl = request.getScheme() + "://" + request.getServerName()
+                + (request.getServerPort() == 80 || request.getServerPort() == 443
+                        ? "" : ":" + request.getServerPort());
 
         Instant fromAt = Instant.parse(from);
         Instant toAt = Instant.parse(to);
@@ -248,7 +255,10 @@ public class AnalyticsAdminController {
                          .find(filter).batchSize(1000).iterator()) {
 
                 w.write("﻿");   // BOM تا اکسل فارسی را درست باز کند
-                w.write("at,type,anonId,userId,sessionId,channel,campaign,path,entityType,entityId,entityName,device,city\n");
+                // path خام می‌ماند (ماشین‌خوان و دقیق) و دو ستونِ تازه کنارش می‌آید:
+                // pathDecoded برایِ خواندنِ آدم، و url برایِ کلیک‌کردن. خواستهٔ صریح
+                // این بود که «هم برای ماشین خوانا باشد هم برای آدم».
+                w.write("at,type,anonId,userId,sessionId,channel,campaign,path,pathDecoded,url,entityType,entityId,entityName,device,city\n");
                 while (cursor.hasNext()) {
                     Document d = cursor.next();
                     w.write(csv(d.get("at")));   w.write(',');
@@ -258,7 +268,10 @@ public class AnalyticsAdminController {
                     w.write(csv(d.get("sessionId"))); w.write(',');
                     w.write(csv(d.get("channel"))); w.write(',');
                     w.write(csv(d.get("campaign"))); w.write(',');
-                    w.write(csv(d.get("path"))); w.write(',');
+                    Object rawPath = d.get("path");
+                    w.write(csv(rawPath)); w.write(',');
+                    w.write(csv(decodePath(rawPath))); w.write(',');
+                    w.write(csv(rawPath == null ? null : baseUrl + rawPath)); w.write(',');
                     w.write(csv(d.get("entityType"))); w.write(',');
                     w.write(csv(d.get("entityId"))); w.write(',');
                     w.write(csv(d.get("entityName"))); w.write(',');
@@ -324,6 +337,22 @@ public class AnalyticsAdminController {
         activityLog.record(ActivityLog.Action.ANALYTICS_EXPORT, ActivityLog.Source.MANUAL,
                 ActivityLogService.ENTITY_ANALYTICS, null, "خروجیِ دادهٔ رفتاری",
                 "export", range, rows + " ردیف");
+    }
+
+    /**
+     * مسیرِ درصد-کدشده را خوانا می‌کند.
+     * <p>
+     * ⚠️ داخلِ {@code try/catch}: مسیرِ ناقص یا خرابِ درصد-کدشده نباید کلِ خروجی را
+     * بشکند — اصل همیشه در ستونِ {@code path} دست‌نخورده هست.
+     */
+    static String decodePath(Object rawPath) {
+        if (rawPath == null) return null;
+        String s = String.valueOf(rawPath);
+        try {
+            return java.net.URLDecoder.decode(s, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return s;
+        }
     }
 
     private String csv(Object value) {

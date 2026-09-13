@@ -47,6 +47,7 @@
             host.querySelector('[data-visitor-filter]').addEventListener('change', loadVisitors);
             host.querySelector('[data-export]').addEventListener('click', exportRange);
             host.querySelector('[data-archive-now]').addEventListener('click', archiveNow);
+            host.querySelector('[data-rollup-today]').addEventListener('click', rollupToday);
             mounted = true;
         }
         showView('overview');
@@ -87,6 +88,44 @@
         renderOverview();
         renderSources();
         renderSearches();
+        renderFreshness();
+    }
+
+    /**
+     * بدونِ این برچسب، هر کسی که تب را باز کند فکر می‌کند داده «کش» شده — چون
+     * دکمهٔ «نمایش» را می‌زند و رفتارِ امروز نمی‌آید. رفتار درست است، ولی کاربر
+     * راهی نداشت بفهمدش.
+     */
+    function renderFreshness() {
+        const last = stats.length
+            ? stats.map(s => s.computedAt).filter(Boolean).sort().slice(-1)[0]
+            : null;
+        const text = last
+            ? 'از جمع‌بندیِ روزانه — آخرین جمع‌بندی: ' + new Date(last).toLocaleString('fa-IR')
+            : 'از جمع‌بندیِ روزانه — هنوز جمع‌بندی‌ای برای این بازه ساخته نشده.';
+        host.querySelectorAll('[data-fresh="rollup"]').forEach(el => el.textContent = text);
+    }
+
+    async function rollupToday() {
+        const btn = host.querySelector('[data-rollup-today]');
+        const original = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'در حال ساخت…';
+        try {
+            const today = iso(new Date());
+            await postJson(`${API}/rollup?date=${today}`);
+            // بازهٔ نمایش تا امروز کشیده شود، وگرنه جمع‌بندیِ تازه بیرونِ بازه می‌ماند
+            // و کاربر باز هم چیزی نمی‌بیند — همان حسِ «کار نکرد».
+            if (host.querySelector('[data-to]').value < today) {
+                host.querySelector('[data-to]').value = today;
+            }
+            await load();
+        } catch (e) {
+            alert('ساختِ جمع‌بندی ناموفق بود.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = original;
+        }
     }
 
     function sum(field) { return stats.reduce((a, s) => a + (s[field] || 0), 0); }
@@ -318,11 +357,73 @@
                 row.className = 'flex gap-3 text-xs py-1 border-b last:border-0';
                 row.appendChild(cell(new Date(e.at).toLocaleString('fa-IR'), 'text-gray-400 shrink-0'));
                 row.appendChild(cell(e.type, 'font-bold text-gray-700 shrink-0 w-36'));
-                row.appendChild(cell(e.entityName || e.path || '', 'text-gray-600 truncate'));
+                if (e.entityName) {
+                    row.appendChild(cell(e.entityName, 'text-gray-600 truncate'));
+                } else {
+                    row.appendChild(pathCell(e.path));
+                }
                 card.appendChild(row);
             });
             box.appendChild(card);
         });
+    }
+
+
+    /**
+     * سلولِ مسیر — سه مشکل را با هم حل می‌کند.
+     *
+     * ۱. مسیرهای فارسی درصد-کدشده ذخیره می‌شوند و خوانا نیستند، پس دیکد می‌شوند.
+     * ۲. 🔴 مسیرِ لاتین داخلِ ردیفِ راست‌چین را الگوریتمِ دوجهته تکه‌تکه جابه‌جا نشان
+     *    می‌دهد — حتی شکلِ دیکدشده‌اش. پس `dir="ltr"` و `unicode-bidi: isolate`
+     *    اجباری است، وگرنه هم به‌هم‌ریخته دیده می‌شود هم انتخابِ متن ناممکن است.
+     * ۳. کوتاه‌کردن از «سر» است نه از ته: بخشِ باارزش (نامِ محصول) آخرِ آدرس است.
+     */
+    function pathCell(rawPath) {
+        const wrap = document.createElement('div');
+        wrap.className = 'flex items-center gap-2';
+
+        const decoded = decodePath(rawPath);
+        const link = document.createElement('a');
+        link.href = rawPath || '#';
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.title = decoded;                 // کاملش در تولتیپ
+        link.dir = 'ltr';
+        link.style.cssText = 'unicode-bidi:isolate;direction:ltr;text-align:left;'
+            + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22rem;';
+        link.className = 'text-indigo-600 hover:underline';
+        link.textContent = shortenFromStart(decoded, 60);   // ← textContent، نه innerHTML
+        wrap.appendChild(link);
+
+        const copy = document.createElement('button');
+        copy.type = 'button';
+        copy.className = 'text-gray-400 hover:text-indigo-600 shrink-0';
+        copy.title = 'کپیِ نشانیِ کامل';
+        copy.textContent = '⧉';
+        copy.addEventListener('click', async () => {
+            const full = location.origin + (rawPath || '');
+            try {
+                await navigator.clipboard.writeText(full);
+                copy.textContent = '✓';
+            } catch (e) {
+                // کلیپ‌بورد در کانتکستِ ناامن کار نمی‌کند؛ راهِ دوم انتخابِ دستی است
+                window.prompt('نشانی را کپی کنید:', full);
+            }
+            setTimeout(() => copy.textContent = '⧉', 1500);
+        });
+        wrap.appendChild(copy);
+        return wrap;
+    }
+
+    /** 🔴 در try/catch: مسیرِ ناقصِ درصد-کدشده نباید کلِ ردیف را بشکند. */
+    function decodePath(rawPath) {
+        if (!rawPath) return '';
+        try { return decodeURIComponent(rawPath); } catch (e) { return String(rawPath); }
+    }
+
+    function shortenFromStart(text, max) {
+        if (!text || text.length <= max) return text || '';
+        return '…' + text.slice(text.length - max);
     }
 
     function cell(text, cls) {
@@ -342,19 +443,41 @@
             list = await getJson(`${API}/archives`);
         } catch (e) { return emptyNote(box, 'واکشی ناموفق بود.'); }
 
+        // 🔴 خطِ وضعیت «همیشه» دیده می‌شود، نه فقط در حالتِ هشدار.
+        // جملهٔ قبلی («همهٔ دادهٔ کهنه‌تر از ۹۰ روز آرشیو شده است») گمراه‌کننده بود:
+        // می‌شد آن را «آرشیو انجام شد» خواند، درحالی‌که ممکن است هیچ‌وقت هیچ آرشیوی
+        // گرفته نشده باشد و فقط داده‌ای به آستانه نرسیده باشد.
+        const fa = n => Number(n || 0).toLocaleString('fa-IR');
+        const line = document.createElement('div');
+        line.className = 'bg-gray-50 border rounded-lg p-3 mb-3 text-xs leading-7 text-gray-700';
+        line.textContent =
+            'قدیمی‌ترین رویداد: ' + (status.oldestAgeDays === null || status.oldestAgeDays === undefined
+                ? 'داده‌ای نیست'
+                : fa(status.oldestAgeDays) + ' روز')
+            + ' · آستانهٔ آرشیو: ' + fa(status.retentionDays) + ' روز'
+            + ' · آمادهٔ آرشیو: ' + fa(status.pendingRows)
+            + ' · کلِ رویدادها: ' + fa(status.totalRows)
+            + ' · آخرین اجرا: ' + (status.lastRunAt
+                ? new Date(status.lastRunAt).toLocaleString('fa-IR') : 'هنوز اجرا نشده');
+        box.appendChild(line);
+
         if (status.archiveOverdue) {
             const warn = document.createElement('div');
             warn.className = 'bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 mb-4 text-sm font-bold';
-            warn.textContent = 'هشدار: ' + Number(status.pendingRows).toLocaleString('fa-IR')
-                + ' رویدادِ کهنه‌تر از ' + status.retentionDays
+            warn.textContent = 'هشدار: ' + fa(status.pendingRows)
+                + ' رویدادِ کهنه‌تر از ' + fa(status.retentionDays)
                 + ' روز هنوز آرشیو نشده‌اند و به همین دلیل حذف هم نشده‌اند.'
                 + (status.lastError ? ' آخرین خطا: ' + status.lastError : '');
             box.appendChild(warn);
-        } else {
-            const ok = document.createElement('div');
-            ok.className = 'bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 mb-4 text-sm';
-            ok.textContent = 'همهٔ دادهٔ کهنه‌تر از ' + status.retentionDays + ' روز آرشیو شده است.';
-            box.appendChild(ok);
+        }
+
+        if (!list || !list.length) {
+            const none = document.createElement('div');
+            none.className = 'bg-white border rounded-xl p-8 text-center text-gray-400 text-sm';
+            none.textContent = 'هنوز آرشیوی گرفته نشده.';
+            box.appendChild(section('آرشیوهای گرفته‌شده', none,
+                'هیچ آرشیوی خودکار حذف نمی‌شود؛ حذفشان تصمیمِ شماست.'));
+            return;
         }
 
         box.appendChild(section('آرشیوهای گرفته‌شده', tableEl(
@@ -373,7 +496,19 @@
         if (!confirm('چرخهٔ آرشیو-سپس-حذف همین حالا اجرا شود؟')) return;
         try {
             const r = await postJson(`${API}/archive-now`);
-            alert('انجام شد. ' + Number(r.deleted || 0).toLocaleString('fa-IR') + ' رویداد آرشیو و حذف شد.');
+            // سکوت در حالتِ «چیزی برای آرشیو نبود» دقیقاً همان چیزی بود که
+            // «خراب است» خوانده شد. حالا هر دو حالت پیامِ روشن دارند.
+            if (r.deleted > 0) {
+                alert('انجام شد. ' + Number(r.deleted).toLocaleString('fa-IR') + ' رویداد آرشیو و حذف شد.');
+            } else if (r.lastError) {
+                alert('آرشیو ناموفق بود و به همین دلیل هیچ رویدادی حذف نشد. ' + r.lastError);
+            } else {
+                const age = (r.oldestAgeDays === null || r.oldestAgeDays === undefined)
+                    ? 'هنوز داده‌ای ثبت نشده'
+                    : 'قدیمی‌ترین رویداد ' + Number(r.oldestAgeDays).toLocaleString('fa-IR') + ' روزه است';
+                alert('چیزی برای آرشیو نبود — ' + age
+                    + ' و هنوز به آستانهٔ ' + Number(r.retentionDays).toLocaleString('fa-IR') + ' روز نرسیده.');
+            }
         } catch (e) {
             alert('اجرا ناموفق بود.');
         }
@@ -427,6 +562,8 @@
                     a.className = 'text-indigo-600 font-bold';
                     a.textContent = v.text;
                     td.appendChild(a);
+                } else if (v && typeof v === 'object' && v.path !== undefined) {
+                    td.appendChild(pathCell(v.path));
                 } else if (v && typeof v === 'object' && v.button) {
                     const b = document.createElement('button');
                     b.className = 'text-indigo-600 font-bold';
@@ -483,18 +620,26 @@
     }
 
     const SHELL = `
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div>
                 <h2 class="text-xl md:text-2xl font-bold text-gray-800">رفتار کاربران</h2>
                 <p class="text-xs text-gray-500 mt-1">
-                    نماهای کلی از جمع‌بندیِ روزانه خوانده می‌شوند؛ فقط «سفر کاربر» به دادهٔ خام نگاه می‌کند.
+                    «نمای کلی»، «منبع ورود» و «جست‌وجوها» از جمع‌بندیِ روزانه خوانده می‌شوند، پس
+                    رفتارِ امروز تا ساخته‌شدنِ جمع‌بندی در آن‌ها دیده نمی‌شود.
+                    «کاربران»، «سفر کاربر» و «داده و آرشیو» زنده‌اند.
                 </p>
             </div>
             <div class="flex flex-wrap gap-2 items-center">
                 <input type="date" data-from class="p-2 border rounded-lg text-sm">
                 <input type="date" data-to class="p-2 border rounded-lg text-sm">
                 <button data-reload class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">نمایش</button>
+                <button data-rollup-today class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 text-sm font-bold hover:bg-indigo-50">جمع‌بندیِ امروز را بساز</button>
             </div>
+        </div>
+
+        <div class="bg-sky-50 border border-sky-200 text-sky-900 rounded-lg p-3 mb-5 text-xs leading-7">
+            ترافیکِ کارکنان عمداً ثبت نمی‌شود تا آمارِ مشتری آلوده نشود.
+            برای تست، از پنجرهٔ ناشناس یا مرورگری استفاده کنید که به پنل وارد نیست.
         </div>
 
         <div class="flex flex-wrap gap-2 mb-5">
@@ -506,10 +651,17 @@
             <button data-view-btn="data">داده و آرشیو</button>
         </div>
 
-        <div data-view="overview"><div data-overview></div></div>
-        <div data-view="sources" class="hidden"><div data-sources></div></div>
+        <div data-view="overview">
+            <p data-fresh="rollup" class="text-[11px] text-gray-500 mb-3"></p>
+            <div data-overview></div>
+        </div>
+        <div data-view="sources" class="hidden">
+            <p data-fresh="rollup" class="text-[11px] text-gray-500 mb-3"></p>
+            <div data-sources></div>
+        </div>
 
         <div data-view="visitors" class="hidden">
+            <p class="text-[11px] text-green-700 mb-3">زنده — مستقیم از دادهٔ خام خوانده می‌شود.</p>
             <select data-visitor-filter class="p-2 border rounded-lg text-sm bg-white mb-3">
                 <option value="">همهٔ بازدیدکنندگان</option>
                 <option value="cartNoOrder">سبد دارد ولی سفارش نداده</option>
@@ -520,6 +672,7 @@
         </div>
 
         <div data-view="journey" class="hidden">
+            <p class="text-[11px] text-green-700 mb-3">زنده — مستقیم از دادهٔ خام خوانده می‌شود.</p>
             <div class="flex gap-2 mb-3">
                 <input type="text" data-journey-id placeholder="شناسهٔ ناشناس یا شناسهٔ کاربر"
                        class="flex-1 p-2 border rounded-lg text-sm" dir="ltr">
@@ -528,9 +681,13 @@
             <div data-journey></div>
         </div>
 
-        <div data-view="searches" class="hidden"><div data-searches></div></div>
+        <div data-view="searches" class="hidden">
+            <p data-fresh="rollup" class="text-[11px] text-gray-500 mb-3"></p>
+            <div data-searches></div>
+        </div>
 
         <div data-view="data" class="hidden">
+            <p class="text-[11px] text-green-700 mb-3">زنده — مستقیم از دادهٔ خام خوانده می‌شود.</p>
             <div class="flex flex-wrap gap-2 mb-4">
                 <button data-export class="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-bold">خروجیِ بازهٔ انتخاب‌شده</button>
                 <button data-archive-now class="px-4 py-2 rounded-lg border text-gray-600 text-sm font-bold hover:bg-gray-50">اجرای آرشیو</button>

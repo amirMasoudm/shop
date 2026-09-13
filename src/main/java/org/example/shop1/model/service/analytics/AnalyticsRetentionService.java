@@ -143,7 +143,15 @@ public class AnalyticsRetentionService {
                      .find(filter).batchSize(CURSOR_BATCH).iterator()) {
 
             while (cursor.hasNext()) {
-                writer.write(cursor.next().toJson(json));
+                Document doc = cursor.next();
+                // مسیرِ خوانا و نشانیِ کامل داخلِ خودِ آرشیو نوشته می‌شوند تا آرشیوِ
+                // سه‌ماه‌پیش هم بعداً بدونِ ابزارِ اضافه خوانا بماند. اصل در path
+                // دست‌نخورده می‌ماند.
+                Object rawPath = doc.get("path");
+                if (rawPath != null) {
+                    doc.put("pathDecoded", decodePath(String.valueOf(rawPath)));
+                }
+                writer.write(doc.toJson(json));
                 writer.write('\n');
                 rows++;
             }
@@ -162,6 +170,15 @@ public class AnalyticsRetentionService {
         StringBuilder sb = new StringBuilder();
         for (byte b : digest.digest()) sb.append(String.format("%02x", b));
         return sb.toString();
+    }
+
+    /** مسیرِ ناقص نباید کلِ آرشیو را بشکند؛ اصل همیشه در {@code path} هست. */
+    private static String decodePath(String raw) {
+        try {
+            return java.net.URLDecoder.decode(raw, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return raw;
+        }
     }
 
     private Instant oldestAt() {
@@ -203,6 +220,16 @@ public class AnalyticsRetentionService {
         out.put("retentionDays", props.getRetentionDays());
         out.put("cutoff", cutoff);
         out.put("pendingRows", pending);
+
+        // «آماده برای آرشیو صفر است» به‌تنهایی گمراه‌کننده بود: هم می‌شد آن را
+        // «آرشیو انجام شد» خواند و هم معلوم نمی‌کرد اصلاً داده‌ای هست یا نه. سنِ
+        // قدیمی‌ترین رویداد و تعدادِ کل، هر دو ابهام را می‌بندند.
+        long total = mongo.getCollection(COLLECTION).countDocuments();
+        out.put("totalRows", total);
+        Instant oldest = total == 0 ? null : oldestAt();
+        out.put("oldestAt", oldest);
+        out.put("oldestAgeDays", oldest == null ? null
+                : java.time.Duration.between(oldest, Instant.now()).toDays());
         // هشدار مشتق است: وجودِ رویدادِ کهنه یعنی آرشیو عقب افتاده، فارغ از اینکه
         // چرا — پس با ری‌استارتِ اپ گم نمی‌شود و بعد از موفقیت خودبه‌خود می‌خوابد.
         out.put("archiveOverdue", pending > 0);
