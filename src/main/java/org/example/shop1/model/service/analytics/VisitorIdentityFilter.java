@@ -112,15 +112,24 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
             }
         }
 
-        if (cookieSessionId == null) {
-            // بازدیدِ تازه — یا چون کوکی نبود، یا چون شناسه‌اش معتبر نبود. در هر دو
-            // حالت منبعِ ورود همین‌جا و فقط همین‌جا حساب می‌شود.
-            TrafficSource source = channelResolver.resolve(request);
+        // 🔴 ورودِ یک «منبعِ تازه» بازدید را از نو شروع می‌کند، حتی اگر سشنِ قبلی زنده
+        // باشد. پیش از این، منبع فقط وقتی حساب می‌شد که کوکی نبود — یعنی اگر کسی در
+        // نیم‌ساعتِ گذشته سایت را دیده بود و بعد روی لینکِ کارزارِ ما کلیک می‌کرد،
+        // دقیقاً همان کلیک نامرئی می‌شد. ارزشمندترین لحظهٔ انتساب را از دست می‌دادیم.
+        TrafficSource incoming = channelResolver.resolve(request);
+        boolean newSourceArrived = cookieSessionId != null && (
+                channelResolver.hasCampaignParams(request)
+                        // ارجاع از دامنهٔ خودمان در resolve نال می‌شود، پس اینجا فقط
+                        // ارجاعِ واقعاً بیرونی می‌ماند و ناوبریِ داخلی سشن نمی‌شکند.
+                        || (incoming.referrerHost() != null && incoming.channel() != channelFromCookie));
+
+        if (cookieSessionId == null || newSourceArrived) {
+            // بازدیدِ تازه — کوکی نبود، شناسه‌اش معتبر نبود، یا منبعِ تازه‌ای رسید.
             sessionId = UUID.randomUUID().toString();
-            channel = source.channel();
-            campaign = trimCampaign(source.campaign());
+            channel = incoming.channel();
+            campaign = trimCampaign(incoming.campaign());
             newSession = true;
-            request.setAttribute(TrafficSource.class.getName(), source);
+            request.setAttribute(TrafficSource.class.getName(), incoming);
         } else {
             sessionId = cookieSessionId;
             channel = channelFromCookie;

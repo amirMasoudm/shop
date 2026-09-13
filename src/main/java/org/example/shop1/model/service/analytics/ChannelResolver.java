@@ -27,6 +27,22 @@ public class ChannelResolver {
         this.props = props;
     }
 
+    /**
+     * آیا این درخواست برچسبِ صریحِ کارزار دارد؟
+     * <p>
+     * وجودِ هر کدام از این‌ها یعنی «منبعِ تازه» و باید بازدید را از نو شروع کند، حتی
+     * وقتی سشنِ قبلی زنده است — وگرنه کلیک روی لینکِ کارزار برای کسی که همین حالا در
+     * سایت بوده، بی‌انتساب می‌ماند.
+     */
+    public boolean hasCampaignParams(HttpServletRequest request) {
+        return param(request, "utm_source") != null
+                || param(request, "utm_medium") != null
+                || param(request, "utm_campaign") != null
+                || param(request, "utm_term") != null
+                || param(request, "utm_content") != null
+                || param(request, "gclid") != null;
+    }
+
     public TrafficSource resolve(HttpServletRequest request) {
         String landingPath = request.getRequestURI();
         String referrerHost = hostOf(request.getHeader("Referer"));
