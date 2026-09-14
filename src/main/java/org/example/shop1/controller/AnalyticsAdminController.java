@@ -183,9 +183,14 @@ public class AnalyticsAdminController {
     // نمای ۶ — داده و آرشیو
     // ==========================================================
 
+    /**
+     * @param days آستانهٔ دلخواه فقط برای <b>پیش‌نمایش</b>: پنل پیش از تأیید با همین
+     *             می‌پرسد «چند رویداد آرشیو و حذف می‌شود؟». آستانهٔ جابِ شبانه عوض نمی‌شود.
+     */
     @GetMapping("/retention-status")
-    public ResponseEntity<Map<String, Object>> retentionStatus() {
-        return ResponseEntity.ok(retention.status());
+    public ResponseEntity<Map<String, Object>> retentionStatus(
+            @RequestParam(required = false) Integer days) {
+        return ResponseEntity.ok(retention.status(days));
     }
 
     @GetMapping("/archives")
@@ -193,12 +198,30 @@ public class AnalyticsAdminController {
         return ResponseEntity.ok(archiveRepo.findAllByOrderByCreatedAtDesc());
     }
 
-    /** اجرای دستیِ چرخهٔ آرشیو — برایِ وقتی مالک نمی‌خواهد تا شب صبر کند. */
+    /**
+     * اجرای دستیِ چرخهٔ آرشیو — برایِ وقتی مالک نمی‌خواهد تا شب صبر کند.
+     * <p>
+     * {@code days} آستانه را <b>فقط برای همین یک اجرا</b> عوض می‌کند. دلیلِ وجودش
+     * تجربهٔ میدانی بود: برای دیدنِ یک چرخهٔ کامل باید {@code retention-days} را در
+     * فایل صفر می‌کردیم، کلِ jar را از نو می‌ساختیم و ایمیج را دوباره بیلد می‌کردیم —
+     * و اگر یادمان می‌رفت برش گردانیم، هر شب کلِ دادهٔ خام آرشیو و حذف می‌شد.
+     * <p>
+     * حذف همچنان فقط بعد از آرشیوِ موفق انجام می‌شود، پس دادهٔ حذف‌شده در فایلِ
+     * قابل‌دانلود هست. با این حال چون دستور از آدم می‌آید و دادهٔ خام را برمی‌دارد،
+     * در لاگِ فعالیت ثبت می‌شود.
+     */
     @PostMapping("/archive-now")
-    public ResponseEntity<Map<String, Object>> archiveNow() {
-        long deleted = retention.runRetention();
+    public ResponseEntity<Map<String, Object>> archiveNow(
+            @RequestParam(required = false) Integer days) {
+        long deleted = days == null ? retention.runRetention() : retention.runRetention(days);
         Map<String, Object> out = new LinkedHashMap<>(retention.status());
         out.put("deleted", deleted);
+        if (deleted > 0) {
+            activityLog.record(ActivityLog.Action.ANALYTICS_ERASE, ActivityLog.Source.MANUAL,
+                    ActivityLogService.ENTITY_ANALYTICS, null, "اجرای دستیِ آرشیو",
+                    "archive", "آستانه " + (days == null ? out.get("retentionDays") : days) + " روز",
+                    deleted + " رویداد آرشیو و حذف شد");
+        }
         return ResponseEntity.ok(out);
     }
 

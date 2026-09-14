@@ -46,7 +46,10 @@
             host.querySelector('[data-journey-go]').addEventListener('click', loadJourney);
             host.querySelector('[data-visitor-filter]').addEventListener('change', loadVisitors);
             host.querySelector('[data-export]').addEventListener('click', exportRange);
-            host.querySelector('[data-archive-now]').addEventListener('click', archiveNow);
+            // ⚠️ لامبدا لازم است: addEventListener خودِ Event را به‌عنوانِ آرگومانِ اول می‌دهد
+            // و آن وقت به‌جای «آستانهٔ پیش‌فرض» یک MouseEvent به‌عنوانِ روز فرستاده می‌شد.
+            host.querySelector('[data-archive-now]').addEventListener('click', () => archiveNow(null));
+            host.querySelector('[data-archive-custom]').addEventListener('click', archiveCustom);
             host.querySelector('[data-rollup-today]').addEventListener('click', rollupToday);
             mounted = true;
         }
@@ -492,10 +495,40 @@
             'هیچ آرشیوی خودکار حذف نمی‌شود؛ حذفشان تصمیمِ شماست.'));
     }
 
-    async function archiveNow() {
-        if (!confirm('چرخهٔ آرشیو-سپس-حذف همین حالا اجرا شود؟')) return;
+    /**
+     * آستانهٔ دلخواه: اول می‌پرسیم دقیقاً چند رویداد می‌رود، بعد تأیید می‌گیریم.
+     * بدونِ این پیش‌نمایش، «۰ روز» یعنی همهٔ دادهٔ خام و کاربر تا بعدِ کلیک نمی‌فهمد.
+     */
+    async function archiveCustom() {
+        const raw = host.querySelector('[data-archive-days]').value;
+        const days = Number.parseInt(raw, 10);
+        if (!Number.isInteger(days) || days < 0) {
+            alert('آستانه باید عددِ صحیح و صفر یا بیشتر باشد.');
+            return;
+        }
+        let preview;
         try {
-            const r = await postJson(`${API}/archive-now`);
+            preview = await getJson(`${API}/retention-status?days=${days}`);
+        } catch (e) { return alert('واکشیِ پیش‌نمایش ناموفق بود.'); }
+
+        const rows = Number(preview.pendingRows || 0);
+        if (rows === 0) {
+            alert('با آستانهٔ ' + days.toLocaleString('fa-IR')
+                + ' روز هیچ رویدادی مشمول نمی‌شود؛ کلِ رویدادها '
+                + Number(preview.totalRows || 0).toLocaleString('fa-IR') + ' تاست.');
+            return;
+        }
+        const all = rows >= Number(preview.totalRows || 0);
+        if (!confirm(rows.toLocaleString('fa-IR') + ' رویداد'
+                + (all ? ' (یعنی همهٔ دادهٔ خام)' : '')
+                + ' آرشیو و سپس از دیتابیس حذف می‌شود. فایلش برایِ دانلود می‌ماند. ادامه؟')) return;
+        archiveNow(days);
+    }
+
+    async function archiveNow(days) {
+        if (days === null && !confirm('چرخهٔ آرشیو-سپس-حذف همین حالا اجرا شود؟')) return;
+        try {
+            const r = await postJson(`${API}/archive-now` + (days === null ? '' : `?days=${days}`));
             // سکوت در حالتِ «چیزی برای آرشیو نبود» دقیقاً همان چیزی بود که
             // «خراب است» خوانده شد. حالا هر دو حالت پیامِ روشن دارند.
             if (r.deleted > 0) {
@@ -691,7 +724,19 @@
             <div class="flex flex-wrap gap-2 mb-4">
                 <button data-export class="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-bold">خروجیِ بازهٔ انتخاب‌شده</button>
                 <button data-archive-now class="px-4 py-2 rounded-lg border text-gray-600 text-sm font-bold hover:bg-gray-50">اجرای آرشیو</button>
+                <span class="flex items-center gap-1 border rounded-lg px-2 text-xs text-gray-600">
+                    <span>یا با آستانهٔ</span>
+                    <input data-archive-days type="number" min="0" step="1" value="0"
+                           class="w-14 text-center border rounded py-1" dir="ltr">
+                    <span>روز</span>
+                    <button data-archive-custom class="px-2 py-1 rounded bg-gray-700 text-white font-bold">اجرا</button>
+                </span>
             </div>
+            <p class="text-[11px] text-gray-500 mb-4 leading-6">
+                «اجرای آرشیو» از آستانهٔ واقعیِ سیستم استفاده می‌کند. کادرِ کناری همان چرخه را
+                <b>فقط یک بار</b> با آستانهٔ دلخواه اجرا می‌کند — با صفر یعنی همهٔ دادهٔ خام.
+                آستانهٔ شبانه با این عوض نمی‌شود و چیزی هم حذف نمی‌شود مگر آرشیوش موفق نوشته شده باشد.
+            </p>
             <div data-archives></div>
             <p class="text-[10px] text-gray-400 mt-6">
                 داده‌های شهر از پایگاه‌دادهٔ DB-IP (dbip.com) — مجوز CC BY 4.0.

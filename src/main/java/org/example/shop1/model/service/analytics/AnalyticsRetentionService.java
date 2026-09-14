@@ -66,7 +66,18 @@ public class AnalyticsRetentionService {
     }
 
     public Instant cutoff() {
-        return Instant.now().minus(props.getRetentionDays(), ChronoUnit.DAYS);
+        return cutoff(props.getRetentionDays());
+    }
+
+    /**
+     * آستانه با تعدادِ روزِ دلخواه.
+     * <p>
+     * فقط برای اجرایِ دستیِ ادمین است — مثلاً برای اینکه یک بار چرخهٔ کامل را
+     * ببیند بی‌آنکه لازم باشد {@code retention-days} را در فایل عوض کند و کلِ اپ
+     * را از نو بسازد. آستانهٔ جابِ شبانه با این عوض نمی‌شود.
+     */
+    public Instant cutoff(int days) {
+        return Instant.now().minus(Math.max(0, days), ChronoUnit.DAYS);
     }
 
     /**
@@ -75,8 +86,13 @@ public class AnalyticsRetentionService {
      * @return تعدادِ رویدادِ آرشیو و حذف‌شده؛ صفر یعنی چیزی برای آرشیو نبود.
      */
     public long runRetention() {
+        return runRetention(props.getRetentionDays());
+    }
+
+    /** همان چرخه، با آستانهٔ دلخواه — بقیهٔ ضمانت‌ها (اول آرشیو، بعد حذف) دست‌نخورده. */
+    public long runRetention(int days) {
         lastRunAt = Instant.now();
-        Instant cutoff = cutoff();
+        Instant cutoff = cutoff(days);
         Document filter = new Document("at", new Document("$lt", cutoff));
 
         long count = mongo.getCollection(COLLECTION).countDocuments(filter);
@@ -212,12 +228,24 @@ public class AnalyticsRetentionService {
 
     /** وضعیت برای نمای «داده و آرشیو» در پنل. */
     public Map<String, Object> status() {
-        Instant cutoff = cutoff();
+        return status(null);
+    }
+
+    /**
+     * @param daysOverride اگر داده شود، {@code pendingRows} با همین آستانه شمرده
+     *                     می‌شود تا پنل بتواند پیش از تأیید بگوید دقیقاً چند رویداد
+     *                     آرشیو و حذف خواهد شد. {@code retentionDays} همیشه آستانهٔ
+     *                     واقعیِ جابِ شبانه را برمی‌گرداند، نه این را.
+     */
+    public Map<String, Object> status(Integer daysOverride) {
+        int days = daysOverride == null ? props.getRetentionDays() : Math.max(0, daysOverride);
+        Instant cutoff = cutoff(days);
         long pending = mongo.getCollection(COLLECTION)
                 .countDocuments(new Document("at", new Document("$lt", cutoff)));
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("retentionDays", props.getRetentionDays());
+        out.put("effectiveDays", days);
         out.put("cutoff", cutoff);
         out.put("pendingRows", pending);
 
