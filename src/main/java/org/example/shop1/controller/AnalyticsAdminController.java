@@ -130,15 +130,40 @@ public class AnalyticsAdminController {
         for (Document d : docs) {
             Map<String, Object> row = new LinkedHashMap<>(d);
             String anonId = String.valueOf(d.get("_id"));
-            row.put("visits", mongo.getCollection("user_events").distinct("sessionId",
-                    new Document("anonId", anonId), String.class).into(new ArrayList<>()).size());
-            row.put("productViews", mongo.getCollection("user_events")
-                    .countDocuments(new Document("anonId", anonId).append("type", "PRODUCT_VIEW")));
-            row.put("orders", mongo.getCollection("user_events")
-                    .countDocuments(new Document("anonId", anonId).append("type", "ORDER_PLACED")));
+
+            long liveVisits = mongo.getCollection("user_events").distinct("sessionId",
+                    new Document("anonId", anonId), String.class).into(new ArrayList<>()).size();
+            long liveProductViews = mongo.getCollection("user_events")
+                    .countDocuments(new Document("anonId", anonId).append("type", "PRODUCT_VIEW"));
+            long liveOrders = mongo.getCollection("user_events")
+                    .countDocuments(new Document("anonId", anonId).append("type", "ORDER_PLACED"));
+
+            // 🔴 شمارشِ زنده به‌تنهایی بعد از اولین آرشیو صفر می‌شد و کلِ ستون «انگار
+            // هیچ‌کس هیچ‌وقت نیامده» را نشان می‌داد. سه ستونِ اصلی حالا جمعِ زنده و
+            // آرشیوند، و سهمِ آرشیو جدا هم برمی‌گردد تا پنل بتواند بگوید از کجا آمده.
+            Document archived = (Document) row.remove("archived");
+            row.put("visits", liveVisits + num(archived, "visits"));
+            row.put("productViews", liveProductViews + num(archived, "productViews"));
+            row.put("orders", liveOrders + num(archived, "orders"));
+            row.put("archivedVisits", num(archived, "visits"));
+            row.put("archivedProductViews", num(archived, "productViews"));
+            row.put("archivedOrders", num(archived, "orders"));
+            row.put("archivedFrom", isoDate(archived, "from"));
+            row.put("archivedTo", isoDate(archived, "to"));
             out.add(row);
         }
         return ResponseEntity.ok(out);
+    }
+
+    private static long num(Document d, String key) {
+        if (d == null) return 0;
+        return d.get(key) instanceof Number n ? n.longValue() : 0;
+    }
+
+    /** تاریخ به ISO-8601 برمی‌گردد؛ تبدیل به شمسی کارِ خودِ پنل است. */
+    private static String isoDate(Document d, String key) {
+        if (d == null) return null;
+        return d.get(key) instanceof java.util.Date date ? date.toInstant().toString() : null;
     }
 
     // ==========================================================

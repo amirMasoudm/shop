@@ -55,6 +55,44 @@ public class Visitor {
         public void setLandingPath(String landingPath) { this.landingPath = landingPath; }
     }
 
+    /**
+     * فعالیتی که رویدادهای خامش دیگر در دیتابیس نیست، چون آرشیو شده.
+     * <p>
+     * 🔴 <b>چرا لازم است:</b> ستون‌های «بازدید»، «مشاهدهٔ محصول» و «سفارش» در نمای
+     * بازدیدکنندگان زندهٔ زنده از {@code user_events} شمرده می‌شوند. اولین آرشیو که
+     * اجرا شد، آن رویدادها از دیتابیس رفتند و هر سه ستون برای همه صفر شد — انگار
+     * این آدم هیچ‌وقت نیامده. حالا چرخهٔ آرشیو قبل از حذف، شمارشِ هر شناسه را
+     * همین‌جا جمع می‌زند و نما جمعِ زنده و آرشیو را نشان می‌دهد.
+     * <p>
+     * ⚠️ فقط انباشته می‌شود و هیچ‌وقت از نو حساب نمی‌شود؛ رویدادهای خامش رفته‌اند و
+     * تنها منبعِ بازسازی‌اش فایلِ آرشیو است. پس آرشیوِ دوباره روی همان بازه —
+     * که پیش نمی‌آید چون رویدادها حذف شده‌اند — دوبار می‌شمرد.
+     */
+    public static class Archived {
+        /** تعدادِ سشن‌های متمایز، نه تعدادِ رویداد. */
+        private long visits;
+        private long productViews;
+        private long orders;
+        /** بازهٔ رویدادهای آرشیوشدهٔ همین شناسه — در پنل شمسی نمایش داده می‌شود. */
+        private Instant from;
+        private Instant to;
+
+        public long getVisits() { return visits; }
+        public void setVisits(long visits) { this.visits = visits; }
+
+        public long getProductViews() { return productViews; }
+        public void setProductViews(long productViews) { this.productViews = productViews; }
+
+        public long getOrders() { return orders; }
+        public void setOrders(long orders) { this.orders = orders; }
+
+        public Instant getFrom() { return from; }
+        public void setFrom(Instant from) { this.from = from; }
+
+        public Instant getTo() { return to; }
+        public void setTo(Instant to) { this.to = to; }
+    }
+
     /** خودِ {@code anonId} است. */
     @Id
     private String id;
@@ -76,6 +114,9 @@ public class Visitor {
     private String lastCity;
     private Device lastDevice;
 
+    /** {@code null} تا وقتی هیچ رویدادی از این شناسه آرشیو نشده باشد. */
+    private Archived archived;
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -96,4 +137,7 @@ public class Visitor {
 
     public Device getLastDevice() { return lastDevice; }
     public void setLastDevice(Device lastDevice) { this.lastDevice = lastDevice; }
+
+    public Archived getArchived() { return archived; }
+    public void setArchived(Archived archived) { this.archived = archived; }
 }

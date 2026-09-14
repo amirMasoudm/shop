@@ -292,6 +292,50 @@
             'ارزشمندترین دادهٔ این صفحه: دقیقاً می‌گوید مشتری دنبالِ چه چیزی آمده که ما نداریم.'));
     }
 
+    /**
+     * تاریخِ شمسی. تقویمِ persian صریح نوشته شده و به پیش‌فرضِ fa-IR تکیه نمی‌کند،
+     * چون آن پیش‌فرض به ICU مرورگر بند است و یک‌جا میلادی درآمدن بدترین حالت است.
+     */
+    function faDate(value) {
+        if (!value) return null;
+        try {
+            return new Date(value).toLocaleDateString('fa-IR', {calendar: 'persian'});
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * ستونِ «فعالیت ثبت‌شده در آرشیو».
+     * <p>رویدادهای خامِ این بخش دیگر در دیتابیس نیستند؛ این عددها موقعِ آرشیو روی
+     * خودِ سندِ بازدیدکننده ثبت شده‌اند و تنها ردِ باقی‌مانده از آن دوره‌اند.
+     */
+    function archivedCell(v) {
+        const wrap = document.createElement('div');
+        const visits = Number(v.archivedVisits || 0);
+        const views = Number(v.archivedProductViews || 0);
+        const orders = Number(v.archivedOrders || 0);
+        if (!visits && !views && !orders) {
+            wrap.textContent = '—';
+            return wrap;
+        }
+        const n = document.createElement('div');
+        n.className = 'font-bold text-gray-700';
+        n.textContent = visits.toLocaleString('fa-IR') + ' بازدید · '
+            + views.toLocaleString('fa-IR') + ' محصول'
+            + (orders ? ' · ' + orders.toLocaleString('fa-IR') + ' سفارش' : '');
+        wrap.appendChild(n);
+
+        const from = faDate(v.archivedFrom), to = faDate(v.archivedTo);
+        if (from && to) {
+            const range = document.createElement('div');
+            range.className = 'text-[10px] text-gray-400';
+            range.textContent = from === to ? from : from + ' تا ' + to;
+            wrap.appendChild(range);
+        }
+        return wrap;
+    }
+
     // ---- نمای ۳: بازدیدکنندگان ----
     async function loadVisitors() {
         const box = host.querySelector('[data-visitors]');
@@ -304,16 +348,22 @@
 
         box.innerHTML = '';
         const table = tableEl(
-            ['شناسه', 'کاربر', 'آخرین حضور', 'اولین منبع', 'بازدید', 'مشاهدهٔ محصول', 'سفارش', ''],
+            ['شناسه', 'کاربر', 'آخرین حضور', 'اولین منبع', 'بازدید', 'مشاهدهٔ محصول', 'سفارش',
+                'فعالیت ثبت‌شده در آرشیو', ''],
             rows.map(v => [
                 String(v._id || '').slice(0, 8),
                 v.userId ? 'شناخته‌شده' : 'ناشناس',
-                v.lastSeenAt ? new Date(v.lastSeenAt).toLocaleDateString('fa-IR') : '—',
+                faDate(v.lastSeenAt) || '—',
                 (v.firstTouch && CHANNEL_LABELS[v.firstTouch.channel]) || '—',
                 v.visits, v.productViews, v.orders,
+                {node: archivedCell(v)},
                 {button: 'سفر', anonId: v._id, userId: v.userId}
             ]));
-        box.appendChild(table);
+        box.appendChild(section('بازدیدکنندگان', table,
+            'سه ستونِ «بازدید»، «مشاهدهٔ محصول» و «سفارش» جمعِ کلِ عمرِ آن شناسه‌اند — '
+            + 'هم دادهٔ زنده و هم آن‌چه آرشیو شده. ستونِ آخر می‌گوید چه مقدارش از آرشیو می‌آید؛ '
+            + 'رویدادِ خامِ آن بخش دیگر در دیتابیس نیست و فقط در فایلِ آرشیو هست، '
+            + 'پس در «سفرِ کاربر» دیده نمی‌شود.'));
     }
 
     // ---- نمای ۴: سفرِ کاربر (تنها نمایی که دادهٔ خام می‌خواند) ----
@@ -486,10 +536,10 @@
         box.appendChild(section('آرشیوهای گرفته‌شده', tableEl(
             ['بازه', 'ردیف', 'حجم', 'تاریخ', ''],
             (list || []).map(a => [
-                new Date(a.from).toLocaleDateString('fa-IR') + ' تا ' + new Date(a.to).toLocaleDateString('fa-IR'),
+                faDate(a.from) + ' تا ' + faDate(a.to),
                 Number(a.rowCount).toLocaleString('fa-IR'),
                 Math.round(a.sizeBytes / 1024) + ' KB',
-                new Date(a.createdAt).toLocaleDateString('fa-IR'),
+                faDate(a.createdAt),
                 {link: API + '/archives/' + a.id + '/download', text: 'دانلود'}
             ])),
             'هیچ آرشیوی خودکار حذف نمی‌شود؛ حذفشان تصمیمِ شماست.'));
@@ -589,7 +639,9 @@
             r.forEach(v => {
                 const td = document.createElement('td');
                 td.className = 'p-3';
-                if (v && typeof v === 'object' && v.link) {
+                if (v && typeof v === 'object' && v.node) {
+                    td.appendChild(v.node);
+                } else if (v && typeof v === 'object' && v.link) {
                     const a = document.createElement('a');
                     a.href = v.link;
                     a.className = 'text-indigo-600 font-bold';

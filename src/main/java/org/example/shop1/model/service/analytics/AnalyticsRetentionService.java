@@ -1,6 +1,9 @@
 package org.example.shop1.model.service.analytics;
 
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.WriteModel;
 import org.bson.Document;
 import org.bson.json.JsonWriterSettings;
 import org.example.shop1.config.AnalyticsProperties;
@@ -22,7 +25,9 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
@@ -122,8 +127,15 @@ public class AnalyticsRetentionService {
             archive.setSizeBytes(Files.size(target));
             archiveRepo.save(archive);
 
+            // شمارشِ هر شناسه قبل از حذف خوانده می‌شود — بعدِ حذف دیگر رویدادی نیست
+            // که شمرده شود. ولی نوشتنش عمداً بعد از حذفِ موفق انجام می‌شود: اگر
+            // برعکس بود و حذف می‌شکست، شمارنده‌ها بالا رفته بودند و اجرای بعدی همان
+            // رویدادها را دوباره می‌شمرد — خطایی که بعداً هیچ‌کس تشخیصش نمی‌دهد.
+            List<Document> perVisitor = countPerVisitor(filter);
+
             // ✅ و فقط حالا
             long deleted = mongo.getCollection(COLLECTION).deleteMany(filter).getDeletedCount();
+            carryOverToVisitors(perVisitor);
             lastError = null;
             log.info("آرشیو کامل شد: {} ردیف در {} ({} بایت)، سپس {} رویداد حذف شد.",
                     written.rows(), fileName, archive.getSizeBytes(), deleted);
@@ -138,6 +150,72 @@ public class AnalyticsRetentionService {
                     count, cutoff, e);
             return 0;
         }
+    }
+
+    /**
+     * شمارشِ فعالیتِ هر {@code anonId} در بازه‌ای که دارد آرشیو می‌شود.
+     * <p>
+     * دو مرحله‌ای است تا «بازدید» یعنی <b>سشنِ متمایز</b> و نه تعدادِ رویداد، بی‌آنکه
+     * آرایهٔ سشن‌ها از مونگو بیرون بیاید: مرحلهٔ اول روی جفتِ (شناسه، سشن) جمع می‌زند و
+     * مرحلهٔ دوم فقط آن‌ها را می‌شمارد. سندهای برگشتی کوچک و بی‌آرایه‌اند.
+     */
+    private List<Document> countPerVisitor(Document filter) {
+        Document countIf = new Document("$cond", List.of(
+                new Document("$eq", List.of("$type", "PRODUCT_VIEW")), 1, 0));
+        Document countOrder = new Document("$cond", List.of(
+                new Document("$eq", List.of("$type", "ORDER_PLACED")), 1, 0));
+
+        List<Document> pipeline = List.of(
+                new Document("$match", filter),
+                new Document("$group", new Document("_id",
+                        new Document("anonId", "$anonId").append("sessionId", "$sessionId"))
+                        .append("productViews", new Document("$sum", countIf))
+                        .append("orders", new Document("$sum", countOrder))
+                        .append("from", new Document("$min", "$at"))
+                        .append("to", new Document("$max", "$at"))),
+                new Document("$group", new Document("_id", "$_id.anonId")
+                        .append("visits", new Document("$sum", 1))
+                        .append("productViews", new Document("$sum", "$productViews"))
+                        .append("orders", new Document("$sum", "$orders"))
+                        .append("from", new Document("$min", "$from"))
+                        .append("to", new Document("$max", "$to"))));
+
+        return mongo.getCollection(COLLECTION).aggregate(pipeline)
+                .allowDiskUse(true).into(new ArrayList<>());
+    }
+
+    /**
+     * انتقالِ شمارش به سندِ بازدیدکننده.
+     * <p>
+     * ⚠️ {@code upsert} عمداً خاموش است: اگر سندِ بازدیدکننده نیست — مثلاً چون به
+     * درخواستِ خودش پاک شده — نباید با یک مشتِ شمارنده دوباره زنده شود.
+     * <p>
+     * ⚠️ سشنی که درست روی مرزِ آستانه دو تکه شده، یک بار اینجا و یک بار در شمارشِ
+     * زنده می‌آید. حداکثر یک سشن برای هر شناسه در هر اجرا، و ارزشش را ندارد که
+     * برایش یک کوئریِ دیگر بزنیم.
+     */
+    private void carryOverToVisitors(List<Document> perVisitor) {
+        List<WriteModel<Document>> ops = new ArrayList<>();
+        for (Document g : perVisitor) {
+            Object anonId = g.get("_id");
+            if (anonId == null) continue;
+            Document update = new Document("$inc", new Document("archived.visits", g.get("visits"))
+                    .append("archived.productViews", g.get("productViews"))
+                    .append("archived.orders", g.get("orders")))
+                    .append("$min", new Document("archived.from", g.get("from")))
+                    .append("$max", new Document("archived.to", g.get("to")));
+            ops.add(new UpdateOneModel<>(new Document("_id", anonId), update));
+            if (ops.size() >= CURSOR_BATCH) {
+                flush(ops);
+            }
+        }
+        flush(ops);
+    }
+
+    private void flush(List<WriteModel<Document>> ops) {
+        if (ops.isEmpty()) return;
+        mongo.getCollection("visitors").bulkWrite(ops, new BulkWriteOptions().ordered(false));
+        ops.clear();
     }
 
     private record ArchiveResult(long rows, String sha256) {}
