@@ -319,19 +319,22 @@
             wrap.textContent = '—';
             return wrap;
         }
-        const n = document.createElement('div');
-        n.className = 'font-bold text-gray-700';
-        n.textContent = visits.toLocaleString('fa-IR') + ' بازدید · '
-            + views.toLocaleString('fa-IR') + ' محصول'
-            + (orders ? ' · ' + orders.toLocaleString('fa-IR') + ' سفارش' : '');
-        wrap.appendChild(n);
+        // ⚠️ جداکننده‌ها اینجا عمداً «،» بعد از واژه‌اند و نه «·» بینِ عددها: در ستونِ
+        // باریکِ راست‌چین، نقطهٔ وسط می‌چسبد به عددِ کناری و «۵ · محصول» عملاً «۵۰
+        // محصول» خوانده می‌شد. هر خط هم nowrap است تا عبارت از وسط نشکند.
+        const line = (text, cls) => {
+            const el = document.createElement('div');
+            el.className = cls + ' whitespace-nowrap';
+            el.textContent = text;
+            wrap.appendChild(el);
+        };
+        line(visits.toLocaleString('fa-IR') + ' بازدید', 'font-bold text-gray-700');
+        line(views.toLocaleString('fa-IR') + ' محصول'
+            + (orders ? '، ' + orders.toLocaleString('fa-IR') + ' سفارش' : ''), 'text-gray-600');
 
         const from = faDate(v.archivedFrom), to = faDate(v.archivedTo);
         if (from && to) {
-            const range = document.createElement('div');
-            range.className = 'text-[10px] text-gray-400';
-            range.textContent = from === to ? from : from + ' تا ' + to;
-            wrap.appendChild(range);
+            line(from === to ? from : from + ' تا ' + to, 'text-[10px] text-gray-400');
         }
         return wrap;
     }
