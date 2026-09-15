@@ -87,6 +87,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+
+        <!--
+            تولیدِ کدِ QR برایِ لینکِ کوتاهِ کارزار — محلی و آفلاین.
+            هیچ سرویسِ QRی از بیرون صدا زده نمی‌شود: قاعدهٔ ثابتِ پروژه است که هیچ
+            ماژولی نباید به سرویسِ بیرونی گره بخورد، و لینکِ کارزار هم دادهٔ
+            بازاریابیِ خودمان است که نباید سر از سرورِ کسِ دیگری دربیاورد.
+            کتابخانهٔ خالصِ جاوا و بدونِ وابستگیِ زنجیره‌ای است.
+        -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
     </dependencies>
 
     <build>
