@@ -2052,6 +2052,17 @@
     // ==========================================
     // توابع عمومی و UI (تب ها، لودر، مودال)
     // ==========================================
+    /**
+     * از پروندهٔ مشتری مستقیم به سفرش.
+     * ⚠️ تبِ رفتار mountِ تنبل دارد، پس اول باید سوییچ شود و بعد سفر باز شود.
+     */
+    function openUserJourney(userId) {
+        document.querySelectorAll('main > div[id^="tab-"]').forEach(el => el.classList.add('hidden-section'));
+        document.getElementById('tab-userBehavior').classList.remove('hidden-section');
+        document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+        UserBehaviorTab.openJourney(document.getElementById('tab-userBehavior'), userId);
+    }
+
     function switchTab(id) {
         document.querySelectorAll('main > div[id^="tab-"]').forEach(el => el.classList.add('hidden-section'));
         const targetTab = document.getElementById(`tab-${id}`);
@@ -4298,6 +4309,7 @@
                     <span class="text-[10px] text-gray-500 ml-2">${ROLE_LABELS[u.role] || u.role}</span>
                     <button onclick="viewCustomerDetails('${u.id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition border border-indigo-200">👁️ پرونده کامل</button>
                     <button onclick="changeStaffRole('${u.id}')" class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-100 transition border border-amber-200 mr-1">نقش</button>
+                    <button onclick="openUserJourney('${u.id}')" class="bg-sky-50 text-sky-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-sky-100 transition border border-sky-200 mr-1">سفر</button>
                 </td>
             </tr>`;
         }).join('') || `<tr><td colspan="5" class="text-center py-10 text-gray-400">مشتری یافت نشد.</td></tr>`;

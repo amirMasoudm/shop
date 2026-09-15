@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,6 +27,8 @@ import java.util.UUID;
 @Component
 public class VisitorSessionWriter {
 
+    private static final String SET_COOKIE = "Set-Cookie";
+
     public static final String ANON_COOKIE = "dn_aid";
     public static final String SESSION_COOKIE = "dn_sid";
 
@@ -35,12 +39,36 @@ public class VisitorSessionWriter {
     }
 
     public void writeAnonCookie(HttpServletRequest request, HttpServletResponse response, String anonId) {
-        write(request, response, ANON_COOKIE, anonId, props.getAnonCookieDays() * 24 * 3600);
+        response.addHeader(SET_COOKIE,
+                cookieHeader(request, ANON_COOKIE, anonId, props.getAnonCookieDays() * 24 * 3600));
     }
 
     public void writeSessionCookie(HttpServletRequest request, HttpServletResponse response,
                                    String sessionId, Channel channel, String campaign) {
-        write(request, response, SESSION_COOKIE,
+        response.addHeader(SET_COOKIE, sessionCookieHeader(request, sessionId, channel, campaign));
+    }
+
+    /**
+     * همان کوکی، ولی <b>جایگزینِ</b> نسخهٔ قبلی در همین پاسخ.
+     * <p>
+     * لینکِ کوتاه بعد از فیلترِ هویت اجرا می‌شود، پس بی‌این‌کار پاسخ دو تا
+     * {@code Set-Cookie: dn_sid} داشت — یکی خنثی از فیلتر و یکی برچسب‌دار از
+     * کنترلر. مرورگر آخری را می‌گیرد و نتیجه درست بود، ولی پاسخی که دو کوکیِ
+     * هم‌نامِ متناقض دارد، اولین چیزی است که موقعِ دیباگِ یک انتسابِ غلط آدم را
+     * گمراه می‌کند — و رفتارِ پروکسی‌های میانی هم تضمین‌شده نیست.
+     */
+    private void replaceSessionCookie(HttpServletRequest request, HttpServletResponse response,
+                                      String sessionId, Channel channel, String campaign) {
+        List<String> others = new ArrayList<>(response.getHeaders(SET_COOKIE));
+        others.removeIf(h -> h.startsWith(SESSION_COOKIE + "="));
+        // setHeader همهٔ مقدارهای این نام را پاک می‌کند؛ بقیه دوباره اضافه می‌شوند.
+        response.setHeader(SET_COOKIE, sessionCookieHeader(request, sessionId, channel, campaign));
+        others.forEach(h -> response.addHeader(SET_COOKIE, h));
+    }
+
+    private String sessionCookieHeader(HttpServletRequest request, String sessionId,
+                                       Channel channel, String campaign) {
+        return cookieHeader(request, SESSION_COOKIE,
                 encode(sessionId) + "." + channel.name() + "." + encode(campaign),
                 props.getSessionMinutes() * 60);
     }
@@ -59,7 +87,7 @@ public class VisitorSessionWriter {
         if (current == null) writeAnonCookie(request, response, anonId);
 
         String sessionId = UUID.randomUUID().toString();
-        writeSessionCookie(request, response, sessionId, channel, campaign);
+        replaceSessionCookie(request, response, sessionId, channel, campaign);
 
         AnalyticsContext next = new AnalyticsContext(anonId, sessionId, true,
                 current != null ? current.device() : Device.DESKTOP,
@@ -74,14 +102,13 @@ public class VisitorSessionWriter {
      * صفتِ SameSite ندارد. {@code Secure} فقط وقتی درخواست HTTPS است، وگرنه روی
      * HTTPِ فعلی کوکی اصلاً ست نمی‌شود.
      */
-    private void write(HttpServletRequest request, HttpServletResponse response,
-                       String name, String value, int maxAgeSeconds) {
+    private String cookieHeader(HttpServletRequest request, String name, String value, int maxAgeSeconds) {
         StringBuilder sb = new StringBuilder()
                 .append(name).append('=').append(value)
                 .append("; Max-Age=").append(maxAgeSeconds)
                 .append("; Path=/; HttpOnly; SameSite=Lax");
         if (request.isSecure()) sb.append("; Secure");
-        response.addHeader("Set-Cookie", sb.toString());
+        return sb.toString();
     }
 
     private static String encode(String value) {

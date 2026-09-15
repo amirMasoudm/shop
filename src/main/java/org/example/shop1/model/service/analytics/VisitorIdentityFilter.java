@@ -5,7 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.shop1.config.AnalyticsProperties;
 import org.example.shop1.model.enums.Channel;
 import org.example.shop1.model.enums.Device;
 import org.springframework.core.Ordered;
@@ -15,7 +14,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.UUID;
@@ -48,17 +46,18 @@ import java.util.UUID;
 @Order(Ordered.HIGHEST_PRECEDENCE + 10)
 public class VisitorIdentityFilter extends OncePerRequestFilter {
 
-    private static final String ANON_COOKIE = "dn_aid";
-    private static final String SESSION_COOKIE = "dn_sid";
+    private static final String ANON_COOKIE = VisitorSessionWriter.ANON_COOKIE;
+    private static final String SESSION_COOKIE = VisitorSessionWriter.SESSION_COOKIE;
 
-    private final AnalyticsProperties props;
     private final ChannelResolver channelResolver;
     private final GeoCityService geo;
+    private final VisitorSessionWriter cookies;
 
-    public VisitorIdentityFilter(AnalyticsProperties props, ChannelResolver channelResolver, GeoCityService geo) {
-        this.props = props;
+    public VisitorIdentityFilter(ChannelResolver channelResolver, GeoCityService geo,
+                                 VisitorSessionWriter cookies) {
         this.channelResolver = channelResolver;
         this.geo = geo;
+        this.cookies = cookies;
     }
 
     @Override
@@ -83,7 +82,7 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
         String anonId = cookie(request, ANON_COOKIE);
         if (anonId == null || !isUuid(anonId)) {
             anonId = UUID.randomUUID().toString();
-            writeCookie(request, response, ANON_COOKIE, anonId, props.getAnonCookieDays() * 24 * 3600);
+            cookies.writeAnonCookie(request, response, anonId);
         }
 
         String sessionCookie = cookie(request, SESSION_COOKIE);
@@ -117,17 +116,29 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
         // نیم‌ساعتِ گذشته سایت را دیده بود و بعد روی لینکِ کارزارِ ما کلیک می‌کرد،
         // دقیقاً همان کلیک نامرئی می‌شد. ارزشمندترین لحظهٔ انتساب را از دست می‌دادیم.
         TrafficSource incoming = channelResolver.resolve(request);
-        boolean newSourceArrived = cookieSessionId != null && (
+
+        // 🔴 «تازه» یعنی واقعاً فرق دارد، نه صرفاً «UTM دارد». بدونِ این مقایسه، هر
+        // ریلودِ صفحهٔ فرودِ کارزار — و خودِ ریدایرکتِ /l/{code} که مقصد را برچسب‌دار
+        // صدا می‌زند — یک بازدیدِ تازهٔ تکراری می‌ساخت و کلیک‌ها چندبرابر شمرده می‌شد.
+        String incomingCampaign = trimCampaign(incoming.campaign());
+        boolean differentSource = incoming.channel() != channelFromCookie
+                || !java.util.Objects.equals(incomingCampaign, campaignFromCookie);
+
+        // 🔴 گاردِ لینکِ داخلی: لینکی از سایتِ خودمان به سایتِ خودمان — حتی اگر UTM
+        // داشته باشد — بازدیدِ جاری را نمی‌شکند و منبعِ اصلی حفظ می‌ماند.
+        boolean internalNav = channelResolver.isInternalReferrer(request);
+
+        boolean newSourceArrived = cookieSessionId != null && !internalNav && differentSource && (
                 channelResolver.hasCampaignParams(request)
                         // ارجاع از دامنهٔ خودمان در resolve نال می‌شود، پس اینجا فقط
                         // ارجاعِ واقعاً بیرونی می‌ماند و ناوبریِ داخلی سشن نمی‌شکند.
-                        || (incoming.referrerHost() != null && incoming.channel() != channelFromCookie));
+                        || incoming.referrerHost() != null);
 
         if (cookieSessionId == null || newSourceArrived) {
             // بازدیدِ تازه — کوکی نبود، شناسه‌اش معتبر نبود، یا منبعِ تازه‌ای رسید.
             sessionId = UUID.randomUUID().toString();
             channel = incoming.channel();
-            campaign = trimCampaign(incoming.campaign());
+            campaign = incomingCampaign;
             newSession = true;
             request.setAttribute(TrafficSource.class.getName(), incoming);
         } else {
@@ -137,9 +148,7 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
         }
 
         // تمدید در هر درخواست — پنجرهٔ بی‌حرکتی از «آخرین فعالیت» شمرده می‌شود، نه از شروعِ بازدید.
-        writeCookie(request, response, SESSION_COOKIE,
-                encode(sessionId) + "." + channel.name() + "." + encode(campaign),
-                props.getSessionMinutes() * 60);
+        cookies.writeSessionCookie(request, response, sessionId, channel, campaign);
 
         String truncatedIp = geo.truncatedIp(request);   // ← IPِ کامل هرگز از اینجا بیرون نمی‌رود
         AnalyticsContext ctx = new AnalyticsContext(anonId, sessionId, newSession,
@@ -163,21 +172,6 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
             return Device.MOBILE;
         }
         return Device.DESKTOP;
-    }
-
-    /**
-     * کوکی با {@code SameSite} — با هدرِ خام نوشته می‌شود چون {@link Cookie} در سرولت
-     * صفتِ SameSite ندارد. {@code Secure} فقط وقتی درخواست HTTPS است، وگرنه روی
-     * HTTPِ فعلی کوکی اصلاً ست نمی‌شود.
-     */
-    private void writeCookie(HttpServletRequest request, HttpServletResponse response,
-                             String name, String value, int maxAgeSeconds) {
-        StringBuilder sb = new StringBuilder()
-                .append(name).append('=').append(value)
-                .append("; Max-Age=").append(maxAgeSeconds)
-                .append("; Path=/; HttpOnly; SameSite=Lax");
-        if (request.isSecure()) sb.append("; Secure");
-        response.addHeader("Set-Cookie", sb.toString());
     }
 
     private String cookie(HttpServletRequest request, String name) {
@@ -214,10 +208,6 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private String encode(String value) {
-        return value == null ? "" : URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private String decode(String value) {

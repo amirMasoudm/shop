@@ -80,6 +80,7 @@ public class DailyStatsService {
         stats.setByCity(countBy("$city", from, to, null));
 
         stats.setByChannel(channelBreakdown(from, to));
+        stats.setByCampaign(campaignBreakdown(from, to));
         stats.setTopProducts(topProducts(from, to));
         fillSearches(stats, from, to);
 
@@ -150,6 +151,70 @@ public class DailyStatsService {
             cs.setAddToCart(intOf(d, "addToCart"));
             cs.setOrders(intOf(d, "orders"));
             out.put(String.valueOf(key), cs);
+        }
+        return out;
+    }
+
+    /**
+     * تفکیکِ کارزار — همان ساختارِ کانال، با یک ستونِ بیشتر.
+     * <p>
+     * ⚠️ همان قاعدهٔ «بی‌اتصال»: فازِ ۱ فیلدِ {@code campaign} را روی <b>هر</b> رویداد
+     * نشانده، پس این هم یک {@code group by} ساده است و هیچ‌وقت نباید به دفترِ
+     * {@code campaigns} یا به {@code SESSION_START} وصل شود.
+     * <p>
+     * 🔴 <b>«کلیک» و «بازدید» دو چیزند و عمداً جدا شمرده می‌شوند.</b> کلیک یعنی کسی
+     * روی لینکِ کوتاه زد؛ بازدید یعنی صفحهٔ مقصد واقعاً برایش باز شد و دستِ‌کم یک
+     * {@code PAGE_VIEW} ثبت کرد. اختلافشان همان چیزی است که هیچ ابزارِ دیگری نشان
+     * نمی‌دهد: چند نفر پیش از بازشدنِ صفحه رفته‌اند. اگر بازدید را «هر سشنی که این
+     * کارزار را دارد» تعریف می‌کردیم، چون خودِ کلیک بازدید را شروع می‌کند، این دو
+     * همیشه برابر می‌شدند و ستون بی‌فایده.
+     * <p>
+     * بازدید می‌تواند از کلیک بیشتر هم باشد: لینکِ بلندِ برچسب‌خورده را می‌شود بدونِ
+     * لینکِ کوتاه هم منتشر کرد، و آن ترافیک کارزار دارد ولی {@code LINK_CLICK} ندارد.
+     */
+    private Map<String, DailyStats.CampaignStats> campaignBreakdown(Instant from, Instant to) {
+        Document hasCampaign = range(from, to);
+        // ⚠️ Arrays.asList و نه List.of — دومی nullِ داخلِ فهرست را نمی‌پذیرد و همین‌جا
+        // NullPointerException می‌دهد. رویدادِ بی‌کارزار دقیقاً campaign=null دارد،
+        // پس همان null چیزی است که باید کنار گذاشته شود.
+        hasCampaign.append("campaign", new Document("$nin", java.util.Arrays.asList(null, "")));
+
+        List<Document> pipeline = List.of(
+                new Document("$match", hasCampaign),
+                new Document("$group", new Document("_id",
+                        new Document("campaign", "$campaign").append("session", "$sessionId"))
+                        .append("pageViews", sumIfType(EventType.PAGE_VIEW))
+                        .append("productViews", sumIfType(EventType.PRODUCT_VIEW))
+                        .append("addToCart", sumIfType(EventType.ADD_TO_CART))
+                        .append("orders", sumIfType(EventType.ORDER_PLACED))),
+                // پله‌ها یکنوا می‌شوند، دقیقاً به همان دلیلِ قیفِ اصلی: اگر تعدادِ
+                // رویداد شمرده شود، پلهٔ «مشاهدهٔ محصول» از «بازدید» بزرگ‌تر درمی‌آید
+                // و ریزشِ منفی می‌دهد.
+                new Document("$group", new Document("_id", "$_id.campaign")
+                        .append("visits", countIfAny("$pageViews", "$productViews", "$addToCart", "$orders"))
+                        .append("productViews", countIfAny("$productViews", "$addToCart", "$orders"))
+                        .append("addToCart", countIfAny("$addToCart", "$orders"))
+                        .append("orders", countIfAny("$orders"))),
+                new Document("$sort", new Document("visits", -1)));
+
+        Map<String, DailyStats.CampaignStats> out = new LinkedHashMap<>();
+        for (Document d : aggregate(pipeline)) {
+            Object key = d.get("_id");
+            if (key == null) continue;
+            DailyStats.CampaignStats cs = new DailyStats.CampaignStats();
+            cs.setVisits(intOf(d, "visits"));
+            cs.setProductViews(intOf(d, "productViews"));
+            cs.setAddToCart(intOf(d, "addToCart"));
+            cs.setOrders(intOf(d, "orders"));
+            out.put(String.valueOf(key), cs);
+        }
+
+        Document clickOnly = new Document("type", EventType.LINK_CLICK.name())
+                .append("campaign", new Document("$nin", java.util.Arrays.asList(null, "")));
+        for (Map.Entry<String, Integer> e : countBy("$campaign", from, to, clickOnly).entrySet()) {
+            DailyStats.CampaignStats cs = out.computeIfAbsent(e.getKey(),
+                    k -> new DailyStats.CampaignStats());
+            cs.setClicks(e.getValue());
         }
         return out;
     }

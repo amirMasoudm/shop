@@ -5,8 +5,10 @@ import org.bson.Document;
 import org.example.shop1.exeption.ApiException;
 import org.example.shop1.model.entity.ActivityLog;
 import org.example.shop1.model.entity.AnalyticsArchive;
+import org.example.shop1.model.entity.Campaign;
 import org.example.shop1.model.entity.DailyStats;
 import org.example.shop1.model.reposritory.AnalyticsArchiveRepository;
+import org.example.shop1.model.reposritory.CampaignRepository;
 import org.example.shop1.model.reposritory.DailyStatsRepository;
 import org.example.shop1.model.reposritory.VisitorRepository;
 import org.example.shop1.model.service.ActivityLogService;
@@ -52,6 +54,7 @@ public class AnalyticsAdminController {
     private final DailyStatsRepository dailyStatsRepo;
     private final DailyStatsService dailyStatsService;
     private final AnalyticsArchiveRepository archiveRepo;
+    private final CampaignRepository campaignRepo;
     private final AnalyticsRetentionService retention;
     private final VisitorRepository visitorRepo;
     private final ActivityLogService activityLog;
@@ -59,6 +62,7 @@ public class AnalyticsAdminController {
     public AnalyticsAdminController(MongoTemplate mongo, DailyStatsRepository dailyStatsRepo,
                                     DailyStatsService dailyStatsService,
                                     AnalyticsArchiveRepository archiveRepo,
+                                    CampaignRepository campaignRepo,
                                     AnalyticsRetentionService retention,
                                     VisitorRepository visitorRepo,
                                     ActivityLogService activityLog) {
@@ -66,6 +70,7 @@ public class AnalyticsAdminController {
         this.dailyStatsRepo = dailyStatsRepo;
         this.dailyStatsService = dailyStatsService;
         this.archiveRepo = archiveRepo;
+        this.campaignRepo = campaignRepo;
         this.retention = retention;
         this.visitorRepo = visitorRepo;
         this.activityLog = activityLog;
@@ -88,6 +93,65 @@ public class AnalyticsAdminController {
     @PostMapping("/rollup")
     public ResponseEntity<DailyStats> rollup(@RequestParam String date) {
         return ResponseEntity.ok(dailyStatsService.rollup(LocalDate.parse(date)));
+    }
+
+    /**
+     * گزارشِ کارزار — کلیک ← بازدید ← محصول ← سبد ← سفارش، به‌ازای هر کارزار.
+     * <p>
+     * 🔴 مثلِ بقیهٔ نماهای تجمیعی، <b>فقط</b> از {@code daily_stats} می‌خواند و هرگز از
+     * {@code user_events}. تنها اتصالش به دفترِ {@code campaigns} است که چند ده سند
+     * بیشتر نیست و فقط نامِ نمایشی و هزینه را می‌آورد.
+     * <p>
+     * ستونِ «هزینه به‌ازای هر سفارش» همان چیزی است که این گزارش را از «جالب» به
+     * «قابلِ تصمیم‌گیری» می‌برد — و دقیقاً به همین دلیل وقتی هزینه وارد نشده، به‌جای
+     * صفرِ گمراه‌کننده {@code null} برمی‌گردد.
+     */
+    @GetMapping("/campaigns")
+    public ResponseEntity<List<Map<String, Object>>> campaignReport(
+            @RequestParam String from, @RequestParam String to) {
+
+        Map<String, long[]> totals = new LinkedHashMap<>();
+        for (DailyStats day : dailyStatsRepo.findRange(from, to, Sort.by(Sort.Direction.ASC, "_id"))) {
+            if (day.getByCampaign() == null) continue;
+            for (Map.Entry<String, DailyStats.CampaignStats> e : day.getByCampaign().entrySet()) {
+                DailyStats.CampaignStats c = e.getValue();
+                long[] acc = totals.computeIfAbsent(e.getKey(), k -> new long[5]);
+                acc[0] += c.getClicks();
+                acc[1] += c.getVisits();
+                acc[2] += c.getProductViews();
+                acc[3] += c.getAddToCart();
+                acc[4] += c.getOrders();
+            }
+        }
+
+        Map<String, Campaign> registry = new LinkedHashMap<>();
+        for (Campaign c : campaignRepo.findAll()) registry.put(c.getSlug(), c);
+
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Map.Entry<String, long[]> e : totals.entrySet()) {
+            long[] a = e.getValue();
+            Campaign c = registry.get(e.getKey());
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("slug", e.getKey());
+            // کارزاری که در دفتر نیست هم نمایش داده می‌شود: یعنی کسی لینک را دستی
+            // برچسب زده. پنهان‌کردنش، ترافیکی را نامرئی می‌کرد که واقعاً وجود دارد.
+            row.put("name", c != null ? c.getName() : e.getKey());
+            row.put("registered", c != null);
+            row.put("source", c != null ? c.getSource() : null);
+            row.put("medium", c != null ? c.getMedium() : null);
+            row.put("active", c != null && c.isActive());
+            row.put("clicks", a[0]);
+            row.put("visits", a[1]);
+            row.put("productViews", a[2]);
+            row.put("addToCart", a[3]);
+            row.put("orders", a[4]);
+            Long cost = c != null ? c.getCost() : null;
+            row.put("cost", cost);
+            row.put("costPerOrder", cost != null && a[4] > 0 ? cost / a[4] : null);
+            out.add(row);
+        }
+        out.sort((x, y) -> Long.compare((Long) y.get("visits"), (Long) x.get("visits")));
+        return ResponseEntity.ok(out);
     }
 
     // ==========================================================

@@ -43,6 +43,19 @@ public class ChannelResolver {
                 || param(request, "gclid") != null;
     }
 
+    /**
+     * آیا این درخواست از لینکی در دامنهٔ خودمان آمده؟
+     * <p>
+     * 🔴 <b>گاردِ «UTM روی لینکِ داخلی»:</b> اگر لینکی از صفحه‌ای در سایتِ خودمان به
+     * صفحهٔ دیگری در سایتِ خودمان UTM داشته باشد، نباید منبعِ واقعیِ بازدید را با
+     * «خودمان» جایگزین کند. این کلاسیک‌ترین راهِ نابودکردنِ انتساب است: یک بنرِ داخلیِ
+     * برچسب‌خورده کافی است تا همهٔ فروش‌ها به‌جای گوگل و ترب به خودمان نسبت داده شود.
+     */
+    public boolean isInternalReferrer(HttpServletRequest request) {
+        String host = hostOf(request.getHeader("Referer"));
+        return host != null && isOwnHost(host, request);
+    }
+
     public TrafficSource resolve(HttpServletRequest request) {
         String landingPath = request.getRequestURI();
         String referrerHost = hostOf(request.getHeader("Referer"));
@@ -62,6 +75,17 @@ public class ChannelResolver {
 
         Channel channel = classify(referrerHost, source, medium, hasGclid);
         return new TrafficSource(channel, source, medium, campaign, term, content, referrerHost, landingPath);
+    }
+
+    /**
+     * کانالِ یک کارزارِ ثبت‌شده — فقط از برچسبِ خودش.
+     * <p>
+     * لینکِ کوتاه را خودمان ساخته‌ایم و برچسبش را خودمان گذاشته‌ایم، پس قابلِ
+     * اتکاترین منبعی است که داریم؛ هدرِ {@code Referer} ممکن است اصلاً نرسد و در
+     * پیام‌رسان‌ها معمولاً هم نمی‌رسد.
+     */
+    public Channel classifyCampaign(String source, String medium) {
+        return classify(null, source, medium, false);
     }
 
     private Channel classify(String referrerHost, String source, String medium, boolean hasGclid) {
@@ -168,7 +192,9 @@ public class ChannelResolver {
         if (v.isEmpty()) return null;
         // نرمال‌سازیِ ورودی: telegram و Telegram نباید در گزارش دو کانال شوند.
         // سقفِ طول هم هست چون UTM را هرکسی با ساختنِ یک لینک می‌تواند پر کند.
-        v = v.toLowerCase(Locale.ROOT);
+        // فاصله‌های داخلی هم یکدست می‌شوند: «نوروز ۱۴۰۵» و «نوروز  ۱۴۰۵» نباید دو
+        // کارزار شوند. همان نرمال‌سازی‌ای که موقعِ ساختِ کارزار انجام می‌شود.
+        v = v.toLowerCase(Locale.ROOT).replaceAll("\s+", "-");
         return v.length() > 120 ? v.substring(0, 120) : v;
     }
 }

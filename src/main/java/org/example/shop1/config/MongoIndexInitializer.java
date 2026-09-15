@@ -67,7 +67,14 @@ public class MongoIndexInitializer implements CommandLineRunner {
             new UniqueField("product_redirects", "fromSlug", "uk_product_redirects_fromSlug", "string"),
             // چتِ پشتیبانی: یک گفت‌وگو به‌ازای هر مشتری (نه هر تیکت). بدونِ این ایندکس،
             // دو درخواستِ هم‌زمانِ همان مشتری دو گفت‌وگو می‌سازند و تاریخچه دو تکه می‌شود.
-            new UniqueField("conversations", "customerId", "uk_conversations_customerId", "string")
+            new UniqueField("conversations", "customerId", "uk_conversations_customerId", "string"),
+            // کدِ لینکِ کوتاه باید یکتا باشد، وگرنه یک آدرسِ منتشرشده دو مقصدِ ممکن
+            // پیدا می‌کند و findByCode نامعین می‌شود. سرویس با existsByCode چک می‌کند،
+            // ولی دو ساختِ هم‌زمان از آن چک رد می‌شوند و QRِ چاپ‌شده دیگر برگشتنی نیست.
+            new UniqueField("campaigns", "code", "uk_campaigns_code", "string"),
+            // اسلاگ همان چیزی است که در utm_campaign و در جمع‌بندیِ روزانه کلید است؛
+            // تکراری‌اش یعنی دو کارزار در گزارش روی هم می‌افتند.
+            new UniqueField("campaigns", "slug", "uk_campaigns_slug", "string")
     );
 
     /**
@@ -108,7 +115,10 @@ public class MongoIndexInitializer implements CommandLineRunner {
             new CompoundIndex("user_events", "ix_user_events_channel_at",
                     new Document("channel", 1).append("at", -1)),
             new CompoundIndex("visitors", "ix_visitors_userId",
-                    new Document("userId", 1))
+                    new Document("userId", 1)),
+            // پایهٔ گزارشِ کارزارِ فازِ ۳ — به همان دلیلِ channel، کارزار هم روی هر رویداد است
+            new CompoundIndex("user_events", "ix_user_events_campaign_at",
+                    new Document("campaign", 1).append("at", -1))
     );
 
     private final MongoTemplate mongoTemplate;

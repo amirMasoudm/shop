@@ -104,6 +104,37 @@ public class DailyStats {
         public void setAvgResults(double avgResults) { this.avgResults = avgResults; }
     }
 
+    /**
+     * مثلِ {@link ChannelStats} ولی به تفکیکِ کارزار، به‌علاوهٔ کلیکِ لینکِ کوتاه.
+     * <p>
+     * 🔴 {@code clicks} عمداً جدا از {@code visits} است. کلیک یعنی کسی روی لینکِ
+     * ما زد؛ بازدید یعنی صفحه واقعاً برایش باز شد. اختلافِ این دو — ریزشِ قبل از
+     * ورود — خودش یک عددِ تصمیم‌ساز است: اگر زیاد باشد، مشکل از صفحهٔ فرود نیست،
+     * از سرعت یا از خودِ آگهی است.
+     */
+    public static class CampaignStats {
+        private int clicks;
+        private int visits;
+        private int productViews;
+        private int addToCart;
+        private int orders;
+
+        public int getClicks() { return clicks; }
+        public void setClicks(int clicks) { this.clicks = clicks; }
+
+        public int getVisits() { return visits; }
+        public void setVisits(int visits) { this.visits = visits; }
+
+        public int getProductViews() { return productViews; }
+        public void setProductViews(int productViews) { this.productViews = productViews; }
+
+        public int getAddToCart() { return addToCart; }
+        public void setAddToCart(int addToCart) { this.addToCart = addToCart; }
+
+        public int getOrders() { return orders; }
+        public void setOrders(int orders) { this.orders = orders; }
+    }
+
     /** تاریخِ روز به قالبِ {@code YYYY-MM-DD} — همین کلید، بازاجرای جاب را idempotent می‌کند. */
     @Id
     private String id;
@@ -114,6 +145,8 @@ public class DailyStats {
 
     private Map<String, Integer> byType = new LinkedHashMap<>();
     private Map<String, ChannelStats> byChannel = new LinkedHashMap<>();
+    /** کلید همان {@code slug}ِ کارزار است — همان چیزی که در {@code utm_campaign} می‌رود. */
+    private Map<String, CampaignStats> byCampaign = new LinkedHashMap<>();
     private Map<String, Integer> byCity = new LinkedHashMap<>();
     private Map<String, Integer> byDevice = new LinkedHashMap<>();
 
@@ -124,6 +157,9 @@ public class DailyStats {
     private Funnel funnel = new Funnel();
 
     private Instant computedAt = Instant.now();
+
+    public Map<String, CampaignStats> getByCampaign() { return byCampaign; }
+    public void setByCampaign(Map<String, CampaignStats> byCampaign) { this.byCampaign = byCampaign; }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

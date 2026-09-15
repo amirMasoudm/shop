@@ -94,6 +94,41 @@ public class StoreSettings {
                 ? bannerRotationSeconds : DEFAULT_BANNER_ROTATION_SECONDS;
     }
 
+    // ===== واژگانِ بستهٔ کارزار =====
+    // 🔴 اینجا می‌نشینند و نه در کد، چون دانشِ کسب‌وکارِ یک فروشگاهِ مشخص‌اند و هر
+    //    نصبِ دیگری فهرستِ خودش را دارد. ادمین می‌تواند آگاهانه اضافه کند، ولی
+    //    کاربرِ لینک‌ساز فقط از همین فهرست انتخاب می‌کند — نه متنِ آزاد.
+    //
+    // چرا بسته: با ورودیِ آزاد، telegram و Telegram و tg در گزارش سه کانالِ متفاوت
+    // می‌شوند. این شایع‌ترین شکستِ برچسب‌گذاری است و با انضباطِ فردی حل نمی‌شود.
+
+    /** اگر تنظیمات هنوز پر نشده، همین‌ها مبنا هستند. */
+    public static final java.util.List<String> DEFAULT_CAMPAIGN_SOURCES = java.util.List.of(
+            "telegram", "instagram", "eitaa", "whatsapp", "torob", "emalls",
+            "sms", "email", "print", "exhibition", "partner");
+
+    public static final java.util.List<String> DEFAULT_CAMPAIGN_MEDIUMS = java.util.List.of(
+            "social", "cpc", "sms", "email", "qr", "print", "referral");
+
+    private java.util.List<String> campaignSources;
+    private java.util.List<String> campaignMediums;
+
+    public java.util.List<String> getCampaignSources() { return campaignSources; }
+    public void setCampaignSources(java.util.List<String> campaignSources) { this.campaignSources = campaignSources; }
+
+    public java.util.List<String> getCampaignMediums() { return campaignMediums; }
+    public void setCampaignMediums(java.util.List<String> campaignMediums) { this.campaignMediums = campaignMediums; }
+
+    public java.util.List<String> effectiveCampaignSources() {
+        return (campaignSources == null || campaignSources.isEmpty())
+                ? DEFAULT_CAMPAIGN_SOURCES : campaignSources;
+    }
+
+    public java.util.List<String> effectiveCampaignMediums() {
+        return (campaignMediums == null || campaignMediums.isEmpty())
+                ? DEFAULT_CAMPAIGN_MEDIUMS : campaignMediums;
+    }
+
     // Getters & Setters
 
     public BigDecimal getRfqThreshold() { return rfqThreshold; }

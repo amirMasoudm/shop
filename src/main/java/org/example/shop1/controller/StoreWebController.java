@@ -775,6 +775,10 @@ public class StoreWebController {
                 "Disallow: /Admin.html\n" +
                 "Disallow: /AdminLogin.html\n" +
                 "Disallow: /api/\n" +
+                // لینک‌های کوتاهِ کارزار نباید ایندکس شوند: خودشان محتوا ندارند و اگر
+                // ایندکس شوند، نسخهٔ برچسب‌خوردهٔ صفحهٔ مقصد را به جانِ سئو می‌اندازند.
+                // هدرِ X-Robots-Tag روی خودِ پاسخ هم هست؛ این لایهٔ دوم است.
+                "Disallow: /l/\n" +
                 "Sitemap: " + baseUrl + "/sitemap.xml\n";
     }
 

@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -147,12 +148,25 @@ public class CampaignAdminController {
         m.put("endsAt", c.getEndsAt());
         m.put("cost", c.getCost());
         m.put("active", c.isActive());
+        // 🔴 «فعال» به‌تنهایی دروغ می‌گفت: کارزاری که تاریخش گذشته هنوز active=true
+        // است ولی لینکش ۴۰۴ می‌دهد. مالک در پنل «فعال» می‌دید و در واقعیت لینکِ
+        // مرده. وضعیتِ واقعی همان چیزی است که /l/{code} بر اساسش تصمیم می‌گیرد.
+        Instant now = Instant.now();
+        m.put("live", c.isLive(now));
+        m.put("state", stateOf(c, now));
         m.put("notes", c.getNotes());
         m.put("createdAt", c.getCreatedAt());
         m.put("taggedUrl", service.taggedUrl(c, baseUrl));
         m.put("shortUrl", service.shortUrl(c, baseUrl));
         m.put("qrUrl", "/api/v1/campaigns/" + c.getId() + "/qr.png");
         return m;
+    }
+
+    private static String stateOf(Campaign c, Instant now) {
+        if (!c.isActive()) return "غیرفعال";
+        if (c.getStartsAt() != null && now.isBefore(c.getStartsAt())) return "هنوز شروع نشده";
+        if (c.getEndsAt() != null && now.isAfter(c.getEndsAt())) return "منقضی";
+        return "فعال";
     }
 
     private void log(Campaign c, String title, String oldValue, String newValue) {

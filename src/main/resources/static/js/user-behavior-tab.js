@@ -44,16 +44,22 @@
                 b.addEventListener('click', () => showView(b.getAttribute('data-view-btn'))));
             host.querySelector('[data-reload]').addEventListener('click', reloadActive);
             host.querySelector('[data-journey-go]').addEventListener('click', loadJourney);
-            host.querySelector('[data-visitor-filter]').addEventListener('change', loadVisitors);
+            host.querySelector('[data-visitor-filter]').addEventListener('change', () => {
+                rememberFilterInUrl();
+                loadVisitors();
+            });
             host.querySelector('[data-export]').addEventListener('click', exportRange);
             // ⚠️ لامبدا لازم است: addEventListener خودِ Event را به‌عنوانِ آرگومانِ اول می‌دهد
             // و آن وقت به‌جای «آستانهٔ پیش‌فرض» یک MouseEvent به‌عنوانِ روز فرستاده می‌شد.
             host.querySelector('[data-archive-now]').addEventListener('click', () => archiveNow(null));
             host.querySelector('[data-archive-custom]').addEventListener('click', archiveCustom);
+            host.querySelector('[data-c-save]').addEventListener('click', saveCampaign);
             host.querySelector('[data-rollup-today]').addEventListener('click', rollupToday);
             mounted = true;
         }
-        showView('overview');
+        // اگر آدرس فیلتری را حمل می‌کند، همان باز شود — لینکِ فرستاده‌شده باید همان
+        // چیزی را نشان دهد که فرستنده می‌دیده، نه نمای کلی.
+        if (!applyFilterFromUrl()) showView('overview');
         load();
     }
 
@@ -81,6 +87,7 @@
         });
         if (name === 'visitors') loadVisitors();
         if (name === 'data') loadArchives();
+        if (name === 'campaigns') loadCampaigns();
     }
 
     /**
@@ -95,6 +102,7 @@
         load();   // سه نمای خلاصه همیشه به بازهٔ تاریخ وابسته‌اند
         if (currentView === 'visitors') loadVisitors();
         if (currentView === 'data') loadArchives();
+        if (currentView === 'campaigns') loadCampaigns();
         if (currentView === 'journey' && lastJourney) {
             loadJourney(lastJourney.anonId, lastJourney.userId);
         }
@@ -495,24 +503,28 @@
         }
         wrap.appendChild(link);
 
+        wrap.appendChild(copyButton(location.origin + (rawPath || '')));
+        return wrap;
+    }
+
+    /** دکمهٔ کپی — یک‌جا، چون هم مسیرِ سفرِ کاربر و هم لینک‌های کارزار به آن نیاز دارند. */
+    function copyButton(text) {
         const copy = document.createElement('button');
         copy.type = 'button';
         copy.className = 'text-gray-400 hover:text-indigo-600 shrink-0';
         copy.title = 'کپیِ نشانیِ کامل';
         copy.textContent = '⧉';
         copy.addEventListener('click', async () => {
-            const full = location.origin + (rawPath || '');
             try {
-                await navigator.clipboard.writeText(full);
+                await navigator.clipboard.writeText(text);
                 copy.textContent = '✓';
             } catch (e) {
                 // کلیپ‌بورد در کانتکستِ ناامن کار نمی‌کند؛ راهِ دوم انتخابِ دستی است
-                window.prompt('نشانی را کپی کنید:', full);
+                window.prompt('نشانی را کپی کنید:', text);
             }
             setTimeout(() => copy.textContent = '⧉', 1500);
         });
-        wrap.appendChild(copy);
-        return wrap;
+        return copy;
     }
 
     /** 🔴 در try/catch: مسیرِ ناقصِ درصد-کدشده نباید کلِ ردیف را بشکند. */
@@ -531,6 +543,170 @@
         d.className = cls;
         d.textContent = text;      // ← همیشه textContent، هرگز innerHTML
         return d;
+    }
+
+    // ---- نمای ۷: کارزارها ----
+    const CAMPAIGN_API = '/api/v1/campaigns';
+    let vocabLoaded = false;
+
+    async function loadCampaigns() {
+        await fillVocabularies();
+        await renderCampaignList();
+        await renderCampaignReport();
+    }
+
+    /**
+     * دراپ‌داون‌ها از سرور پر می‌شوند، نه از فهرستی که اینجا هاردکد شده باشد.
+     * فهرست در تنظیماتِ فروشگاه است تا هر نصبِ دیگری مالِ خودش را داشته باشد.
+     */
+    async function fillVocabularies() {
+        if (vocabLoaded) return;
+        let v;
+        try { v = await getJson(`${CAMPAIGN_API}/vocabularies`); } catch (e) { return; }
+        const fill = (sel, values, label) => {
+            const el = host.querySelector(sel);
+            el.innerHTML = '';
+            const head = document.createElement('option');
+            head.value = '';
+            head.textContent = label;
+            el.appendChild(head);
+            values.forEach(x => {
+                const o = document.createElement('option');
+                o.value = x;
+                o.textContent = x;
+                el.appendChild(o);
+            });
+        };
+        fill('[data-c-source]', v.sources || [], 'منبع را انتخاب کنید');
+        fill('[data-c-medium]', v.mediums || [], 'رسانه را انتخاب کنید');
+        vocabLoaded = true;
+    }
+
+    async function saveCampaign() {
+        const val = sel => host.querySelector(sel).value.trim();
+        const body = {
+            name: val('[data-c-name]'),
+            source: val('[data-c-source]'),
+            medium: val('[data-c-medium]'),
+            landingPath: val('[data-c-landing]') || '/',
+            term: val('[data-c-term]') || null,
+            content: val('[data-c-content]') || null,
+            cost: val('[data-c-cost]') ? Number(val('[data-c-cost]')) : null,
+            active: true
+        };
+        if (!body.name) return alert('نامِ کارزار لازم است.');
+        if (!body.source || !body.medium) return alert('منبع و رسانه را انتخاب کنید.');
+
+        try {
+            const res = await fetch(CAMPAIGN_API, {
+                method: 'POST', credentials: 'include',
+                headers: jsonHeaders(),
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                // پیامِ سرور عمداً همان‌طور که هست نشان داده می‌شود: وقتی مقداری از
+                // فهرست بیرون است، خودِ سرور فهرستِ مجاز را می‌گوید.
+                return alert(await res.text());
+            }
+            ['[data-c-name]', '[data-c-term]', '[data-c-content]', '[data-c-cost]']
+                .forEach(x => host.querySelector(x).value = '');
+            loadCampaigns();
+        } catch (e) {
+            alert('ثبتِ کارزار ناموفق بود.');
+        }
+    }
+
+    async function renderCampaignList() {
+        const box = host.querySelector('[data-campaigns]');
+        box.innerHTML = '';
+        let rows;
+        try { rows = await getJson(CAMPAIGN_API); } catch (e) { return emptyNote(box, 'واکشی ناموفق بود.'); }
+        if (!rows.length) {
+            return box.appendChild(section('کارزارهای ثبت‌شده',
+                noteBox('هنوز کارزاری ثبت نشده. اولی را از فرمِ بالا بسازید.')));
+        }
+
+        const table = tableEl(
+            ['نام', 'منبع / رسانه', 'مقصد', 'لینکِ کوتاه', 'لینکِ کامل', 'QR', 'وضعیت'],
+            rows.map(c => [
+                c.name,
+                (c.source || '—') + ' / ' + (c.medium || '—'),
+                {path: c.landingPath},
+                {node: copyableCell(c.shortUrl)},
+                {node: copyableCell(c.taggedUrl)},
+                {node: qrCell(c)},
+                // وضعیتِ واقعی از سرور می‌آید، نه فقط پرچمِ active: کارزارِ منقضی
+                // هم active=true دارد ولی لینکش ۴۰۴ می‌دهد.
+                c.state || (c.active ? 'فعال' : 'غیرفعال')
+            ]));
+        box.appendChild(section('کارزارهای ثبت‌شده', table,
+            'لینکِ کوتاه پیش از باز شدنِ صفحه انتساب را ثبت می‌کند، پس برایِ انتشار همان بهتر است. '
+            + 'کدِ QR هم به همین لینکِ کوتاه اشاره می‌کند و روی سرورِ خودمان ساخته می‌شود.'));
+    }
+
+    async function renderCampaignReport() {
+        const box = host.querySelector('[data-campaign-report]');
+        box.innerHTML = '';
+        const {from, to} = range();
+        let rows;
+        try {
+            rows = await getJson(`${API}/campaigns?from=${from}&to=${to}`);
+        } catch (e) { return emptyNote(box, 'واکشیِ گزارش ناموفق بود.'); }
+        if (!rows.length) {
+            return box.appendChild(section('گزارشِ کارزار',
+                noteBox('برای این بازه هنوز داده‌ای جمع‌بندی نشده. اگر همین حالا کارزار را منتشر کرده‌اید، '
+                    + 'دکمهٔ «جمع‌بندیِ امروز را بساز» را بزنید.')));
+        }
+
+        box.appendChild(section('گزارشِ کارزار', tableEl(
+            ['کارزار', 'کلیک', 'بازدید', 'مشاهدهٔ محصول', 'سبد', 'سفارش', 'هزینه', 'هزینهٔ هر سفارش'],
+            rows.map(r => [
+                r.name + (r.registered ? '' : ' (ثبت‌نشده)'),
+                r.clicks, r.visits, r.productViews, r.addToCart, r.orders,
+                r.cost == null ? '—' : Number(r.cost).toLocaleString('fa-IR') + ' ریال',
+                r.costPerOrder == null ? '—' : Number(r.costPerOrder).toLocaleString('fa-IR') + ' ریال'
+            ])),
+            'کلیک یعنی کسی روی لینک زد؛ بازدید یعنی صفحه واقعاً باز شد. اختلافشان همان‌هایی هستند که '
+            + 'پیش از بازشدنِ صفحه رفته‌اند. کارزارِ «ثبت‌نشده» یعنی لینکش دستی برچسب خورده و در دفتر نیست.'));
+    }
+
+    /** نشانیِ بلندِ لاتین در ردیفِ راست‌چین: جعبهٔ dir=ltr + دکمهٔ کپی. */
+    function copyableCell(url) {
+        const wrap = document.createElement('div');
+        wrap.className = 'flex items-center gap-2 min-w-0';
+        const span = document.createElement('span');
+        span.dir = 'ltr';
+        span.title = url;
+        span.style.cssText = 'unicode-bidi:isolate;direction:ltr;text-align:left;' + CLIP;
+        span.className = 'text-gray-600';
+        span.textContent = url;
+        wrap.appendChild(span);
+        wrap.appendChild(copyButton(url));
+        return wrap;
+    }
+
+    function qrCell(c) {
+        const a = document.createElement('a');
+        a.href = c.qrUrl;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.className = 'text-indigo-600 font-bold';
+        a.textContent = 'دانلود';
+        return a;
+    }
+
+    function noteBox(text) {
+        const el = document.createElement('div');
+        el.className = 'bg-white border rounded-xl p-8 text-center text-gray-400 text-sm';
+        el.textContent = text;
+        return el;
+    }
+
+    function jsonHeaders() {
+        const m = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        const h = {'Content-Type': 'application/json'};
+        if (m) h['X-XSRF-TOKEN'] = decodeURIComponent(m[1]);
+        return h;
     }
 
     // ---- نمای ۶: داده و آرشیو ----
@@ -780,6 +956,7 @@
             <button data-view-btn="visitors">کاربران</button>
             <button data-view-btn="journey">سفر کاربر</button>
             <button data-view-btn="searches">جست‌وجوها</button>
+            <button data-view-btn="campaigns">کارزارها</button>
             <button data-view-btn="data">داده و آرشیو</button>
         </div>
 
@@ -818,6 +995,37 @@
             <div data-searches></div>
         </div>
 
+        <div data-view="campaigns" class="hidden">
+            <p data-fresh="rollup" class="text-[11px] text-gray-500 mb-3"></p>
+
+            <div class="bg-white border rounded-xl p-4 mb-5">
+                <h3 class="font-bold text-gray-700 mb-3">کارزارِ تازه</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                    <input data-c-name placeholder="نامِ کارزار — مثلاً کارزارِ نوروز ۱۴۰۵"
+                           class="p-2 border rounded-lg md:col-span-3">
+                    <select data-c-source class="p-2 border rounded-lg bg-white"></select>
+                    <select data-c-medium class="p-2 border rounded-lg bg-white"></select>
+                    <input data-c-landing value="/shop" placeholder="مسیرِ مقصد — مثلاً /shop"
+                           class="p-2 border rounded-lg" dir="ltr">
+                    <input data-c-term placeholder="term (اختیاری)" class="p-2 border rounded-lg" dir="ltr">
+                    <input data-c-content placeholder="content (اختیاری)" class="p-2 border rounded-lg" dir="ltr">
+                    <input data-c-cost type="number" min="0" placeholder="هزینه به ریال (اختیاری)"
+                           class="p-2 border rounded-lg" dir="ltr">
+                </div>
+                <p class="text-[11px] text-gray-500 mt-2 leading-6">
+                    منبع و رسانه از فهرستِ بسته انتخاب می‌شوند تا یک کارزار در گزارش به چند تا تقسیم نشود.
+                    مقصد باید مسیرِ داخلیِ سایتِ خودمان باشد و با «/» شروع شود؛ نشانیِ کامل پذیرفته نمی‌شود.
+                    هزینه را بگذارید تا ستونِ «هزینه به‌ازای هر سفارش» معنا پیدا کند.
+                </p>
+                <button data-c-save class="mt-3 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">
+                    ثبت و ساختِ لینک
+                </button>
+            </div>
+
+            <div data-campaigns></div>
+            <div data-campaign-report></div>
+        </div>
+
         <div data-view="data" class="hidden">
             <p class="text-[11px] text-green-700 mb-3">زنده — مستقیم از دادهٔ خام خوانده می‌شود.</p>
             <div class="flex flex-wrap gap-2 mb-4">
@@ -842,5 +1050,40 @@
             </p>
         </div>`;
 
-    window.UserBehaviorTab = {mount};
+    /**
+     * بازکردنِ تب مستقیم روی سفرِ یک کاربر — از پروندهٔ مشتری صدا زده می‌شود.
+     * <p>
+     * تبِ مشتریان شناسهٔ کاربر را دارد و {@code visitors.userId} همهٔ شناسه‌های
+     * ناشناسش را می‌دهد، پس گوشی و لپ‌تاپِ همان آدم زیرِ یک سفر می‌آیند.
+     */
+    function openJourney(hostEl, userId) {
+        mount(hostEl);
+        showView('journey');
+        // ⚠️ ترتیب مهم است: loadJourney وقتی شناسه‌ای نگیرد از خودِ ورودی می‌خواند،
+        // پس ورودی باید *پیش از* صدا زدنش پر شده باشد — وگرنه «شناسه را وارد کنید»
+        // می‌دهد و دکمه بی‌اثر به‌نظر می‌رسد.
+        host.querySelector('[data-journey-id]').value = userId;
+        loadJourney(userId, userId);
+    }
+
+    /** فیلترِ نمای کاربران از آدرس خوانده می‌شود تا بشود لینکش را برای هم فرستاد. */
+    function applyFilterFromUrl() {
+        const m = location.hash.match(/ub-filter=([^&]*)/);
+        if (!m) return false;
+        const value = decodeURIComponent(m[1]);
+        const select = host.querySelector('[data-visitor-filter]');
+        if (!select || ![...select.options].some(o => o.value === value)) return false;
+        select.value = value;
+        showView('visitors');
+        return true;
+    }
+
+    function rememberFilterInUrl() {
+        const value = host.querySelector('[data-visitor-filter]').value;
+        const rest = location.hash.replace(/[#&]?ub-filter=[^&]*/, '').replace(/^#/, '');
+        const next = (rest ? rest + '&' : '') + (value ? 'ub-filter=' + encodeURIComponent(value) : '');
+        history.replaceState(null, '', next ? '#' + next.replace(/&$/, '') : location.pathname);
+    }
+
+    window.UserBehaviorTab = {mount, openJourney};
 })();

@@ -84,6 +84,11 @@ public class SecurityConfig {
                         // ۱. حتما صفحه خطا را کاملا باز بگذارید
                         .requestMatchers("/error", "/favicon.ico", "/robots.txt", "/sitemap.xml").permitAll()
 
+                        // لینکِ کوتاهِ کارزار — برایِ همه باز است، چون همان لینکی است که
+                        // در تلگرام و روی کاتالوگِ چاپی منتشر می‌شود. مقصدش فقط از
+                        // دیتابیس خوانده می‌شود و هیچ پارامترِ کوئری‌ای در آن نقش ندارد.
+                        .requestMatchers(HttpMethod.GET, "/l/*").permitAll()
+
                         .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/shop/product/**", "/shop/category/**", "/shop/course/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         // پوشهٔ واقعیِ تصاویرِ ثابت `/img/` است؛ `/images/**` هرگز وجود نداشت و
                         // به همین دلیل لوگو در کلِ سایت ۴۰۱ می‌گرفت.
@@ -223,7 +228,9 @@ public class SecurityConfig {
                                 // آرشیو همه دادهٔ شخصیِ مشتریانِ واقعی‌اند. برخلافِ تبِ
                                 // پشتیبانیِ چت که عمداً برای هر چهار نقش باز است، این
                                 // یکی فقط ADMIN — نه PRICER، نه SALES، نه SUPPORT.
-                                "/api/v1/analytics/**"
+                                "/api/v1/analytics/**",
+                                // دفترِ کارزارها و لینک‌ساز — هزینه و برنامهٔ بازاریابی است.
+                                "/api/v1/campaigns/**"
                         ).hasRole("ADMIN")
 
                         .anyRequest().authenticated()
