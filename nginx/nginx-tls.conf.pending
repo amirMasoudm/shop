@@ -1,29 +1,76 @@
-# در داکر، کانتینر اسپرینگ‌بوت با نام backend شناخته می‌شود
+# ============================================================================
+# نسخهٔ TLS — هنوز فعال نیست.
+#
+# 🔴 این فایل تا وقتی گواهی صادر نشده نباید جایگزینِ nginx.conf شود. بلاکِ ۴۴۳
+# به `/etc/letsencrypt/live/dadehnama.com/` ارجاع می‌دهد و اگر آن مسیر نباشد
+# nginx اصلاً بالا نمی‌آید و در حلقهٔ ری‌استارت می‌افتد. (یک‌بار روی لوکال همین
+# اتفاق افتاد و سایت خوابید.)
+#
+# 📌 این فایل در ۲۰۲۶-۰۹-۱۵ از نو ساخته شد. نسخهٔ قبلی‌اش مالِ ۱۷ اوت بود و سه
+# چیزی که بعد از آن روی پراد آمد را نداشت — یعنی فعال‌کردنش سه پس‌رفت می‌داد:
+#   · قفلِ Host با `return 444` (بلاکِ default_server اش محتوا سرو می‌کرد)
+#   · مسدودسازیِ فایل‌های نقطه‌دار زیرِ /uploads/ (وصلهٔ نشتِ .env در ۳۰ اوت)
+#   · بلاکِ /ws/ وب‌سوکتِ چتِ پشتیبانی
+#   · فهرستِ سفیدِ لوپ‌بک و RFC1918 (لوکال و تستِ موبایل)
+# هر بار که nginx.conf عوض شد، این فایل هم باید هم‌گام شود.
+# ============================================================================
+
 upstream backend_app {
     server backend:8080;
-
-    # نگه‌داشتن کانکشن‌های باز به بک‌اند و استفاده مجدد از آن‌ها
     keepalive 32;
 }
 
-# ===========================================================================
-# دامنهٔ canonical: https://dadehnama.com (بدونِ www)
+# ============================================================
+# 🔒 قفلِ Host روی پورتِ ۸۰ — همان منطقِ کانفیگِ فعلی
 #
-# هر چیزِ دیگری — www، دامنهٔ .ir، و نسخهٔ HTTP — با ۳۰۱ به همان می‌رود.
-# دلیل: canonical در اپ از هدرِ Host ساخته می‌شود؛ اگر گوگل هم www ببیند هم
-# بدونِ www، سیگنالِ سئو دو تکه می‌شود.
-#
-# dadehnama.ir یک CNAME به dadehnama.com است، پس با سوییچِ رکوردِ A خودکار به
-# همین سرور می‌رسد — انتخابی در کار نیست و گواهی باید هر چهار نام را بپوشاند.
-# ===========================================================================
+# تنها تفاوت با نسخهٔ بدونِ TLS: مسیرِ چالشِ ACME باز است. بدونِ آن، تمدیدِ
+# خودکارِ گواهی با HTTP-01 شکست می‌خورد چون certbot فایلِ چالش را روی همین
+# پورت می‌جوید و اگر Host غیرمنتظره باشد به ۴۴۴ می‌خورد.
+# ============================================================
+server {
+    listen 80 default_server;
+    server_name _;
 
-# --- HTTP: چالشِ ACME + ریدایرکت به HTTPSِ canonical ---
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type "text/plain";
+    }
+
+    location / {
+        return 444;
+    }
+}
+
+# ============================================================
+# 🔒 قفلِ Host روی پورتِ ۴۴۳
+#
+# بدونِ این بلاک، هر SNIِ ناشناسی به اولین بلاکِ ۴۴۳ می‌افتد و دوباره همان
+# کلونِ خودمعرفِ `shazdehkoucholo.ir` ممکن می‌شود، این‌بار روی HTTPS.
+# گواهی اینجا فقط برای این است که دستِ‌دادنِ TLS تمام شود تا بتوانیم ببندیم.
+# ============================================================
+server {
+    listen 443 ssl default_server;
+    http2 on;
+    server_name _;
+
+    ssl_certificate     /etc/letsencrypt/live/dadehnama.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/dadehnama.com/privkey.pem;
+
+    return 444;
+}
+
+# ============================================================
+# HTTP روی نام‌های دامنه → ۳۰۱ به HTTPSِ canonical
+#
+# ⚠️ عمداً فقط چهار نامِ dadehnama اینجا هستند، نه آی‌پی و نه localhost.
+# اگر آی‌پی هم ریدایرکت شود، `http://185.239.3.236` می‌رود به
+# `https://185.239.3.236` و چون گواهی برای دامنه است نه آی‌پی، خطای گواهی
+# می‌گیرد — یعنی تا پیش از سوییچِ DNS تنها راهِ دسترسیِ ما از بین می‌رود.
+# ============================================================
 server {
     listen 80;
     server_name dadehnama.com www.dadehnama.com dadehnama.ir www.dadehnama.ir;
 
-    # چالشِ Let's Encrypt نباید ریدایرکت شود وگرنه تمدیدِ webroot می‌شکند.
-    # ^~ یعنی اگر این پیشوند مچ شد، دیگر دنبال regex نگرد.
     location ^~ /.well-known/acme-challenge/ {
         root /var/www/certbot;
         default_type "text/plain";
@@ -34,13 +81,107 @@ server {
     }
 }
 
-# --- HTTPS: هر نامی جز dadehnama.com → ۳۰۱ به canonical ---
+# ============================================================
+# HTTP روی آی‌پی و شبکهٔ محلی — بدونِ ریدایرکت، مثلِ امروز
+#
+# این بلاک بعد از سوییچِ DNS هم می‌ماند: هم برای تستِ داخلی لازم است، هم
+# مالک با آی‌پیِ وای‌فای از موبایل تست می‌کند. رجکس به‌جای آی‌پیِ ثابت نوشته
+# شده چون آی‌پیِ وای‌فای با هر تمدیدِ DHCP عوض می‌شود.
+# ============================================================
+server {
+    listen 80;
+    server_name localhost 185.239.3.236
+                "~^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)[0-9.]+$";
+
+    client_max_body_size 20M;
+
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_min_length 1024;
+    gzip_comp_level 5;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/javascript
+        application/json
+        application/xml
+        application/rss+xml
+        image/svg+xml
+        image/bmp
+        image/x-icon;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type "text/plain";
+    }
+
+    location ~ ^/uploads/\. {
+        deny all;
+        access_log off;
+        return 404;
+    }
+
+    location /uploads/ {
+        proxy_pass http://backend_app;
+
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_hide_header Cache-Control;
+        proxy_hide_header Pragma;
+        proxy_hide_header Expires;
+        add_header Cache-Control "public, max-age=2592000, immutable" always;
+    }
+
+    location /ws/ {
+        proxy_pass http://backend_app;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    location / {
+        proxy_pass http://backend_app;
+
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ============================================================
+# HTTPS روی نام‌های غیرcanonical → ۳۰۱ به dadehnama.com
+#
+# دلیل: canonical در اپ از هدرِ Host ساخته می‌شود. اگر گوگل هم www ببیند هم
+# بدونِ www، سیگنالِ سئو دو تکه می‌شود. dadehnama.ir هم CNAME به .com است و
+# با سوییچِ رکوردِ A خودکار به همین سرور می‌رسد، پس باید جواب داشته باشد.
+# ============================================================
 server {
     listen 443 ssl;
     http2 on;
     server_name www.dadehnama.com dadehnama.ir www.dadehnama.ir;
 
-    # همان گواهی؛ هر چهار نام در یک certificate هستند
     ssl_certificate     /etc/letsencrypt/live/dadehnama.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/dadehnama.com/privkey.pem;
 
@@ -53,7 +194,9 @@ server {
     return 301 https://dadehnama.com$request_uri;
 }
 
-# --- HTTPS: دامنهٔ اصلی، جایی که سایت واقعاً سرو می‌شود ---
+# ============================================================
+# HTTPS روی دامنهٔ اصلی — جایی که سایت واقعاً سرو می‌شود
+# ============================================================
 server {
     listen 443 ssl;
     http2 on;
@@ -68,9 +211,9 @@ server {
     ssl_session_timeout 1d;
     ssl_session_tickets off;
 
-    # HSTS عمداً فعال نشده. با max-age طولانی اگر مشکلی پیش بیاید برگشت عملاً
-    # ناممکن می‌شود (مرورگرها تا انقضا اجباری https می‌روند). بعد از چند روز
-    # پایداری با max-age کوتاه شروع و بعد بلند شود.
+    # HSTS عمداً خاموش است. با max-age طولانی، اگر مشکلی پیش بیاید مرورگرها تا
+    # زمانِ انقضا اجباری https می‌روند و برگشت عملاً ناممکن می‌شود. بعد از چند
+    # روزِ پایدار با مقدارِ کوتاه شروع شود.
     # add_header Strict-Transport-Security "max-age=300" always;
 
     client_max_body_size 20M;
@@ -93,73 +236,12 @@ server {
         image/bmp
         image/x-icon;
 
-    # عکس‌های آپلودی: نامشان UUID است و محتوایشان هرگز عوض نمی‌شود
-    # (عکس جدید = نام جدید)، پس کشِ بلندمدت کاملاً امن است.
-    # proxy_hide_header لازم است چون Spring Security پیش‌فرض no-store می‌فرستد.
-    location /uploads/ {
-        proxy_pass http://backend_app;
-
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_hide_header Cache-Control;
-        proxy_hide_header Pragma;
-        proxy_hide_header Expires;
-        add_header Cache-Control "public, max-age=2592000, immutable" always;
-    }
-
-    location / {
-        proxy_pass http://backend_app;
-
-        # لازمهٔ keepalive: HTTP/1.1 و خالی‌گذاشتن هدر Connection
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-
-        # X-Forwarded-Proto اینجا https می‌شود و چون
-        # server.forward-headers-strategy=framework ست است، getScheme() هم
-        # https برمی‌گرداند — یعنی canonical/og:url/sitemap درست می‌شوند.
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-
-# --- HTTP روی آی‌پی (یا هر Host ناشناخته): بدونِ ریدایرکت ---
-# تا پیش از سوییچِ DNS تنها راهِ دسترسی به سایت http://<ip> است و ریدایرکت به
-# https://<ip> خطای گواهی می‌دهد. بعد از سوییچ می‌توان این بلوک را حذف کرد.
-server {
-    listen 80 default_server;
-    server_name _;
-
-    client_max_body_size 20M;
-
-    gzip on;
-    gzip_vary on;
-    gzip_proxied any;
-    gzip_min_length 1024;
-    gzip_comp_level 5;
-    gzip_types
-        text/plain
-        text/css
-        text/xml
-        text/javascript
-        application/javascript
-        application/json
-        application/xml
-        application/rss+xml
-        image/svg+xml
-        image/bmp
-        image/x-icon;
-
-    location ^~ /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-        default_type "text/plain";
+    # 🔴 هر فایلِ نقطه‌دار زیرِ /uploads/ مسدود است — ۳۰ اوت یک فایلِ .env واقعی
+    # از همین مسیر با کدِ ۲۰۰ روی سرورِ زنده سرو می‌شد.
+    location ~ ^/uploads/\. {
+        deny all;
+        access_log off;
+        return 404;
     }
 
     location /uploads/ {
@@ -179,12 +261,33 @@ server {
         add_header Cache-Control "public, max-age=2592000, immutable" always;
     }
 
+    # ⚠️ وب‌سوکت نمی‌تواند به `location /` سپرده شود: آنجا عمداً `Connection ""`
+    # گذاشته می‌شود (لازمهٔ keepalive) و همان مقدار هدرِ ارتقا را خنثی می‌کند.
+    location /ws/ {
+        proxy_pass http://backend_app;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
     location / {
         proxy_pass http://backend_app;
 
         proxy_http_version 1.1;
         proxy_set_header Connection "";
 
+        # اینجا X-Forwarded-Proto مقدارِ https می‌گیرد و چون
+        # server.forward-headers-strategy روی framework است، getScheme() هم
+        # https برمی‌گرداند — یعنی canonical و og:url و sitemap درست می‌شوند.
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
