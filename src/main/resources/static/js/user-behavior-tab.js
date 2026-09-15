@@ -42,7 +42,7 @@
             host.querySelector('[data-to]').value = iso(to);
             host.querySelectorAll('[data-view-btn]').forEach(b =>
                 b.addEventListener('click', () => showView(b.getAttribute('data-view-btn'))));
-            host.querySelector('[data-reload]').addEventListener('click', load);
+            host.querySelector('[data-reload]').addEventListener('click', reloadActive);
             host.querySelector('[data-journey-go]').addEventListener('click', loadJourney);
             host.querySelector('[data-visitor-filter]').addEventListener('change', loadVisitors);
             host.querySelector('[data-export]').addEventListener('click', exportRange);
@@ -57,6 +57,10 @@
         load();
     }
 
+    let currentView = 'overview';
+    /** آخرین سفری که واقعاً بارگذاری شد، تا «نمایش» همان را تازه کند نه یک کوئریِ باریک‌تر. */
+    let lastJourney = null;
+
     function iso(d) { return d.toISOString().slice(0, 10); }
     function range() {
         return {
@@ -66,6 +70,7 @@
     }
 
     function showView(name) {
+        currentView = name;
         host.querySelectorAll('[data-view]').forEach(v =>
             v.classList.toggle('hidden', v.getAttribute('data-view') !== name));
         host.querySelectorAll('[data-view-btn]').forEach(b => {
@@ -76,6 +81,23 @@
         });
         if (name === 'visitors') loadVisitors();
         if (name === 'data') loadArchives();
+    }
+
+    /**
+     * «نمایش» باید نمای <b>فعال</b> را تازه کند، نه فقط سه نمای خلاصه را.
+     * <p>
+     * مالک بعد از «اجرای آرشیو» روی «نمایش» می‌زد و فهرستِ آرشیو تازه نمی‌شد.
+     * رفتارِ قبلی از نظرِ کد درست بود — این دکمه به {@code load()} وصل بود که فقط
+     * نمای کلی را می‌خواند — ولی هیچ‌جای رابط این را نمی‌گفت، و کاربر راهی جز
+     * ریلودِ کلِ صفحه نداشت.
+     */
+    function reloadActive() {
+        load();   // سه نمای خلاصه همیشه به بازهٔ تاریخ وابسته‌اند
+        if (currentView === 'visitors') loadVisitors();
+        if (currentView === 'data') loadArchives();
+        if (currentView === 'journey' && lastJourney) {
+            loadJourney(lastJourney.anonId, lastJourney.userId);
+        }
     }
 
     // ==========================================================
@@ -376,6 +398,7 @@
         const q = typeof anonId === 'string' ? anonId : input.value.trim();
         if (!q) return emptyNote(box, 'شناسهٔ کاربر یا شناسهٔ ناشناس را وارد کنید.');
         input.value = q;
+        lastJourney = {anonId: q, userId: userId};
 
         let data;
         try {
@@ -413,11 +436,10 @@
                 row.className = 'flex gap-3 text-xs py-1 border-b last:border-0';
                 row.appendChild(cell(new Date(e.at).toLocaleString('fa-IR'), 'text-gray-400 shrink-0'));
                 row.appendChild(cell(e.type, 'font-bold text-gray-700 shrink-0 w-36'));
-                if (e.entityName) {
-                    row.appendChild(cell(e.entityName, 'text-gray-600 truncate'));
-                } else {
-                    row.appendChild(pathCell(e.path));
-                }
+                // نام و مسیر رقیبِ هم نیستند: نام خوانا است و مسیر کلیک‌شدنی،
+                // پس نام متنِ همان لینک می‌شود. PRODUCT_VIEW همیشه نام دارد و قبلاً
+                // به همین دلیل کلاً از مسیرِ لینک‌دار رد می‌شد.
+                row.appendChild(pathCell(e.path, e.entityName));
                 card.appendChild(row);
             });
             box.appendChild(card);
@@ -434,21 +456,43 @@
      *    اجباری است، وگرنه هم به‌هم‌ریخته دیده می‌شود هم انتخابِ متن ناممکن است.
      * ۳. کوتاه‌کردن از «سر» است نه از ته: بخشِ باارزش (نامِ محصول) آخرِ آدرس است.
      */
-    function pathCell(rawPath) {
-        const wrap = document.createElement('div');
-        wrap.className = 'flex items-center gap-2';
+    const CLIP = 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22rem;';
 
+    /**
+     * @param rawPath مسیرِ خامِ ثبت‌شده.
+     * @param label   نامِ موجودیت اگر رویداد دارد (محصول، دسته، مقاله). آن وقت خودِ
+     *                نام متنِ لینک می‌شود و مسیر به تولتیپ و دکمهٔ کپی می‌رود.
+     *                ⚠️ نام فارسی است، پس برخلافِ مسیر <b>نباید</b> در جعبهٔ
+     *                {@code dir=ltr} بنشیند؛ آنجا حروفِ فارسی جابه‌جا دیده می‌شوند.
+     */
+    function pathCell(rawPath, label) {
+        const wrap = document.createElement('div');
+        wrap.className = 'flex items-center gap-2 min-w-0';
         const decoded = decodePath(rawPath);
+
+        // نامِ بی‌مسیر چیزی برای بازکردن ندارد؛ متنِ ساده می‌ماند.
+        if (label && !rawPath) {
+            const plain = document.createElement('span');
+            plain.className = 'text-gray-600 truncate';
+            plain.textContent = label;
+            wrap.appendChild(plain);
+            return wrap;
+        }
+
         const link = document.createElement('a');
         link.href = rawPath || '#';
         link.target = '_blank';
         link.rel = 'noopener';
-        link.title = decoded;                 // کاملش در تولتیپ
-        link.dir = 'ltr';
-        link.style.cssText = 'unicode-bidi:isolate;direction:ltr;text-align:left;'
-            + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22rem;';
+        link.title = decoded;                 // نشانیِ کامل در تولتیپ
         link.className = 'text-indigo-600 hover:underline';
-        link.textContent = shortenFromStart(decoded, 60);   // ← textContent، نه innerHTML
+        if (label) {
+            link.style.cssText = CLIP;
+            link.textContent = label;                       // ← textContent، نه innerHTML
+        } else {
+            link.dir = 'ltr';
+            link.style.cssText = 'unicode-bidi:isolate;direction:ltr;text-align:left;' + CLIP;
+            link.textContent = shortenFromStart(decoded, 60);
+        }
         wrap.appendChild(link);
 
         const copy = document.createElement('button');
