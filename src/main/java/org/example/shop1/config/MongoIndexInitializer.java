@@ -71,6 +71,9 @@ public class MongoIndexInitializer implements CommandLineRunner {
             // کدِ لینکِ کوتاه باید یکتا باشد، وگرنه یک آدرسِ منتشرشده دو مقصدِ ممکن
             // پیدا می‌کند و findByCode نامعین می‌شود. سرویس با existsByCode چک می‌کند،
             // ولی دو ساختِ هم‌زمان از آن چک رد می‌شوند و QRِ چاپ‌شده دیگر برگشتنی نیست.
+            // مسیرِ قدیمی باید یکتا باشد وگرنه یک آدرسِ ایندکس‌شده دو مقصدِ ممکن
+            // پیدا می‌کند و findByFromPath نامعین می‌شود — یعنی ۳۰۱ به صفحهٔ تصادفی.
+            new UniqueField("legacy_redirects", "fromPath", "uk_legacy_redirects_fromPath", "string"),
             new UniqueField("campaigns", "code", "uk_campaigns_code", "string"),
             // اسلاگ همان چیزی است که در utm_campaign و در جمع‌بندیِ روزانه کلید است؛
             // تکراری‌اش یعنی دو کارزار در گزارش روی هم می‌افتند.
@@ -117,6 +120,9 @@ public class MongoIndexInitializer implements CommandLineRunner {
             new CompoundIndex("visitors", "ix_visitors_userId",
                     new Document("userId", 1)),
             // پایهٔ گزارشِ کارزارِ فازِ ۳ — به همان دلیلِ channel، کارزار هم روی هر رویداد است
+            // مرتب‌سازیِ پنل بر حسبِ پرترافیک‌ترین آدرسِ قدیمی
+            new CompoundIndex("legacy_redirects", "ix_legacy_redirects_hits",
+                    new Document("hits", -1)),
             new CompoundIndex("user_events", "ix_user_events_campaign_at",
                     new Document("campaign", 1).append("at", -1))
     );

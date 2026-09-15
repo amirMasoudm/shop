@@ -99,6 +99,9 @@ public class SecurityConfig {
 
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
                         .requestMatchers("/api/v1/product-redirects/**").hasRole("ADMIN")
+                        // ریدایرکتِ آدرس‌های قدیمیِ ایندکس‌شده — خودِ ریدایرکت برای همه باز
+                        // است (روی ریشهٔ دامنه و بیرونِ /api/)، ولی مدیریتش فقط ادمین.
+                        .requestMatchers("/api/v1/legacy-redirects/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/products/admin/**").hasAnyRole("ADMIN", "PRICER")
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
@@ -243,6 +246,14 @@ public class SecurityConfig {
                             // بعد از خروج، به‌جایِ صفحه‌ی ورود یک ۴۰۱ خالی می‌دید.
                             if (isPanelPage(request.getRequestURI())) {
                                 response.sendRedirect("/AdminLogin.html");
+                            } else if (isPublicSurfaceGet(request)) {
+                                // 🔴 GETِ ناشناس روی مسیرِ ناشناخته باید ۴۰۴ بگیرد، نه ۴۰۱.
+                                // بعد از سوییچِ دامنه، هر آدرسِ قدیمیِ نگاشت‌نشده‌ای که گوگل
+                                // می‌شناسد به همین‌جا می‌خورد؛ ۴۰۱ برای خزنده مبهم است و
+                                // بارها دوباره امتحانش می‌کند، در حالی که ۴۰۴ تکلیف را
+                                // روشن می‌کند. برای مهاجم هم ۴۰۴ کم‌تر افشا می‌کند، چون
+                                // وجود/نبودِ مسیر را لو نمی‌دهد.
+                                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Not Found");
                             } else {
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
                             }
@@ -304,5 +315,19 @@ public class SecurityConfig {
      */
     private static boolean isPanelPage(String uri) {
         return uri.startsWith("/Admin.html") || uri.startsWith("/SalesPanel.html");
+    }
+
+    /**
+     * آیا این یک درخواستِ خواندنِ ناشناس روی سطحِ عمومیِ سایت است؟
+     * <p>
+     * {@code /api/**} عمداً بیرون است: کلاینتِ API باید ۴۰۱ ببیند تا بفهمد باید وارد
+     * شود؛ ۴۰۴ آن‌جا فقط دیباگ را سخت می‌کند. فایل‌های {@code .html} هم بیرون‌اند تا
+     * رفتارِ صفحه‌های پنل دست‌نخورده بماند.
+     */
+    private static boolean isPublicSurfaceGet(jakarta.servlet.http.HttpServletRequest request) {
+        String method = request.getMethod();
+        if (!"GET".equalsIgnoreCase(method) && !"HEAD".equalsIgnoreCase(method)) return false;
+        String uri = request.getRequestURI();
+        return !uri.startsWith("/api/") && !uri.endsWith(".html");
     }
 }
