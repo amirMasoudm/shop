@@ -2,6 +2,7 @@ package org.example.shop1.model.service;
 
 import org.example.shop1.model.dto.ProductRequest;
 import org.example.shop1.model.entity.ActivityLog;
+import org.example.shop1.exeption.ApiException;
 import org.example.shop1.model.entity.Category;
 import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.reposritory.CategoryRepository;
@@ -27,6 +28,24 @@ public class ProductService {
     private final StockNotificationService stockNotificationService;
 
     private final ActivityLogService activityLog;
+
+    /**
+     * دستهٔ سایت — اجباری، و با خطای روشن.
+     * <p>
+     * 🔴 پیش از این {@code findById(null)} صدا زده می‌شد و مونگو
+     * {@code IllegalArgumentException} می‌داد، یعنی کاربر به‌جای «دسته را انتخاب کن»
+     * یک ۵۰۰ِ خام می‌دید. برای کارشناسی که از پنلِ فروش محصول می‌سازد، فرقِ این دو
+     * فرقِ «می‌دانم چه کار کنم» با «سیستم خراب است» است.
+     */
+    private Category requireCategory(String categoryId) {
+        if (categoryId == null || categoryId.isBlank()) {
+            throw new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "دستهٔ سایت انتخاب نشده است");
+        }
+        return categoryRepo.findById(categoryId)
+                .orElseThrow(() -> new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                        "دستهٔ سایت پیدا نشد: " + categoryId));
+    }
 
     public ProductService(ProductRepository productRepo, CategoryRepository categoryRepo,
                           StockNotificationService stockNotificationService,
@@ -146,8 +165,7 @@ public class ProductService {
         }
 
         // ۲. بررسی وجود دسته‌بندی
-        Category category = categoryRepo.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + request.getCategoryId()));
+        Category category = requireCategory(request.getCategoryId());
 
         Product product = new Product();
         product.setId(request.getId()); // تنظیم ID (اگر null باشد، Mongo آن را تولید می‌کند)
@@ -238,10 +256,11 @@ public class ProductService {
         if (request.getWidth() != null) product.setWidth(request.getWidth());
         if (request.getHeight() != null) product.setHeight(request.getHeight());
 
-        if (!product.getCategoryId().equals(request.getCategoryId())) {
-            Category category = categoryRepo.findById(request.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-            product.setCategoryId(category.getId());
+        // ⚠️ Objects.equals و نه equals: محصولی که از ورودِ دسته‌ایِ انبار آمده ممکن است
+        // اصلاً دسته نداشته باشد، و دقیقاً همان محصول‌هایی‌اند که «تکمیل کارت» رویشان
+        // اجرا می‌شود. با equalsِ ساده اولین تلاش برای کامل‌کردنشان NPE می‌داد.
+        if (!java.util.Objects.equals(product.getCategoryId(), request.getCategoryId())) {
+            product.setCategoryId(requireCategory(request.getCategoryId()).getId());
         }
 
         product.setImages(request.getImages());

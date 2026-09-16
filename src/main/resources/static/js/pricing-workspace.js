@@ -46,6 +46,18 @@
             </label>
         </div>
 
+        <style>
+            /* 🔴 همهٔ خانه‌ها از بالا تراز می‌شوند. پیش از این تراز وسط بود، پس ردیفی که
+               زیرِ قیمتش یادداشتِ «دستی» داشت بلندتر می‌شد و خودِ فیلد نسبت به بقیهٔ
+               ردیف بالاتر می‌افتاد — همان چیزی که در پنل دیده می‌شد. */
+            #pricing-body td { vertical-align: top; }
+            /* یادداشتِ زیرِ فیلد: ریز، بی‌جعبه، و بدونِ اثر روی ارتفاعِ ردیف */
+            .pricing-note {
+                display: flex; align-items: center; gap: .25rem;
+                font-size: 9px; line-height: 1.3; margin-top: 2px; white-space: nowrap;
+            }
+            .pricing-note button { font-size: 9px; }
+        </style>
         <div class="bg-white rounded-xl border shadow-sm overflow-x-auto" style="max-height:70vh; overflow-y:auto;">
             <table class="w-full text-right min-w-[1250px]">
                 <thead class="bg-gray-50 text-gray-500 text-[11px] sticky top-0 z-10">
@@ -251,10 +263,10 @@
                 <td class="p-2">
                     ${priceInput(r, 'onlinePrice', r.onlinePrice)}
                     ${r.priceOverride ? `
-                        <div class="flex items-center gap-1 mt-1">
-                            <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold" title="این قیمت دستی ثبت شده و با تغییر «فروش تعدادی» بازنویسی نمی‌شود">✋ دستی</span>
-                            <span class="text-[9px] text-gray-400" dir="ltr" data-suggested-for="${r.id}" title="مقدار پیشنهادی فرمول">${r.suggestedOnlinePrice ? '≈' + fmtMoney(r.suggestedOnlinePrice) : ''}</span>
-                            ${pricingCanEdit ? `<button onclick="revertToFormula('${r.id}')" class="text-[9px] text-indigo-600 hover:underline shrink-0" title="پرچم دستی برداشته و قیمت دوباره از فرمول محاسبه شود">بازگشت به فرمول</button>` : ''}
+                        <div class="pricing-note" title="این قیمت دستی ثبت شده و با تغییر «فروش تعدادی» بازنویسی نمی‌شود">
+                            <span class="text-amber-700">✋ دستی</span>
+                            <span class="text-gray-400" dir="ltr" data-suggested-for="${r.id}" title="مقدار پیشنهادی فرمول">${r.suggestedOnlinePrice ? '≈' + fmtMoney(r.suggestedOnlinePrice) : ''}</span>
+                            ${pricingCanEdit ? `<button onclick="revertToFormula('${r.id}')" class="text-indigo-600 hover:underline" title="پرچم دستی برداشته و قیمت دوباره از فرمول محاسبه شود">بازگشت به فرمول</button>` : ''}
                         </div>` : ''}
                 </td>
                 <td class="p-2">${priceInput(r, 'partnerUnitPrice', r.partnerUnitPrice)}</td>
