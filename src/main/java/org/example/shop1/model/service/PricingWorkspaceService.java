@@ -73,10 +73,21 @@ public class PricingWorkspaceService {
      * عمداً دست نمی‌خورد و کارشناس در UI می‌بیند چقدر با فرمول فاصله دارد.
      */
     private void recalcOnlinePriceIfDerived(Product p, BigDecimal factor) {
-        if (Boolean.TRUE.equals(p.getPriceOverride())) return;
+        BigDecimal current = p.getOnlinePrice();
+        boolean empty = current == null || current.compareTo(BigDecimal.ZERO) <= 0;
+
+        // 🔴 پرچمِ دستی فقط از یک «تصمیمِ آگاهانه» محافظت می‌کند — و قیمتِ خالی تصمیم
+        // نیست. محصولی که قیمتِ سایتش خالی است اصلاً قیمتِ مشتری‌رو ندارد، پس وقتی
+        // کارشناس «فروش تعدادی» را وارد می‌کند باید همان‌جا از فرمول پر شود. پیش از
+        // این، اگر کسی قیمت را خالی کرده بود پرچمِ دستی روشن می‌ماند و محصول برای
+        // همیشه بی‌قیمت می‌ماند بی‌آنکه جایی هشدار بدهد.
+        if (Boolean.TRUE.equals(p.getPriceOverride()) && !empty) return;
 
         BigDecimal derived = derivedOnlinePrice(p, factor);
         if (derived == null) return;
+
+        // قیمت که از فرمول آمد، دیگر «دستی» نیست
+        if (empty) p.setPriceOverride(false);
 
         BigDecimal before = p.getOnlinePrice();
         if (before != null && before.compareTo(derived) == 0) return; // تغییری نکرده
@@ -260,11 +271,15 @@ public class PricingWorkspaceService {
     }
 
     /**
-     * فقط ADMIN می‌تواند قیمت‌ها را تغییر دهد؛ بقیهٔ نقش‌ها فقط مشاهده‌اند.
+     * ADMIN و کارشناسِ ارشد (PRICER) می‌توانند قیمت‌ها را تغییر دهند؛ کارشناسِ فروشِ
+     * و قیمت‌گذاری (SALES) و کارشناسِ فروش (SUPPORT) فقط مشاهده.
      * <p>
-     * این متد قبلاً مرزِ «فروش تعدادی» بود (تفاوتِ PRICER با SALES). حالا که نوشتنِ
-     * کلِ میزِ کار در SecurityConfig به ADMIN محدود شده، عملاً لایهٔ دوم است — ولی
-     * می‌ماند چون UI با همین تصمیم می‌گیرد کدام خانه قابلِ تایپ باشد.
+     * این متد قبلاً مرزِ «فروش تعدادی» بود و بعد به ADMIN محدود شد. حالا که مالک
+     * کارشناسِ ارشد را هم با «همان اختیارِ ادمین در میز» اضافه کرده، همین‌جا هم باز
+     * می‌شود — وگرنه SecurityConfig درخواست را رد نمی‌کرد ولی این لایه بی‌صدا
+     * ردش می‌کرد و کاربر فقط یک پیامِ گمراه‌کننده می‌دید.
+     * <p>
+     * UI هم با همین تصمیم می‌گیرد کدام خانه قابلِ تایپ باشد.
      */
     public boolean canEditPricerOnlyFields() {
         var auth = org.springframework.security.core.context.SecurityContextHolder
@@ -272,7 +287,7 @@ public class PricingWorkspaceService {
         if (auth == null) return false;
         return auth.getAuthorities().stream()
                 .map(Object::toString)
-                .anyMatch(r -> r.equals("ROLE_ADMIN"));
+                .anyMatch(r -> r.equals("ROLE_ADMIN") || r.equals("ROLE_PRICER"));
     }
 
     /** جهشِ مشکوک: بیش از ۱۰ برابر یا کمتر از یک‌دهم. مقدارِ قبلیِ خالی/صفر جهش حساب نمی‌شود. */

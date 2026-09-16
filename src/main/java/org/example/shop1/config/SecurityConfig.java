@@ -117,14 +117,17 @@ public class SecurityConfig {
                         // فاصله‌ی چرخشِ بنر هم خواندنی و عمومی است (CL.html این را می‌خواند)
                         .requestMatchers(HttpMethod.GET, "/api/v1/settings/banner-rotation-seconds").permitAll()
 
-                        // 🔒 نوشتنِ محصول فقط ADMIN — تصمیمِ صریحِ مالک: «یک رول داریم
-                        // اسمش ادمین است، فقط او بتواند تغییر بدهد، بقیه فقط ببینند».
+                        // 🔒 نوشتنِ محصول: ADMIN و کارشناسِ ارشد (PRICER) — همان چیزی که
+                        // از اول در توضیحِ خودِ نقشِ PRICER نوشته شده بود ولی در قاعده
+                        // اعمال نشده بود. مالک صریحاً خواست کارشناسِ ارشد بتواند از پنلِ
+                        // فروش محصول اضافه کند و کارتِ ناقص را کامل کند.
                         // خواندن (فهرستِ محصولاتِ پنل) در خطِ /products/admin/** بالاتر
-                        // برایِ PRICER هم باز مانده تا تب را ببیند.
+                        // برایِ PRICER از قبل باز بود تا تب را ببیند.
                         // جستجو (POST) عمومی می‌ماند چون فرانت با آن فیلتر می‌کند.
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/search").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAnyRole("ADMIN", "PRICER")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAnyRole("ADMIN", "PRICER")
+                        // ⚠️ حذف عمداً فقط ADMIN ماند: افزودن و اصلاح برگشت‌پذیرند، حذف نه.
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("ADMIN")
 
                         // بنرهایِ خانه — عمداً الگویِ landing-sections را کپی نکردم: آن مسیر
@@ -178,13 +181,15 @@ public class SecurityConfig {
                         // میزِ کار در حالتِ فقط-خواندنی کافی است.
                         .requestMatchers(HttpMethod.GET, "/api/v1/pricing/rows", "/api/v1/pricing/capabilities", "/api/v1/pricing/logs/products")
                                 .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
-                        // 🔒 نوشتن در میزِ کار فقط ADMIN — تصمیمِ صریحِ مالک: «یک رول داریم
-                        // اسمش ادمین است، فقط او بتواند تغییر بدهد، بقیه فقط ببینند».
+                        // 🔒 نوشتن در میزِ کار: ADMIN و کارشناسِ ارشد (PRICER).
+                        // تصمیمِ قبلیِ مالک «فقط ادمین بنویسد» بود؛ بعداً خودش کارشناسِ ارشد
+                        // را هم اضافه کرد و گفت «همان اختیارِ ادمین در میز». کارشناسِ فروشِ
+                        // و قیمت‌گذاری (SALES) و کارشناسِ فروش (SUPPORT) همچنان فقط مشاهده.
                         // خواندنِ ردیف‌ها/توانایی‌ها/لاگ در خطِ GETِ بالا برایِ هر چهار نقش
                         // باز است، پس میزِ کار را می‌بینند ولی ذخیره‌شان ۴۰۳ می‌گیرد — مرز
                         // سمتِ سرور است، نه فقط پنهان‌کردنِ دکمه در UI.
-                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/marketplace/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasAnyRole("ADMIN", "PRICER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/marketplace/**").hasAnyRole("ADMIN", "PRICER")
                         .requestMatchers("/api/v1/pricing/**").hasAnyRole("ADMIN", "PRICER", "SALES")
 
                         // Torob Product API — ترب خودش با JWTِ ed25519 احراز می‌شود، نه سشنِ ما.

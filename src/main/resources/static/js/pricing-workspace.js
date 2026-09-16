@@ -22,6 +22,9 @@
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
+                <button id="pricing-add-product" onclick="addProductFromPricing()"
+                        class="hidden px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold shadow"
+                        title="محصولِ تازه با همین مودالِ محصولات ساخته می‌شود">＋ افزودن محصول</button>
                 <button onclick="refreshAllDigikala()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold" title="فقط محصولاتی که قبلاً به دیجی‌کالا وصل شده‌اند">↻ به‌روزرسانی کف دیجی‌کالا</button>
                 <button onclick="exportPricingExcel()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold">⬇ خروجی اکسل</button>
                 <button id="pricing-save-btn" onclick="savePricingChanges()" disabled
@@ -48,6 +51,7 @@
                 <thead class="bg-gray-50 text-gray-500 text-[11px] sticky top-0 z-10">
                 <tr>
                     <th class="p-3">نام محصول</th>
+                    <th class="p-3" title="کارتِ همین محصول در فروشگاه">کارت</th>
                     <th class="p-3">قیمت سایت (تومان)</th>
                     <th class="p-3">همکار تک (تومان)</th>
                     <th class="p-3" title="قیمت عمده / خرید چندتایی">فروش تعدادی (تومان)</th>
@@ -175,10 +179,10 @@
             // کارشناسِ فروش باید بداند چرا خانه‌ها قابلِ تایپ نیستند، وگرنه فکر می‌کند خراب است
             const note = document.getElementById('pricing-readonly-note');
             if (!pricingCanEdit) {
-                note.innerText = 'شما دسترسی «فقط مشاهده» دارید؛ ویرایش قیمت‌ها فقط برای ادمین فعال است.';
+                note.innerText = 'شما دسترسی «فقط مشاهده» دارید؛ ویرایش قیمت‌ها برای ادمین و کارشناس ارشد فعال است.';
                 note.classList.remove('hidden');
             } else if (!canEditBulkPrice) {
-                note.innerText = 'ستون «فروش تعدادی» فقط توسط ادمین قابل تغییر است؛ بقیه ستون‌ها برای شما باز است.';
+                note.innerText = 'ستون «فروش تعدادی» فقط توسط ادمین و کارشناس ارشد قابل تغییر است؛ بقیه ستون‌ها برای شما باز است.';
                 note.classList.remove('hidden');
             } else {
                 note.classList.add('hidden');
@@ -188,6 +192,7 @@
             // در restrictPanelToPricingWorkspace هم انجام می‌داد؛ حالا هر دو میزبان.)
             const saveBtn = document.getElementById('pricing-save-btn');
             if (saveBtn) saveBtn.style.display = pricingCanEdit ? '' : 'none';
+            syncAddProductButton();
             renderPricingRows();
         } catch (err) {
             if (err.response && err.response.status === 403) {
@@ -242,6 +247,7 @@
         document.getElementById('pricing-body').innerHTML = rows.length ? rows.map(r => `
             <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''}">
                 <td class="p-2 font-medium text-gray-800">${escapeHTML(r.name || '')}</td>
+                <td class="p-2 whitespace-nowrap">${cardCell(r)}</td>
                 <td class="p-2">
                     ${priceInput(r, 'onlinePrice', r.onlinePrice)}
                     ${r.priceOverride ? `
@@ -279,7 +285,53 @@
                            onchange="onPricingFlag(this)" class="w-4 h-4">
                 </td>
             </tr>
-        `).join('') : '<tr><td colspan="11" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
+        `).join('') : '<tr><td colspan="12" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
+    }
+
+    /**
+     * لینکِ کارتِ فروشگاه، یا دکمهٔ تکمیلِ کارت.
+     * <p>
+     * 🔴 محصول همیشه با شناسه باز می‌شود، پس «کارت ندارد» یعنی کارتش برای مشتری
+     * خالی است، نه اینکه صفحه‌اش ۴۰۴ بدهد. ملاک همان سه چیزی است که مالک گفت:
+     * عکس، توضیحات، دستهٔ سایت. محصولی که از ورودِ دسته‌ایِ انبار آمده معمولاً هیچ‌کدام
+     * را ندارد و در فروشگاه کارتِ بی‌عکس و بی‌متن نشان می‌دهد.
+     */
+    function cardCell(r) {
+        const missing = r.cardMissing || [];
+        const href = '/shop/product/' + encodeURIComponent(r.slug || r.id);
+        const view = `<a href="${href}" target="_blank" rel="noopener"
+                         class="text-indigo-600 hover:underline shrink-0" title="بازکردنِ کارتِ محصول در فروشگاه">↗ کارت</a>`;
+        if (!missing.length) return view;
+
+        const why = 'این محصول ' + missing.join(' و ') + ' ندارد؛ کارتش در فروشگاه ناقص دیده می‌شود.';
+        const fix = pricingCanEdit
+            ? `<button onclick="completeProductCard('${r.id}')"
+                       class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 rounded px-1.5 py-1 shrink-0 hover:bg-amber-500 hover:text-white"
+                       title="${escapeHTML(why)}">✎ تکمیل کارت</button>`
+            : `<span class="text-[10px] text-amber-700" title="${escapeHTML(why)}">ناقص</span>`;
+        return `<div class="flex items-center gap-1">${view}${fix}</div>`;
+    }
+
+    /**
+     * هر دو دکمه همان مودالِ تبِ محصولات را باز می‌کنند، نه فرمِ دومی.
+     * <p>
+     * ⚠️ فرمِ جداگانه یعنی دو جا برای همان اعتبارسنجی و دو جا برای فراموش‌کردنِ یک
+     * فیلد. مودال در پنلِ فروش از قبل mount شده (برایِ ADMIN/PRICER)، پس فقط صدا
+     * زده می‌شود. بعد از ذخیره، ردیف‌های میز دوباره خوانده می‌شوند تا ستونِ کارت
+     * همان لحظه به‌روز شود.
+     */
+    function addProductFromPricing() {
+        if (typeof openProductModal !== 'function') {
+            return alert('تبِ محصولات هنوز آماده نیست؛ یک بار تبِ «محصولات» را باز کنید.');
+        }
+        openProductModal();
+    }
+
+    function completeProductCard(id) {
+        if (typeof editProduct !== 'function') {
+            return alert('تبِ محصولات هنوز آماده نیست؛ یک بار تبِ «محصولات» را باز کنید.');
+        }
+        editProduct(id);
     }
 
     function onPricingEdit(input) {
@@ -540,6 +592,12 @@
         }
     }
 
+    /** دکمهٔ «افزودن محصول» فقط برایِ نقشی که حقِ نوشتنِ محصول دارد. */
+    function syncAddProductButton() {
+        const btn = document.getElementById('pricing-add-product');
+        if (btn) btn.classList.toggle('hidden', !pricingCanEdit);
+    }
+
     function updatePricingDirtyUi() {
         document.getElementById('pricing-dirty-count').innerText = pricingDirty.size;
         document.getElementById('pricing-save-btn').disabled = pricingDirty.size === 0;
@@ -675,7 +733,8 @@
     fetchPricingRows, renderPricingRows, onPricingEdit, onPricingFlag,
     savePricingChanges, exportPricingExcel, revertToFormula,
     findDigikala, refreshDigikala, openTorobSearch, refreshAllDigikala,
-    daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace
+    daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace,
+    addProductFromPricing, completeProductCard
   });
   // میزبان (Admin.html) بعد از تشخیصِ نقش این را ست می‌کند
   Object.defineProperty(window, 'pricingCanEdit', {

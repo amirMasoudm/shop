@@ -3,6 +3,8 @@ package org.example.shop1.model.dto;
 import org.example.shop1.model.entity.Product;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * یک ردیفِ میزِ کارِ قیمت‌گذاری — نمایِ داخلی (فقط برایِ ADMIN/PRICER/SALES).
@@ -45,6 +47,19 @@ public class PricingRowDto {
     /** مقدارِ پیشنهادیِ فرمول — تا کارشناس ببیند قیمتِ دستی چقدر از فرمول عقب افتاده. */
     private final BigDecimal suggestedOnlinePrice;
 
+    /** آدرسِ اختصاصیِ محصول در فروشگاه؛ خالی یعنی فقط با شناسه باز می‌شود. */
+    private final String slug;
+
+    /**
+     * چه چیزی برای «کارتِ فروشگاه» کم دارد — خالی یعنی کارتش کامل است.
+     * <p>
+     * 🔴 محصول همیشه با شناسه باز می‌شود، پس «کارت ندارد» یعنی <b>کارتِ درست‌وحسابی
+     * ندارد</b>، نه اینکه صفحه‌اش ۴۰۴ بدهد. ملاک همان سه چیزی است که مشتری در کارت
+     * می‌بیند: عکس، توضیحات، و دستهٔ سایت. محصولی که از ورودِ دسته‌ایِ انبار آمده
+     * معمولاً هر سه را ندارد و در فروشگاه کارتِ خالی نشان می‌دهد.
+     */
+    private final List<String> cardMissing;
+
     public PricingRowDto(Product p) {
         this(p, null);
     }
@@ -73,6 +88,17 @@ public class PricingRowDto {
         this.floorPriceCheckedAt = p.getFloorPriceCheckedAt() == null ? null : p.getFloorPriceCheckedAt().toString();
         this.floorPriceCheckedBy = p.getFloorPriceCheckedBy();
         this.pushSaleFlag = p.getPushSaleFlag();
+        this.slug = p.getSlug();
+
+        List<String> missing = new ArrayList<>(3);
+        if (p.getImages() == null || p.getImages().isEmpty()) missing.add("عکس");
+        if (isBlank(p.getDescription())) missing.add("توضیحات");
+        if (isBlank(p.getCategoryId())) missing.add("دستهٔ سایت");
+        this.cardMissing = List.copyOf(missing);
+    }
+
+    private static boolean isBlank(String v) {
+        return v == null || v.trim().isEmpty();
     }
 
     public static PricingRowDto of(Product p) { return new PricingRowDto(p); }
@@ -104,4 +130,6 @@ public class PricingRowDto {
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
     public Boolean getPriceOverride() { return priceOverride; }
     public BigDecimal getSuggestedOnlinePrice() { return suggestedOnlinePrice; }
+    public String getSlug() { return slug; }
+    public List<String> getCardMissing() { return cardMissing; }
 }

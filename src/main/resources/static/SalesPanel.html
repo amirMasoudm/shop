@@ -189,12 +189,14 @@
             const isSupport = roles.includes('ROLE_SUPPORT');
             const hasPricing = isAdmin || isPricer || roles.includes('ROLE_SALES') || isSupport;
             const hasProducts = isAdmin || isPricer;
+            let firstProductsRefresh = true;
 
             if (hasPricing) {
-                // 🔒 فقط ADMIN ویرایش دارد؛ PRICER/SALES/SUPPORT فقط مشاهده. ماژول با
-                // pricingCanEdit=false دکمه‌ی ذخیره را قایم و پیامِ «فقط مشاهده» را
-                // نشان می‌دهد. مرزِ واقعی سمتِ سرور است (POSTهایِ /v1/pricing فقط ADMIN).
-                window.pricingCanEdit = isAdmin;
+                // 🔒 ADMIN و کارشناسِ ارشد (PRICER) ویرایش دارند؛ SALES و SUPPORT فقط
+                // مشاهده. ماژول با pricingCanEdit=false دکمه‌ی ذخیره را قایم و پیامِ
+                // «فقط مشاهده» را نشان می‌دهد. مرزِ واقعی سمتِ سرور است
+                // (POSTهایِ /v1/pricing برایِ همین دو نقش باز است، نه بیشتر).
+                window.pricingCanEdit = isAdmin || isPricer;
 
                 PricingWorkspace.mountWorkspace(document.getElementById('tab-pricing'));
                 // پنلِ فروش: لاگِ فقط-محصولات (رویدادهایِ مدیریتی دیده نشود)
@@ -208,8 +210,21 @@
 
             if (hasProducts) {
                 document.getElementById('tabbtn-products').classList.remove('hidden');
+                // ⚠️ mount اینجا و بی‌قیدوشرط انجام می‌شود، نه با بازکردنِ تب: دکمه‌های
+                // «افزودن محصول» و «تکمیل کارت» در میزِ کار همین مودال را صدا می‌زنند،
+                // پس باید از همان اول در صفحه باشد.
                 await ProductsTab.mount(document.getElementById('tab-products'),
-                        document.getElementById('productModalMount'), {canEdit: isAdmin});
+                        document.getElementById('productModalMount'), {
+                            canEdit: isAdmin || isPricer,
+                            // بعد از ذخیرهٔ محصول، ستونِ «کارت» در میزِ کار باید همان
+                            // لحظه به‌روز شود، وگرنه کارشناس فکر می‌کند ذخیره نشده.
+                            // ⚠️ بارِ اول رد می‌شود: خودِ mount یک refresh می‌زند و
+                            // window.onload هم جدا fetchPricingRows را صدا می‌کند.
+                            onRefreshed: () => {
+                                if (firstProductsRefresh) { firstProductsRefresh = false; return; }
+                                if (hasPricing) fetchPricingRows();
+                            }
+                        });
             }
 
             if (!hasPricing && hasProducts) {
