@@ -38,8 +38,8 @@
             host.innerHTML = SHELL;
             const to = new Date();
             const from = new Date(to.getTime() - 29 * 86400000);
-            host.querySelector('[data-from]').value = iso(from);
-            host.querySelector('[data-to]').value = iso(to);
+            setDateField('[data-from]', iso(from));
+            setDateField('[data-to]', iso(to));
             host.querySelectorAll('[data-view-btn]').forEach(b =>
                 b.addEventListener('click', () => showView(b.getAttribute('data-view-btn'))));
             host.querySelector('[data-reload]').addEventListener('click', reloadActive);
@@ -68,10 +68,37 @@
     let lastJourney = null;
 
     function iso(d) { return d.toISOString().slice(0, 10); }
+
+    /**
+     * فیلدهای تاریخ شمسی‌اند ولی API میلادی می‌خواهد.
+     * <p>
+     * ⚠️ {@code <input type="date">} همیشه میلادی است و هیچ راهی برای شمسی‌کردنش
+     * نیست — برای همین به ورودیِ متنی تبدیل شد. اگر کاربر چیزی نوشت که خوانده
+     * نشد، به‌جای فرستادنِ مقدارِ خراب به سرور، آخرین مقدارِ معتبر برمی‌گردد.
+     */
+    function setDateField(selector, isoValue) {
+        const el = host.querySelector(selector);
+        el.value = DnJalali.isoToJalali(isoValue);
+        el.dataset.iso = isoValue;
+    }
+
+    function readDateField(selector) {
+        const el = host.querySelector(selector);
+        const parsed = DnJalali.jalaliToIso(el.value);
+        if (parsed) {
+            el.dataset.iso = parsed;
+            el.classList.remove('border-red-400', 'bg-red-50');
+        } else {
+            // تاریخِ ناخوانا: خودِ فیلد قرمز می‌شود ولی گزارش با آخرین مقدارِ درست می‌ماند
+            el.classList.add('border-red-400', 'bg-red-50');
+        }
+        return el.dataset.iso;
+    }
+
     function range() {
         return {
-            from: host.querySelector('[data-from]').value,
-            to: host.querySelector('[data-to]').value
+            from: readDateField('[data-from]'),
+            to: readDateField('[data-to]')
         };
     }
 
@@ -149,8 +176,9 @@
             await postJson(`${API}/rollup?date=${today}`);
             // بازهٔ نمایش تا امروز کشیده شود، وگرنه جمع‌بندیِ تازه بیرونِ بازه می‌ماند
             // و کاربر باز هم چیزی نمی‌بیند — همان حسِ «کار نکرد».
-            if (host.querySelector('[data-to]').value < today) {
-                host.querySelector('[data-to]').value = today;
+            // ⚠️ مقایسه روی مقدارِ میلادیِ ذخیره‌شده است، نه روی متنِ شمسیِ فیلد.
+            if ((host.querySelector('[data-to]').dataset.iso || '') < today) {
+                setDateField('[data-to]', today);
             }
             await load();
         } catch (e) {
@@ -336,6 +364,34 @@
     }
 
     /**
+     * منبعِ همین بازدید، به‌علاوهٔ نامِ کارزار اگر داشته باشد.
+     * <p>
+     * بدونِ این ستون، لینکِ کارزاری که در مرورگرِ «قبلاً آمده» باز شود، در این جدول
+     * اثری نداشت و به‌نظر می‌رسید اصلاً ثبت نشده — در حالی که رویدادهایش درست
+     * نوشته شده بودند.
+     */
+    function lastSourceCell(v) {
+        const wrap = document.createElement('div');
+        const label = CHANNEL_LABELS[v.lastChannel] || (v.lastChannel ? String(v.lastChannel) : null);
+        if (!label) {
+            wrap.textContent = '—';
+            return wrap;
+        }
+        const top = document.createElement('div');
+        top.textContent = label;
+        wrap.appendChild(top);
+        if (v.lastCampaign) {
+            const camp = document.createElement('div');
+            camp.className = 'text-[10px] text-indigo-600 whitespace-nowrap';
+            camp.dir = 'ltr';
+            camp.style.cssText = 'unicode-bidi:isolate;direction:ltr;text-align:right;';
+            camp.textContent = v.lastCampaign;          // ← textContent، نه innerHTML
+            wrap.appendChild(camp);
+        }
+        return wrap;
+    }
+
+    /**
      * ستونِ «فعالیت ثبت‌شده در آرشیو».
      * <p>رویدادهای خامِ این بخش دیگر در دیتابیس نیستند؛ این عددها موقعِ آرشیو روی
      * خودِ سندِ بازدیدکننده ثبت شده‌اند و تنها ردِ باقی‌مانده از آن دوره‌اند.
@@ -381,19 +437,23 @@
 
         box.innerHTML = '';
         const table = tableEl(
-            ['شناسه', 'کاربر', 'آخرین حضور', 'اولین منبع', 'بازدید', 'مشاهدهٔ محصول', 'سفارش',
+            ['شناسه', 'کاربر', 'آخرین حضور', 'اولین منبع', 'آخرین منبع', 'بازدید', 'مشاهدهٔ محصول', 'سفارش',
                 'فعالیت ثبت‌شده در آرشیو', ''],
             rows.map(v => [
                 String(v._id || '').slice(0, 8),
                 v.userId ? 'شناخته‌شده' : 'ناشناس',
                 faDate(v.lastSeenAt) || '—',
                 (v.firstTouch && CHANNEL_LABELS[v.firstTouch.channel]) || '—',
+                {node: lastSourceCell(v)},
                 v.visits, v.productViews, v.orders,
                 {node: archivedCell(v)},
                 {button: 'سفر', anonId: v._id, userId: v.userId}
             ]));
         box.appendChild(section('بازدیدکنندگان', table,
-            'سه ستونِ «بازدید»، «مشاهدهٔ محصول» و «سفارش» جمعِ کلِ عمرِ آن شناسه‌اند — '
+            'ستونِ «اولین منبع» هرگز عوض نمی‌شود — انتساب به همان چیزی می‌ماند که این آدم را '
+            + 'اولین‌بار آورد. «آخرین منبع» می‌گوید این بار از کجا آمده؛ پس بازدیدکننده‌ای که '
+            + 'قبلاً مستقیم آمده و حالا روی لینکِ کارزار کلیک کرده، در هر دو ستون درست دیده می‌شود. '
+            + 'سه ستونِ «بازدید»، «مشاهدهٔ محصول» و «سفارش» جمعِ کلِ عمرِ آن شناسه‌اند — '
             + 'هم دادهٔ زنده و هم آن‌چه آرشیو شده. ستونِ آخر می‌گوید چه مقدارش از آرشیو می‌آید؛ '
             + 'رویدادِ خامِ آن بخش دیگر در دیتابیس نیست و فقط در فایلِ آرشیو هست، '
             + 'پس در «سفرِ کاربر» دیده نمی‌شود.'));
@@ -938,8 +998,10 @@
                 </p>
             </div>
             <div class="flex flex-wrap gap-2 items-center">
-                <input type="date" data-from class="p-2 border rounded-lg text-sm">
-                <input type="date" data-to class="p-2 border rounded-lg text-sm">
+                <input type="text" data-from inputmode="numeric" placeholder="از ۱۴۰۵/۰۶/۲۵"
+                       class="p-2 border rounded-lg text-sm w-32 text-center" dir="ltr">
+                <input type="text" data-to inputmode="numeric" placeholder="تا ۱۴۰۵/۰۷/۲۴"
+                       class="p-2 border rounded-lg text-sm w-32 text-center" dir="ltr">
                 <button data-reload class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">نمایش</button>
                 <button data-rollup-today class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 text-sm font-bold hover:bg-indigo-50">جمع‌بندیِ امروز را بساز</button>
             </div>
@@ -1007,8 +1069,10 @@
                     <select data-c-medium class="p-2 border rounded-lg bg-white"></select>
                     <input data-c-landing value="/shop" placeholder="مسیرِ مقصد — مثلاً /shop"
                            class="p-2 border rounded-lg" dir="ltr">
-                    <input data-c-term placeholder="term (اختیاری)" class="p-2 border rounded-lg" dir="ltr">
-                    <input data-c-content placeholder="content (اختیاری)" class="p-2 border rounded-lg" dir="ltr">
+                    <input data-c-term placeholder="عبارتِ کلیدی — اختیاری" class="p-2 border rounded-lg"
+                           title="utm_term — فقط برای تبلیغاتِ کلیدواژه‌ای. اگر روی یک کلمه تبلیغ می‌کنید، همان کلمه را اینجا بگذارید تا بعداً بدانید کدام کلمه فروش آورده." dir="ltr">
+                    <input data-c-content placeholder="نسخهٔ آگهی — اختیاری" class="p-2 border rounded-lg"
+                           title="utm_content — وقتی یک کارزار چند نسخه دارد (بنرِ آبی و بنرِ قرمز، یا پستِ اول و دوم). برای هرکدام یک لینکِ جدا بسازید تا معلوم شود کدام بهتر جواب داده." dir="ltr">
                     <input data-c-cost type="number" min="0" placeholder="هزینه به ریال (اختیاری)"
                            class="p-2 border rounded-lg" dir="ltr">
                 </div>
@@ -1016,6 +1080,9 @@
                     منبع و رسانه از فهرستِ بسته انتخاب می‌شوند تا یک کارزار در گزارش به چند تا تقسیم نشود.
                     مقصد باید مسیرِ داخلیِ سایتِ خودمان باشد و با «/» شروع شود؛ نشانیِ کامل پذیرفته نمی‌شود.
                     هزینه را بگذارید تا ستونِ «هزینه به‌ازای هر سفارش» معنا پیدا کند.
+                    <b>دو فیلدِ اختیاری</b> فقط وقتی به کار می‌آیند که بخواهید <i>درونِ</i> یک کارزار هم تفکیک
+                    ببینید: «عبارتِ کلیدی» برای تبلیغِ روی یک کلمه، و «نسخهٔ آگهی» وقتی یک کارزار چند بنر یا
+                    چند پست دارد و می‌خواهید بدانید کدام‌شان فروش آورده. اگر چنین چیزی ندارید، خالی بگذارید.
                 </p>
                 <button data-c-save class="mt-3 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">
                     ثبت و ساختِ لینک

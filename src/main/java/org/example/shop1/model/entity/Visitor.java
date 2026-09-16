@@ -114,6 +114,20 @@ public class Visitor {
     private String lastCity;
     private Device lastDevice;
 
+    /**
+     * منبعِ <b>آخرین</b> بازدید — در کنارِ {@link #firstTouch}، نه به‌جایش.
+     * <p>
+     * 🔴 چرا لازم شد: {@code firstTouch} عمداً هرگز بازنویسی نمی‌شود، و همین درست
+     * است. ولی نتیجه‌اش این بود که وقتی مالک لینکِ کارزار را در مرورگری باز کرد که
+     * قبلاً به سایت آمده بود، ردیفِ آن بازدیدکننده در نمای «کاربران» همچنان «مستقیم»
+     * نشان می‌داد — رویدادها درست ثبت شده بودند ولی در آن جدول پیدا نبودند و به‌نظر
+     * می‌رسید کارزار اصلاً لاگ نمی‌شود.
+     * <p>
+     * پس اولین منبع برای انتساب می‌ماند، و این یکی می‌گوید «این بار از کجا آمد».
+     */
+    private Channel lastChannel;
+    private String lastCampaign;
+
     /** {@code null} تا وقتی هیچ رویدادی از این شناسه آرشیو نشده باشد. */
     private Archived archived;
 
@@ -137,6 +151,12 @@ public class Visitor {
 
     public Device getLastDevice() { return lastDevice; }
     public void setLastDevice(Device lastDevice) { this.lastDevice = lastDevice; }
+
+    public Channel getLastChannel() { return lastChannel; }
+    public void setLastChannel(Channel lastChannel) { this.lastChannel = lastChannel; }
+
+    public String getLastCampaign() { return lastCampaign; }
+    public void setLastCampaign(String lastCampaign) { this.lastCampaign = lastCampaign; }
 
     public Archived getArchived() { return archived; }
     public void setArchived(Archived archived) { this.archived = archived; }

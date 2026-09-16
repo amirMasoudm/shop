@@ -157,7 +157,11 @@ public class UserEventRecorder {
                 .setOnInsert("firstSeenAt", Instant.now())
                 .setOnInsert("firstTouch", firstTouch)
                 .set("lastSeenAt", Instant.now())
-                .set("lastDevice", ctx.device());
+                .set("lastDevice", ctx.device())
+                // اولین منبع دست‌نخورده می‌ماند؛ این یکی هر بار به‌روز می‌شود تا در
+                // نمای «کاربران» معلوم باشد این بازدید از کجا آمده.
+                .set("lastChannel", ctx.channel() == null ? Channel.DIRECT : ctx.channel())
+                .set("lastCampaign", ctx.campaign());
         if (ctx.city() != null) update.set("lastCity", ctx.city());
 
         String userId = currentUserId();

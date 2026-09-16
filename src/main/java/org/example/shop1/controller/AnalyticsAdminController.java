@@ -205,6 +205,12 @@ public class AnalyticsAdminController {
             // 🔴 شمارشِ زنده به‌تنهایی بعد از اولین آرشیو صفر می‌شد و کلِ ستون «انگار
             // هیچ‌کس هیچ‌وقت نیامده» را نشان می‌داد. سه ستونِ اصلی حالا جمعِ زنده و
             // آرشیوند، و سهمِ آرشیو جدا هم برمی‌گردد تا پنل بتواند بگوید از کجا آمده.
+            // «اولین منبع» برای انتساب است و هرگز عوض نمی‌شود؛ این یکی می‌گوید همین
+            // بازدیدکننده «این بار» از کجا آمد. بی‌این ستون، کسی که قبلاً مستقیم آمده
+            // و حالا روی لینکِ کارزار کلیک کرده، در این جدول همچنان «مستقیم» بود.
+            row.put("lastChannel", d.get("lastChannel"));
+            row.put("lastCampaign", d.get("lastCampaign"));
+
             Document archived = (Document) row.remove("archived");
             row.put("visits", liveVisits + num(archived, "visits"));
             row.put("productViews", liveProductViews + num(archived, "productViews"));
