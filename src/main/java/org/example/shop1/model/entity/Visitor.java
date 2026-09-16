@@ -128,6 +128,15 @@ public class Visitor {
     private Channel lastChannel;
     private String lastCampaign;
 
+    /**
+     * دامنهٔ ارجاع‌دهندهٔ آخرین بازدید — مثلاً {@code torob.com} یا {@code emalls.ir}.
+     * <p>
+     * 🔴 کانال عمداً درشت است ({@code MARKETPLACE})، ولی «کدام بازارگاه» تصمیمِ
+     * متفاوتی می‌سازد: ترب فیدِ هزینه‌دار دارد و دیجی‌کالا کمیسیون. بدونِ این فیلد
+     * هر سه زیرِ یک برچسبِ «بازارگاه» گم می‌شدند.
+     */
+    private String lastReferrerHost;
+
     /** {@code null} تا وقتی هیچ رویدادی از این شناسه آرشیو نشده باشد. */
     private Archived archived;
 
@@ -157,6 +166,9 @@ public class Visitor {
 
     public String getLastCampaign() { return lastCampaign; }
     public void setLastCampaign(String lastCampaign) { this.lastCampaign = lastCampaign; }
+
+    public String getLastReferrerHost() { return lastReferrerHost; }
+    public void setLastReferrerHost(String lastReferrerHost) { this.lastReferrerHost = lastReferrerHost; }
 
     public Archived getArchived() { return archived; }
     public void setArchived(Archived archived) { this.archived = archived; }

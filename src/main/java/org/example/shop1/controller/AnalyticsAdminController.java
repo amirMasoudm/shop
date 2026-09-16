@@ -231,6 +231,7 @@ public class AnalyticsAdminController {
             // بازدیدکننده «این بار» از کجا آمد. بی‌این ستون، کسی که قبلاً مستقیم آمده
             // و حالا روی لینکِ کارزار کلیک کرده، در این جدول همچنان «مستقیم» بود.
             row.put("lastChannel", d.get("lastChannel"));
+            row.put("lastReferrerHost", d.get("lastReferrerHost"));
             Object lastCampaign = d.get("lastCampaign");
             row.put("lastCampaign", lastCampaign);
             // 🔴 اسلاگ کلیدِ ماشین است، نه چیزی که آدم می‌شناسد. در پنل باید همان نامی

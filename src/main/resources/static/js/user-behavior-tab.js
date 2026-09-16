@@ -28,6 +28,27 @@
     };
     const DEVICE_LABELS = {MOBILE: 'موبایل', DESKTOP: 'دسکتاپ', TABLET: 'تبلت'};
 
+    /**
+     * نامِ فارسیِ دامنه‌های پرتکرار. فهرست عمداً کوتاه است و هر دامنهٔ ناشناخته
+     * خودش نشان داده می‌شود — نه «سایرین»، چون همان دامنهٔ ناشناخته ممکن است
+     * جایی باشد که تازه دارد ترافیک می‌فرستد و باید دیده شود.
+     */
+    const REFERRER_LABELS = {
+        'torob.com': 'ترب', 'emalls.ir': 'ایمالز', 'digikala.com': 'دیجی‌کالا',
+        'basalam.com': 'باسلام', 'google.com': 'گوگل', 'bing.com': 'بینگ',
+        'instagram.com': 'اینستاگرام', 't.me': 'تلگرام', 'telegram.me': 'تلگرام',
+        'aparat.com': 'آپارات', 'linkedin.com': 'لینکدین'
+    };
+
+    function referrerLabel(host) {
+        if (!host) return null;
+        const h = String(host).toLowerCase().replace(/^www\./, '');
+        if (REFERRER_LABELS[h]) return REFERRER_LABELS[h];
+        // زیردامنه‌ها هم به همان برچسب برسند (mail.google.com → گوگل)
+        const hit = Object.keys(REFERRER_LABELS).find(k => h === k || h.endsWith('.' + k));
+        return hit ? REFERRER_LABELS[hit] : h;
+    }
+
     let host = null;
     let mounted = false;
     let stats = [];
@@ -302,6 +323,7 @@
         if (!stats.length) return emptyNote(box, 'برای این بازه داده‌ای نیست.');
 
         const byChannel = {};
+        const byReferrer = {};
         const byCity = {};
         const byDevice = {};
         stats.forEach(s => {
@@ -310,6 +332,8 @@
                 t.visits += v.visits || 0; t.productViews += v.productViews || 0;
                 t.addToCart += v.addToCart || 0; t.orders += v.orders || 0;
             });
+            // فهرست است نه شیء — کلیدِ Map در مونگو نقطه نمی‌پذیرد و دامنه‌ها نقطه دارند
+            (s.byReferrer || []).forEach(r => byReferrer[r.host] = (byReferrer[r.host] || 0) + (r.visits || 0));
             Object.entries(s.byCity || {}).forEach(([k, v]) => byCity[k] = (byCity[k] || 0) + v);
             Object.entries(s.byDevice || {}).forEach(([k, v]) => byDevice[k] = (byDevice[k] || 0) + v);
         });
@@ -326,6 +350,15 @@
             ]);
         box.appendChild(section('کانالِ ورود',
             tableEl(['کانال', 'بازدید', 'مشاهدهٔ محصول', 'سبد', 'سفارش', 'نرخِ تبدیل'], chRows)));
+
+        // «بازارگاه» به‌تنهایی تصمیم‌ساز نیست: ترب فیدِ هزینه‌دار دارد و دیجی‌کالا
+        // کمیسیون، پس باید جدا دیده شوند.
+        const refRows = Object.entries(byReferrer).sort((a, b) => b[1] - a[1]).slice(0, 40)
+            .map(([k, v]) => [referrerLabel(k), k, v]);
+        box.appendChild(section('از کدام سایت آمدند', tableEl(['سایت', 'دامنه', 'بازدید'], refRows),
+            'مرورگرِ داخلیِ تلگرام و اینستاگرام معمولاً ارجاع نمی‌فرستند، پس بازدیدهای آن‌ها اینجا '
+            + 'نمی‌آیند و در کانال زیرِ «مستقیم / نامعلوم» می‌نشینند. لینکِ کوتاهِ کارزار دقیقاً همین '
+            + 'را حل می‌کند، چون انتساب را سمتِ سرور ثبت می‌کند و به ارجاع کاری ندارد.'));
 
         const cityRows = Object.entries(byCity).sort((a, b) => b[1] - a[1]).slice(0, 30);
         box.appendChild(section('شهرها (تقریبی)',
@@ -387,7 +420,12 @@
         wrap.title = 'منبعِ همین بازدید. تا پایانِ بازدید ثابت می‌ماند، حتی اگر وسطش '
             + 'سایت را مستقیم باز کند — وگرنه اعتبارِ کارزار با اولین بازکردنِ دستیِ آدرس پاک می‌شد.';
         const top = document.createElement('div');
-        top.textContent = label;
+        // کانال درشت است؛ دامنه دقیقاً می‌گوید کدام بازارگاه یا کدام موتورِ جست‌وجو
+        const site = referrerLabel(v.lastReferrerHost);
+        // وقتی خودِ سایت معلوم است، توضیحِ داخلِ پرانتزِ برچسبِ کانال («ترب و مشابه»،
+        // «نامعلوم») اضافه و گیج‌کننده می‌شود: «بازارگاه (ترب و مشابه) — دیجی‌کالا».
+        top.textContent = site ? label.replace(/\s*\(.*?\)/, '') + ' — ' + site : label;
+        if (v.lastReferrerHost) top.title = v.lastReferrerHost;
         wrap.appendChild(top);
         if (v.lastCampaign) {
             // نامی که خودِ کاربر نوشته، نه اسلاگِ خودکار. اسلاگ به تولتیپ می‌رود چون

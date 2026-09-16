@@ -135,6 +135,25 @@ public class DailyStats {
         public void setOrders(int orders) { this.orders = orders; }
     }
 
+    /** یک دامنهٔ ارجاع‌دهنده و تعدادِ بازدیدی که آورده. */
+    public static class ReferrerStat {
+        private String host;
+        private int visits;
+
+        public ReferrerStat() {}
+
+        public ReferrerStat(String host, int visits) {
+            this.host = host;
+            this.visits = visits;
+        }
+
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+
+        public int getVisits() { return visits; }
+        public void setVisits(int visits) { this.visits = visits; }
+    }
+
     /** تاریخِ روز به قالبِ {@code YYYY-MM-DD} — همین کلید، بازاجرای جاب را idempotent می‌کند. */
     @Id
     private String id;
@@ -147,6 +166,18 @@ public class DailyStats {
     private Map<String, ChannelStats> byChannel = new LinkedHashMap<>();
     /** کلید همان {@code slug}ِ کارزار است — همان چیزی که در {@code utm_campaign} می‌رود. */
     private Map<String, CampaignStats> byCampaign = new LinkedHashMap<>();
+    /**
+     * بازدید به تفکیکِ دامنهٔ ارجاع‌دهنده — {@code torob.com}، {@code google.com}، …
+     * <p>
+     * در کنارِ {@link #byChannel} می‌نشیند نه به‌جایش: کانال برای تصمیمِ کلان است و
+     * این برای تصمیمِ ریز. «بازارگاه ۲۰۰ بازدید آورد» کارِ زیادی نمی‌شود کرد؛
+     * «ترب ۱۸۰ و ایمالز ۲۰» مشخص می‌کند بودجه کجا برود.
+     * <p>
+     * 🔴 <b>فهرست است نه Map، و این عمدی است:</b> کلیدِ Map در مونگو نمی‌تواند نقطه
+     * داشته باشد و هر دامنه‌ای نقطه دارد. با Map، ذخیرهٔ کلِ جمع‌بندیِ روز شکست
+     * می‌خورد — یعنی یک دامنهٔ ارجاع‌دهنده کافی بود تا جابِ شبانه هیچ آماری ننویسد.
+     */
+    private List<ReferrerStat> byReferrer = List.of();
     private Map<String, Integer> byCity = new LinkedHashMap<>();
     private Map<String, Integer> byDevice = new LinkedHashMap<>();
 
@@ -157,6 +188,9 @@ public class DailyStats {
     private Funnel funnel = new Funnel();
 
     private Instant computedAt = Instant.now();
+
+    public List<ReferrerStat> getByReferrer() { return byReferrer; }
+    public void setByReferrer(List<ReferrerStat> byReferrer) { this.byReferrer = byReferrer; }
 
     public Map<String, CampaignStats> getByCampaign() { return byCampaign; }
     public void setByCampaign(Map<String, CampaignStats> byCampaign) { this.byCampaign = byCampaign; }

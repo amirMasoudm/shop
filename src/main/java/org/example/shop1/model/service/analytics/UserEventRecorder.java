@@ -161,7 +161,10 @@ public class UserEventRecorder {
                 // اولین منبع دست‌نخورده می‌ماند؛ این یکی هر بار به‌روز می‌شود تا در
                 // نمای «کاربران» معلوم باشد این بازدید از کجا آمده.
                 .set("lastChannel", ctx.channel() == null ? Channel.DIRECT : ctx.channel())
-                .set("lastCampaign", ctx.campaign());
+                .set("lastCampaign", ctx.campaign())
+                // «کدام بازارگاه/سایت» — کانال به‌تنهایی ترب و ایمالز و دیجی‌کالا را
+                // زیرِ یک برچسب گم می‌کرد.
+                .set("lastReferrerHost", source.referrerHost());
         if (ctx.city() != null) update.set("lastCity", ctx.city());
 
         String userId = currentUserId();

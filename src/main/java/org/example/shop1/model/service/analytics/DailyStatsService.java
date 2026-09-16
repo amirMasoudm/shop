@@ -81,6 +81,7 @@ public class DailyStatsService {
 
         stats.setByChannel(channelBreakdown(from, to));
         stats.setByCampaign(campaignBreakdown(from, to));
+        stats.setByReferrer(referrerBreakdown(from, to));
         stats.setTopProducts(topProducts(from, to));
         fillSearches(stats, from, to);
 
@@ -151,6 +152,37 @@ public class DailyStatsService {
             cs.setAddToCart(intOf(d, "addToCart"));
             cs.setOrders(intOf(d, "orders"));
             out.put(String.valueOf(key), cs);
+        }
+        return out;
+    }
+
+    /**
+     * بازدید به تفکیکِ دامنهٔ ارجاع‌دهنده.
+     * <p>
+     * فقط روی {@code SESSION_START} شمرده می‌شود، چون بستهٔ منبعِ ورود فقط همان‌جا
+     * می‌نشیند — و همان هم درست است: ارجاع‌دهنده خاصیتِ <b>شروعِ</b> بازدید است، نه
+     * خاصیتِ تک‌تکِ صفحه‌هایی که بعدش دیده می‌شود.
+     * <p>
+     * 🔴 چرا لازم شد: {@code byChannel} ترب و ایمالز و دیجی‌کالا را زیرِ یک برچسبِ
+     * «بازارگاه» جمع می‌کرد، در حالی که هزینه و کمیسیونشان فرق دارد و تصمیمِ
+     * بودجه دقیقاً همین‌جا گرفته می‌شود.
+     */
+    private List<DailyStats.ReferrerStat> referrerBreakdown(Instant from, Instant to) {
+        Document match = range(from, to);
+        match.append("type", EventType.SESSION_START.name());
+        match.append("props.referrerHost", new Document("$nin", java.util.Arrays.asList(null, "")));
+
+        List<Document> pipeline = List.of(
+                new Document("$match", match),
+                new Document("$group", new Document("_id", "$props.referrerHost")
+                        .append("n", new Document("$sum", 1))),
+                new Document("$sort", new Document("n", -1)));
+
+        List<DailyStats.ReferrerStat> out = new ArrayList<>();
+        for (Document d : aggregate(pipeline)) {
+            Object key = d.get("_id");
+            if (key == null) continue;
+            out.add(new DailyStats.ReferrerStat(String.valueOf(key), intOf(d, "n")));
         }
         return out;
     }
