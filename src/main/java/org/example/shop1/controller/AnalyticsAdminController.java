@@ -55,6 +55,7 @@ public class AnalyticsAdminController {
     private final DailyStatsService dailyStatsService;
     private final AnalyticsArchiveRepository archiveRepo;
     private final CampaignRepository campaignRepo;
+    private final org.example.shop1.config.AnalyticsProperties analyticsProps;
     private final AnalyticsRetentionService retention;
     private final VisitorRepository visitorRepo;
     private final ActivityLogService activityLog;
@@ -63,6 +64,7 @@ public class AnalyticsAdminController {
                                     DailyStatsService dailyStatsService,
                                     AnalyticsArchiveRepository archiveRepo,
                                     CampaignRepository campaignRepo,
+                                    org.example.shop1.config.AnalyticsProperties analyticsProps,
                                     AnalyticsRetentionService retention,
                                     VisitorRepository visitorRepo,
                                     ActivityLogService activityLog) {
@@ -71,6 +73,7 @@ public class AnalyticsAdminController {
         this.dailyStatsService = dailyStatsService;
         this.archiveRepo = archiveRepo;
         this.campaignRepo = campaignRepo;
+        this.analyticsProps = analyticsProps;
         this.retention = retention;
         this.visitorRepo = visitorRepo;
         this.activityLog = activityLog;
@@ -87,6 +90,18 @@ public class AnalyticsAdminController {
     @GetMapping("/overview")
     public ResponseEntity<List<DailyStats>> overview(@RequestParam String from, @RequestParam String to) {
         return ResponseEntity.ok(dailyStatsRepo.findRange(from, to, Sort.by(Sort.Direction.ASC, "_id")));
+    }
+
+    /**
+     * تنظیماتی که پنل برای <b>توضیح‌دادنِ</b> اعداد لازم دارد.
+     * <p>
+     * فعلاً فقط طولِ پنجرهٔ بازدید. پنل بی‌این عدد نمی‌تواند بگوید «بازدید بعد از چند
+     * دقیقه بی‌حرکتی تمام می‌شود»، و نوشتنِ عددِ ثابت در متن یعنی دو منبعِ حقیقت —
+     * همان چیزی که با ضریبِ قیمت هم از آن پرهیز شده.
+     */
+    @GetMapping("/config")
+    public ResponseEntity<Map<String, Object>> config() {
+        return ResponseEntity.ok(Map.of("sessionMinutes", analyticsProps.getSessionMinutes()));
     }
 
     /** ساختِ دستیِ جمع‌بندیِ یک روز — برایِ بازسازی و برای اجرای فوری بعد از تغییر. */
@@ -190,6 +205,13 @@ public class AnalyticsAdminController {
                 .skip(page * VISITORS_PAGE).limit(VISITORS_PAGE)
                 .into(new ArrayList<>());
 
+        // نامِ نمایشیِ کارزارها یک‌بار خوانده می‌شود، نه به‌ازای هر ردیف. دفتر چند ده
+        // سند بیشتر نیست و این تنها اتصالِ مجازِ این نماست.
+        Map<String, String> campaignNames = new LinkedHashMap<>();
+        for (Campaign c : campaignRepo.findAll()) {
+            if (c.getSlug() != null) campaignNames.put(c.getSlug(), c.getName());
+        }
+
         List<Map<String, Object>> out = new ArrayList<>();
         for (Document d : docs) {
             Map<String, Object> row = new LinkedHashMap<>(d);
@@ -209,7 +231,14 @@ public class AnalyticsAdminController {
             // بازدیدکننده «این بار» از کجا آمد. بی‌این ستون، کسی که قبلاً مستقیم آمده
             // و حالا روی لینکِ کارزار کلیک کرده، در این جدول همچنان «مستقیم» بود.
             row.put("lastChannel", d.get("lastChannel"));
-            row.put("lastCampaign", d.get("lastCampaign"));
+            Object lastCampaign = d.get("lastCampaign");
+            row.put("lastCampaign", lastCampaign);
+            // 🔴 اسلاگ کلیدِ ماشین است، نه چیزی که آدم می‌شناسد. در پنل باید همان نامی
+            // دیده شود که خودِ کاربر موقعِ ساختِ کارزار نوشته. اگر کارزار در دفتر نباشد
+            // (لینکی که دستی برچسب خورده)، خودِ اسلاگ می‌ماند — پنهان‌کردنش یعنی
+            // ترافیکی که واقعاً وجود دارد نامرئی شود.
+            row.put("lastCampaignName", lastCampaign == null ? null
+                    : campaignNames.getOrDefault(String.valueOf(lastCampaign), String.valueOf(lastCampaign)));
 
             Document archived = (Document) row.remove("archived");
             row.put("visits", liveVisits + num(archived, "visits"));

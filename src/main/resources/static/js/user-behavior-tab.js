@@ -64,6 +64,8 @@
     }
 
     let currentView = 'overview';
+    /** طولِ پنجرهٔ بازدید — از سرور می‌آید تا عددِ ثابتی در متن ننویسیم. */
+    let sessionMinutes = null;
     /** آخرین سفری که واقعاً بارگذاری شد، تا «نمایش» همان را تازه کند نه یک کوئریِ باریک‌تر. */
     let lastJourney = null;
 
@@ -139,6 +141,11 @@
     // بارگذاری — فقط daily_stats
     // ==========================================================
     async function load() {
+        if (sessionMinutes === null) {
+            try {
+                sessionMinutes = (await getJson(`${API}/config`)).sessionMinutes;
+            } catch (e) { sessionMinutes = 0; }
+        }
         const {from, to} = range();
         try {
             stats = await getJson(`${API}/overview?from=${from}&to=${to}`);
@@ -377,15 +384,18 @@
             wrap.textContent = '—';
             return wrap;
         }
+        wrap.title = 'منبعِ همین بازدید. تا پایانِ بازدید ثابت می‌ماند، حتی اگر وسطش '
+            + 'سایت را مستقیم باز کند — وگرنه اعتبارِ کارزار با اولین بازکردنِ دستیِ آدرس پاک می‌شد.';
         const top = document.createElement('div');
         top.textContent = label;
         wrap.appendChild(top);
         if (v.lastCampaign) {
+            // نامی که خودِ کاربر نوشته، نه اسلاگِ خودکار. اسلاگ به تولتیپ می‌رود چون
+            // همان چیزی است که در utm_campaign و در فایلِ خروجی دیده می‌شود.
             const camp = document.createElement('div');
-            camp.className = 'text-[10px] text-indigo-600 whitespace-nowrap';
-            camp.dir = 'ltr';
-            camp.style.cssText = 'unicode-bidi:isolate;direction:ltr;text-align:right;';
-            camp.textContent = v.lastCampaign;          // ← textContent، نه innerHTML
+            camp.className = 'text-[10px] text-indigo-600';
+            camp.title = 'برچسبِ کارزار در آدرس: ' + v.lastCampaign;
+            camp.textContent = v.lastCampaignName || v.lastCampaign;   // ← textContent، نه innerHTML
             wrap.appendChild(camp);
         }
         return wrap;
@@ -451,8 +461,11 @@
             ]));
         box.appendChild(section('بازدیدکنندگان', table,
             'ستونِ «اولین منبع» هرگز عوض نمی‌شود — انتساب به همان چیزی می‌ماند که این آدم را '
-            + 'اولین‌بار آورد. «آخرین منبع» می‌گوید این بار از کجا آمده؛ پس بازدیدکننده‌ای که '
-            + 'قبلاً مستقیم آمده و حالا روی لینکِ کارزار کلیک کرده، در هر دو ستون درست دیده می‌شود. '
+            + 'اولین‌بار آورد. «آخرین منبع» یعنی منبعِ همین بازدید، و '
+            + (sessionMinutes ? 'بازدید بعد از ' + Number(sessionMinutes).toLocaleString('fa-IR')
+                + ' دقیقه بی‌حرکتی تمام می‌شود' : 'بازدید بعد از مدتی بی‌حرکتی تمام می‌شود')
+            + '؛ تا وقتی بازدید زنده است، بازکردنِ مستقیمِ سایت آن را به «مستقیم» برنمی‌گرداند — '
+            + 'وگرنه هر بار که کسی وسطِ کار آدرس را دوباره باز کند، اعتبارِ کارزار پاک می‌شد. '
             + 'سه ستونِ «بازدید»، «مشاهدهٔ محصول» و «سفارش» جمعِ کلِ عمرِ آن شناسه‌اند — '
             + 'هم دادهٔ زنده و هم آن‌چه آرشیو شده. ستونِ آخر می‌گوید چه مقدارش از آرشیو می‌آید؛ '
             + 'رویدادِ خامِ آن بخش دیگر در دیتابیس نیست و فقط در فایلِ آرشیو هست، '
