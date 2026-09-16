@@ -48,6 +48,13 @@ public class UserResource {
         return userService.createStaffUser(form);
     }
 
+    /** ویرایشِ کاملِ کارشناس. رمزِ خالی یعنی «دست نزن». */
+    @PutMapping("/admin/staff/{id}")
+    @ResponseBody
+    public User updateStaffUser(@PathVariable("id") String id, @RequestBody AdminUserForm form) {
+        return userService.updateStaffUser(id, form);
+    }
+
     @PutMapping("/admin/staff/{id}/role")
     @ResponseBody
     public User changeUserRole(@PathVariable("id") String id, @RequestBody Map<String, String> payload) {
@@ -99,6 +106,8 @@ public class UserResource {
             userInfo.put("username", user.getUsername());
             userInfo.put("firstName", user.getFirstName());
             userInfo.put("lastName", user.getLastName()); // اضافه کردن نام خانوادگی
+            // پنلِ فروش با همین خطاب («آقای/خانم») نامِ کارشناس را بالای صفحه می‌نویسد
+            userInfo.put("gender", user.getGender());
             userInfo.put("addresses", user.getAddresses());
             userInfo.put("roles", authentication.getAuthorities().stream().map(Object::toString).toList());
         } catch (Exception e) {

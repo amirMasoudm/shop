@@ -52,6 +52,8 @@
 
     <!-- منابع لوکال (آفلاین) -->
     <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">
+    <!-- نوارِ هویتِ سایت — همان نواری که در فروشگاه و آموزش هست -->
+    <link rel="stylesheet" href="/css/site-nav.css">
     <link rel="stylesheet" href="/css/fonts/Vazirmatn-font-face.css">
 
     <!-- فایل‌های نقشه Leaflet -->
@@ -149,13 +151,18 @@
 
     <!-- ═════════ MAIN CONTENT ═════════ -->
     <main class="main-content flex-1 h-full overflow-y-auto bg-[#f8fafc]">
-        <!-- هدر موبایل -->
-        <header class="md:hidden flex justify-between items-center p-4 bg-white border-b mb-4 sticky top-0 z-30 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold" id="mobile-avatar">Y</div>
-                <span class="font-bold text-gray-800">یاس پنل</span>
-            </div>
-            <a href="/" class="btn-yas-outline text-xs" style="text-decoration:none;">فروشگاه</a>
+        <!-- هدرِ موبایل — همان نوارِ هویتِ سایت، نه یک نوارِ اختصاصی.
+             نوارِ قبلی فقط «یاس پنل» و یک دکمهٔ فروشگاه داشت و کاربر را از بقیهٔ
+             بخش‌های سایت جدا می‌کرد. -->
+        <header class="topnav md:hidden">
+            <a class="brand" href="/">داده نما</a>
+            <nav>
+                <a href="/wimaxnear">WimaxNear</a>
+                <a href="/shop">فروشگاه</a>
+                <a href="/learn">آموزش</a>
+                <a href="/blog">بلاگ</a>
+            </nav>
+            <div class="spacer"></div>
         </header>
 
         <div class="p-4 md:p-10 max-w-5xl mx-auto">
@@ -194,8 +201,7 @@
                     </div>
                     <div class="yas-card p-6 h-fit bg-white">
                         <h3 class="font-bold text-lg mb-4 text-primary">پشتیبانی فروشگاه</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed mb-6">سوالی در مورد سفارش خود دارید؟ تیم پشتیبانی ما آماده پاسخگویی به شماست.</p>
-                        <a href="tel:021000000" class="btn-yas w-full" style="text-decoration:none;">تماس با پشتیبانی</a>
+                        <p class="text-sm text-gray-500 leading-relaxed">سوالی در مورد سفارش خود دارید؟ از حبابِ گفت‌وگو در گوشهٔ صفحه پیام بدهید؛ کارشناس همان‌جا جواب می‌دهد.</p>
                     </div>
                 </div>
             </section>

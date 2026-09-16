@@ -22,7 +22,30 @@
     let bubble = null;
     let contextSent = false;
 
+    /**
+     * جایگاهِ حباب از CSS می‌آید نه از استایلِ درون‌خطی.
+     * <p>
+     * 🔴 دلیلش موبایل است: پنلِ مشتری یک نوارِ پایینِ ثابت دارد و حبابِ چت دقیقاً
+     * روی دکمهٔ پروفایل می‌نشست. با استایلِ درون‌خطی نمی‌شود media query نوشت، پس
+     * جایگاه به یک متغیرِ CSS منتقل شد که هر صفحه می‌تواند بازنویسی‌اش کند.
+     */
+    function injectStyles() {
+        if (document.getElementById('dn-chat-widget-style')) return;
+        const st = document.createElement('style');
+        st.id = 'dn-chat-widget-style';
+        st.textContent = `
+            :root { --dn-chat-bottom: 20px; }
+            /* موبایل: بالاتر از نوارِ پایین می‌نشیند تا روی دکمه‌ها نیفتد */
+            @media (max-width: 768px) { :root { --dn-chat-bottom: 92px; } }
+            .dn-chat-bubble { bottom: var(--dn-chat-bottom) !important; }
+            .dn-chat-panel  { bottom: calc(var(--dn-chat-bottom) + 64px) !important;
+                              max-height: calc(100vh - var(--dn-chat-bottom) - 96px) !important; }
+        `;
+        document.head.appendChild(st);
+    }
+
     function build() {
+        injectStyles();
         bubble = document.createElement('button');
         bubble.type = 'button';
         bubble.setAttribute('aria-label', 'پشتیبانی');
@@ -30,6 +53,7 @@
         bubble.style.cssText = 'position:fixed;bottom:20px;left:20px;z-index:9998;width:54px;height:54px;'
             + 'border-radius:50%;border:0;background:#4338ca;color:#fff;font-size:24px;cursor:pointer;'
             + 'box-shadow:0 6px 20px rgba(0,0,0,.25);';
+        bubble.className = 'dn-chat-bubble';
         bubble.addEventListener('click', toggle);
         document.body.appendChild(bubble);
 
@@ -38,9 +62,14 @@
             + 'height:460px;max-height:calc(100vh - 120px);background:#fff;border-radius:14px;display:none;'
             + 'flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.28);'
             + 'font-family:inherit;direction:rtl;';
+        panel.className = 'dn-chat-panel';
         panel.innerHTML = `
             <div style="background:#4338ca;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-weight:bold;font-size:13px;">پشتیبانی</div>
+                <div>
+                    <div style="font-weight:bold;font-size:13px;">پشتیبانی</div>
+                    <!-- نامِ کارشناسی که گفت‌وگو را برداشته؛ تا وقتی کسی برنداشته خالی می‌ماند -->
+                    <div data-agent style="font-size:11px;opacity:.85;margin-top:1px;display:none;"></div>
+                </div>
                 <button type="button" data-close style="background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer;line-height:1;">✕</button>
             </div>
             <div data-state style="padding:14px;font-size:13px;color:#4b5563;line-height:2;"></div>
@@ -103,7 +132,23 @@
         ChatCore.requestNotificationPermission();
 
         applyBusinessHours(session.businessHours);
+        showAgentName(session.conversation);
         await sendProductContext();
+    }
+
+    /**
+     * نامِ کارشناسِ گفت‌وگو، بالای پنجرهٔ چت.
+     * <p>
+     * نام از خودِ سرور می‌آید و خطابش («آقای/خانم») همان‌جا ساخته می‌شود، پس اینجا
+     * فقط نمایش داده می‌شود. تا وقتی کسی گفت‌وگو را برنداشته خالی می‌ماند — نوشتنِ
+     * نامِ حدسی بدتر از ننوشتن است.
+     */
+    function showAgentName(conversation) {
+        const el = panel && panel.querySelector('[data-agent]');
+        if (!el) return;
+        const name = conversation && conversation.assignedAgentName;
+        el.textContent = name ? 'کارشناس: ' + name : '';   // ← textContent، نه innerHTML
+        el.style.display = name ? 'block' : 'none';
     }
 
     /** قفلِ خارج از ساعتِ کاری — ورودی بسته، تاریخچه خوانا. */

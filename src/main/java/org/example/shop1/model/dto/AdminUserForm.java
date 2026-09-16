@@ -11,6 +11,7 @@ public class AdminUserForm {
     private String firstName;
     private String lastName;
     private Role role;
+    private org.example.shop1.model.enums.Gender gender;
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -29,4 +30,7 @@ public class AdminUserForm {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public org.example.shop1.model.enums.Gender getGender() { return gender; }
+    public void setGender(org.example.shop1.model.enums.Gender gender) { this.gender = gender; }
 }

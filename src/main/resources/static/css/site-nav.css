@@ -60,6 +60,44 @@ header.topnav .login {
     text-decoration: none;
     white-space: nowrap;
 }
+/* ── نوارِ شیشه‌ایِ بینِ نوارِ هویت و نوارِ فروشگاه ──────────────────────────
+   پیش از این بینِ دو نوارِ چسبان یک نوارِ خالی می‌ماند که محتوا از زیرش رد می‌شد و
+   بی‌قصد به‌نظر می‌رسید. حالا همان فاصله عمدی است: شیشه‌ای، کمی بلندتر، و یک جملهٔ
+   ثابت رویش. محتوا همچنان از زیرش می‌گذرد — همان چیزی که مالک خواست. */
+:root { --nav-gap-h: 30px; }
+
+.nav-gap {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 1050;
+    height: var(--nav-gap-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* شیشه: نیمه‌شفاف + تاری، تا اسکرولِ زیرش دیده شود ولی متن خوانا بماند */
+    background: rgba(255, 255, 255, .55);
+    backdrop-filter: blur(9px) saturate(140%);
+    -webkit-backdrop-filter: blur(9px) saturate(140%);
+    border-bottom: 1px solid rgba(27, 79, 138, .13);
+    font-family: Vazirmatn, Tahoma, sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #1b4f8a;
+    user-select: none;
+}
+
+/* مرورگرِ بدونِ backdrop-filter نباید متنِ روی محتوای متحرک را ناخوانا کند */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav-gap { background: rgba(255, 255, 255, .92); }
+}
+
+@media (max-width: 780px) {
+    /* روی موبایل نوارِ هویت می‌پیچد و بلندتر می‌شود؛ فاصله هم کمی بازتر تا جمله جا شود */
+    :root { --nav-gap-h: 34px; }
+    .nav-gap { font-size: .68rem; }
+}
+
 @media (max-width: 780px) {
     header.topnav { gap: 12px; padding: 0 12px; height: auto; min-height: 48px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
     header.topnav .brand { font-size: .95rem; }

@@ -970,6 +970,7 @@
                         <th class="p-3 md:p-4">نام کاربری</th>
                         <th class="p-3 md:p-4">موبایل</th>
                         <th class="p-3 md:p-4 text-center">نقش</th>
+                        <th class="p-3 md:p-4 text-center">جنسیت</th>
                         <th class="p-3 md:p-4 text-center">تاریخ ایجاد</th>
                         <th class="p-3 md:p-4 text-center">عملیات</th>
                     </tr>
@@ -1003,7 +1004,7 @@
     <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col" style="max-height:88vh;">
         <div data-drag-handle
              class="bg-gray-800 text-white p-4 flex justify-between items-center shrink-0 select-none rounded-t-2xl">
-            <h3 class="font-bold flex items-center gap-2"><span>🛡️</span> ادمین جدید</h3>
+            <h3 class="font-bold flex items-center gap-2"><span>🛡️</span> <span id="staff-modal-title">ادمین جدید</span></h3>
             <button onclick="closeModal('staffModal')"
                     class="text-white hover:text-red-400 font-bold text-2xl outline-none leading-none px-1">✕
             </button>
@@ -1034,10 +1035,25 @@
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">رمز عبور *</label>
+                <label class="block text-sm font-bold text-gray-700 mb-1">جنسیت</label>
+                <select id="staff-gender"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                    <option value="">مشخص نشده</option>
+                    <option value="MALE">آقا</option>
+                    <option value="FEMALE">خانم</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">
+                    فقط برای نحوهٔ خطاب استفاده می‌شود: در چتِ مشتری و بالای پنل به‌جای نامِ خشک،
+                    «آقای فلان» یا «خانم فلان» نوشته می‌شود. اگر مشخص نشود، فقط نام می‌آید.
+                </p>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">
+                    رمز عبور <span id="staff-password-req">*</span>
+                </label>
                 <input id="staff-password" type="text" dir="ltr" autocomplete="new-password"
                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                <p class="text-xs text-gray-500 mt-1">حداقل ۸ کاراکتر. بعد از ساخت دیگر نمایش داده نمی‌شود — همین حالا جایی امن ذخیره‌اش کن.</p>
+                <p class="text-xs text-gray-500 mt-1" id="staff-password-hint">حداقل ۸ کاراکتر. بعد از ساخت دیگر نمایش داده نمی‌شود — همین حالا جایی امن ذخیره‌اش کن.</p>
             </div>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">نقش</label>
@@ -4062,6 +4078,7 @@
     // مدیریت ادمین‌ها (کارکنان)
     // ==========================================
     const ROLE_LABELS = {ADMIN: 'ادمین', PRICER: 'کارشناس ارشد', SALES: 'کارشناس فروش و قیمت‌گذاری', SUPPORT: 'کارشناس فروش', USER: 'کاربر عادی'};
+    const GENDER_LABELS = {MALE: 'آقا', FEMALE: 'خانم'};
 
     // پیامِ خطای سرور متنِ ساده است (GlobalExceptionHandler)
     function serverError(err, fallback) {
@@ -4105,7 +4122,7 @@
 
         const list = state.staff || [];
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">هنوز ادمینی ثبت نشده است</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">هنوز ادمینی ثبت نشده است</td></tr>';
             return;
         }
 
@@ -4127,12 +4144,11 @@
                 <td class="p-3 md:p-4 text-center">
                     <span class="${roleBadge} px-3 py-1 rounded-full text-xs font-bold">${ROLE_LABELS[u.role] || u.role}</span>
                 </td>
+                <td class="p-3 md:p-4 text-center text-gray-500">${GENDER_LABELS[u.gender] || '—'}</td>
                 <td class="p-3 md:p-4 text-center text-gray-500">${created}</td>
                 <td class="p-3 md:p-4 text-center whitespace-nowrap">
-                    <button onclick="changeStaffRole('${u.id}')"
-                            class="text-amber-600 hover:text-amber-800 font-bold px-2">نقش</button>
-                    <button onclick="resetStaffPassword('${u.id}')"
-                            class="text-blue-600 hover:text-blue-800 font-bold px-2">رمز</button>
+                    <button onclick="editStaffUser('${u.id}')"
+                            class="text-indigo-600 hover:text-indigo-800 font-bold px-2">ویرایش</button>
                     <button onclick="deleteStaff('${u.id}')"
                             class="text-red-600 hover:text-red-800 font-bold px-2">حذف</button>
                 </td>
@@ -4140,10 +4156,42 @@
         }).join('');
     }
 
+    /** شناسهٔ کارشناسی که در حالِ ویرایش است؛ خالی یعنی «ساختِ تازه». */
+    let editingStaffId = null;
+
     function openStaffModal() {
+        editingStaffId = null;
         ['staff-username', 'staff-phone', 'staff-firstname', 'staff-lastname', 'staff-password']
             .forEach(id => document.getElementById(id).value = '');
         document.getElementById('staff-role').value = 'ADMIN';
+        document.getElementById('staff-gender').value = '';
+        document.getElementById('staff-modal-title').textContent = 'ادمین جدید';
+        document.getElementById('staff-password-req').textContent = '*';
+        document.getElementById('staff-password-hint').textContent =
+            'حداقل ۸ کاراکتر. بعد از ساخت دیگر نمایش داده نمی‌شود — همین حالا جایی امن ذخیره‌اش کن.';
+        openModal('staffModal');
+    }
+
+    /**
+     * ویرایشِ کاملِ یک کارشناس — همهٔ فیلدها، از جمله رمز.
+     * ⚠️ فیلدِ رمز عمداً خالی باز می‌شود و خالی‌ماندنش یعنی «دست نزن». وگرنه هر
+     * اصلاحِ سادهٔ نام هم رمزِ کارشناس را عوض می‌کرد.
+     */
+    function editStaffUser(id) {
+        const u = (state.staff || []).find(x => x.id === id);
+        if (!u) return;
+        editingStaffId = id;
+        document.getElementById('staff-username').value = u.username || '';
+        document.getElementById('staff-phone').value = u.phoneNumber || '';
+        document.getElementById('staff-firstname').value = u.firstName || '';
+        document.getElementById('staff-lastname').value = u.lastName || '';
+        document.getElementById('staff-role').value = u.role || 'ADMIN';
+        document.getElementById('staff-gender').value = u.gender || '';
+        document.getElementById('staff-password').value = '';
+        document.getElementById('staff-modal-title').textContent = 'ویرایش ادمین';
+        document.getElementById('staff-password-req').textContent = '';
+        document.getElementById('staff-password-hint').textContent =
+            'خالی بگذارید تا رمزِ فعلی دست‌نخورده بماند. برای تغییر، رمزِ تازه (حداقل ۸ کاراکتر) بنویسید.';
         openModal('staffModal');
     }
 
@@ -4154,13 +4202,34 @@
             firstName: document.getElementById('staff-firstname').value.trim(),
             lastName: document.getElementById('staff-lastname').value.trim(),
             password: document.getElementById('staff-password').value,
-            role: document.getElementById('staff-role').value
+            role: document.getElementById('staff-role').value,
+            gender: document.getElementById('staff-gender').value || null
         };
 
         if (!payload.username) return Swal.fire('خطا', 'نام کاربری الزامی است', 'warning');
         if (!payload.phoneNumber) return Swal.fire('خطا', 'شماره موبایل الزامی است', 'warning');
-        if (!payload.password || payload.password.length < 8)
+        // در ویرایش، رمزِ خالی یعنی «دست نزن»؛ فقط اگر چیزی نوشته شده طولش چک می‌شود
+        if (editingStaffId) {
+            if (payload.password && payload.password.length < 8)
+                return Swal.fire('خطا', 'رمز عبور باید حداقل ۸ کاراکتر باشد', 'warning');
+        } else if (!payload.password || payload.password.length < 8) {
             return Swal.fire('خطا', 'رمز عبور باید حداقل ۸ کاراکتر باشد', 'warning');
+        }
+
+        if (editingStaffId) {
+            toggleLoader(true);
+            try {
+                await axios.put(`${API}/users/admin/staff/${editingStaffId}`, payload);
+                closeModal('staffModal');
+                await fetchStaff();
+                Swal.fire('ذخیره شد', 'اطلاعاتِ ادمین به‌روز شد.', 'success');
+            } catch (err) {
+                Swal.fire('خطا', serverError(err, 'ذخیره ناموفق بود'), 'error');
+            } finally {
+                toggleLoader(false);
+            }
+            return;
+        }
 
         toggleLoader(true);
         try {

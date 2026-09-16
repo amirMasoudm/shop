@@ -81,6 +81,61 @@ public class UserService {
     // ==========================================================
 
     /** ساختِ حسابِ ادمین/پشتیبانِ جدید. رمز با همان انکودرِ اپ هش می‌شود. */
+    /**
+     * ویرایشِ کاملِ یک کارشناس — نام، نامِ خانوادگی، نامِ کاربری، شماره، نقش، جنسیت،
+     * و در صورتِ ارسال، رمز.
+     * <p>
+     * تا حالا فقط نقش و رمز جدا جدا قابلِ تغییر بودند و بقیهٔ فیلدها اصلاً راهی برای
+     * اصلاح نداشتند؛ غلطِ تایپی در نام تا ابد می‌ماند.
+     * <p>
+     * ⚠️ رمز فقط وقتی عوض می‌شود که واقعاً فرستاده شده باشد. فیلدِ خالی در فرم یعنی
+     * «دست نزن»، نه «پاک کن» — وگرنه هر ویرایشِ ساده رمزِ کارشناس را می‌سوزاند.
+     */
+    public User updateStaffUser(String id, AdminUserForm form) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "کاربر یافت نشد"));
+
+        String username = trimOrEmpty(form.getUsername());
+        String phone = trimOrEmpty(form.getPhoneNumber());
+        Role role = form.getRole() == null ? user.getRole() : form.getRole();
+
+        if (username.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "نام کاربری الزامی است");
+        }
+        if ((role == Role.ADMIN || role == Role.PRICER || role == Role.SALES || role == Role.SUPPORT)
+                && phone.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "برای این نقش شماره موبایل الزامی است، چون کد ورود پیامک می‌شود");
+        }
+        // یکتایی فقط وقتی چک می‌شود که مقدار واقعاً عوض شده باشد، وگرنه ذخیرهٔ بدونِ
+        // تغییر هم «تکراری است» می‌گرفت.
+        if (!username.equals(user.getUsername()) && userRepository.existsByUsername(username)) {
+            throw new ApiException(HttpStatus.CONFLICT, "این نام کاربری قبلاً ثبت شده است");
+        }
+        if (!phone.isEmpty() && !phone.equals(user.getPhoneNumber())
+                && userRepository.existsByPhoneNumber(phone)) {
+            throw new ApiException(HttpStatus.CONFLICT, "این شماره موبایل قبلاً ثبت شده است");
+        }
+
+        user.setUsername(username);
+        user.setPhoneNumber(phone.isEmpty() ? null : phone);
+        user.setFirstName(form.getFirstName());
+        user.setGender(form.getGender());
+        user.setLastName(form.getLastName());
+        user.setRole(role);
+        user.setGender(form.getGender());
+
+        String password = form.getPassword();
+        if (password != null && !password.isBlank()) {
+            if (password.length() < MIN_PASSWORD_LENGTH) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "رمز عبور باید حداقل " + MIN_PASSWORD_LENGTH + " کاراکتر باشد");
+            }
+            user.setPassword(passwordEncoder.encode(password));
+        }
+        return userRepository.save(user);
+    }
+
     public User createStaffUser(AdminUserForm form) {
         String username = trimOrEmpty(form.getUsername());
         String phone = trimOrEmpty(form.getPhoneNumber());

@@ -154,14 +154,14 @@ public class ChatService {
                 Query.query(Criteria.where("_id").is(conversationId).and("assignedAgentId").is(null)),
                 new Update()
                         .set("assignedAgentId", agent.getId())
-                        .set("assignedAgentName", displayName(agent))
+                        .set("assignedAgentName", staffDisplayName(agent))
                         .set("status", ConversationStatus.ASSIGNED),
                 FindAndModifyOptions.options().returnNew(true),
                 Conversation.class);
 
         if (claimed != null) {
             // تاریخچه باید خودتوضیح بماند: چه کسی و کِی برش داشت.
-            appendSystemMessage(claimed, "گفت‌وگو توسط " + displayName(agent) + " برداشته شد.");
+            appendSystemMessage(claimed, "گفت‌وگو توسط " + staffDisplayName(agent) + " برداشته شد.");
             broadcaster.broadcastToAgents(Map.of("event", "queue"));
             return claimed;
         }
@@ -224,7 +224,7 @@ public class ChatService {
         }
 
         ChatMessage saved = append(conversation, agent.getId(), SenderRole.AGENT,
-                displayName(agent), body, replyToId, attachment);
+                staffDisplayName(agent), body, replyToId, attachment);
 
         conversation.setUnreadForCustomer(conversation.getUnreadForCustomer() + 1);
         touch(conversation, saved);
@@ -423,6 +423,21 @@ public class ChatService {
     public String displayName(User user) {
         String full = (nullSafe(user.getFirstName()) + " " + nullSafe(user.getLastName())).trim();
         return full.isEmpty() ? nullSafe(user.getUsername()) : full;
+    }
+
+    /**
+     * نامِ کارشناس با خطاب — «آقای فلان» یا «خانم فلان».
+     * <p>
+     * 🔴 عمداً از {@link #displayName} جداست و فقط برای کارکنان صدا زده می‌شود:
+     * همان متد نامِ <b>مشتری</b> را هم می‌سازد، و ما جنسیتِ مشتری را نه می‌پرسیم نه
+     * باید حدس بزنیم.
+     * <p>
+     * اگر جنسیت مشخص نشده باشد، فقط نام می‌آید — نه پیشوندِ حدسی.
+     */
+    public String staffDisplayName(User user) {
+        String name = displayName(user);
+        if (user.getGender() == null || name.isBlank()) return name;
+        return (user.getGender() == org.example.shop1.model.enums.Gender.FEMALE ? "خانم " : "آقای ") + name;
     }
 
     // ==========================================================

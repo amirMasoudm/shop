@@ -32,6 +32,14 @@ public class User {
     private String lastName;
     private String email;
     private Role role = Role.USER;
+
+    /**
+     * جنسیتِ کارشناس — فقط برایِ خطابِ «آقای/خانم» در چت و بالای پنل.
+     * <p>
+     * {@code null} یعنی مشخص نشده؛ آن وقت فقط نام نوشته می‌شود، بدونِ پیشوند.
+     * برای مشتری اصلاً پرسیده نمی‌شود و هیچ تصمیمی به آن وابسته نیست.
+     */
+    private org.example.shop1.model.enums.Gender gender;
     // partialFilter لازم است: همهٔ کاربران شماره ندارند (مثلاً حسابِ پشتیبان که از پنل
     // بدونِ موبایل ساخته می‌شود). مونگو در ایندکسِ unique همهٔ رکوردهای بدون‌مقدار را
     // «یک nullِ واحد» حساب می‌کند، پس بدونِ این فیلتر دومین کاربرِ بی‌شماره رد می‌شد.
@@ -84,6 +92,9 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public org.example.shop1.model.enums.Gender getGender() { return gender; }
+    public void setGender(org.example.shop1.model.enums.Gender gender) { this.gender = gender; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

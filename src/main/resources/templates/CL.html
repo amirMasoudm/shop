@@ -152,7 +152,8 @@
         .top-bar {
             background: linear-gradient(135deg, #1a3f6f, #1b4f8a);
             position: sticky;
-            top: var(--nav-h);
+            /* زیرِ نوارِ هویت و نوارِ شیشه‌ای می‌چسبد، نه فقط زیرِ نوارِ هویت */
+            top: calc(var(--nav-h) + var(--nav-gap-h));
             z-index: 1000;
             height: var(--hdr);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
@@ -1607,6 +1608,9 @@
     <div class="spacer"></div>
 </header>
 
+<!-- نوارِ شیشه‌ایِ میانی — استایلش در css/site-nav.css -->
+<div class="nav-gap">اتصال آسان است</div>
+
 <header class="top-bar">
     <div class="navbar">
         <button onclick="toggleDr('menuDrawer')"
@@ -2948,6 +2952,17 @@
         pageFullyLoaded = true;
         const el = document.getElementById('bannerSlider');
         if (el && el.style.display !== 'none') startBannerRotation();
+
+        // دکمهٔ «ورود» در صفحه‌های بیرونِ فروشگاه با ?auth=1 به اینجا می‌آید، چون
+        // پنجرهٔ ورود/ثبت‌نام فقط همین‌جا وجود دارد. اگر کاربر از قبل وارد شده باشد
+        // بازکردنش بی‌معنی است، پس فقط برایِ مهمان باز می‌شود.
+        if (new URLSearchParams(location.search).get('auth') === '1') {
+            const overlay = document.getElementById('authOverlay');
+            const loggedIn = !!localStorage.getItem('userName');   // همان چیزی که updateAuthWidget می‌خواند
+            if (overlay && !loggedIn) overlay.classList.add('active');
+            // پارامتر از نوارِ آدرس برداشته می‌شود تا رفرش دوباره بازش نکند
+            history.replaceState(null, '', location.pathname);
+        }
     });
 
     async function loadHome(isPopState = false) {

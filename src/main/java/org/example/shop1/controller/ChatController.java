@@ -119,7 +119,7 @@ public class ChatController {
         chatService.assertMember(conversation, agent);
         conversation.setStatus(ConversationStatus.CLOSED);
         conversation.setClosedAt(Instant.now());
-        chatService.appendSystemMessage(conversation, "گفت‌وگو توسط " + chatService.displayName(agent) + " بسته شد.");
+        chatService.appendSystemMessage(conversation, "گفت‌وگو توسط " + chatService.staffDisplayName(agent) + " بسته شد.");
         return ResponseEntity.ok(chatService.toView(conversation));
     }
 
