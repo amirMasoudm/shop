@@ -258,6 +258,9 @@
         renderFaqRows([]);
         renderRelProducts([], null);
         setSlugHint(false);
+        // پیش‌فرضِ محصولِ تازه «نمایش در ترب» است — همان چیزی که برایِ محصولاتِ قدیمی
+        // هم صادق است (نبودنِ فیلد یعنی فعال).
+        document.getElementById('p-torob-enabled').checked = true;
         document.getElementById('modal-title-action').textContent = 'افزودن محصول';
         document.getElementById('modal-title-id').textContent = 'ID: NEW';
         openModal('productModal');
@@ -278,6 +281,9 @@
         document.getElementById('p-warehouse-desc').value = p.warehouseDescription || '';
         document.getElementById('p-desc').value = p.description || '';
         document.getElementById('p-slug').value = p.slug || '';
+        // 🔴 نه !!p.torobEnabled — محصولی که این فیلد را ندارد باید تیک‌خورده بیاید،
+        // وگرنه اولین ذخیره از پنل خاموشش می‌کند.
+        document.getElementById('p-torob-enabled').checked = (p.torobEnabled !== false);
         document.getElementById('p-seo-title').value = p.seoTitle || '';
         document.getElementById('p-seo-desc').value = p.seoDescription || '';
         document.getElementById('p-weight').value = p.weight || '';
@@ -357,7 +363,8 @@
             specifications: specs,
             techSpecs: collectTechSpecs(),
             faqs: collectFaqs(),
-            relatedProductIds: collectRelatedIds()
+            relatedProductIds: collectRelatedIds(),
+            torobEnabled: document.getElementById('p-torob-enabled').checked
         };
 
         const method = id ? 'put' : 'post';

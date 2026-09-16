@@ -148,6 +148,10 @@ public class ProductService {
         if (request.getPartnerBulkPrice() != null) product.setPartnerBulkPrice(request.getPartnerBulkPrice());
         if (request.getDollarPrice() != null) product.setDollarPrice(request.getDollarPrice());
         if (request.getPushSaleFlag() != null) product.setPushSaleFlag(request.getPushSaleFlag());
+        // ⚠️ همان الگویِ «فقط اگر ارسال شد»: تیکِ برداشته‌شده false می‌فرستد (نه null)،
+        // پس خاموش‌کردن کار می‌کند؛ ولی ذخیره از فرمی که این فیلد را ندارد تیک را
+        // نمی‌پراند — درسِ تسکِ ۷.
+        if (request.getTorobEnabled() != null) product.setTorobEnabled(request.getTorobEnabled());
         if (request.getTorobFloorPrice() != null) product.setTorobFloorPrice(request.getTorobFloorPrice());
         if (request.getTorobUrl() != null) product.setTorobUrl(request.getTorobUrl());
         if (request.getDigikalaFloorPrice() != null) product.setDigikalaFloorPrice(request.getDigikalaFloorPrice());

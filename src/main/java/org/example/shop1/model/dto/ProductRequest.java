@@ -129,6 +129,8 @@ public class ProductRequest {
     private BigDecimal partnerBulkPrice;
     private BigDecimal dollarPrice;
     private Boolean pushSaleFlag;
+    /** تیکِ «نمایش در ترب». نیامدن یعنی «دست نزن»، نه «خاموش کن». */
+    private Boolean torobEnabled;
     private BigDecimal torobFloorPrice;
     private String torobUrl;
     private BigDecimal digikalaFloorPrice;
@@ -154,6 +156,9 @@ public class ProductRequest {
 
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
     public void setPushSaleFlag(Boolean pushSaleFlag) { this.pushSaleFlag = pushSaleFlag; }
+
+    public Boolean getTorobEnabled() { return torobEnabled; }
+    public void setTorobEnabled(Boolean torobEnabled) { this.torobEnabled = torobEnabled; }
 
     public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }
     public void setTorobFloorPrice(BigDecimal torobFloorPrice) { this.torobFloorPrice = torobFloorPrice; }

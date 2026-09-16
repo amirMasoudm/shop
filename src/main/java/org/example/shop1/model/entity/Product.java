@@ -131,6 +131,19 @@ public class Product {
     /** «خیلی بفروشید» — در شیتِ اصلی فقط با رنگِ نارنجی کدگذاری شده بود. */
     private Boolean pushSaleFlag;
 
+    /**
+     * آیا این محصول در ترب نمایش داده شود؟
+     * <p>
+     * 🔴 <b>{@code null} یعنی «فعال».</b> این تنها معنیِ درست است و اتفاقی نیست:
+     * محصولاتی که پیش از افزودنِ این فیلد ساخته شده‌اند اصلاً آن را ندارند، و اگر
+     * غایب‌بودن «خاموش» خوانده می‌شد، کلِ کاتالوگ یک‌شبه از ترب محو می‌شد — بدونِ
+     * خطا، بدونِ لاگ، و تا وقتی کسی ترب را باز نکند نامعلوم.
+     * <p>
+     * به همین دلیل نوعش {@code Boolean} است نه {@code boolean}، و هرجا خوانده
+     * می‌شود باید صریح {@code null} چک شود.
+     */
+    private Boolean torobEnabled;
+
     // کفِ قیمتِ رقبا (برای تصمیمِ قیمت‌گذاری) — هرگز عمومی نشود
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal torobFloorPrice;
@@ -175,6 +188,14 @@ public class Product {
 
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
     public void setPushSaleFlag(Boolean pushSaleFlag) { this.pushSaleFlag = pushSaleFlag; }
+
+    public Boolean getTorobEnabled() { return torobEnabled; }
+    public void setTorobEnabled(Boolean torobEnabled) { this.torobEnabled = torobEnabled; }
+
+    /** تنها جایِ تفسیرِ «نبودنِ فیلد = فعال» — هرجا لازم شد از همین‌جا بخوان. */
+    public boolean isTorobVisible() {
+        return torobEnabled == null || torobEnabled;
+    }
 
     public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }
     public void setTorobFloorPrice(BigDecimal torobFloorPrice) { this.torobFloorPrice = torobFloorPrice; }

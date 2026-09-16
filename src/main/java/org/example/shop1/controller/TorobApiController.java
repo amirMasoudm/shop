@@ -159,9 +159,13 @@ public class TorobApiController {
     private List<Product> eligibleProducts() {
         List<Product> all = productRepo.findAll();
         List<Product> result = new ArrayList<>();
-        int skippedNoPrice = 0, skippedNoImage = 0;
+        int skippedNoPrice = 0, skippedNoImage = 0, skippedDisabled = 0;
 
         for (Product p : all) {
+            // 🔴 خاموش‌شده به‌دستِ مالک اصلاً نباید در پاسخ بیاید — نه با
+            // availability:false. آن دو یکی نیستند: اولی یعنی «نداریمش»، دومی یعنی
+            // «داریم ولی موجود نیست» و محصول در ترب می‌ماند.
+            if (!p.isTorobVisible()) { skippedDisabled++; continue; }
             if (toToman(p.getOnlinePrice()) <= 0) { skippedNoPrice++; continue; }
             if (p.getImages() == null || p.getImages().stream().noneMatch(this::notBlank)) {
                 skippedNoImage++; continue;
@@ -169,9 +173,10 @@ public class TorobApiController {
             result.add(p);
         }
 
-        if (skippedNoPrice > 0 || skippedNoImage > 0) {
-            log.info("ترب: {} محصول بدونِ قیمت و {} محصول بدونِ عکس از خروجی کنار گذاشته شد (از {} محصول)",
-                    skippedNoPrice, skippedNoImage, all.size());
+        if (skippedNoPrice > 0 || skippedNoImage > 0 || skippedDisabled > 0) {
+            // تنها راهی که بعداً می‌فهمیم چرا عددِ محصولاتِ ترب کم شده
+            log.info("ترب: {} بدونِ قیمت، {} بدونِ عکس، {} خاموش‌شده به‌دستِ مالک — از خروجی کنار رفتند (از {} محصول)",
+                    skippedNoPrice, skippedNoImage, skippedDisabled, all.size());
         }
         return result;
     }
