@@ -3043,14 +3043,23 @@
                 down = true; moved = false; suppressClick = false;
                 startX = e.clientX;
                 startScroll = row.scrollLeft;
-                try { row.setPointerCapture(e.pointerId); } catch (err) {}
+                // اینجا عمداً اشاره‌گر گرفته نمی‌شود — دلیلش را در pointermove ببین
             });
 
             row.addEventListener('pointermove', e => {
                 if (!down) return;
                 const dx = e.clientX - startX;
                 if (!moved && Math.abs(dx) < 5) return;
-                if (!moved) { moved = true; wrap.classList.add('hs-dragging'); }
+                if (!moved) {
+                    moved = true;
+                    wrap.classList.add('hs-dragging');
+                    // گرفتنِ اشاره‌گر تازه از اینجا شروع می‌شود، نه از pointerdown.
+                    // اگر روی pointerdown گرفته شود، رویدادِ click به‌جایِ خودِ عکس
+                    // به ردیف می‌رسد و onclickِ عکس هرگز اجرا نمی‌شود — یعنی کلیکِ
+                    // ساده دیگر لایت‌باکس را باز نمی‌کند. اینجا فقط وقتی گرفته
+                    // می‌شود که واقعاً کشیدن شروع شده و کلیکی در کار نیست.
+                    try { row.setPointerCapture(e.pointerId); } catch (err) {}
+                }
                 e.preventDefault();
                 row.scrollLeft = startScroll - dx;
                 sync();   // مثلِ page: به رویدادِ scroll تکیه نکن
@@ -3058,6 +3067,9 @@
 
             row.addEventListener('pointerup', endDrag);
             row.addEventListener('pointercancel', endDrag);
+            // کلیکِ بدونِ کشیدن اشاره‌گر را نمی‌گیرد، پس اگر دکمه بیرونِ ردیف رها
+            // شود pointerupِ ردیف نمی‌آید؛ این یکی همان را جمع می‌کند
+            window.addEventListener('pointerup', endDrag);
             // اگر پنجره وسطِ کشیدن فوکوس را از دست بدهد، رهاشدن را نمی‌بینیم
             window.addEventListener('blur', endDrag);
 
