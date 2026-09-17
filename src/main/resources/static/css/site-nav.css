@@ -99,8 +99,20 @@ header.topnav .login {
 }
 
 @media (max-width: 780px) {
-    header.topnav { gap: 12px; padding: 0 12px; height: auto; min-height: 48px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+    /* 🔴 ارتفاع اینجا ثابت می‌شود و --nav-h هم با آن یکی می‌ماند.
+       پیش از این ارتفاع auto بود (۴۸ پیکسل) ولی --nav-h روی ۵۶ مانده بود، پس
+       نوارِ شیشه‌ای ۸ پیکسل پایین‌تر می‌چسبید و همان‌جا یک باریکه می‌ماند که
+       محتوا از تویش رد می‌شد. flex-wrap هم به nowrap رفت تا ارتفاع در هیچ عرضی
+       غافلگیرمان نکند؛ اگر لینک‌ها جا نشدند، خودِ نوار افقی اسکرول می‌شود. */
+    :root { --nav-h: 48px; }
+    header.topnav {
+        gap: 12px; padding: 0 12px;
+        height: var(--nav-h); min-height: var(--nav-h);
+        flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+        scrollbar-width: none;
+    }
+    header.topnav::-webkit-scrollbar { display: none; }
     header.topnav .brand { font-size: .95rem; }
-    header.topnav nav { gap: 10px; font-size: .74rem; flex-wrap: wrap; }
+    header.topnav nav { gap: 10px; font-size: .74rem; flex-wrap: nowrap; white-space: nowrap; }
     header.topnav .login span { display: none; }
 }

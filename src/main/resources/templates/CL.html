@@ -345,7 +345,7 @@
            fixedِ زیرمنوها (top: var(--hdr)) دست‌نخورده بماند. */
         .search-row {
             position: sticky;
-            top: calc(var(--nav-h) + var(--hdr));
+            top: calc(var(--nav-h) + var(--nav-gap-h) + var(--hdr));
             z-index: 900;
             background: #fff;
             border-bottom: 1px solid var(--border);
@@ -356,31 +356,39 @@
             max-width: 1440px;
             margin: 0 auto;
             display: flex;
-            gap: 8px;
-            align-items: center;
+            gap: 0;                 /* چسبیده، تا یک بلوکِ واحد دیده شود */
+            align-items: stretch;
         }
 
+        /* مستطیلی و کلاسیک — نه کپسولی. گوشه‌ها فقط کمی نرم‌اند (۴ پیکسل) و
+           ورودی و دراپ‌داون یک بلوکِ به‌هم‌چسبیده می‌سازند، مثلِ نوارِ جست‌وجوی
+           فروشگاه‌های قدیمی. ارتفاعِ هر دو یکی است تا خط‌شان هم‌تراز بماند. */
         .search-inner input[type="search"] {
             flex: 1;
             min-width: 0;
-            padding: 10px 14px;
+            height: 42px;
+            padding: 0 14px;
             border: 1px solid var(--border);
-            border-radius: 100px;
+            border-radius: 4px 0 0 4px;
             outline: none;
             font-family: inherit;
             font-size: 0.9rem;
-            background: var(--bg);
+            background: #fff;
         }
 
         .search-inner input[type="search"]:focus {
             border-color: var(--primary);
+            box-shadow: inset 0 0 0 1px var(--primary);
             background: #fff;
         }
 
         .search-inner select {
-            padding: 10px 12px;
+            height: 42px;
+            padding: 0 12px;
             border: 1px solid var(--border);
-            border-radius: 100px;
+            /* لبهٔ مشترک دوبار کشیده نشود */
+            border-inline-start: none;
+            border-radius: 0 4px 4px 0;
             outline: none;
             font-family: inherit;
             font-size: 0.85rem;
@@ -503,7 +511,7 @@
             width: 260px;
             flex-shrink: 0;
             position: sticky;
-            top: calc(var(--nav-h) + 85px);
+            top: calc(var(--nav-h) + var(--nav-gap-h) + 85px);
             height: fit-content;
             background: var(--surface);
             border-radius: var(--radius);
@@ -706,9 +714,18 @@
         .irb-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
         .irb-lightbox img { max-width: 90vw; max-height: 75vh; object-fit: contain; border-radius: 8px; }
         .irb-lb-caption { color: #fff; margin-top: 14px; font-size: .95rem; text-align: center; }
+        /* شمارنده — بدونِ آن معلوم نیست ردیف اصلاً ورق می‌خورد یا همین یکی بوده */
+        .irb-lb-count { color: rgba(255,255,255,.72); margin-top: 6px; font-size: .8rem; letter-spacing: .06em; }
         .irb-lb-link { margin-top: 10px; color: #fff; background: var(--accent); padding: 8px 20px; border-radius: 100px; text-decoration: none; font-weight: 700; font-size: .85rem; }
         .irb-lb-close { position: absolute; top: 16px; left: 16px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; line-height: 1; }
-        .irb-lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.15); border: none; color: #fff; font-size: 1.8rem; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; }
+        /* فلش‌ها پیش از این با شفافیتِ ۱۵٪ و بدونِ لبه بودند و روی عکسِ روشن عملاً
+           دیده نمی‌شدند — مخصوصاً روی موبایل که کاربر دنبالِ راهِ ورق‌زدن می‌گردد.
+           حالا لبه و پس‌زمینهٔ محسوس‌تر دارند. */
+        .irb-lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.5); color: #fff; font-size: 1.8rem; line-height: 1; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* روی صفحهٔ لمسی هدفِ انگشت باید بزرگ‌تر باشد */
+        @media (hover: none), (pointer: coarse) {
+            .irb-lb-nav { width: 54px; height: 54px; font-size: 2.1rem; background: rgba(255,255,255,.3); }
+        }
         .irb-lb-prev { right: 16px; }
         .irb-lb-next { left: 16px; }
 
@@ -866,7 +883,7 @@
 
         .p-gallery {
             position: sticky;
-            top: calc(var(--nav-h) + 90px);
+            top: calc(var(--nav-h) + var(--nav-gap-h) + 90px);
         }
 
         .p-main-img {
@@ -1060,7 +1077,7 @@
             padding: 20px;
             height: fit-content;
             position: sticky;
-            top: calc(var(--nav-h) + 90px);
+            top: calc(var(--nav-h) + var(--nav-gap-h) + 90px);
         }
 
         .p-buy-btn {
@@ -1413,6 +1430,64 @@
             border-color: var(--primary-lt);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
+
+        /* ── ناوبریِ افقیِ ردیف‌ها روی دسکتاپ ────────────────────────────────────
+           ردیف‌هایِ افقی (سکشن‌ها، بنرِ ردیفی، منویِ دسته‌ها) اسکرول‌بارشان پنهان بود.
+           روی لمسی مشکلی نیست چون با انگشت کشیده می‌شود، ولی کاربرِ ماوس هیچ راهی
+           برایِ دیدنِ ادامهٔ ردیف نداشت. اینجا سه راه با هم باز می‌شود: یک نوارِ
+           باریکِ کشویی، دو دکمهٔ ورق‌زدن، و کشیدن با خودِ ماوس. همه پشتِ شرطِ
+           اشاره‌گرِ دقیق‌اند تا تجربهٔ لمسی دست‌نخورده بماند. */
+        @media (hover: hover) and (pointer: fine) {
+            /* بنرِ ردیفی (.irb-row) عمداً بیرونِ این فهرست است: دکمه‌هایِ ورق‌زدن
+               برایش کافی‌اند و نوارِ کشویی زیرِ عکس‌ها فقط شلوغی می‌سازد. */
+            .section-slider, .desktop-menu-wrapper {
+                scrollbar-width: thin;
+                scrollbar-color: rgba(27, 79, 138, .32) transparent;
+            }
+            .section-slider::-webkit-scrollbar,
+            .desktop-menu-wrapper::-webkit-scrollbar {
+                display: block;
+                height: 9px;
+            }
+            .section-slider::-webkit-scrollbar-track,
+            .desktop-menu-wrapper::-webkit-scrollbar-track {
+                background: rgba(27, 79, 138, .07);
+                border-radius: 100px;
+            }
+            .section-slider::-webkit-scrollbar-thumb,
+            .desktop-menu-wrapper::-webkit-scrollbar-thumb {
+                background: rgba(27, 79, 138, .32);
+                border-radius: 100px;
+            }
+            .section-slider::-webkit-scrollbar-thumb:hover,
+            .desktop-menu-wrapper::-webkit-scrollbar-thumb:hover {
+                background: rgba(27, 79, 138, .55);
+            }
+
+            /* دکمه‌هایِ ورق‌زدن — کم‌رنگ می‌نشینند و با نزدیک‌شدنِ ماوس پررنگ می‌شوند.
+               چون صفحه راست‌چین است، «قبلی» سمتِ راست و «بعدی» سمتِ چپ است. */
+            .hs-btn {
+                position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
+                width: 38px; height: 38px; border-radius: 50%;
+                border: 1px solid var(--border); background: rgba(255, 255, 255, .92);
+                color: var(--primary); font-size: 1.3rem; line-height: 1; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 3px 12px rgba(0, 0, 0, .14);
+                opacity: .65; transition: opacity .18s, background .18s, border-color .18s;
+            }
+            .hs-wrap:hover .hs-btn { opacity: 1; }
+            .hs-btn:hover { background: #fff; border-color: var(--primary); }
+            .hs-prev { right: 8px; }
+            .hs-next { left: 8px; }
+            /* لبهٔ ردیف: دکمه‌ای که جایی برایِ رفتن ندارد اصلاً نباشد، نه این‌که
+               باشد و کار نکند. */
+            .hs-btn[hidden] { display: none; }
+            .hs-wrap.hs-dragging { cursor: grabbing; user-select: none; }
+            .hs-wrap.hs-dragging .hs-btn { opacity: 0; }
+        }
+
+        /* پوشش همیشه هست (حتی روی لمسی) تا چیدمان بینِ دو حالت فرق نکند */
+        .hs-wrap { position: relative; }
     </style>
 </head>
 <body>
@@ -1801,6 +1876,7 @@
     <button type="button" class="irb-lb-nav irb-lb-prev" onclick="irbLbNav(-1)" aria-label="قبلی">‹</button>
     <img id="irbLbImg" src="" alt="">
     <div id="irbLbCaption" class="irb-lb-caption"></div>
+    <div id="irbLbCount" class="irb-lb-count"></div>
     <a id="irbLbLink" href="#" class="irb-lb-link" style="display:none;" target="_blank" rel="noopener">مشاهده ❯</a>
     <button type="button" class="irb-lb-nav irb-lb-next" onclick="irbLbNav(1)" aria-label="بعدی">›</button>
 </div>
@@ -1963,7 +2039,9 @@
 
     let state = {all: [], cats: [], secs: [], current: [], cart: [], serverOrders: [], tab: 'current', phone: '',
         rfqThreshold: 0,
-        feed: {type: 'home', param: null, page: 0, size: 20, last: true}};
+        feed: {type: 'home', param: null, page: 0, size: 20, last: true},
+        // عکسِ فوریِ لیست برایِ مسیرِ «بازگشت» — نگاه کن به captureFeedSnapshot
+        feedSnapshot: null};
 
     try {
         state.cart = JSON.parse(localStorage.getItem('shop_cart') || '[]');
@@ -1974,6 +2052,7 @@
         updateAuthWidget();
         updateCartCount();
         setupMenuScroll();
+        enhanceHScrollers();   // ردیف‌هایِ SSRشده (بنرِ ردیفیِ بالایِ فروشگاه)
         syncSearchPlaceholder();
         window.addEventListener('resize', syncSearchPlaceholder);
         // تعدادِ ستون‌هایِ گرید با تغییرِ عرضِ پنجره عوض می‌شود — دوباره‌محاسبهٔ ردیفِ کامل
@@ -2116,6 +2195,7 @@
     }
 
     async function openCourseDetail(courseIdOrSlug, isInitialLoad = false) {
+        captureFeedSnapshot();   // همان دلیلِ openProductDetail
         const c = await fetchCourseBySlugOrId(courseIdOrSlug);
         if (!c) return;
 
@@ -2242,6 +2322,8 @@
     }
 
     async function openProductDetail(productId, isInitialLoad = false) {
+        // وضعیتِ لیست را پیش از ترکِ آن نگه دار تا «بازگشت» به صفحهٔ اول برنگردد
+        captureFeedSnapshot();
         let p = state.all.find(x => x.id === productId);
         // اگر محصول در حافظه نبود (خارج از لیستِ پیش‌واکشی‌شده)، تکی از سرور بگیر
         if (!p) p = await fetchProductBySlugOrId(productId);
@@ -2483,6 +2565,7 @@
             if (!related.length) { wrap.innerHTML = ''; return; }
             wrap.innerHTML = `<div class="p-section-title">محصولات مرتبط</div>
                 <div class="section-slider">${related.map(rp => renderCard(rp)).join('')}</div>`;
+            enhanceHScrollers(wrap);
         } catch (e) { wrap.innerHTML = ''; }
     }
     function escapeHTML(str) {
@@ -2824,7 +2907,168 @@
     function setImageRowBanners(show) {
         const el = document.getElementById('imageRowBanners');
         if (el) el.style.display = show ? 'block' : 'none';
+        // تا اینجا ردیف پنهان بود و عرضش صفر؛ حالا که دیده می‌شود فلش‌ها باید
+        // دوباره حساب شوند
+        if (show && window.hsSyncAll) setTimeout(window.hsSyncAll, 0);
     }
+
+    // ========= ناوبریِ افقیِ ردیف‌ها (فقط دسکتاپ) =========
+    // ردیف‌هایِ افقی روی دسکتاپ هیچ دستگیره‌ای نداشتند: اسکرول‌بار پنهان بود و دکمه‌ای
+    // هم نبود، پس کاربرِ ماوس ادامهٔ ردیف را نمی‌دید. این تابع به هر ردیف دو دکمهٔ
+    // ورق‌زدن و امکانِ کشیدن با ماوس می‌دهد. چندبار صدازدنش بی‌خطر است — ردیفِ
+    // آماده‌شده علامت می‌خورد و دوباره دست‌کاری نمی‌شود.
+    const HS_SELECTOR = '.section-slider, .irb-row';
+    // فهرستِ همگام‌سازهایِ ردیف‌ها. حالتِ فلش‌ها نباید فقط به رویدادها بند باشد:
+    // ردیفِ SSR وقتی نمایان می‌شود و عکس‌هایِ تنبل وقتی می‌رسند، رویدادِ قابلِ
+    // اتکایی نمی‌دهند و فلش روی حالتِ غلط جا می‌ماند. هر جا چیدمان عوض شد،
+    // hsSyncAll صدا زده می‌شود.
+    const hsSyncers = [];
+    function hsSyncAll() { hsSyncers.forEach(f => { try { f(); } catch (e) {} }); }
+    window.hsSyncAll = hsSyncAll;
+
+    function hsIsDesktop() {
+        return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    }
+
+    function enhanceHScrollers(root) {
+        if (!hsIsDesktop()) return;
+        const scope = root || document;
+        scope.querySelectorAll(HS_SELECTOR).forEach(row => {
+            if (row.dataset.hsReady === '1') return;
+            row.dataset.hsReady = '1';
+
+            // پوشش، تا دکمه‌ها نسبت به خودِ ردیف جا بگیرند نه نسبت به کلِ کارت
+            const wrap = document.createElement('div');
+            wrap.className = 'hs-wrap';
+            row.parentNode.insertBefore(wrap, row);
+            wrap.appendChild(row);
+
+            const prev = document.createElement('button');
+            prev.type = 'button';
+            prev.className = 'hs-btn hs-prev';
+            prev.setAttribute('aria-label', 'قبلی');
+            prev.innerHTML = '‹';
+
+            const next = document.createElement('button');
+            next.type = 'button';
+            next.className = 'hs-btn hs-next';
+            next.setAttribute('aria-label', 'بعدی');
+            next.innerHTML = '›';
+
+            wrap.appendChild(prev);
+            wrap.appendChild(next);
+
+            // یک «ورق» = حدودِ ۹۰٪ عرضِ دید، تا کارتِ لبه نیم‌بریده گم نشود
+            const step = () => Math.max(160, Math.round(row.clientWidth * 0.9));
+
+            // در ظرفِ راست‌چین، scrollLeft از صفر شروع می‌شود و با رفتن به‌سمتِ چپ
+            // منفی می‌شود. پس علامتِ حرکت برعکسِ چپ‌چین است و فاصله‌ها با قدرِمطلق
+            // حساب می‌شوند تا هر دو حالت یک کد داشته باشند.
+            const rtl = getComputedStyle(row).direction === 'rtl';
+            const maxScroll = () => row.scrollWidth - row.clientWidth;
+            const distStart = () => Math.abs(row.scrollLeft);
+            const distEnd = () => maxScroll() - Math.abs(row.scrollLeft);
+
+            function sync() {
+                const overflowing = maxScroll() > 4;
+                prev.hidden = !overflowing || distStart() <= 4;
+                next.hidden = !overflowing || distEnd() <= 4;
+            }
+
+            // toEnd = +1 یعنی به‌سمتِ انتهایِ ردیف، ‎-1 یعنی برگشت به ابتدا
+            function page(toEnd) {
+                const from = row.scrollLeft;
+                const target = from + (rtl ? -1 : 1) * toEnd * step();
+                row.scrollTo({left: target, behavior: 'smooth'});
+                // دو نکته که هرکدام جداگانه دکمه را از کار می‌اندازند:
+                // ۱) اسکرولِ نرم همه‌جا اجرا نمی‌شود (تنظیمِ «کاهشِ حرکت» یا خودِ
+                //    مرورگر). اگر تکان نخورد، همان‌جا دستی جابه‌جا می‌شود.
+                // ۲) به‌روزرسانیِ حالتِ دکمه‌ها را نباید فقط به رویدادِ scroll سپرد؛
+                //    خودمان هم بعدِ حرکت صدا می‌زنیم تا فلشِ لبه حتماً درست شود.
+                setTimeout(() => {
+                    if (row.scrollLeft === from) row.scrollLeft = target;
+                    sync();
+                }, 120);
+                setTimeout(sync, 520);
+            }
+
+            prev.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); page(-1); });
+            next.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); page(1); });
+
+            row.addEventListener('scroll', sync, {passive: true});
+            window.addEventListener('resize', sync);
+            // عرضِ ردیف با آمدنِ عکس‌هایِ تنبل بعداً عوض می‌شود. اگر همان‌جا دوباره
+            // حساب نکنیم، فلش‌ها روی حالتِ «چیزی برایِ ورق‌زدن نیست» جا می‌مانند و
+            // ردیف بی‌دکمه به‌نظر می‌رسد. رویدادِ load به‌تنهایی کافی نبود (عکسِ
+            // از-پیش-کش‌شده رویدادی نمی‌دهد و عرض را دیرتر می‌گیرد)، پس تغییرِ
+            // اندازهٔ خودِ ردیف و تک‌تکِ آیتم‌هایش زیرِ نظر گرفته می‌شود.
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(sync);
+                ro.observe(row);
+                Array.from(row.children).forEach(ch => ro.observe(ch));
+            }
+            window.addEventListener('load', sync);
+
+            // کشیدن با ماوس. آستانهٔ ۵ پیکسل دارد تا کلیکِ ساده روی کارت از بین نرود:
+            // زیرِ آستانه اصلاً کشیدن حساب نمی‌شود و کلیک عادی به مقصدش می‌رسد.
+            //
+            // با رویدادهایِ pointer و setPointerCapture نوشته شده، نه mouse: در نسخهٔ
+            // mouse اگر رهاکردنِ دکمه بیرونِ پنجره یا جایی می‌افتاد که رویداد به ما
+            // نمی‌رسید، حالتِ «درحالِ‌کشیدن» گیر می‌کرد و دکمه‌هایِ ورق‌زدن برایِ همیشه
+            // نامرئی می‌ماندند. با گرفتنِ اشاره‌گر، رسیدنِ pointerup/pointercancel
+            // تضمین می‌شود و پایانِ کشیدن یک‌جا و بی‌قیدوشرط انجام می‌گیرد.
+            let down = false, moved = false, suppressClick = false, startX = 0, startScroll = 0;
+
+            // کلیکی که از دلِ کشیدن درمی‌آید نباید کارت یا لایت‌باکس را باز کند. پرچم
+            // به‌جایِ شنوندهٔ یک‌بارمصرف است، چون اگر کشیدن به کلیک ختم نشود شنوندهٔ
+            // یک‌بارمصرف می‌ماند و کلیکِ بعدیِ سالم را می‌بلعد.
+            row.addEventListener('click', ev => {
+                if (!suppressClick) return;
+                suppressClick = false;
+                ev.preventDefault();
+                ev.stopPropagation();
+            }, true);
+
+            function endDrag() {
+                if (!down) return;
+                down = false;
+                if (moved) suppressClick = true;
+                moved = false;
+                wrap.classList.remove('hs-dragging');
+            }
+
+            row.addEventListener('pointerdown', e => {
+                // لمس و قلم دست‌نخورده می‌مانند؛ اسکرولِ طبیعیِ خودشان بهتر است
+                if (e.button !== 0 || e.pointerType !== 'mouse') return;
+                down = true; moved = false; suppressClick = false;
+                startX = e.clientX;
+                startScroll = row.scrollLeft;
+                try { row.setPointerCapture(e.pointerId); } catch (err) {}
+            });
+
+            row.addEventListener('pointermove', e => {
+                if (!down) return;
+                const dx = e.clientX - startX;
+                if (!moved && Math.abs(dx) < 5) return;
+                if (!moved) { moved = true; wrap.classList.add('hs-dragging'); }
+                e.preventDefault();
+                row.scrollLeft = startScroll - dx;
+                sync();   // مثلِ page: به رویدادِ scroll تکیه نکن
+            });
+
+            row.addEventListener('pointerup', endDrag);
+            row.addEventListener('pointercancel', endDrag);
+            // اگر پنجره وسطِ کشیدن فوکوس را از دست بدهد، رهاشدن را نمی‌بینیم
+            window.addEventListener('blur', endDrag);
+
+            hsSyncers.push(sync);
+            sync();
+        });
+        // چیدمان تا چند لحظه بعد هنوز جا می‌افتد (عکسِ تنبل، فونت، نمایان‌شدنِ ردیف)
+        setTimeout(hsSyncAll, 300);
+        setTimeout(hsSyncAll, 1200);
+    }
+    window.enhanceHScrollers = enhanceHScrollers;
 
     // لایت‌باکسِ پنجره‌هایِ ردیفی — کلیک روی هر عکس، بزرگش می‌کند و قابلِ اسکرول به
     // عکس‌های بعدی/قبلیِ همان ردیف است. لینک/عنوانِ هر عکس هم از data-* خودِ عنصر خوانده می‌شود.
@@ -2848,6 +3092,15 @@
         document.getElementById('irbLbImg').src = it.img;
         document.getElementById('irbLbImg').alt = it.caption;
         document.getElementById('irbLbCaption').innerText = it.caption;
+        // شمارنده و دکمه‌هایِ ورق‌زدن: تا وقتی معلوم نباشد چند عکس هست، کاربر
+        // نمی‌فهمد این لایت‌باکس اصلاً ورق می‌خورد. اگر ردیف تک‌عکسی باشد هم
+        // شمارنده و هم فلش‌ها کنار می‌روند تا دکمهٔ بی‌کار نماند.
+        const lbSingle = irbLbItems.length < 2;
+        const lbCount = document.getElementById('irbLbCount');
+        const faNum = n => n.toLocaleString('fa-IR', {useGrouping: false});
+        if (lbCount) lbCount.innerText = lbSingle ? '' : `${faNum(irbLbIndex + 1)} از ${faNum(irbLbItems.length)}`;
+        document.querySelectorAll('#irbLightbox .irb-lb-nav')
+                .forEach(b => b.style.display = lbSingle ? 'none' : 'block');
         const linkEl = document.getElementById('irbLbLink');
         if (it.link) { linkEl.href = it.link; linkEl.style.display = 'inline-block'; }
         else { linkEl.style.display = 'none'; }
@@ -2869,6 +3122,29 @@
         else if (e.key === 'ArrowRight') irbLbNav(-1);
         else if (e.key === 'ArrowLeft') irbLbNav(1);
     });
+
+    // کشیدن با انگشت — روی موبایل این طبیعی‌ترین راهِ ورق‌زدن است و نبودش باعث
+    // می‌شد لایت‌باکس تک‌عکسی به‌نظر برسد. آستانهٔ ۴۰ پیکسل دارد تا لمسِ ساده
+    // (که برایِ بستن است) کشیدن حساب نشود. جهت مثلِ کلید است: کشیدن به چپ = بعدی.
+    (function () {
+        const lb = document.getElementById('irbLightbox');
+        if (!lb) return;
+        let x0 = null, y0 = null;
+        lb.addEventListener('touchstart', e => {
+            if (e.touches.length !== 1) { x0 = null; return; }
+            x0 = e.touches[0].clientX;
+            y0 = e.touches[0].clientY;
+        }, {passive: true});
+        lb.addEventListener('touchend', e => {
+            if (x0 === null) return;
+            const t = e.changedTouches[0];
+            const dx = t.clientX - x0, dy = t.clientY - y0;
+            x0 = null;
+            // حرکتِ بیشترْ عمودی یعنی کاربر قصدِ ورق‌زدن نداشته
+            if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+            irbLbNav(dx < 0 ? 1 : -1);
+        }, {passive: true});
+    })();
 
     // حالتِ چرخشیِ پنجره‌هایِ ردیفی — چرخشِ خودکار + ناوبریِ دستی (که تایمر را ریست می‌کند)
     // اسلایدرِ بنر — مثلِ setImageRowBanners فقط در نمای خانه دیده می‌شود، اما بدونِ
@@ -3001,11 +3277,12 @@
                 }
             });
             document.getElementById('landingSections').innerHTML = secHtml;
+            enhanceHScrollers(document.getElementById('landingSections'));
         } catch (e) {
             document.getElementById('landingSections').innerHTML = '';
         }
         // جدیدترین محصولات: صفحه‌بندی سروری با «نمایش بیشتر»
-        await startFeed('home', null);
+        await startFeed('home', null, isPopState);
 
         // ذخیره در تاریخچه مرورگر
         if (!isPopState) {
@@ -3029,7 +3306,7 @@
         document.getElementById('latestSectionHeader').innerText = 'دسته: ' + name;
 
         // لیست دسته: صفحه‌بندی سروری با «نمایش بیشتر» (بدون سقف ۲۰۰)
-        await startFeed('cat', id);
+        await startFeed('cat', id, isPopState);
 
         // متنِ معرفیِ دسته زیرِ محصولات (از state.cats؛ بدون کالِ جدید) — معادلِ SSR
         renderCatIntro(id);
@@ -3092,7 +3369,7 @@
         renderCatIntro(null); // نمای جشنواره متنِ معرفیِ دسته ندارد
 
         // لیست جشنواره: صفحه‌بندی سروری با «نمایش بیشتر»
-        await startFeed('sec', id);
+        await startFeed('sec', id, isPopState);
 
         // ذخیره لیست جشنواره در تاریخچه مرورگر
         if (!isPopState) {
@@ -3140,7 +3417,7 @@
         document.getElementById('latestSectionHeader').innerText = `نتایج جست‌وجو برای: ${q}`;
         renderCatIntro(null); // نمای سرچ متنِ معرفیِ دسته ندارد
 
-        await startFeed('search', {q, cat});
+        await startFeed('search', {q, cat}, isPopState);
 
         // رویدادِ استانداردِ گوگل برای سرچِ داخلیِ سایت
         gaEvent('search', {search_term: q});
@@ -3243,7 +3520,70 @@
 
     // ========= صفحه‌بندی گرید («نمایش بیشتر») =========
     // type: 'home' | 'cat' | 'sec' | 'search'  — از سرور صفحه‌صفحه می‌گیرد (بدون سقف)
-    async function startFeed(type, param) {
+    // ========= به‌یادسپاریِ وضعیتِ لیست هنگامِ رفتن به محصول =========
+    // پیش از این، ورود به یک محصول و بعد «بازگشت»، همهٔ صفحه‌هایی را که کاربر با
+    // «نمایش محصولات بیشتر» گرفته بود دور می‌ریخت و لیست به همان صفحهٔ اول برمی‌گشت.
+    // حالا درست پیش از بازشدنِ محصول یک عکسِ فوری از لیست نگه داشته می‌شود —
+    // صفحه‌هایِ گرفته‌شده، خودِ محصول‌ها، فیلترهایِ فعال و جایِ اسکرول — و فقط در
+    // مسیرِ «بازگشت» دوباره جا می‌افتد، نه وقتی کاربر خودش همان دسته را از منو
+    // از نو باز می‌کند (آن‌جا انتظارِ لیستِ تازه دارد).
+    function feedKey(type, param) {
+        if (type === 'search') return 'search|' + ((param && param.q) || '') + '|' + ((param && param.cat) || '');
+        return type + '|' + (param == null ? '' : param);
+    }
+
+    function captureFeedSnapshot() {
+        // فقط وقتی واقعاً روی لیست ایستاده‌ایم. اگر از یک محصول به محصولِ مرتبط
+        // برویم، لیست دیده نمی‌شود و عکسِ فوریِ قبلی نباید با جایِ اسکرولِ صفحهٔ
+        // محصول خراب شود.
+        const homeView = document.getElementById('homeView');
+        if (!homeView || !homeView.classList.contains('active')) return;
+        if (!state.feed || !state.current || !state.current.length) return;
+        state.feedSnapshot = {
+            key: feedKey(state.feed.type, state.feed.param),
+            feed: Object.assign({}, state.feed),
+            current: state.current.slice(),
+            scrollY: window.scrollY || window.pageYOffset || 0,
+            filters: Array.from(document.querySelectorAll('#filterContainer input:checked'))
+                    .map(i => ({k: i.dataset.k, v: i.dataset.v}))
+        };
+    }
+
+    async function startFeed(type, param, allowRestore = false) {
+        const snap = state.feedSnapshot;
+        if (allowRestore && snap && snap.key === feedKey(type, param) && snap.current.length) {
+            state.feed = snap.feed;
+            state.current = snap.current;
+            state.feedSnapshot = null;
+
+            setupFilters(state.current);
+            if (snap.filters.length) {
+                // تیک‌ها با مقایسهٔ مقدار برمی‌گردند، نه با ساختنِ سلکتور — مقدارِ
+                // مشخصاتِ فنی ممکن است گیومه یا نویسهٔ خاص داشته باشد.
+                document.querySelectorAll('#filterContainer input[data-k], #mobFilterBody input[data-k]')
+                        .forEach(i => {
+                            if (snap.filters.some(f => f.k === i.dataset.k && f.v === i.dataset.v)) i.checked = true;
+                        });
+                runFilter();
+            } else {
+                renderGrid(state.current);
+            }
+
+            const btn = document.getElementById('loadMoreBtn');
+            if (btn) btn.style.display = state.feed.last ? 'none' : 'inline-block';
+
+            // جایِ اسکرول بعد از چیده‌شدنِ کارت‌ها برمی‌گردد، نه قبلش
+            requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, snap.scrollY)));
+            return;
+        }
+
+        state.feedSnapshot = null;
+        // لیستِ تازه باید از سرِ فهرست دیده شود. پیش از این اگر کاربر وسطِ صفحه
+        // بود و دسته را عوض می‌کرد، صفحه همان‌جا می‌ماند و وسطِ لیستِ جدید ظاهر
+        // می‌شد — انگار هیچ اتفاقی نیفتاده. بالا رفتن پیش از واکشی انجام می‌شود
+        // تا جهش بعدِ آمدنِ داده نباشد. مسیرِ «بازگشت» به اینجا نمی‌رسد، چون آن‌جا
+        // جایِ اسکرولِ ذخیره‌شده برمی‌گردد.
+        window.scrollTo(0, 0);
         state.feed = {type, param, page: 0, size: 20, last: false};
         state.current = [];
         await loadMoreProducts(true);
@@ -3789,6 +4129,15 @@
             const fName = document.getElementById('fName').value.trim();
             const lName = document.getElementById('lName').value.trim();
 
+            // 🔴 پیش از این هیچ اعتبارسنجی و هیچ شاخهٔ خطایی نبود: کلیک روی دکمه با
+            // نامِ خالی یا با هر پاسخِ غیرِ ۲۰۰ـی، *هیچ کاری* نمی‌کرد — نه پیامی، نه
+            // تغییری. از بیرون دقیقاً شبیهِ «دکمه خراب است» دیده می‌شد.
+            if (!fName || !lName) {
+                showAuthMsg('نام و نام خانوادگی را وارد کنید', false);
+                return;
+            }
+            showAuthMsg('', true);
+
             const res = await fetch(`${API}/api/auth/complete-profile`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -3814,9 +4163,23 @@
                 };
 
                 finishLogin(userObj);
+            } else {
+                // ۴۰۱/۴۰۳ یعنی سشن یا توکنِ امنیتی سرِ راه گم شده — نه اینکه ورودیِ
+                // کاربر ایراد داشته باشد. پیامِ عمومی اینجا گمراه‌کننده است.
+                let msg = 'ثبت نام انجام نشد. دوباره تلاش کنید.';
+                if (res.status === 401 || res.status === 403) {
+                    msg = 'ورود شما منقضی شده؛ لطفاً پنجره را ببندید و از ابتدا وارد شوید.';
+                } else {
+                    const body = (await res.text().catch(() => '')).trim();
+                    // ⚠️ پاسخِ خطای اسپرینگ JSON است؛ ریختنش جلوی مشتری بدتر از
+                    // نگفتن است. فقط پیامِ متنیِ خودمان نشان داده می‌شود.
+                    if (body && !body.startsWith('{') && !body.startsWith('<')) msg = body;
+                }
+                showAuthMsg(msg, false);
             }
         } catch (e) {
             console.error("خطا در تکمیل پروفایل:", e);
+            showAuthMsg('خطای ارتباط با سرور', false);
         }
     }
 
