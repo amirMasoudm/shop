@@ -2156,6 +2156,17 @@
             }
 
             if (localStorage.getItem('userName')) fetchServerOrders();
+
+            // ورود از «بازگشت به سبدِ خرید» در پنلِ مشتری (customerPanel.html) — سبدِ
+            // shop_cart از قبل توسطِ آن صفحه پر شده؛ اینجا فقط drawerِ سبد باز می‌شود.
+            if (new URLSearchParams(location.search).get('openCart') === '1') {
+                const sp = new URLSearchParams(location.search);
+                sp.delete('openCart');
+                history.replaceState(null, '', location.pathname + (sp.toString() ? '?' + sp.toString() : ''));
+                switchTab('current');
+                document.getElementById('cartDrawer').classList.add('active');
+                document.getElementById('overlay').classList.add('active');
+            }
         } catch (e) {
             document.getElementById('loadingSkeleton').innerHTML = 'خطا در لود محصولات';
         }

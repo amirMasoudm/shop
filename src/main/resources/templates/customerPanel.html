@@ -285,6 +285,21 @@
             <button onclick="closeModal('checkoutModal')" class="text-gray-400 text-2xl hover:text-red-500 transition">✕</button>
         </div>
 
+        <!-- Step: سفارشِ از قبل نهایی‌شده (مثلاً پرداخت لغو/ناموفق بوده) — دیگر با PUTِ اقلام
+             ویرایش نمی‌شود؛ یا مستقیم دوباره پرداخت می‌شود یا به سبدِ خرید برمی‌گردد -->
+        <div id="checkout-step-finalized" class="hidden">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-sm text-blue-800 leading-relaxed">
+                📌 این فاکتور قبلاً نهایی شده و آماده‌ی پرداخت است. برای تغییرِ تعدادِ کالاها،
+                ابتدا آن را به سبدِ خرید بازگردانید.
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl flex justify-between items-center mb-6 border">
+                <span class="font-bold">مبلغِ قابلِ پرداخت:</span>
+                <span id="checkout-finalized-total" class="font-black text-blue-700 text-lg">۰ تومان</span>
+            </div>
+            <button id="btn-retry-pay" onclick="retryPayment()" class="btn-yas w-full py-4 text-lg shadow-lg mb-3">پرداخت مجدد 💳</button>
+            <button onclick="returnOrderToCart()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 rounded-xl hover:bg-gray-50 transition">↩️ بازگشت به سبدِ خرید برای ویرایش</button>
+        </div>
+
         <!-- Step 1: Items Edit -->
         <div id="checkout-step-items">
             <h4 class="font-bold text-sm mb-4">۱. بررسی و ویرایش تعداد کالاها</h4>
@@ -294,6 +309,7 @@
                 <span id="checkout-items-total" class="font-black text-blue-700 text-lg">۰ تومان</span>
             </div>
             <button id="btn-next-step" onclick="proceedToAddressSelection()" class="btn-yas w-full py-4 text-lg shadow-lg">تایید و انتخاب آدرس تحویل ❯</button>
+            <button onclick="returnOrderToCart()" class="w-full py-2.5 mt-3 text-xs font-bold text-gray-400 hover:text-gray-600 transition bg-transparent border-none cursor-pointer">↩️ بازگشت به سبدِ خرید برایِ ویرایشِ آزاد</button>
         </div>
 
         <!-- Step 2 & 3: Address & Shipping Options -->
@@ -304,10 +320,7 @@
 
             <div id="shipping-section" class="hidden border-t pt-6">
                 <h4 class="font-bold text-sm mb-4">۳. روش ارسال:</h4>
-                <div id="shipping-options" class="space-y-3 mb-6"></div>
-                <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-6 text-center font-bold">
-                    🚚 هزینه‌ی ارسال در زمانِ تحویل توسطِ شرکتِ حمل‌ونقل از گیرنده دریافت می‌شود.
-                </p>
+                <div id="shipping-options" class="mb-6"></div>
 
                 <!-- خلاصه‌ی فاکتور: کارِ ۱ پرامپتِ مالیات — مجموعِ کالاها + ۱۰٪ مالیات + مجموعِ فاکتور -->
                 <div class="bg-gray-50 p-4 rounded-xl border mb-6 space-y-2">
@@ -515,11 +528,72 @@
             const res = await fetch(`${API}/orders/${orderId}`, { credentials: 'include' });
             if(!res.ok) throw new Error();
             state.currentOrder = await res.json();
-            renderCheckoutItems();
-            goToCheckoutStep('items');
             document.getElementById('checkoutModal').classList.add('active');
             document.getElementById('overlay').classList.add('active');
+
+            // سفارشی که قبلاً نهایی شده (مثلاً پرداختش لغو/ناموفق بوده) دیگر از این‌جا
+            // با PUTِ اقلام ویرایش نمی‌شود — OrderService.updateOrderItems صریحاً رد
+            // می‌کند («امکان ویرایش سفارش نهایی شده وجود ندارد»). قبلاً همین مسیرِ عادی
+            // اجرا می‌شد و همان الرت را می‌داد؛ حالا یک مسیرِ جدا: پرداختِ مجدد یا بازگشت به سبد.
+            const isFinalized = !!state.currentOrder.finalized;
+            document.getElementById('checkout-step-finalized').classList.toggle('hidden', !isFinalized);
+            document.getElementById('checkout-step-items').classList.toggle('hidden', isFinalized);
+            document.getElementById('checkout-step-address').classList.add('hidden');
+
+            if (isFinalized) {
+                document.getElementById('checkout-finalized-total').innerText =
+                    (state.currentOrder.totalAmount || 0).toLocaleString() + ' تومان';
+            } else {
+                renderCheckoutItems();
+                goToCheckoutStep('items');
+            }
         } catch(e) { alert("سفارش یافت نشد"); }
+    }
+
+    // پرداختِ مجدد برایِ سفارشی که قبلاً نهایی شده — بدونِ عبور از ویزارد، چون
+    // OrderService.startMellatPayment فقط finalized بودن را می‌خواهد، نه اقلام/آدرسِ تازه.
+    async function retryPayment() {
+        const btn = document.getElementById('btn-retry-pay');
+        btn.disabled = true; btn.innerText = "در حال اتصال به درگاه...";
+        try {
+            const payRes = await fetch(`${API}/orders/${state.currentOrder.id}/pay`, { method: 'POST', credentials: 'include' }).then(r => r.json());
+            if(payRes.paymentUrl) window.location.href = payRes.paymentUrl;
+            else { alert('خطا در اتصال به درگاهِ پرداخت'); btn.disabled = false; btn.innerText = "پرداخت مجدد 💳"; }
+        } catch(e) {
+            alert('خطا در ارتباط با سرور');
+            btn.disabled = false; btn.innerText = "پرداخت مجدد 💳";
+        }
+    }
+
+    // انتقالِ فاکتورِ جاری به سبدِ خریدِ فروشگاه (همان مکانیزمِ editServerOrder در CL.html):
+    // اقلام به localStorageِ shop_cart کپی می‌شوند، سفارشِ سرور حذف می‌شود (مجاز است چون
+    // status هنوز PENDING_PAYMENT است — finalize فقط فیلدِ finalized را عوض می‌کند)، و
+    // کاربر به فروشگاه با سبدِ باز برمی‌گردد تا آزادانه تعداد را کم/زیاد کند.
+    async function returnOrderToCart() {
+        const o = state.currentOrder;
+        if (!o) return;
+        askConfirm(
+            "بازگشت به سبدِ خرید",
+            "این فاکتور به سبدِ خریدِ فروشگاه منتقل می‌شود تا بتوانید آزادانه تعدادِ کالاها را تغییر دهید؛ سفارشِ فعلی حذف خواهد شد. ادامه می‌دهید؟",
+            async () => {
+                try {
+                    const cart = (o.items || []).map(i => ({
+                        id: i.productId,
+                        name: i.productName || 'کالا',
+                        price: i.unitPrice || 0,
+                        img: i.productImage || '',
+                        qty: i.quantity || 1,
+                        type: i.itemType || 'PRODUCT'
+                    }));
+                    localStorage.setItem('shop_cart', JSON.stringify(cart));
+                    await fetch(`${API}/orders/${o.id}`, { method: 'DELETE', credentials: 'include' });
+                    closeModal('checkoutModal');
+                    location.href = '/shop?openCart=1';
+                } catch(e) {
+                    alert('خطا در انتقال به سبدِ خرید');
+                }
+            }
+        );
     }
 
     function renderCheckoutItems() {
@@ -631,6 +705,7 @@
             <div class="yas-card p-4 cursor-pointer border-2 transition ${state.selectedAddrIdx === i ? 'border-blue-600 bg-blue-50' : 'border-transparent'}" onclick="selectCheckoutAddress(${i})">
                 <div class="font-bold text-sm text-[#1b4f8a] mb-1">📍 ${addr.recipientName}</div>
                 <div class="text-xs text-gray-600 leading-relaxed">${addr.state}، ${addr.city} - ${addr.fullAddress.substring(0,60)}...</div>
+                ${mapLinkHtml(addr)}
             </div>
         `).join('');
     }
@@ -664,33 +739,24 @@
         }
     }
 
+    // فقط یک روشِ ثابت وجود دارد («پس‌کرایه توسطِ کارگزار»)؛ دیگر انتخابِ چندگزینه‌ای
+    // نیست (تصمیمِ مالک ۲۰۲۶-۰۹-۱۷) — پس همینجا خودکار انتخاب می‌شود.
     function renderShippingOptions(quotes) {
         const cont = document.getElementById('shipping-options');
-        cont.innerHTML = quotes.map((q) => {
-            let icon = '🚚';
-            if (q.method === 'SNAPP_BOX') icon = '🛵';
-            else if (q.method === 'POST_PISHTAZ') icon = '📦';
-            else if (q.method === 'TIPAX') icon = '📮';
-            else if (q.method === 'BARBARI') icon = '🚛';
-
-            // بدونِ قیمت — هزینه‌ی واقعی پس‌کرایه است و در زمانِ تحویل گرفته می‌شود
-            return `
-            <div class="shipping-option ${state.selectedShip?.method === q.method ? 'active' : ''}" onclick="setShipMethod('${q.method}')">
-                <div class="text-2xl">${icon}</div>
-                <div class="flex-1">
-                    <div class="font-bold text-sm text-gray-800">${q.title}</div>
-                    <div class="text-[10px] text-gray-500">${q.estimatedTime}</div>
-                </div>
-            </div>
-        `;
-        }).join('');
-    }
-
-    function setShipMethod(method) {
-        state.selectedShip = { method };
+        const q = (quotes || [])[0];
+        if (!q) {
+            cont.innerHTML = '<p class="text-center py-4 text-xs text-red-500 font-bold">خطا در دریافت روش ارسال</p>';
+            return;
+        }
+        state.selectedShip = { method: q.method };
         document.getElementById('btn-final-pay').disabled = false;
         document.getElementById('btn-final-pay').classList.remove('opacity-50');
-        renderShippingOptions(state.lastQuotes || []);
+        cont.innerHTML = `
+            <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                <div class="text-xl">🚚</div>
+                <div class="text-xs text-amber-800 leading-relaxed font-bold">${q.title}</div>
+            </div>
+        `;
     }
 
     async function finalizeAndPay() {
@@ -1167,6 +1233,14 @@
         );
     }
 
+    // لینکِ مختصاتِ ثبت‌شده از نقشه (مرحله‌ی ساختِ آدرس lat/lng را می‌فرستد و ذخیره
+    // می‌شود، فقط تا امروز جایی نمایش داده نمی‌شد)
+    function mapLinkHtml(a) {
+        if (a.latitude == null || a.longitude == null) return '';
+        const lat = Number(a.latitude).toFixed(6), lng = Number(a.longitude).toFixed(6);
+        return `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener" class="text-xs text-blue-600 hover:underline mt-1 inline-block">📍 مشاهده روی نقشه (${lat}, ${lng})</a>`;
+    }
+
     function renderAddresses() {
         const grid = document.getElementById('address-grid');
         if(!grid) return;
@@ -1181,6 +1255,7 @@
         </p>
         <div class="text-xs text-gray-400 mt-2 font-medium">📮 کد پستی: ${escapeHTML(a.postalCode || 'ثبت نشده')}</div>
         <div class="text-xs text-gray-400 mt-1">📞 ${escapeHTML(a.recipientPhone)}</div>
+        ${mapLinkHtml(a)}
     </div>
 `).join('');
     }
