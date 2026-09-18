@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
 
 @Service
 public class CategoryService {
@@ -115,6 +118,43 @@ public class CategoryService {
         return isWarehouse(root)
                 ? productRepo.countByWarehouseCategoryIdIn(ids)
                 : productRepo.countByCategoryIdIn(ids);
+    }
+
+    /**
+     * شمارشِ محصولاتِ زیردرختِ <b>همهٔ</b> دسته‌های یک نوع، در یک رفت‌وبرگشت.
+     * <p>
+     * ⚠️ چرا این هست و از {@link #countProductsInSubtree} حلقه نمی‌زنیم:
+     * فرانت برایِ کاشی‌هایِ دستهٔ موبایل شمارِ همه را با هم می‌خواهد. حلقه روی
+     * آن متد یعنی برایِ ۲۰ دسته، ۲۰ کوئریِ count به‌علاوهٔ ۲۰ بارگذاریِ درخت.
+     * این‌جا محصولات یک بار خوانده می‌شوند و شمارش در حافظه بالا می‌رود.
+     *
+     * @return نگاشتِ شناسهٔ دسته ← تعدادِ محصولِ خودش و همهٔ زیردسته‌هایش
+     */
+    public Map<String, Long> productCountsBySubtree(String type) {
+        boolean warehouse = "WAREHOUSE".equalsIgnoreCase(type);
+        List<Category> all = repo.findAll().stream()
+                .filter(c -> warehouse == isWarehouse(c))
+                .collect(Collectors.toList());
+
+        // شمارِ مستقیمِ هر دسته
+        Map<String, Long> direct = new HashMap<>();
+        for (Product p : productRepo.findAll()) {
+            String cid = warehouse ? p.getWarehouseCategoryId() : p.getCategoryId();
+            if (cid != null && !cid.isEmpty()) direct.merge(cid, 1L, Long::sum);
+        }
+
+        // شمارِ هر دسته = خودش + همهٔ نیاکانش آن را می‌گیرند. با ancestors یک
+        // پیمایشِ ساده کافی است و نیازی به بازسازیِ درخت نیست.
+        Map<String, Long> out = new HashMap<>();
+        for (Category c : all) out.put(c.getId(), direct.getOrDefault(c.getId(), 0L));
+        for (Category c : all) {
+            long own = direct.getOrDefault(c.getId(), 0L);
+            if (own == 0) continue;
+            List<String> anc = c.getAncestors();
+            if (anc == null) continue;
+            for (String a : anc) if (out.containsKey(a)) out.merge(a, own, Long::sum);
+        }
+        return out;
     }
 
     /*

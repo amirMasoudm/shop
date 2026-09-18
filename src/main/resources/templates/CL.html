@@ -929,95 +929,316 @@
         .irb-lb-prev { right: 16px; }
         .irb-lb-next { left: 16px; }
 
-        /* ═══ کشویِ دسته‌بندیِ موبایل ═══
-           قبلاً یک فهرستِ سادهٔ سفید با خطِ جداکننده بود؛ نه معلوم بود کلیک‌شدنی
-           است نه لمس بازخوردی داشت. حالا هر ردیف یک کلیدِ آبیِ روشن است با
-           بازخوردِ فشردن، و فلشِ زیردسته‌ها از افقی به پایین می‌چرخد. */
-        .mob-item {
-            margin-bottom: 6px;
+        /* ═══ نوارِ چیپیِ دسته (فقط موبایل) ═══
+           ارتفاعِ کلش ~۴۱px است: چیپِ ۲۸px به‌اضافهٔ ۱۳px حاشیه. عمداً از
+           مدلِ پیش‌نمایش کوچک‌تر شد. */
+        /* بسترِ نوار عمداً سفیدِ خالی نیست: یک تورفتگیِ ملایم که نوار را از
+           جست‌وجویِ بالا و کارت‌هایِ پایین جدا می‌کند، و دو محوشدگیِ لبه که
+           می‌گویند «این نوار ادامه دارد، بکش». */
+        .cat-strip {
+            display: none;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 7px 12px 8px;
+            background:
+                linear-gradient(to left, #fff 0, rgba(255, 255, 255, 0) 28px),
+                linear-gradient(to right, #fff 0, rgba(255, 255, 255, 0) 28px),
+                linear-gradient(180deg, #eef3fa, #e4ecf7);
+            background-repeat: no-repeat;
+            background-attachment: local, local, scroll;
+            box-shadow: inset 0 1px 0 rgba(15, 42, 80, .07),
+                        inset 0 -1px 0 rgba(15, 42, 80, .07);
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .mob-row {
-            display: flex;
-            align-items: stretch;
-            background: var(--blue-soft);
-            border: 1px solid var(--blue-line);
-            border-radius: var(--radius-card);
-            overflow: hidden;
-            transition: background var(--dur) var(--ease);
+        .cat-strip::-webkit-scrollbar { display: none; }
+
+        /* روی دسکتاپ نوارِ کلیدهایِ هدر کارِ این را می‌کند، پس اضافه است */
+        @media (max-width: 992px) {
+            .cat-strip { display: flex; }
         }
 
-        .mob-row.is-open {
-            background: var(--blue-press);
-        }
-
-        .mob-link {
-            flex: 1;
-            min-width: 0;
-            display: flex;
+        .cat-chip {
+            flex: 0 0 auto;
+            display: inline-flex;
             align-items: center;
-            /* هدفِ لمس ۴۸px — بالاتر از حداقلِ ۴۴px چون ردیفِ فهرست است */
-            min-height: 48px;
-            padding: 10px 16px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            gap: 5px;
+            height: 28px;
+            padding: 0 11px;
+            background: #fff;
+            border: 1px solid var(--blue-line);
+            border-radius: 14px;
+            box-shadow: 0 1px 2px rgba(15, 42, 80, .06);
             color: var(--primary);
+            font-size: 0.7rem;
+            font-weight: 700;
+            white-space: nowrap;
             text-decoration: none;
             transition: background var(--dur) var(--ease);
         }
 
-        .mob-link:active {
-            background: var(--blue-press);
+        /* نقطهٔ رنگِ دسته — همان رنگی که در پنلِ ادمین ثبت می‌شود. دستهٔ بی‌رنگ
+           نقطه‌اش هم‌رنگِ متن و کم‌رنگ است، نه غایب، تا قدِ چیپ‌ها یکی بماند. */
+        .cat-chip .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: .45;
+            flex-shrink: 0;
         }
 
-        .mob-toggle {
-            flex: 0 0 auto;
-            width: 52px;
+        .cat-chip.on {
+            background: linear-gradient(135deg, #143152, #17406f);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(20, 49, 82, .3);
+        }
+
+        .cat-chip.on .dot { background: var(--accent); opacity: 1; }
+        .cat-chip:active { background: var(--blue-press); }
+        .cat-chip.on:active { background: #0f2540; }
+
+        /* ═══ کشویِ دسته‌بندیِ موبایل ═══
+           هر دسته عمداً «دو تکه» است: ردیفِ نام (زدنش یعنی برو به آن دسته) و
+           نوارِ تمام‌عرضِ زیرش (زدنش یعنی زیردسته‌ها را باز/بسته کن). پیش از
+           این، فلش یک دکمهٔ ۳۰ پیکسلیِ گوشهٔ کاشی بود: نه دیده می‌شد نه با شست
+           زده می‌شد. گریدِ دوستونه هم رفت — ردیف‌ها زیرِ هم‌اند و زیردسته‌ها
+           درست پایِ همان ردیف باز می‌شوند، نه جایی دیگر در چیدمان. */
+
+        /* ⚠️ همهٔ سِلکتورهای این بخش عمداً دوکلاسه‌اند (.menu-drawer .dr-…)
+           چون .drawer/.dr-header/.dr-close پایین‌ترِ همین فایل تعریف شده‌اند و
+           با هم‌وزنیِ ویژگی، «آخری» برنده می‌شد. */
+        .drawer.menu-drawer {
+            background: var(--bg);
+            /* لبهٔ روبه‌صفحه گرد شد؛ کشو از راست می‌آید پس گوشه‌های چپش پیداست.
+               (عمداً فیزیکی نوشته شده، نه منطقی: لنگرِ کشو خودش فیزیکی است.) */
+            border-radius: 18px 0 0 18px;
+            overflow: hidden;
+        }
+
+        .menu-drawer .dr-header,
+        .cart-drawer .dr-header {
+            position: relative;
+            z-index: 1;
+            padding: 14px 16px 17px;
+            background: linear-gradient(135deg, var(--nav-primary-dark, #143152), var(--nav-primary, #17406f));
+            border: 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 6px 16px rgba(15, 42, 80, .22);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        /* درخششِ گوشه — همان لهجهٔ نوارِ هویتِ بالایِ سایت */
+        .menu-drawer .dr-header::after,
+        .cart-drawer .dr-header::after {
+            content: '';
+            position: absolute;
+            top: -78px;
+            inset-inline-end: -46px;
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .mdh-top {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .mdh-title {
+            font-size: 1.05rem;
+            font-weight: 900;
+            line-height: 1.7;
+            color: #fff;
+        }
+
+        .mdh-sub {
+            display: block;
+            font-size: 0.64rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, .72);
+        }
+
+        .menu-drawer .dr-close,
+        .cart-drawer .dr-close {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, .14);
+            border: 1px solid rgba(255, 255, 255, .22);
+            color: #fff;
+        }
+
+        .menu-drawer .dr-close:active,
+        .cart-drawer .dr-close:active { background: rgba(255, 255, 255, .3); }
+
+        /* راهِ برگشت به خانه از داخلِ کشو */
+        .mdh-all {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: none;
-            border: 0;
-            border-inline-start: 1px solid var(--blue-line);
-            color: var(--primary);
-            cursor: pointer;
-            font-family: inherit;
+            gap: 7px;
+            height: 36px;
+            margin-top: 13px;
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid rgba(255, 255, 255, .24);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .mdh-all:active { background: rgba(255, 255, 255, .26); }
+
+        .mdh-all svg { width: 15px; height: 15px; }
+
+        /* ═══ ردیف‌های دسته ═══ */
+        .mob-tiles {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            padding: 13px 12px 22px;
+        }
+
+        /* قابِ هر دسته: ردیف و نوارِ فلش با هم، یک‌تکه با لبهٔ گرد */
+        .tile-head {
+            background: #fff;
+            border: 1px solid var(--blue-line);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(15, 42, 80, .07);
+        }
+
+        .mob-tile {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px 12px 13px;
+            text-decoration: none;
+            color: inherit;
             transition: background var(--dur) var(--ease);
         }
 
-        .mob-toggle:active {
-            background: var(--blue-press);
+        .mob-tile:active { background: var(--blue-soft); }
+
+        /* نوارِ رنگیِ لبهٔ ردیف — رنگِ دسته، یا آبیِ برند اگر بی‌رنگ بود */
+        .mob-tile .tile-stripe {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            inset-inline-start: 0;
+            width: 4px;
+            background: var(--primary);
         }
 
-        /* نوکِ فلش در حالتِ بسته افقی است (به سمتِ چپ، یعنی جهتِ ادامهٔ
-           خواندن در صفحهٔ راست‌چین)؛ با باز شدنِ زیردسته‌ها می‌چرخد و
-           رو به پایین می‌ایستد. */
-        .mob-chev {
-            width: 17px;
-            height: 17px;
-            display: block;
+        .mob-tile .tile-name {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.84rem;
+            font-weight: 700;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        /* شمار حالا هم‌ردیفِ نام است، نه زیرش: ردیف تمام‌عرض است و جا دارد. */
+        .mob-tile .tile-meta {
+            flex-shrink: 0;
+            padding: 2px 8px;
+            background: var(--blue-soft);
+            border: 1px solid var(--blue-line);
+            border-radius: 20px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* ═══ تکهٔ دوم: نوارِ تمام‌عرضِ فلش ═══ */
+        .tile-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            width: 100%;
+            height: 33px;
+            padding: 0;
+            background: linear-gradient(180deg, #f2f7fc, #e8f0f9);
+            border: 0;
+            border-top: 1px solid var(--blue-line);
+            color: var(--primary);
+            font-family: inherit;
+            font-size: 0.64rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .tile-toggle:active { background: var(--blue-press); }
+        .tile-toggle.open { background: linear-gradient(180deg, #e3ecf8, #d9e6f4); }
+
+        .tile-toggle svg {
+            width: 15px;
+            height: 15px;
             transform: rotate(90deg);
             transition: transform 220ms var(--ease);
         }
 
-        .mob-row.is-open .mob-chev {
-            transform: rotate(0deg);
+        .tile-toggle.open svg { transform: rotate(0deg); }
+
+        /* ═══ زیردسته‌ها: تکهٔ جدا، تورفته، پایِ همان ردیف ═══ */
+        .mob-subtiles {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 7px;
+            margin-inline-start: 14px;
+            padding-inline-start: 13px;
+            border-inline-start: 2px dashed var(--blue-line);
         }
 
-        /* زیردسته‌ها یک پله تودرتو و یک پله روشن‌تر، تا سلسله‌مراتب دیده شود */
-        .mob-children {
-            padding: 6px 12px 0 0;
+        .mob-subtiles.open { display: flex; }
+
+        .mob-subtiles .tile-head {
+            background: #fbfdff;
+            border-radius: 10px;
+            box-shadow: none;
         }
 
-        .mob-children .mob-row {
-            background: #f4f8fd;
-        }
+        .mob-subtiles .mob-tile { padding: 10px 13px 10px 11px; }
+        .mob-subtiles .tile-stripe { width: 3px; }
 
-        .mob-children .mob-link {
-            min-height: 44px;
-            font-size: 0.85rem;
+        .mob-subtiles .tile-name {
+            font-size: 0.77rem;
             font-weight: 600;
+        }
+
+        /* ورودِ پلکانی، تا بازشدن دیده شود نه اینکه ناگهان بپرد */
+        .mob-subtiles.open > .mob-tile-wrap { animation: subIn 240ms var(--ease) both; }
+        .mob-subtiles.open > .mob-tile-wrap:nth-child(2) { animation-delay: 35ms; }
+        .mob-subtiles.open > .mob-tile-wrap:nth-child(3) { animation-delay: 70ms; }
+        .mob-subtiles.open > .mob-tile-wrap:nth-child(4) { animation-delay: 105ms; }
+        .mob-subtiles.open > .mob-tile-wrap:nth-child(5) { animation-delay: 140ms; }
+        .mob-subtiles.open > .mob-tile-wrap:nth-child(n+6) { animation-delay: 175ms; }
+
+        @keyframes subIn {
+            from { opacity: 0; transform: translateY(-7px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mob-subtiles.open > .mob-tile-wrap { animation: none; }
+            .tile-toggle svg { transition: none; }
         }
 
         /* ═══ اسکرولِ بی‌پایان ═══ */
@@ -1557,11 +1778,20 @@
             display: block;
         }
 
+        /* ⚠️ قدِ کشو عمداً دو لایه است؛ این یک باگِ دیده‌شده را می‌بندد:
+           با height:100dvh، وقتی کاربر صفحهٔ پشت را تند اسکرول می‌کرد نوارِ
+           آدرسِ مرورگر جمع می‌شد، قابِ دید آنی بلندتر می‌شد ولی مقدارِ dvh
+           یکی-دو فریم عقب می‌ماند و یک تکه از پایینِ کشو سوراخ می‌شد و صفحهٔ
+           پشت از آن‌جا پیدا بود. حالا جعبه تا lvh کشیده می‌شود — بلندترین
+           حالتِ دید، مقداری ثابت و بی‌تأخیر — و فقط فضایِ محتوا با padding به
+           dvh برمی‌گردد تا کفِ کشو (مثلاً دکمهٔ «تایید و ثبت نهایی») همچنان
+           بالایِ نوارِ آدرس بماند. روی دسکتاپ هر دو برابرند و padding صفر است. */
         .drawer {
             position: fixed;
             top: 0;
             bottom: 0;
-            height: 100dvh;
+            height: 100lvh;
+            padding-bottom: calc(100lvh - 100dvh);
             background: var(--surface);
             z-index: 2000;
             transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1713,8 +1943,13 @@
                 grid-template-columns: 1fr;
             }
 
+            /* ⚠️ max-width عمداً هست: خواستهٔ مالک این است که کشو تمامِ صفحه را
+               نگیرد و یک نوارِ باریک از خودِ فروشگاه کنارش پیدا بماند تا کاربر
+               بفهمد این روی صفحه باز شده، نه اینکه صفحهٔ دیگری آمده باشد.
+               کشویِ دسته و فیلتر از قبل ۳۲۰ داشتند؛ سبد نداشت و تمام‌صفحه می‌شد. */
             .drawer {
                 width: 100%;
+                max-width: 320px;
             }
 
             /* ⚠️ رفعِ سرریزِ افقیِ هدر بعد از لاگین.
@@ -1799,74 +2034,396 @@
                 border-radius: 15px;
             }
         }
-        /* استایل مدرن انتخابگر تعداد */
-        .cart-qty-ctrl {
-            display: flex;
-            align-items: center;
-            background: #f1f5f9; /* خاکستری خیلی روشن */
-            border-radius: 10px;
-            padding: 2px;
-            width: fit-content;
-            margin-top: 8px;
-            border: 1px solid #e2e8f0;
+        /* ═══ کشویِ سبدِ خرید ═══
+           هم‌تمِ کشویِ دسته‌ها: سرِ آبیِ تیره با قوس، بسترِ آبیِ روشن، و هر قلم
+           یک کارتِ سفید. کشو از چپ می‌آید (برعکسِ دسته‌ها) پس لبهٔ گردش سمتِ
+           راست است. */
+        .drawer.cart-drawer {
+            background: var(--bg);
+            border-radius: 0 18px 18px 0;
+            overflow: hidden;
         }
 
-        .qty-btn {
-            width: 28px;
-            height: 28px;
+        .cart-drawer .dr-body {
+            padding: 13px 12px 18px;
+        }
+
+        /* در حالتِ خالی renderCart کف را خالی می‌کند؛ بی این، یک نوارِ
+           سفیدِ بی‌دلیل تهِ کشو می‌ماند. */
+        .cart-drawer .dr-foot:empty { display: none; }
+
+        /* کفِ سبد سفید است تا از بسترِ فهرست جدا شود و «جمع کل» گم نشود */
+        .cart-drawer .dr-foot {
+            padding: 12px 13px 15px;
+            background: #fff;
+            border-top: 1px solid var(--blue-line);
+            box-shadow: 0 -4px 14px rgba(15, 42, 80, .07);
+        }
+
+        /* ── زبانه‌های «سبد جاری / نهایی نشده» داخلِ سرِ رنگی ── */
+        .ct-tabs {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 4px;
+            margin-top: 13px;
+            padding: 4px;
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid rgba(255, 255, 255, .2);
+            border-radius: 12px;
+        }
+
+        .ct-tab {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
-            color: var(--primary);
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            gap: 5px;
+            height: 32px;
+            background: none;
+            border: 0;
+            border-radius: 9px;
+            color: rgba(255, 255, 255, .75);
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 700;
             cursor: pointer;
-            font-size: 1.2rem;
-            font-weight: bold;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+        }
+
+        .ct-tab.on {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: 0 2px 6px rgba(10, 30, 60, .25);
+        }
+
+        #draftBadge {
+            display: none;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            border-radius: 20px;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 800;
+        }
+
+        /* ── کارتِ هر قلم ── */
+        .cart-item {
+            display: flex;
+            gap: 11px;
+            margin-bottom: 9px;
+            padding: 11px;
+            background: #fff;
+            border: 1px solid var(--blue-line);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(15, 42, 80, .07);
+        }
+
+        .ci-thumb {
+            flex: 0 0 64px;
+            width: 64px;
+            height: 64px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .ci-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .ci-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ci-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        /* قیمت با همان طوسیِ تیرهٔ کارتِ محصول، نه آبی — یک زبانِ رنگی در کلِ سایت */
+        .ci-price {
+            margin-top: 2px;
+            font-size: 0.84rem;
+            font-weight: 900;
+            color: var(--grey-deep);
+        }
+
+        .ci-price > span {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .ci-sum {
+            margin-top: 3px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .ci-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .ci-del {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: #fff;
+            border: 1px solid var(--grey-line);
+            border-radius: 9px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .ci-del svg { width: 15px; height: 15px; }
+        .ci-del:active { background: #fdecea; border-color: var(--danger); color: var(--danger); }
+
+        /* ── انتخابگرِ تعداد ── */
+        .cart-qty-ctrl {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px;
+            background: var(--blue-soft);
+            border: 1px solid var(--blue-line);
+            border-radius: 10px;
+        }
+
+        .qty-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 27px;
+            height: 27px;
+            background: #fff;
+            color: var(--primary);
+            border: 1px solid var(--blue-line);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
         }
 
         @media (hover: hover) and (pointer: fine) {
             .qty-btn:hover {
                 background: var(--primary);
-                color: white;
                 border-color: var(--primary);
+                color: #fff;
             }
         }
 
-        .qty-btn:active {
-            transform: scale(0.9);
-        }
+        .qty-btn:active { transform: scale(.92); background: var(--blue-press); }
 
         .qty-count {
-            padding: 0 12px;
+            min-width: 32px;
+            padding: 0 8px;
+            text-align: center;
+            font-size: 0.84rem;
             font-weight: 800;
-            font-size: 0.9rem;
             color: var(--text);
-            min-width: 35px;
+        }
+
+        /* ── کفِ سبد ── */
+        .cf-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 11px;
+        }
+
+        .cf-row > span {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-mid);
+        }
+
+        .cf-total {
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .cf-total > span {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .cf-cta {
+            width: 100%;
+            height: 46px;
+            background: linear-gradient(135deg, var(--nav-primary-dark, #143152), var(--nav-primary, #17406f));
+            border: 0;
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(20, 49, 82, .28);
+            transition: filter var(--dur) var(--ease);
+        }
+
+        .cf-cta:active { filter: brightness(.92); }
+
+        .cf-rfq {
+            width: 100%;
+            height: 40px;
+            margin-top: 8px;
+            background: #fff;
+            border: 1.5px solid var(--blue-line);
+            border-radius: 11px;
+            color: var(--primary);
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .cf-rfq:active { background: var(--blue-press); }
+
+        /* ── حالتِ خالی ── */
+        .cart-empty {
+            padding: 46px 18px;
             text-align: center;
         }
 
-        /* استایل کلی آیتم سبد خرید برای نظم بهتر */
-        .cart-item {
-            display: flex;
-            gap: 12px;
-            padding: 15px;
-            background: white;
-            border-radius: 15px;
-            margin-bottom: 10px;
-            border: 1px solid var(--border);
-            transition: 0.3s;
+        .cart-empty svg {
+            width: 54px;
+            height: 54px;
+            color: var(--blue-line);
         }
 
-        @media (hover: hover) and (pointer: fine) {
-            .cart-item:hover {
-                border-color: var(--primary-lt);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            }
+        .ce-title {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text);
         }
+
+        .ce-hint {
+            margin-top: 5px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1.9;
+            color: var(--text-muted);
+        }
+
+        .ce-btn {
+            height: 38px;
+            margin-top: 15px;
+            padding: 0 18px;
+            background: #fff;
+            border: 1px solid var(--blue-line);
+            border-radius: 11px;
+            color: var(--primary);
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .ce-btn:active { background: var(--blue-press); }
+
+        /* ── سفارش‌های نهایی‌نشده ── */
+        .ord-card {
+            margin-bottom: 9px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid var(--blue-line);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(15, 42, 80, .07);
+        }
+
+        .ord-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .ord-id {
+            padding: 2px 9px;
+            background: var(--blue-soft);
+            border: 1px solid var(--blue-line);
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .ord-sum {
+            font-size: 0.84rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .ord-acts {
+            display: flex;
+            gap: 7px;
+            margin-top: 11px;
+        }
+
+        .ord-pay {
+            flex: 1.6;
+            height: 34px;
+            background: linear-gradient(135deg, var(--nav-primary-dark, #143152), var(--nav-primary, #17406f));
+            border: 0;
+            border-radius: 9px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .ord-edit {
+            flex: 1;
+            height: 34px;
+            background: #fff;
+            border: 1px solid var(--blue-line);
+            border-radius: 9px;
+            color: var(--primary);
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .ord-del {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: #fff;
+            border: 1px solid var(--grey-line);
+            border-radius: 9px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .ord-del svg { width: 15px; height: 15px; }
+        .ord-del:active { background: #fdecea; border-color: var(--danger); color: var(--danger); }
 
         /* ── ناوبریِ افقیِ ردیف‌ها روی دسکتاپ ────────────────────────────────────
            ردیف‌هایِ افقی (سکشن‌ها، بنرِ ردیفی، منویِ دسته‌ها) اسکرول‌بارشان پنهان بود.
@@ -2185,6 +2742,11 @@
     </div>
 </div>
 
+<!-- نوارِ چیپیِ دسته — فقط روی موبایل. عمداً «چسبان» نیست: نوارهای چسبانِ
+     بالایِ صفحه (هویت، شیشه‌ای، فروشگاه، جست‌وجو) از قبل جایِ زیادی می‌گیرند و
+     خواستهٔ صریحِ مالک این بود که این یکی کوچک بماند و جا نگیرد. -->
+<nav id="catStrip" class="cat-strip" aria-label="دسته‌بندی‌ها"></nav>
+
 <div id="homeView" class="view active">
     <div class="main-layout">
         <aside class="filter-panel" id="filterPanel">
@@ -2345,9 +2907,21 @@
 </div>
 
 <div class="drawer menu-drawer" id="menuDrawer">
-    <div class="dr-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="font-weight:800; color:var(--primary);">دسته‌بندی‌ها</h3>
-        <button onclick="closeAll()" class="dr-close">✕</button>
+    <div class="dr-header">
+        <div class="mdh-top">
+            <div>
+                <h3 class="mdh-title">دسته‌بندی‌ها</h3>
+                <span class="mdh-sub" id="menuDrawerSub">فهرستِ کاملِ فروشگاه</span>
+            </div>
+            <button onclick="closeAll()" class="dr-close" aria-label="بستن">✕</button>
+        </div>
+        <a class="mdh-all" href="/shop" onclick="event.preventDefault(); loadHome(); closeAll();">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.5 4.5h4.5v4.5H3.5zM12 4.5h4.5v4.5H12zM3.5 11h4.5v4.5H3.5zM12 11h4.5v4.5H12z"/>
+            </svg>
+            نمایشِ همهٔ محصولات
+        </a>
     </div>
     <div class="dr-body" id="mobileMenuBody" style="padding:0;"></div>
 </div>
@@ -2372,17 +2946,16 @@
 
 <div class="drawer cart-drawer" id="cartDrawer">
     <div class="dr-header">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="font-weight:900; font-size:1.3rem; color:var(--primary);">سبد خرید</h3>
-            <button onclick="closeAll()" class="dr-close">✕</button>
+        <div class="mdh-top">
+            <div>
+                <h3 class="mdh-title">سبد خرید</h3>
+                <span class="mdh-sub" id="cartDrawerSub">فعلاً خالی</span>
+            </div>
+            <button onclick="closeAll()" class="dr-close" aria-label="بستن">✕</button>
         </div>
-        <div style="display:flex; gap:5px; background:var(--bg); padding:4px; border-radius:8px;">
-            <button onclick="switchTab('current')" id="tabCurr"
-                    style="padding:8px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:700; flex:1;">
-                سبد جاری
-            </button>
-            <button onclick="switchTab('unfinalized')" id="tabDraft"
-                    style="padding:8px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:700; flex:1;">
+        <div class="ct-tabs">
+            <button onclick="switchTab('current')" id="tabCurr" class="ct-tab on">سبد جاری</button>
+            <button onclick="switchTab('unfinalized')" id="tabDraft" class="ct-tab">
                 نهایی نشده <span id="draftBadge"></span></button>
         </div>
     </div>
@@ -2499,6 +3072,11 @@
     async function init() {
         updateAuthWidget();
         updateCartCount();
+        // ⚠️ باگِ دیده‌شده: renderCart فقط از saveCart و switchTab صدا می‌شد، پس
+        // سبدی که از بازدیدِ قبل در localStorage مانده بود، بعد از ریفرش تا وقتی
+        // کاربر چیزی کم-و-زیاد نمی‌کرد رندر نمی‌شد: نشانِ رویِ آیکون عدد داشت
+        // ولی کشو خالی باز می‌شد.
+        renderCart();
         setupMenuScroll();
         enhanceHScrollers();   // ردیف‌هایِ SSRشده (بنرِ ردیفیِ بالایِ فروشگاه)
         syncSearchPlaceholder();
@@ -2517,7 +3095,27 @@
             const merged = onlineCats.concat(courseCats).sort((a, b) => (a.position || 0) - (b.position || 0));
             state.cats = merged;
             renderDesktopMenu(merged);
+            renderCatStrip(merged);
+            // شمارِ محصولِ هر دسته در یک درخواست (نه یکی به‌ازایِ هر دسته).
+            // کاشی‌ها بی‌شمار هم رندر می‌شوند، پس منتظرش نمی‌مانیم و با آمدنش
+            // دوباره رسم می‌کنیم.
             renderMobileMenu(merged);
+            // ⚠️ دو منبعِ جدا لازم است و این یک تلهٔ واقعی بود: دوره‌ها
+            // `Product` نیستند و در کالکشنِ دیگری‌اند، پس اندپوینتِ شمارشِ
+            // محصول هرچه type بگیرد برایِ دستهٔ دوره صفر برمی‌گرداند و کاشی‌اش
+            // «—» می‌شد. شمارِ دوره از فهرستِ خودِ دوره‌ها درمی‌آید.
+            Promise.all([
+                fetch(`${API}/api/categories/product-counts?type=ONLINE`).then(r => r.json()).catch(() => ({})),
+                fetch(`${API}/api/v1/courses/active`).then(r => r.json()).catch(() => [])
+            ]).then(([online, courses]) => {
+                const counts = Object.assign({}, online);
+                (courses || []).forEach(c => {
+                    if (c.categoryId) counts[c.categoryId] = (counts[c.categoryId] || 0) + 1;
+                });
+                state.catCounts = counts;
+                renderMobileMenu(state.cats);
+                renderCatStrip(state.cats);
+            });
             populateSearchCats(onlineCats);
             // اگر ورودِ مستقیمِ SSR به دسته بود و درخت دیرتر رسید، متنِ معرفی را حالا رندر کن (رفعِ ریس)
             if (state.feed && state.feed.type === 'cat') renderCatIntro(state.feed.param);
@@ -3324,36 +3922,110 @@
         }, {passive: false});
     }
 
+    // ═════════ نوارِ چیپیِ دسته (موبایل) ═════════
+    // فقط دسته‌های سطحِ اول می‌آیند؛ زیردسته‌ها در کشو. «همه» اولِ نوار است و
+    // به فیدِ خانه برمی‌گردد. نوار با تغییرِ فید دوباره رنگ می‌شود.
+    function renderCatStrip(items) {
+        const strip = document.getElementById('catStrip');
+        if (!strip) return;
+        const chip = (id, name, color, active) =>
+            `<a class="cat-chip${active ? ' on' : ''}" href="${id ? '/shop/category/' + encodeURIComponent(getCatSlug(id) || id) : '/shop'}"
+                onclick="event.preventDefault(); ${id ? `loadCat('${id}','${name.replace(/'/g, "")}')` : 'loadHome()'};"
+                data-cid="${id || ''}"
+             ><span class="dot"${color ? ` style="background:${color};opacity:1"` : ''}></span>${escapeHTML(name)}</a>`;
+
+        strip.innerHTML = chip(null, 'همه', null, false)
+                + (items || []).map(c => chip(c.id, c.name, c.color, false)).join('');
+        // ⚠️ تعیینِ چیپِ فعال عمداً این‌جا تکرار نمی‌شود و به syncCatStrip
+        // سپرده می‌شود: آن یکی ریشهٔ سطحِ اول را هم حساب می‌کند. قبلاً این‌جا
+        // فقط `id === feed.param` مقایسه می‌شد، پس در صفحهٔ یک زیردسته هیچ
+        // چیپی روشن نمی‌ماند — و چون واکشیِ شمارها بعداً نوار را بازمی‌سازد،
+        // کارِ syncCatStrip را هم پاک می‌کرد.
+        syncCatStrip();
+    }
+
+    // ریشهٔ سطحِ اولِ یک دسته. نوار فقط چیپِ سطحِ اول دارد، پس وقتی کاربر
+    // داخلِ زیردسته است باید چیپِ والدش روشن شود — وگرنه هیچ چیپی روشن نیست و
+    // کاربر نمی‌فهمد کجاست. گاردِ حلقه دارد تا parentIdِ خراب صفحه را قفل نکند.
+    function topLevelCatId(id) {
+        let cur = id ? getCatById(id) : null, guard = 0;
+        while (cur && cur.parentId && guard++ < 25) {
+            const parent = getCatById(cur.parentId);
+            if (!parent) break;
+            cur = parent;
+        }
+        return cur ? cur.id : null;
+    }
+
+    // دستهٔ فعال باید در نوار دیده شود، وگرنه کاربر نمی‌فهمد کجاست
+    function syncCatStrip() {
+        const strip = document.getElementById('catStrip');
+        if (!strip) return;
+        // هر دو نوعِ فید دسته‌اند: 'cat' برایِ محصولات و 'coursecat' برایِ دوره‌ها
+        // (آن یکی برایِ قفلِ اسکرولِ بی‌پایان جدا شده، نه چون دسته نیست).
+        const isCatFeed = state.feed && (state.feed.type === 'cat' || state.feed.type === 'coursecat');
+        const active = isCatFeed ? state.feed.param : null;
+        const root = active ? topLevelCatId(active) : null;
+        [...strip.querySelectorAll('.cat-chip')].forEach(a => {
+            const isAll = a.getAttribute('href') === '/shop';
+            const on = isAll ? !active : (a.dataset.cid === active || a.dataset.cid === root);
+            a.classList.toggle('on', on);
+            if (on && !isAll) a.scrollIntoView({block: 'nearest', inline: 'center', behavior: 'smooth'});
+        });
+    }
+
     function renderMobileMenu(items) {
         const build = (list) => list.map(item => {
             const hasKids = item.children && item.children.length > 0;
             const slug = item.slug || item.id;
             const nm = item.name.replace(/'/g, "");
-            // فلش عمداً SVG است نه کاراکترِ «▼»: باید بچرخد و چرخشِ یک گلیف
-            // روی هر قلمی سرِ جای خودش نمی‌ماند.
-            const chev = `<svg class="mob-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+            const chev = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor"
                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M5 7.5 10 13 15 7.5"/></svg>`;
-            return `<div class="mob-item"><div class="mob-row">
-                    <a class="mob-link" href="/shop/category/${encodeURIComponent(slug)}" onclick="event.preventDefault(); loadCat('${item.id}','${nm}'); closeAll();">${item.name}</a>
-                    ${hasKids ? `<button type="button" class="mob-toggle" onclick="toggleSub(this)" aria-expanded="false" aria-label="نمایشِ زیردسته‌ها">${chev}</button>` : ''}</div>
-                    ${hasKids ? `<div class="mob-children" style="display:none;">${build(item.children)}</div>` : ''}</div>`;
+            const color = item.color || 'var(--primary)';
+            const count = (state.catCounts && state.catCounts[item.id]) || 0;
+            const isCourse = item.type === 'COURSE';
+            // ⚠️ مربعِ رنگیِ حرفِ اول (tile-ini) به‌خواستهٔ مالک برداشته شد؛ شناسهٔ
+            // رنگیِ دسته همان نوارِ کناریِ ردیف است و دو تا لازم نبود.
+            return `<div class="mob-tile-wrap">
+                    <div class="tile-head">
+                        <a class="mob-tile" href="/shop/category/${encodeURIComponent(slug)}"
+                           onclick="event.preventDefault(); loadCat('${item.id}','${nm}'); closeAll();">
+                            <span class="tile-stripe" style="background:${color}"></span>
+                            <span class="tile-name">${escapeHTML(item.name)}</span>
+                            ${count ? `<span class="tile-meta">${count}${isCourse ? ' دوره' : ' محصول'}</span>` : ''}
+                        </a>
+                        ${hasKids ? `<button type="button" class="tile-toggle" onclick="toggleTile(this)"
+                                             aria-expanded="false">${item.children.length} زیردسته ${chev}</button>` : ''}
+                    </div>
+                    ${hasKids ? `<div class="mob-subtiles">${build(item.children)}</div>` : ''}</div>`;
         }).join('');
         // بلاگ به‌خواستهٔ مالک از این کشو هم برداشته شد، هم‌راستا با نوارِ
         // دسکتاپ. لینکش در نوارِ هویتِ بالایِ صفحه (site-nav.css) سرِ جاست.
-        document.getElementById('mobileMenuBody').innerHTML = build(items);
+        document.getElementById('mobileMenuBody').innerHTML =
+                `<div class="mob-tiles">${build(items)}</div>`;
+        // زیرنویسِ سرِ کشو. مجموع از شمارِ سطحِ اول درمی‌آید چون آن عددها خودشان
+        // رولاپِ زیردرخت‌اند؛ جمعِ دوبارهٔ فرزندان یعنی شمارشِ مضاعف.
+        const sub = document.getElementById('menuDrawerSub');
+        if (sub) {
+            const total = items.reduce((n, c) => n + ((state.catCounts && state.catCounts[c.id]) || 0), 0);
+            sub.textContent = total ? `${items.length} دسته · ${total} کالا` : `${items.length} دستهٔ اصلی`;
+        }
     }
 
-    function toggleSub(btn) {
-        const row = btn.closest('.mob-row');
-        const sub = row.nextElementSibling;
-        const wasOpen = sub.style.display === 'block';
-        sub.style.display = wasOpen ? 'none' : 'block';
-        // چرخشِ فلش با کلاس انجام می‌شود نه استایلِ درون‌خطی، تا ترنزیشنِ CSS
-        // رویش سوار شود و باز/بسته‌شدن پویا دیده شود.
-        row.classList.toggle('is-open', !wasOpen);
-        btn.setAttribute('aria-expanded', String(!wasOpen));
+    // بازکردن/بستنِ زیردسته‌های یک کاشی. کلیدِ فرقش با toggleSub قبلی: خودِ
+    // کاشی لینک است و ناوبری می‌کند، این دکمه فقط زیردسته‌ها را نشان می‌دهد.
+    function toggleTile(btn) {
+        const wrap = btn.closest('.mob-tile-wrap');
+        const subs = wrap.querySelector('.mob-subtiles');
+        if (!subs) return;
+        const open = subs.classList.toggle('open');
+        btn.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', String(open));
+        // ℹ️ دست‌کاریِ gridColumn برداشته شد: فهرست دیگر گرید نیست، ردیفی است،
+        // پس زیردسته‌ها همان‌جا پایِ ردیفِ خودشان جا می‌شوند.
     }
+
 
     function renderCard(p, sList = []) {
         let price = p.onlinePrice || p.price || 0, old = '', tags = '';
@@ -3987,6 +4659,10 @@
     // می‌شوند. اگر کلِ گرید بازرندر می‌شد، با هر صفحه انیمیشنِ ورودِ همهٔ کارت‌ها
     // از نو پخش می‌شد و عکس‌های لودشده دوباره از صفر می‌آمدند.
     function renderGridTrimmed() {
+        // نوارِ چیپی هر بار که فید عوض می‌شود باید دستهٔ فعالش را نشان دهد.
+        // این‌جا صدا زده می‌شود چون هر مسیرِ تغییرِ فید (خانه/دسته/جشنواره/
+        // جست‌وجو/بازگشت) آخرش از همین تابع رد می‌شود.
+        try { syncCatStrip(); } catch (e) {}
         const grid = document.getElementById('productsGrid');
         if (!grid) return;
         const list = state.gridFullList || [];
@@ -4372,51 +5048,98 @@
 
     function switchTab(t) {
         state.tab = t;
-        document.getElementById('tabCurr').style.background = (t === 'current' ? '#fff' : 'none');
-        document.getElementById('tabDraft').style.background = (t === 'unfinalized' ? '#fff' : 'none');
+        // ℹ️ استایلِ درون‌خطیِ قبلی فقط رنگِ پس‌زمینه را عوض می‌کرد؛ حالا کلاس
+        // است تا رنگِ متن و سایهٔ زبانهٔ فعال هم از CSS بیاید.
+        document.getElementById('tabCurr').classList.toggle('on', t === 'current');
+        document.getElementById('tabDraft').classList.toggle('on', t === 'unfinalized');
         renderCart();
+    }
+
+    const CART_TRASH_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 7h16M10 7V5h4v2M6.5 7l.9 12.1A1.9 1.9 0 0 0 9.3 21h5.4a1.9 1.9 0 0 0 1.9-1.9L17.5 7"/>
+                            </svg>`;
+
+    // حالتِ خالیِ مشترکِ هر دو زبانه — پیش از این فقط یک خطِ خاکستری بود.
+    function cartEmptyState(title, hint) {
+        return `<div class="cart-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 8h18l-1.8 10.2a2 2 0 0 1-2 1.8H6.8a2 2 0 0 1-2-1.8L3 8Z"/>
+                <path d="m8.5 8 2.5-4.5M15.5 8 13 3.5"/>
+                <path d="M9.6 12v4M14.4 12v4"/>
+            </svg>
+            <div class="ce-title">${title}</div>
+            <div class="ce-hint">${hint}</div>
+            <button type="button" class="ce-btn" onclick="closeAll()">بازگشت به فروشگاه</button>
+        </div>`;
     }
 
     function renderCart() {
         const body = document.getElementById('cartBody'), foot = document.getElementById('cartFooter');
+        // زیرنویسِ سرِ کشو در هر دو زبانه تازه می‌شود
+        const sub = document.getElementById('cartDrawerSub');
+        if (sub) {
+            const n = state.cart.reduce((a, b) => a + (b.qty || 1), 0);
+            sub.textContent = n ? `${n} قلم در سبد` : 'فعلاً خالی';
+        }
         if (state.tab === 'current') {
             if (!state.cart.length) {
-                body.innerHTML = '<p style="text-align:center; padding:40px; color:#999;">سبد خالی است</p>';
+                body.innerHTML = cartEmptyState('سبدِ خرید خالی است',
+                        'هنوز چیزی به سبد اضافه نکرده‌اید.');
                 foot.innerHTML = '';
                 return;
             }
             let total = 0;
             body.innerHTML = state.cart.map(i => {
-                total += i.price * i.qty;
+                const line = i.price * i.qty;
+                total += line;
                 return `
     <div class="cart-item">
-        <div style="width: 70px; height: 70px; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
-            <img src="${i.img}" loading="lazy" style="width: 100%; height: 100%; object-fit: contain;">
-        </div>
-        <div style="flex:1">
-            <div style="font-size:0.85rem; font-weight:700; color: var(--text); margin-bottom: 4px;">${i.name}</div>
-            <div style="font-weight:900; color:var(--primary); font-size:0.9rem;">${i.price.toLocaleString()} <span style="font-size: 0.7rem;">تومان</span></div>
-
-            <div class="cart-qty-ctrl">
-                <button class="qty-btn" onclick="changeQty('${i.id}',-1)">−</button>
-                <span class="qty-count">${i.qty}</span>
-                <button class="qty-btn" onclick="changeQty('${i.id}',1)">+</button>
+        <div class="ci-thumb"><img src="${i.img}" loading="lazy" decoding="async" alt=""></div>
+        <div class="ci-main">
+            <div class="ci-name">${escapeHTML(i.name)}</div>
+            <div class="ci-price">${i.price.toLocaleString()} <span>تومان</span></div>
+            ${i.qty > 1 ? `<div class="ci-sum">${i.qty} عدد · ${line.toLocaleString()} تومان</div>` : ''}
+            <div class="ci-row">
+                <div class="cart-qty-ctrl">
+                    <button type="button" class="qty-btn" onclick="changeQty('${i.id}',-1)" aria-label="کم‌کردن">−</button>
+                    <span class="qty-count">${i.qty}</span>
+                    <button type="button" class="qty-btn" onclick="changeQty('${i.id}',1)" aria-label="افزودن">+</button>
+                </div>
+                <button type="button" class="ci-del" onclick="removeCartItem('${i.id}')"
+                        aria-label="حذفِ این قلم">${CART_TRASH_SVG}</button>
             </div>
         </div>
     </div>`;
             }).join('');
             // دکمه‌ی «درخواست پیش‌فاکتور» فقط وقتی جمع سبد از آستانه‌ی فروشگاه بگذرد (RFQ سازمانی/عمده)
             const rfqBtn = (state.rfqThreshold > 0 && total >= state.rfqThreshold)
-                ? `<button onclick="requestRfq()" class="p-buy-btn" style="padding:10px; font-size:0.95rem; margin-top:8px; background:#fff; color:var(--primary); border:1.5px solid var(--primary);">📝 درخواست پیش‌فاکتور (خرید عمده)</button>`
+                ? `<button type="button" class="cf-rfq" onclick="requestRfq()">درخواست پیش‌فاکتور (خرید عمده)</button>`
                 : '';
-            foot.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>جمع کل:</b><b>${total.toLocaleString()} ت</b></div><button onclick="checkout()" class="p-buy-btn" style="padding:10px; font-size:1rem;">تایید و ثبت نهایی</button>${rfqBtn}`;
+            foot.innerHTML = `<div class="cf-row"><span>جمع کل</span>`
+                + `<b class="cf-total">${total.toLocaleString()} <span>تومان</span></b></div>`
+                + `<button type="button" class="cf-cta" onclick="checkout()">تایید و ثبت نهایی</button>${rfqBtn}`;
         } else {
             if (!state.serverOrders.length) {
-                body.innerHTML = '<p style="text-align:center; padding:40px; color:#999;">سفارشی نیست</p>';
+                body.innerHTML = cartEmptyState('سفارشِ نهایی‌نشده‌ای نیست',
+                        'سفارش‌هایی که ثبت شده‌اند ولی پرداخت نشده‌اند این‌جا می‌آیند.');
                 foot.innerHTML = '';
                 return;
             }
-            body.innerHTML = state.serverOrders.map(d => `<div style="background:#f9f9f9; padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid #eee;"><div style="font-weight:700; color:var(--primary);">سفارش #${d.id.slice(-6).toUpperCase()}</div><div style="font-size:0.85rem; margin-top:5px;">مبلغ: ${(d.totalAmount || 0).toLocaleString()} ت</div><div style="display:flex; gap:5px; margin-top:10px;"><button onclick="location.href='/profile?pendingOrderId=${d.id}'" style="flex:1.5; padding:6px; background:var(--primary); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">پرداخت</button><button onclick="editServerOrder('${d.id}')" style="flex:1; padding:6px; background:#fff; border:1px solid var(--primary); border-radius:6px; cursor:pointer; font-size:0.8rem;">ویرایش</button><button onclick="deleteServerOrder('${d.id}')" style="padding:6px; background:#fff; border:1px solid var(--danger); border-radius:6px; cursor:pointer;">🗑</button></div></div>`).join('');
+            body.innerHTML = state.serverOrders.map(d => `
+    <div class="ord-card">
+        <div class="ord-top">
+            <span class="ord-id">سفارش #${d.id.slice(-6).toUpperCase()}</span>
+            <span class="ord-sum">${(d.totalAmount || 0).toLocaleString()} تومان</span>
+        </div>
+        <div class="ord-acts">
+            <button type="button" class="ord-pay" onclick="location.href='/profile?pendingOrderId=${d.id}'">پرداخت</button>
+            <button type="button" class="ord-edit" onclick="editServerOrder('${d.id}')">ویرایش</button>
+            <button type="button" class="ord-del" onclick="deleteServerOrder('${d.id}')"
+                    aria-label="حذفِ سفارش">${CART_TRASH_SVG}</button>
+        </div>
+    </div>`).join('');
             foot.innerHTML = '';
         }
     }
@@ -4431,12 +5154,21 @@
         }
     }
 
+    // حذفِ کاملِ یک قلم. پیش از این فقط با کم‌کردنِ تعداد تا صفر ممکن بود؛
+    // برای سبدِ چندتایی یعنی چند بار زدن.
+    function removeCartItem(id) {
+        state.cart = state.cart.filter(x => x.id !== id);
+        saveCart();
+        updateCartCount();
+    }
+
     // UTILS
     function updateCartCount() {
         document.getElementById('cartCount').innerText = state.cart.reduce((a, b) => a + (b.qty || 1), 0);
         const b = document.getElementById('draftBadge');
         b.innerText = state.serverOrders.length || '';
-        b.style.display = b.innerText ? 'inline-block' : 'none';
+        // ⚠️ inline-flex نه inline-block: نشان با flex وسط‌چین می‌شود.
+        b.style.display = b.innerText ? 'inline-flex' : 'none';
     }
 
     function askConfirm(title, text, onConfirm) {

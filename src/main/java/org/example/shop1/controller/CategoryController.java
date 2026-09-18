@@ -72,6 +72,16 @@ public class CategoryController {
         return ResponseEntity.ok(service.countProductsInSubtree(id));
     }
 
+    /**
+     * شمارِ محصولِ همهٔ دسته‌ها در یک درخواست — برایِ کاشی‌هایِ دستهٔ موبایل.
+     * شمار هر دسته شاملِ زیردسته‌هایش است.
+     */
+    @GetMapping("/product-counts")
+    public ResponseEntity<java.util.Map<String, Long>> productCounts(
+            @RequestParam(required = false, defaultValue = "ONLINE") String type) {
+        return ResponseEntity.ok(service.productCountsBySubtree(type));
+    }
+
     // حذف با تعیین تکلیف محصولات: mode = BLOCK | REASSIGN | CASCADE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
