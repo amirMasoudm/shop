@@ -156,6 +156,13 @@
             --glow: 0 0 0 3px rgba(27, 79, 138, .08), 0 2px 14px rgba(27, 79, 138, .18);
             --glow-strong: 0 0 0 3px rgba(27, 79, 138, .16), 0 3px 22px rgba(27, 79, 138, .32);
 
+            /* نوارِ شناسه — دو پهلویِ کمانی که سرِ بالا و پایین به یک نقطه
+               می‌رسند. ⚠️ عمداً ماسکِ SVG است نه clip-path: چندضلعی فقط خطِ
+               صاف می‌دهد و خواستهٔ مالک لبهٔ خمیده بود.
+               preserveAspectRatio='none' یعنی همین یک شکل هر قد و پهنایی را
+               می‌گیرد، از نوارِ بلندِ کنارِ بنرها تا نوارِ یک‌خطیِ سرِ تیتر. */
+            --leaf: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 100' preserveAspectRatio='none'><path d='M6 0C12 18 12 82 6 100 0 82 0 18 6 0Z' fill='black'/></svg>");
+
             --radius: 12px;
             /* گوشهٔ کارت — یک پله گردتر از دورِ قبل، ولی هنوز نه کپسولی */
             --radius-card: 6px;
@@ -894,7 +901,7 @@
            بلوکِ فاصله‌گذار است. تیتر هم از لایهٔ تیرهٔ روی عکس‌ها به یک سرتیترِ
            عادی (هم‌شکلِ «جدیدترین محصولات») تبدیل شد — آن گرادیانِ سیاه فقط روی
            کارتِ قاب‌دار معنی داشت و بی‌قاب، لکه‌ای روی اولین عکس می‌شد. */
-        .irb-card { position: relative; background: none; border: 0; border-radius: 0; overflow: visible; margin-bottom: 18px; padding-inline-start: 15px; }
+        .irb-card { position: relative; background: none; border: 0; border-radius: 0; overflow: visible; margin-bottom: 18px; padding-inline-start: 18px; }
         /* نوارِ شناسهٔ پنجره: از سرِ تیتر تا کفِ عکس‌ها، با دو سرِ تیز — همان
            لهجهٔ نوارِ رنگیِ سکشن‌ها، فقط چرخیده و بلند. رنگش از پنلِ ادمین
            می‌آید (--irb-accent) و اگر پنجره بی‌رنگ بود، آبیِ برند. */
@@ -904,9 +911,10 @@
             top: 0;
             bottom: 8px;
             inset-inline-start: 0;
-            width: 6px;
+            width: 9px;
             background: var(--irb-accent, var(--primary));
-            clip-path: polygon(50% 0, 100% 11px, 100% calc(100% - 11px), 50% 100%, 0 calc(100% - 11px), 0 11px);
+            -webkit-mask: var(--leaf) no-repeat center / 100% 100%;
+            mask: var(--leaf) no-repeat center / 100% 100%;
         }
         .irb-head {
             position: static;
@@ -1262,6 +1270,26 @@
             .tile-toggle svg { transition: none; }
         }
 
+        /* نوارِ شناسهٔ «جدیدترین محصولات» — همان شکلِ برگیِ کنارِ بنرها، در
+           اندازهٔ یک‌خطی. ⚠️ عمداً ::before است نه فرزند: متنِ این تیتر جاهایِ
+           مختلف با innerText عوض می‌شود و هر فرزندی پاک می‌شد. */
+        #latestSectionHeader {
+            position: relative;
+            padding-inline-start: 15px;
+        }
+
+        #latestSectionHeader::before {
+            content: '';
+            position: absolute;
+            top: 1px;
+            bottom: 1px;
+            inset-inline-start: 0;
+            width: 9px;
+            background: var(--primary);
+            -webkit-mask: var(--leaf) no-repeat center / 100% 100%;
+            mask: var(--leaf) no-repeat center / 100% 100%;
+        }
+
         /* ═══ اسکرولِ بی‌پایان ═══ */
         #gridSentinel {
             height: 1px;
@@ -1368,10 +1396,116 @@
             }
         }
 
-        /* بازخوردِ لمس — چیزی که تا حالا روی موبایل اصلاً نبود */
+        /* بازخوردِ لمس: کارت زیرِ انگشت برجسته می‌شود.
+           ⚠️ دو چیز با هم آن «آبیِ محو»ی بود که مالک دید: یکی ته‌رنگِ
+           ‎#fbfcfe‎ی که خودمان می‌گذاشتیم، یکی هایلایتِ پیش‌فرضِ خودِ مرورگر
+           روی لمس. هر دو رفتند و جایشان را بلندشدن و سایه گرفت. */
+        .product-card,
+        .add-btn {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         .product-card:active {
+            transform: translateY(-4px) scale(1.012);
+            box-shadow: 0 12px 26px rgba(15, 42, 80, .18);
             border-color: var(--border-hover);
-            background: #fbfcfe;
+        }
+
+        /* ═══ جلوه‌هایِ روی کارت ═══
+           هر دو لایه‌ی روی کارت‌اند، پس کارت باید position:relative باشد (هست)
+           و لایه‌ها کلیک را رد کنند تا خودِ کارت همچنان زیرِ انگشت باشد. */
+        .card-flash,
+        .card-zap {
+            position: absolute;
+            inset: 0;
+            z-index: 7;
+            border-radius: inherit;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* «افزودن به سبد»: یک سفیدشدنِ کوتاه، مثلِ فلاشِ اسکرین‌شات ولی تندتر */
+        .card-flash {
+            background: #fff;
+            animation: cardFlash 200ms ease-out both;
+        }
+
+        @keyframes cardFlash {
+            0% { opacity: 0; }
+            22% { opacity: .95; }
+            100% { opacity: 0; }
+        }
+
+        /* بازشدنِ کارت: سفید می‌شود، دو رشتهٔ رعد از دو پهلو می‌آیند و وسط
+           به هم می‌چسبند، بعد صفحهٔ محصول باز می‌شود. */
+        .zap-flash {
+            position: absolute;
+            inset: 0;
+            background: #fff;
+            animation: zapWhite 380ms ease-out both;
+        }
+
+        @keyframes zapWhite {
+            0% { opacity: 0; }
+            26% { opacity: .97; }
+            100% { opacity: .97; }
+        }
+
+        .zap {
+            position: absolute;
+            top: 50%;
+            width: 52%;
+            height: 30px;
+            margin-top: -15px;
+            color: var(--primary);
+        }
+
+        .zap svg { width: 100%; height: 100%; }
+
+        .zap-r {
+            right: 0;
+            animation: zapInR 280ms 40ms cubic-bezier(.35, 0, .2, 1) both;
+        }
+
+        .zap-l {
+            left: 0;
+            animation: zapInL 280ms 40ms cubic-bezier(.35, 0, .2, 1) both;
+        }
+
+        @keyframes zapInR {
+            from { transform: translateX(115%); opacity: 0; }
+            60% { opacity: 1; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* چپی همان شکل است، فقط آینه — پس scaleX داخلِ خودِ کی‌فریم است،
+           وگرنه انیمیشن transformِ پایه را پاک می‌کرد. */
+        @keyframes zapInL {
+            from { transform: scaleX(-1) translateX(115%); opacity: 0; }
+            60% { opacity: 1; }
+            to { transform: scaleX(-1) translateX(0); opacity: 1; }
+        }
+
+        /* جرقهٔ لحظهٔ به‌هم‌رسیدن */
+        .zap-spark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            margin: -4px 0 0 -4px;
+            border-radius: 50%;
+            background: #fff;
+            animation: zapSpark 240ms 250ms ease-out both;
+        }
+
+        @keyframes zapSpark {
+            from { transform: scale(.3); opacity: 1; box-shadow: 0 0 0 0 rgba(27, 79, 138, .55); }
+            to { transform: scale(1); opacity: 0; box-shadow: 0 0 0 26px rgba(27, 79, 138, 0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card-flash, .zap-flash, .zap, .zap-spark { animation: none; }
         }
 
         .card-img-wrap {
@@ -3093,7 +3227,7 @@
             <div id="landingSections" style="display:none;"></div>
 
             <div id="latestSectionHeader"
-                 style="font-weight:900; font-size:1.2rem; margin-top:30px; border-right:4px solid var(--primary); padding-right:10px; color:var(--text); display:none;">
+                 style="font-weight:900; font-size:1.2rem; margin-top:30px; color:var(--text); display:none;">
                 جدیدترین محصولات
             </div>
             <div id="productsGrid" class="products-grid"></div>
@@ -3627,13 +3761,18 @@
         return tail ? '/shop/product/' + resolver + '/' + tail : '/shop/product/' + resolver;
     }
 
-    async function openProductDetail(productId, isInitialLoad = false) {
+    async function openProductDetail(productId, isInitialLoad = false, cardEl = null) {
+        // جلوهٔ بازشدنِ کارت همین‌جا شروع می‌شود تا با واکشیِ محصول هم‌زمان
+        // بدود؛ انتظارش پایین‌تر است، درست پیش از تعویضِ نما. این‌طور جلوه
+        // چیزی به زمانِ باز شدن اضافه نمی‌کند مگر وقتی داده زودتر آماده باشد.
+        const zap = cardZap(cardEl);
         // وضعیتِ لیست را پیش از ترکِ آن نگه دار تا «بازگشت» به صفحهٔ اول برنگردد
         captureFeedSnapshot();
         let p = state.all.find(x => x.id === productId);
         // اگر محصول در حافظه نبود (خارج از لیستِ پیش‌واکشی‌شده)، تکی از سرور بگیر
         if (!p) p = await fetchProductBySlugOrId(productId);
         if(!p) return;
+        await zap;
 
         // رویداد آنالیتیکس: مشاهده محصول (قیف مرحله ۱)
         gaEvent('view_item', {
@@ -4289,9 +4428,9 @@
         activeSecs.forEach(s => tags += `<span class="tag" style="background:${s.stickerColor}">${s.stickerText || s.title}</span>`);
         const img = p.images?.[0] || '';
         const buyBtn = (p.stock > 0)
-            ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button>`
+            ? `<button class="add-btn" onclick="event.stopPropagation(); cardFlash(this); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button>`
             : `<button class="add-btn ghost" onclick="event.stopPropagation(); requestStockNotify('${p.id}')">🔔 اطلاع بده</button>`;
-        return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div>${buyBtn}</div>`;
+        return `<div class="product-card" onclick="openProductDetail('${p.id}', false, this)"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div>${buyBtn}</div>`;
     }
 
     // پنجره‌هایِ ردیفیِ بنرِ تصویری فقط در نمای خانه دیده می‌شوند (مثل landingSections).
@@ -4977,6 +5116,38 @@
 
     function motionOff() {
         return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    // ═══ جلوه‌هایِ کارت ═══
+    const ZAP_SVG = `<svg viewBox="0 0 60 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M0 12h9l7-7 6 14 7-14 6 14 6-7h13"/></svg>`;
+
+    /** فلاشِ کوتاهِ سفید روی کارت — لحظهٔ افزودن به سبد. */
+    function cardFlash(btn) {
+        const card = btn && btn.closest('.product-card');
+        if (!card || motionOff()) return;
+        const f = document.createElement('span');
+        f.className = 'card-flash';
+        card.appendChild(f);
+        setTimeout(() => f.remove(), 230);
+    }
+
+    /**
+     * بازشدنِ کارت: سفید می‌شود و دو رشتهٔ رعد از دو پهلو می‌آیند و وسط به هم
+     * می‌چسبند. Promise برمی‌گرداند تا صدازننده بتواند منتظرش بماند؛ با
+     * «کاهشِ حرکت» بی‌درنگ تمام‌شده برمی‌گردد و چیزی ساخته نمی‌شود.
+     */
+    function cardZap(card) {
+        if (!card || motionOff()) return Promise.resolve();
+        const fx = document.createElement('span');
+        fx.className = 'card-zap';
+        fx.innerHTML = `<span class="zap-flash"></span>
+                        <span class="zap zap-r">${ZAP_SVG}</span>
+                        <span class="zap zap-l">${ZAP_SVG}</span>
+                        <span class="zap-spark"></span>`;
+        card.appendChild(fx);
+        return new Promise(resolve => setTimeout(() => { fx.remove(); resolve(); }, 380));
     }
 
     function animateCardsIn(cards) {
