@@ -37,7 +37,24 @@
             :root { --dn-chat-bottom: 20px; }
             /* موبایل: بالاتر از نوارِ پایین می‌نشیند تا روی دکمه‌ها نیفتد */
             @media (max-width: 768px) { :root { --dn-chat-bottom: 92px; } }
-            .dn-chat-bubble { bottom: var(--dn-chat-bottom) !important; }
+            /* ⚠️ leftِ خانه عمداً اینجاست نه در استایلِ درون‌خطی: وقتی حباب از
+               حالتِ جابه‌جاشده به خانه برمی‌گردد، leftِ درون‌خطی پاک می‌شود و اگر
+               تکیه‌گاهِ دیگری نباشد، جعبه در صفحهٔ راست‌چین به لبهٔ راست می‌پرد
+               (اندازه‌گیری: left از ۲۰ به ۳۳۶). */
+            .dn-chat-bubble { left: var(--dn-chat-left, 20px);
+                              bottom: var(--dn-chat-bottom) !important;
+                              touch-action: none; cursor: grab;
+                              transition: left .26s cubic-bezier(.2,.8,.3,1),
+                                          top  .26s cubic-bezier(.2,.8,.3,1); }
+            /* وقتی کاربر حباب را جابه‌جا کرده، جایگاه با top/left داده می‌شود؛
+               پس bottomِ !importantِ بالا باید کنار برود وگرنه جعبه بینِ دو
+               لنگر گیر می‌کند. */
+            .dn-chat-bubble.dn-free { bottom: auto !important; }
+            .dn-chat-bubble.dn-dragging { transition: none; cursor: grabbing; }
+            .dn-chat-bubble.dn-no-anim { transition: none !important; }
+            @media (prefers-reduced-motion: reduce) {
+                .dn-chat-bubble { transition: none; }
+            }
             .dn-chat-panel  { bottom: calc(var(--dn-chat-bottom) + 64px) !important;
                               max-height: calc(100vh - var(--dn-chat-bottom) - 96px) !important; }
         `;
@@ -50,12 +67,21 @@
         bubble.type = 'button';
         bubble.setAttribute('aria-label', 'پشتیبانی');
         bubble.textContent = '💬';
-        bubble.style.cssText = 'position:fixed;bottom:20px;left:20px;z-index:9998;width:54px;height:54px;'
+        bubble.style.cssText = 'position:fixed;bottom:20px;z-index:9998;width:54px;height:54px;'
             + 'border-radius:50%;border:0;background:#4338ca;color:#fff;font-size:24px;cursor:pointer;'
             + 'box-shadow:0 6px 20px rgba(0,0,0,.25);';
         bubble.className = 'dn-chat-bubble';
-        bubble.addEventListener('click', toggle);
+        // ⚠️ کلیک از toggle جدا شد: هر کشیدن در پایان یک رویدادِ click هم
+        // می‌دهد و بدونِ این گارد، جابه‌جاکردنِ حباب پنجره را هم باز می‌کرد.
+        bubble.addEventListener('click', function () {
+            if (bubble.dataset.dragged === '1') { bubble.dataset.dragged = ''; return; }
+            toggle();
+        });
         document.body.appendChild(bubble);
+        makeDraggable();
+        freePos = loadPos();
+        applyPos(freePos);
+        keepInView();
 
         panel = document.createElement('div');
         panel.style.cssText = 'position:fixed;bottom:84px;left:20px;z-index:9999;width:340px;max-width:calc(100vw - 40px);'
@@ -78,8 +104,121 @@
         document.body.appendChild(panel);
     }
 
+    /* ═══ جابه‌جاییِ حباب ═══
+       خواستهٔ مالک: کاربر بتواند حباب را بگیرد و هرجای صفحه بگذارد تا جلوِ
+       چیزی را نگیرد؛ و وقتی زد، حباب بیاید پایین و پنجرهٔ چت همان‌جا باز شود.
+       جای انتخابیِ کاربر ذخیره می‌شود و بعد از بستنِ پنجره هم برمی‌گردد. */
+    const POS_KEY = 'dn_chat_pos';
+    const DRAG_THRESHOLD = 6;   // زیرِ این جابه‌جایی یعنی «زدن»، نه «کشیدن»
+    let freePos = null;         // null یعنی سرِ جای خانه (پایین-چپ)
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+    function applyPos(p) {
+        if (!p) {
+            bubble.classList.remove('dn-free');
+            bubble.style.left = '';
+            bubble.style.top = '';
+            return;
+        }
+        bubble.classList.add('dn-free');
+        bubble.style.left = p.left + 'px';
+        bubble.style.top = p.top + 'px';
+    }
+
+    function savePos() {
+        try {
+            if (freePos) localStorage.setItem(POS_KEY, JSON.stringify(freePos));
+            else localStorage.removeItem(POS_KEY);
+        } catch (e) { /* حالتِ ناشناس/مسدود — جایگاه فقط همین نشست می‌ماند */ }
+    }
+
+    function loadPos() {
+        try {
+            const raw = localStorage.getItem(POS_KEY);
+            if (!raw) return null;
+            const p = JSON.parse(raw);
+            return (typeof p.left === 'number' && typeof p.top === 'number') ? p : null;
+        } catch (e) { return null; }
+    }
+
+    // صفحه که کوچک/بزرگ شود، حبابِ جابه‌جاشده نباید بیرونِ قابِ دید بماند
+    function keepInView() {
+        if (!freePos) return;
+        const m = 6, w = bubble.offsetWidth || 54, h = bubble.offsetHeight || 54;
+        freePos.left = clamp(freePos.left, m, Math.max(m, window.innerWidth - w - m));
+        freePos.top = clamp(freePos.top, m, Math.max(m, window.innerHeight - h - m));
+        applyPos(freePos);
+    }
+
+    // مختصاتِ «خانه» را از روی خودِ CSS می‌خوانیم، نه با عددِ ثابت: جایگاهِ خانه
+    // در موبایل با media query فرق دارد و هر صفحه هم می‌تواند بازنویسی‌اش کند.
+    function homePoint() {
+        const wasFree = bubble.classList.contains('dn-free');
+        const prevLeft = bubble.style.left, prevTop = bubble.style.top;
+        bubble.classList.add('dn-no-anim');
+        applyPos(null);
+        const r = bubble.getBoundingClientRect();
+        if (wasFree) {
+            bubble.classList.add('dn-free');
+            bubble.style.left = prevLeft;
+            bubble.style.top = prevTop;
+        }
+        bubble.getBoundingClientRect();       // تخلیهٔ چیدمان، تا پرش دیده نشود
+        bubble.classList.remove('dn-no-anim');
+        return {left: Math.round(r.left), top: Math.round(r.top)};
+    }
+
+    function makeDraggable() {
+        let pid = null, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
+
+        bubble.addEventListener('pointerdown', function (e) {
+            if (e.button) return;                      // فقط کلیکِ اصلی
+            pid = e.pointerId;
+            moved = false;
+            const r = bubble.getBoundingClientRect();
+            sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+            try { bubble.setPointerCapture(pid); } catch (err) {}
+            bubble.classList.add('dn-dragging');
+        });
+
+        bubble.addEventListener('pointermove', function (e) {
+            if (pid === null || e.pointerId !== pid) return;
+            const dx = e.clientX - sx, dy = e.clientY - sy;
+            if (!moved && Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
+            moved = true;
+            freePos = {left: ox + dx, top: oy + dy};
+            keepInView();
+        });
+
+        function end(e) {
+            if (pid === null || (e.pointerId !== undefined && e.pointerId !== pid)) return;
+            try { bubble.releasePointerCapture(pid); } catch (err) {}
+            pid = null;
+            bubble.classList.remove('dn-dragging');
+            bubble.dataset.dragged = moved ? '1' : '';
+            if (moved) savePos();
+        }
+
+        bubble.addEventListener('pointerup', end);
+        bubble.addEventListener('pointercancel', end);
+        window.addEventListener('resize', keepInView);
+    }
+
     function toggle() {
         opened = !opened;
+        if (opened) {
+            // حباب می‌آید پایین تا پنجره از کنارِ خودش باز شود؛ اگر وسطِ صفحه
+            // مانده بود، پنجره از آن جدا می‌افتاد.
+            if (freePos) {
+                applyPos(homePoint());                 // با انیمیشن تا خانه
+                setTimeout(function () { if (opened) applyPos(null); }, 300);
+            } else {
+                applyPos(null);
+            }
+        } else if (freePos) {
+            applyPos(freePos);                         // برگشت به جایی که کاربر انتخاب کرده بود
+        }
         panel.style.display = opened ? 'flex' : 'none';
         if (opened && !started) start();
     }

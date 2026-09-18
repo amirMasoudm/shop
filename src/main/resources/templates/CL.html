@@ -889,22 +889,31 @@
            ابعادش دینامیک/طبیعی می‌ماند (بدونِ aspect-ratioِ اجباری). عنوان یک لایه‌ی
            محوِ روی‌همِ بالایِ کارت است (نه یک نوارِ جدا)، تا خودِ عکس‌ها تا پایینِ کادر
            کشیده شوند. */
-        .irb-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+        /* ⚠️ قابِ کارت به‌خواستهٔ مالک برداشته شد: ردیفِ بنرها باید «از تو کادر
+           بیاید بیرون» و همان‌جا روی بسترِ صفحه اسکرول شود. پس .irb-card فقط یک
+           بلوکِ فاصله‌گذار است. تیتر هم از لایهٔ تیرهٔ روی عکس‌ها به یک سرتیترِ
+           عادی (هم‌شکلِ «جدیدترین محصولات») تبدیل شد — آن گرادیانِ سیاه فقط روی
+           کارتِ قاب‌دار معنی داشت و بی‌قاب، لکه‌ای روی اولین عکس می‌شد. */
+        .irb-card { position: relative; background: none; border: 0; border-radius: 0; overflow: visible; margin-bottom: 18px; }
         .irb-head {
-            position: absolute; top: 0; right: 0; left: 0; z-index: 3;
-            padding: 10px 16px 26px; font-weight: 800; font-size: .95rem; color: #fff;
-            background: linear-gradient(to bottom, rgba(0,0,0,.62), rgba(0,0,0,.22) 65%, transparent);
-            pointer-events: none;
+            position: static;
+            padding-block: 0 9px;
+            padding-inline: 10px 0;
+            border-inline-start: 4px solid var(--primary);
+            font-weight: 800; font-size: .95rem; color: var(--text);
+            background: none;
+            line-height: 1.7;
         }
-        .irb-row { display: flex; gap: 12px; overflow-x: auto; padding: 16px 18px; scrollbar-width: none; }
+        .irb-row { display: flex; gap: 12px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .irb-row::-webkit-scrollbar { display: none; }
         .irb-item { flex: 0 0 200px; cursor: pointer; }
-        .irb-item img { width: 100%; height: auto; display: block; border-radius: 10px; border: 1px solid var(--border); }
+        /* بی‌قاب، ولی نه شناور: یک سایهٔ نازک به‌جای خطِ دور */
+        .irb-item img { width: 100%; height: auto; display: block; border-radius: 10px; box-shadow: 0 1px 4px rgba(15, 42, 80, .1); }
         .irb-cap { margin-top: 6px; font-size: .82rem; color: var(--text-mid); text-align: center; }
 
         /* حالتِ متحرک — نوارِ درحالِ‌حرکتِ پیوسته (دو کپیِ پشتِ‌سرِهم برایِ حلقه‌ی بی‌درز:
            با خروجِ آخرین عکس، اولین عکس بی‌فاصله وارد می‌شود) */
-        .irb-marquee-wrap { overflow: hidden; padding: 16px 18px; }
+        .irb-marquee-wrap { overflow: hidden; padding: 2px 0 8px; }
         .irb-marquee-track { display: flex; gap: 12px; width: max-content; animation: irb-marquee linear infinite; }
         @media (hover: hover) and (pointer: fine) {
             .irb-marquee-track:hover { animation-play-state: paused; }
@@ -2425,6 +2434,211 @@
         .ord-del svg { width: 15px; height: 15px; }
         .ord-del:active { background: #fdecea; border-color: var(--danger); color: var(--danger); }
 
+        /* ═══ مودالِ ورود / ثبت‌نام ═══
+           هم‌تمِ کشوها: سرِ آبیِ تیره با درخششِ گوشه، بدنهٔ سفید، ورودی‌های
+           قاب‌دارِ آبی با هالهٔ فوکوس، و یک CTAِ گرادیانی. */
+        /* صفحه‌های کوتاه: خودِ پوشش باید اسکرول شود وگرنه کفِ مودال بریده می‌شود */
+        .auth-overlay { overflow-y: auto; }
+
+        .auth-box {
+            width: 90%;
+            max-width: 360px;
+            margin: 10vh auto 24px;
+            background: #fff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 18px 50px rgba(10, 30, 60, .35);
+            text-align: center;
+        }
+
+        .auth-head {
+            position: relative;
+            padding: 18px 18px 19px;
+            background: linear-gradient(135deg, var(--nav-primary-dark, #143152), var(--nav-primary, #17406f));
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .auth-head::after {
+            content: '';
+            position: absolute;
+            top: -80px;
+            inset-inline-end: -50px;
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .ah-ico {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            margin: 0 auto 9px;
+            background: rgba(255, 255, 255, .14);
+            border: 1px solid rgba(255, 255, 255, .24);
+            border-radius: 50%;
+        }
+
+        .ah-ico svg { width: 23px; height: 23px; }
+
+        .auth-title {
+            position: relative;
+            z-index: 1;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .auth-sub {
+            position: relative;
+            z-index: 1;
+            display: block;
+            margin-top: 3px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, .72);
+        }
+
+        .auth-close {
+            position: absolute;
+            z-index: 2;
+            top: 12px;
+            inset-inline-end: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, .14);
+            border: 1px solid rgba(255, 255, 255, .22);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .auth-close:active { background: rgba(255, 255, 255, .3); }
+
+        .auth-body { padding: 16px 18px 18px; }
+
+        .auth-msg {
+            display: none;
+            margin-bottom: 12px;
+            padding: 9px 11px;
+            border-radius: 10px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            line-height: 1.8;
+        }
+
+        .auth-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-mid);
+            text-align: start;
+        }
+
+        .auth-input {
+            width: 100%;
+            height: 44px;
+            margin-bottom: 11px;
+            padding: 0 13px;
+            background: var(--blue-soft);
+            border: 1px solid var(--blue-line);
+            border-radius: 11px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+            transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+                        box-shadow var(--dur) var(--ease);
+        }
+
+        .auth-input::placeholder { font-weight: 600; color: var(--text-muted); }
+
+        .auth-input:focus {
+            outline: none;
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: var(--glow);
+        }
+
+        /* فلش‌هایِ بالا/پایینِ ورودیِ عددی اینجا فقط مزاحم‌اند */
+        .auth-input[type=number] { -moz-appearance: textfield; }
+        .auth-input[type=number]::-webkit-outer-spin-button,
+        .auth-input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* کدِ تایید: رقم‌ها از هم باز شوند تا خوانده و شمرده شوند */
+        .auth-otp {
+            font-size: 1.05rem;
+            letter-spacing: .5em;
+            text-indent: .5em;
+        }
+
+        .auth-cta {
+            width: 100%;
+            height: 46px;
+            margin-top: 3px;
+            background: linear-gradient(135deg, var(--nav-primary-dark, #143152), var(--nav-primary, #17406f));
+            border: 0;
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(20, 49, 82, .28);
+            transition: filter var(--dur) var(--ease);
+        }
+
+        .auth-cta:active { filter: brightness(.92); }
+
+        .auth-back,
+        .auth-cancel {
+            margin-top: 11px;
+            background: none;
+            border: 0;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .auth-back { color: var(--primary); }
+
+        /* راهنمایِ Enter فقط جایی معنی دارد که کیبورد هست */
+        .auth-hint {
+            display: none;
+            margin-top: 12px;
+            font-size: 0.64rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .auth-hint { display: block; }
+        }
+
+        .auth-hint kbd {
+            padding: 1px 6px;
+            background: var(--blue-soft);
+            border: 1px solid var(--blue-line);
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
         /* ── ناوبریِ افقیِ ردیف‌ها روی دسکتاپ ────────────────────────────────────
            ردیف‌هایِ افقی (سکشن‌ها، بنرِ ردیفی، منویِ دسته‌ها) اسکرول‌بارشان پنهان بود.
            روی لمسی مشکلی نیست چون با انگشت کشیده می‌شود، ولی کاربرِ ماوس هیچ راهی
@@ -2983,37 +3197,48 @@
 </div>
 
 <!-- AUTH -->
-<div class="overlay" id="authOverlay" style="z-index:3000;">
-    <div style="background:#fff; width:90%; max-width:340px; margin:100px auto; padding:30px; border-radius:20px; text-align:center;">
-        <h3 id="authTitle">ورود / ثبت‌نام</h3>
-        <div id="authMsg" style="display:none; margin:10px 0; padding:8px; border-radius:8px; font-size:13px;"></div>
-        <div id="stepPhone">
-            <input type="tel" id="phoneInput" placeholder="09123456789"
-                   style="width:100%; padding:12px; margin:15px 0; border:1px solid var(--border); border-radius:10px; text-align:center;">
-            <button onclick="sendOtp()"
-                    style="width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer;">
-                دریافت کد
-            </button>
+<div class="overlay auth-overlay" id="authOverlay" style="z-index:3000;">
+    <div class="auth-box">
+        <div class="auth-head">
+            <div class="ah-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                    <path d="M4.5 20.2a7.5 7.5 0 0 1 15 0"/>
+                </svg>
+            </div>
+            <h3 class="auth-title" id="authTitle">ورود / ثبت‌نام</h3>
+            <span class="auth-sub" id="authSub">شمارهٔ موبایلتان را وارد کنید</span>
+            <button type="button" class="auth-close" onclick="closeAuth()" aria-label="بستن">✕</button>
         </div>
-        <div id="stepOtp" style="display:none;"><input type="number" id="otpInput" placeholder="کد تایید"
-                                                       style="width:100%; padding:12px; margin:15px 0; border:1px solid var(--border); border-radius:10px; text-align:center;">
-            <button onclick="verifyOtp()"
-                    style="width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer;">
-                تایید
-            </button>
+        <div class="auth-body">
+            <div id="authMsg" class="auth-msg"></div>
+
+            <div id="stepPhone">
+                <label class="auth-label" for="phoneInput">شمارهٔ موبایل</label>
+                <input type="tel" id="phoneInput" class="auth-input" inputmode="numeric"
+                       autocomplete="tel" placeholder="09123456789" onkeydown="authKey(event)">
+                <button type="button" class="auth-cta" onclick="sendOtp()">دریافت کد</button>
+            </div>
+
+            <div id="stepOtp" style="display:none;">
+                <label class="auth-label" for="otpInput">کدِ پیامک‌شده</label>
+                <input type="number" id="otpInput" class="auth-input auth-otp" inputmode="numeric"
+                       autocomplete="one-time-code" placeholder="- - - - -" onkeydown="authKey(event)">
+                <button type="button" class="auth-cta" onclick="verifyOtp()">تایید</button>
+                <button type="button" class="auth-back" onclick="authBackToPhone()">تغییرِ شماره</button>
+            </div>
+
+            <div id="stepProfile" style="display:none;">
+                <label class="auth-label" for="fName">نام و نام خانوادگی</label>
+                <input type="text" id="fName" class="auth-input" placeholder="نام" onkeydown="authKey(event)">
+                <input type="text" id="lName" class="auth-input" placeholder="نام خانوادگی" onkeydown="authKey(event)">
+                <button type="button" class="auth-cta" onclick="completeProfile()">ثبت نام</button>
+            </div>
+
+            <div class="auth-hint"><kbd>Enter</kbd> همان دکمهٔ آبیِ همین مرحله است</div>
+            <button type="button" class="auth-cancel" onclick="closeAuth()">انصراف</button>
         </div>
-        <div id="stepProfile" style="display:none;"><input type="text" id="fName" placeholder="نام"
-                                                           style="width:100%; padding:12px; margin:5px 0; border:1px solid var(--border); border-radius:10px;"><input
-                type="text" id="lName" placeholder="نام خانوادگی"
-                style="width:100%; padding:12px; margin:5px 0; border:1px solid var(--border); border-radius:10px;">
-            <button onclick="completeProfile()"
-                    style="width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; margin-top:10px;">
-                ثبت نام
-            </button>
-        </div>
-        <button onclick="document.getElementById('authOverlay').classList.remove('active')"
-                style="margin-top:20px; background:none; border:none; color:var(--text-muted); cursor:pointer;">انصراف
-        </button>
     </div>
 </div>
 
@@ -3519,7 +3744,7 @@
             commentFormHtml = `
             <div style="background:#fcf8e3; padding:15px; border-radius:12px; border:1px solid #fbeed5; text-align:center; margin-bottom:20px;">
                 <p style="font-size:0.85rem; color:#c09853; margin-bottom:10px; font-weight:700;">برای ثبت نظر، ابتدا باید وارد حساب کاربری خود شوید.</p>
-                <button onclick="document.getElementById('authOverlay').classList.add('active')"
+                <button onclick="openAuth()"
                         style="background:#f0ad4e; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.8rem;">
                     ورود / ثبت‌نام سریع
                 </button>
@@ -5197,7 +5422,7 @@
     function closeAll() {
         document.querySelectorAll('.drawer, .overlay, .confirm-modal').forEach(el => el.classList.remove('active'));
         document.getElementById('confirmModal').style.display = 'none';
-        document.getElementById('authOverlay').classList.remove('active');
+        closeAuth();
     }
 
     function getCatName(id) {
@@ -5333,7 +5558,7 @@
                  ${ICON_USER}<span class="nav-icon-label user-name">${escapeHTML(n)}</span>
                </a>
              </div>`
-            : `<button class="nav-icon-btn" onclick="document.getElementById('authOverlay').classList.add('active')" aria-label="ورود یا ثبت‌نام">
+            : `<button class="nav-icon-btn" onclick="openAuth()" aria-label="ورود یا ثبت‌نام">
                  ${ICON_USER}<span class="nav-icon-label">ورود</span>
                </button>`;
     }
@@ -5346,7 +5571,7 @@
     async function checkout() {
         if (!localStorage.getItem('userName')) {
             state.pending = {type: 'cart'};
-            document.getElementById('authOverlay').classList.add('active');
+            openAuth();
             return;
         }
         try {
@@ -5383,7 +5608,7 @@
     async function requestRfq() {
         if (!localStorage.getItem('userName')) {
             state.pending = {type: 'rfq'};
-            document.getElementById('authOverlay').classList.add('active');
+            openAuth();
             return;
         }
         try {
@@ -5422,7 +5647,7 @@
     async function requestStockNotify(productId) {
         if (!localStorage.getItem('userName')) {
             state.pending = {type: 'stockNotify', productId};
-            document.getElementById('authOverlay').classList.add('active');
+            openAuth();
             return;
         }
         try {
@@ -5441,6 +5666,49 @@
         } catch (e) {
             console.error('خطا در ثبتِ اطلاع‌رسانی', e);
         }
+    }
+
+    // بازوبستهٔ مودال از یک جا، تا فوکوس و پاک‌سازی همه‌جا یکسان باشد.
+    // (پیش از این هر نقطهٔ فراخوان خودش classList.add می‌کرد و هیچ‌کدام فوکوس
+    // نمی‌داد؛ بدونِ فوکوس، کلیدِ Enter هم عملاً بی‌مصرف بود.)
+    function openAuth() {
+        document.getElementById('authOverlay').classList.add('active');
+        const step = ['stepPhone', 'stepOtp', 'stepProfile']
+            .map(id => document.getElementById(id))
+            .find(el => el && el.style.display !== 'none');
+        const inp = step && step.querySelector('input');
+        if (inp) setTimeout(() => inp.focus(), 60);
+    }
+
+    function closeAuth() {
+        document.getElementById('authOverlay').classList.remove('active');
+    }
+
+    function setAuthSub(text) {
+        const el = document.getElementById('authSub');
+        if (el) el.textContent = text;
+    }
+
+    // Enter در هر مرحله یعنی همان دکمهٔ اصلیِ همان مرحله، و Esc یعنی انصراف.
+    // مرحلهٔ جاری از روی display خوانده می‌شود چون همان چیزی است که خودِ
+    // sendOtp/verifyOtp دست‌کاری می‌کنند — یک منبعِ حقیقت، نه دو تا.
+    function authKey(e) {
+        if (e.key === 'Escape') { closeAuth(); return; }
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (document.getElementById('stepPhone').style.display !== 'none') sendOtp();
+        else if (document.getElementById('stepOtp').style.display !== 'none') verifyOtp();
+        else if (document.getElementById('stepProfile').style.display !== 'none') completeProfile();
+    }
+
+    // برگشت از مرحلهٔ کد به مرحلهٔ شماره — پیش از این راهی جز بستنِ کلِ مودال نبود.
+    function authBackToPhone() {
+        document.getElementById('stepOtp').style.display = 'none';
+        document.getElementById('stepPhone').style.display = 'block';
+        document.getElementById('otpInput').value = '';
+        showAuthMsg('', true);
+        setAuthSub('شمارهٔ موبایلتان را وارد کنید');
+        document.getElementById('phoneInput').focus();
     }
 
     function showAuthMsg(text, ok) {
@@ -5477,6 +5745,8 @@
             state.phone = p;
             document.getElementById('stepPhone').style.display = 'none';
             document.getElementById('stepOtp').style.display = 'block';
+            setAuthSub(`کد به ${p} پیامک شد`);
+            document.getElementById('otpInput').focus();
             showAuthMsg('کد تایید ارسال شد', true);
         } catch (e) {
             showAuthMsg('خطای ارتباط با سرور', false);
@@ -5507,6 +5777,8 @@
                 } else {
                     document.getElementById('stepOtp').style.display = 'none';
                     document.getElementById('stepProfile').style.display = 'block';
+                    setAuthSub('برای تکمیلِ حساب، نامتان را وارد کنید');
+                    document.getElementById('fName').focus();
                     showAuthMsg('', true);
                 }
             } else {
@@ -5585,7 +5857,7 @@
         }
 
         // 1. بستن مودال بدون رفرش صفحه
-        document.getElementById('authOverlay').classList.remove('active');
+        closeAuth();
 
         // 2. آپدیت کردن دکمه ورود/خروج در هدر سایت به اسم شخص
         updateAuthWidget();
@@ -5597,6 +5869,7 @@
         document.getElementById('stepProfile').style.display = 'none';
         document.getElementById('stepOtp').style.display = 'none';
         document.getElementById('stepPhone').style.display = 'block';
+        setAuthSub('شمارهٔ موبایلتان را وارد کنید');
         showAuthMsg('', true);
         document.getElementById('phoneInput').value = '';
         document.getElementById('otpInput').value = '';
@@ -5725,7 +5998,7 @@
                 setTimeout(() => { msgEl.style.display = 'none'; }, 6000);
             } else if (response.status === 401) {
                 alert('لطفا مجددا وارد حساب کاربری خود شوید.');
-                document.getElementById('authOverlay').classList.add('active');
+                openAuth();
             } else {
                 alert('خطا در ثبت نظر روی سرور. مجدداً تلاش کنید.');
             }
