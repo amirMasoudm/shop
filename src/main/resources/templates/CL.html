@@ -127,7 +127,42 @@
             --text-mid: #4a5568;
             --text-muted: #8c9cb5;
             --danger: #e74c3c;
+
+            /* خطِ کارت‌ها. --border همان خاکستریِ خیلی روشنِ قبلی است و هنوز
+               ده‌ها جا (کشو، سبد، پنل‌ها) از آن استفاده می‌کنند؛ دست‌نخورده ماند.
+               این دو تا مخصوصِ چیزی‌اند که باید «دیده» شود، یعنی کارتِ محصول.
+               خواستهٔ مالک: آبی‌ها به مرور و موردی تیره‌تر شوند — این‌جا نقطهٔ
+               شروع است، پس تیره‌ترکردنِ بعدی فقط عوض‌کردنِ همین دو عدد است. */
+            --border-strong: #b0c3da;
+            --border-hover: #7492bb;
+
+            /* پالتِ طوسیِ کارت — دکمهٔ «افزودن به سبد» و قیمت.
+               روشن ولی نه آن‌قدر که مثلِ آبیِ روشنِ قبلی محو شود؛ و تیره‌اش
+               برایِ hover و فشردن. هر سه توکن‌اند تا تنظیمِ بعدی یک‌خطی باشد. */
+            --grey-soft: #e0e4ea;
+            --grey-deep: #464e5d;
+            --grey-ink: #363d4a;
+            --grey-line: #c3c9d4;
+
+            /* پالتِ آبیِ روشن — کشویِ دسته‌بندیِ موبایل. سطحِ کلید، سطحِ
+               فشرده/باز، و خطِ دورش. */
+            --blue-soft: #eaf1fa;
+            --blue-press: #d7e5f5;
+            --blue-line: #c8dbef;
+
+            /* هالهٔ نورِ آبیِ دورِ نوارِ جست‌وجو. rgba دستی نوشته شده چون
+               #1b4f8a را نمی‌شود مستقیم شفاف کرد — ۲۷/۷۹/۱۳۸ همان --primary است.
+               حالتِ قوی وقتی می‌آید که کاربر داخلِ نوار فوکوس دارد. */
+            --glow: 0 0 0 3px rgba(27, 79, 138, .08), 0 2px 14px rgba(27, 79, 138, .18);
+            --glow-strong: 0 0 0 3px rgba(27, 79, 138, .16), 0 3px 22px rgba(27, 79, 138, .32);
+
             --radius: 12px;
+            /* گوشهٔ کارت — یک پله گردتر از دورِ قبل، ولی هنوز نه کپسولی */
+            --radius-card: 6px;
+
+            /* یک منحنی و یک مدتِ واحد برایِ همهٔ کنش‌ها */
+            --dur: .18s;
+            --ease: cubic-bezier(.2, .8, .3, 1);
             --radius-lg: 20px;
             --hdr: 70px;
         }
@@ -137,6 +172,34 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        /* حلقهٔ فوکوس — تا امروز صفر مورد :focus-visible در این صفحه بود، یعنی
+           کاربرِ کیبورد هیچ نشانه‌ای نداشت کجاست. یک قاعده برایِ همهٔ کنترل‌ها. */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        [tabindex]:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* روی نوارهایِ تیره، آبی روی آبی دیده نمی‌شود */
+        header.topnav a:focus-visible,
+        .top-bar a:focus-visible,
+        .top-bar button:focus-visible,
+        .banner-nav:focus-visible,
+        .lb-btn:focus-visible {
+            outline-color: #fff;
+        }
+
+        /* بازخوردِ فشردن روی کنترل‌هایی که فقط hover داشتند */
+        .p-buy-btn:active { transform: translateY(0); filter: brightness(.94); }
+        .menu-arrow:active { background: rgba(255, 255, 255, .38); }
+        .banner-nav:active { background: rgba(0, 0, 0, .7); }
+        .lb-btn:active { background: rgba(255, 255, 255, .34); }
+        .dropdown-menu a:active { background: var(--bg); }
 
         body {
             font-family: 'Vazirmatn', sans-serif;
@@ -150,7 +213,8 @@
         /* دقیقاً زیرِ header.topnavِ چسبان می‌چسبد (نه رویش) — top: var(--nav-h)،
            نه ۰. var(--nav-h) در site-nav.css تعریف شده. */
         .top-bar {
-            background: linear-gradient(135deg, #1a3f6f, #1b4f8a);
+            /* هم‌رنگِ نوارِ هویتِ بالایش (site-nav.css) — یک پله تیره‌تر */
+            background: linear-gradient(135deg, #143152, #17406f);
             position: sticky;
             /* زیرِ نوارِ هویت و نوارِ شیشه‌ای می‌چسبد، نه فقط زیرِ نوارِ هویت */
             top: calc(var(--nav-h) + var(--nav-gap-h));
@@ -215,8 +279,14 @@
         .menu-scroll-wrap {
             flex: 1;
             min-width: 0; /* اجازه‌ی جمع‌شدن تا اسکرول فعال شود */
+            /* ⚠️ بدونِ این، .navbar که align-items:center است این ظرف را به اندازهٔ
+               محتوایش جمع می‌کند و height:100%ِ کلیدها به چیزی وصل نمی‌شود —
+               نتیجه‌اش کلیدهایِ ۲۲ پیکسلیِ شناور وسطِ نوار بود. */
+            align-self: stretch;
             display: flex;
-            align-items: center;
+            /* stretch تا کلیدها تمامِ ارتفاعِ نوار را بگیرند و «توی نوار» بنشینند،
+               نه این‌که وسطش شناور باشند. فلش‌ها خودشان را وسط نگه می‌دارند. */
+            align-items: stretch;
             margin: 0 10px;
             position: relative;
         }
@@ -225,6 +295,7 @@
             flex: 1;
             min-width: 0;
             display: flex;
+            align-items: stretch;
             overflow-x: auto;      /* دسته‌های زیاد بریده نشوند — با اسکرول همه دیده شوند */
             overflow-y: visible;
             scrollbar-width: none;
@@ -233,6 +304,7 @@
 
         .menu-arrow {
             flex: 0 0 auto;
+            align-self: center;   /* با stretchِ والد کش نیاید */
             width: 26px;
             height: 26px;
             border-radius: 50%;
@@ -248,40 +320,88 @@
             display: none;
         }
         .menu-arrow.visible { display: flex; }
-        .menu-arrow:hover { background: rgba(255, 255, 255, 0.3); }
+        @media (hover: hover) and (pointer: fine) {
+            .menu-arrow:hover { background: rgba(255, 255, 255, 0.3); }
+        }
         .menu-arrow-left { margin-left: 6px; }
         .menu-arrow-right { margin-right: 6px; }
 
+        /* دسته‌بندی‌ها مثلِ کلیدهایِ داشبورد: چسبیده به هم داخلِ نوار، و تنها
+           چیزی که جدایشان می‌کند یک خطِ آبیِ تیره است — نه فاصله. */
         .desktop-menu {
             display: flex;
             list-style: none;
-            gap: 2px;
+            gap: 0;
             flex-wrap: nowrap;
+            align-items: stretch;
         }
-        .desktop-menu > li { flex: 0 0 auto; } /* آیتم‌ها فشرده نشوند */
+        .desktop-menu > li {
+            flex: 0 0 auto;   /* آیتم‌ها فشرده نشوند */
+            display: flex;
+        }
 
         .dropdown {
             position: relative;
         }
 
+        /* هر دسته یک کلیدِ تمام‌ارتفاع است. کادرِ دورِ تک‌تکِ کلیدها برداشته شد؛
+           خطِ روشنِ بالا حسِ برجستگی را نگه می‌دارد و جداکننده فقط همان خطِ
+           آبیِ تیره است که پایین‌تر روی li + li می‌نشیند. */
         .dropdown > a {
-            padding: 8px 12px;
-            color: rgba(255, 255, 255, 0.9);
+            padding: 0 14px;
+            height: 100%;
+            color: rgba(255, 255, 255, 0.92);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.86rem;
             font-weight: 500;
-            border-radius: 8px;
+            border-radius: 0;
+            /* هاله عمداً خیلی محو است — فقط آن‌قدر که کلید از خودِ نوار جدا
+               حس شود، نه این‌که مثلِ یک کادرِ سفید توی چشم بزند. */
+            background: rgba(255, 255, 255, 0.028);
+            border: 0;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
             display: flex;
             align-items: center;
             gap: 4px;
-            transition: 0.2s;
+            transition: background var(--dur) var(--ease),
+                        box-shadow var(--dur) var(--ease);
             cursor: pointer;
             white-space: nowrap;
         }
 
-        .dropdown:hover > a {
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
+        /* خطِ آبیِ تیرهٔ بینِ کلیدها.
+           ⚠️ چرا border نیست: یک border همیشه تمامِ ارتفاعِ کلید را می‌گیرد و
+           ۷۰ پیکسل خطِ ممتد، هرچقدر هم باریک، کلفت دیده می‌شود. این خط فقط
+           ۵۲٪ ارتفاع را می‌گیرد و دو سرش محو می‌شود، پس به چشم خیلی نازک‌تر
+           می‌آید بدونِ این‌که مرزِ کلیدها گم شود. */
+        .desktop-menu > li + li::before {
+            content: '';
+            position: absolute;
+            inset-inline-start: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 52%;
+            background: linear-gradient(to bottom,
+                        rgba(13, 38, 69, 0),
+                        rgba(13, 38, 69, .85) 22%,
+                        rgba(13, 38, 69, .85) 78%,
+                        rgba(13, 38, 69, 0));
+            pointer-events: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .dropdown:hover > a {
+                background: rgba(255, 255, 255, 0.13);
+                color: #fff;
+            }
+        }
+
+        /* حسِ فشاردادن: چون کلیدها حالا یک نوارِ پیوسته‌اند، جابه‌جاییِ عمودی
+           صف را می‌شکند؛ به‌جایش سطح تیره می‌شود و سایه به داخل می‌افتد. */
+        .dropdown > a:active {
+            background: rgba(0, 0, 0, 0.26);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.38);
         }
 
         .dropdown-menu {
@@ -335,9 +455,11 @@
             border-radius: 6px;
         }
 
-        .dropdown-menu a:hover {
-            background: var(--bg);
-            color: var(--primary);
+        @media (hover: hover) and (pointer: fine) {
+            .dropdown-menu a:hover {
+                background: var(--bg);
+                color: var(--primary);
+            }
         }
 
         /* ============ نوارِ جست‌وجو (ردیفِ دومِ هدر) ============
@@ -358,6 +480,16 @@
             display: flex;
             gap: 0;                 /* چسبیده، تا یک بلوکِ واحد دیده شود */
             align-items: stretch;
+            /* هاله روی همین ظرف می‌نشیند، نه روی تک‌تکِ کنترل‌ها — تا دورِ کلِ
+               نوار یک نورِ پیوسته باشد، نه دو هالهٔ جدا. */
+            border-radius: 4px;
+            box-shadow: var(--glow);
+            transition: box-shadow var(--dur) var(--ease);
+        }
+
+        /* با فوکوس داخلِ نوار (تایپ یا بازکردنِ دسته) نور پررنگ‌تر می‌شود */
+        .search-inner:focus-within {
+            box-shadow: var(--glow-strong);
         }
 
         /* مستطیلی و کلاسیک — نه کپسولی. گوشه‌ها فقط کمی نرم‌اند (۴ پیکسل) و
@@ -369,6 +501,9 @@
             height: 42px;
             padding: 0 14px;
             border: 1px solid var(--border);
+            /* خطِ توپُرِ وسط برداشته شد؛ به‌جایش یک خط‌چینِ ریز که فقط مرزِ
+               دو کنترل را نشان می‌دهد، نه این‌که دو تکه‌شان کند. */
+            border-inline-end: 1px dashed var(--border);
             border-radius: 4px 0 0 4px;
             outline: none;
             font-family: inherit;
@@ -384,7 +519,8 @@
 
         .search-inner select {
             height: 42px;
-            padding: 0 12px;
+            /* جا برایِ فلشِ سفارشی در سمتِ چپ */
+            padding: 0 12px 0 40px;
             border: 1px solid var(--border);
             /* لبهٔ مشترک دوبار کشیده نشود */
             border-inline-start: none;
@@ -392,9 +528,18 @@
             outline: none;
             font-family: inherit;
             font-size: 0.85rem;
-            background: #fff;
             cursor: pointer;
             max-width: 190px;
+
+            /* فلشِ پیش‌فرضِ مرورگر ریز است و رنگش دستِ ما نیست. برداشته شد و
+               به‌جایش یک شِورونِ بازتر با رنگِ همان نوارهای بالا نشست. */
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #fff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2317406f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 7.5 10 14 16.5 7.5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 13px center;
+            background-size: 17px 17px;
         }
 
         .search-clear-btn {
@@ -411,8 +556,10 @@
 
         @media (max-width: 700px) {
             /* پدینگِ کمتر تا نوارِ چسبانِ هدر+سرچ ارتفاعِ زیادی از صفحه‌ی موبایل نخورد */
-            .search-row { padding: 6px 10px; }
-            .search-inner { gap: 6px; }
+            .search-row { padding: 8px 10px; }
+            /* روی موبایل هم چسبیده می‌ماند (قبلاً ۶px فاصله داشت): هاله دورِ یک
+               بلوکِ واحد معنی دارد، وگرنه وسطش یک شکافِ سفید می‌افتاد. */
+            .search-inner { gap: 0; }
 
             /* ارتفاعِ ۴۴px حداقلِ استانداردِ هدفِ لمسی است (قبلاً ۴۱px بود) */
             .search-inner input[type="search"] {
@@ -435,57 +582,99 @@
             gap: 8px;
         }
 
+        /* ── کنش‌هایِ نوار: آیکون بالا، ریزنوشته زیرش ──
+           هر دو آیکون SVGِ درون‌خطی‌اند نه ایموجی و نه فونتِ آیکون: ایموجی روی هر
+           سیستم‌عامل شکلِ دیگری دارد و رنگش دستِ ما نیست، و کتابخانهٔ آیکون یعنی
+           یک درخواستِ بیرونی که کاربرِ ایرانی ممکن است اصلاً نگیرد. */
+        .nav-icon-btn {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 5px 9px;
+            /* همان هالهٔ کلیدهایِ دسته‌بندی، با همان شدت — تا آدمک و سبد هم
+               عضوِ همان نوار دیده شوند، نه دو چیزِ شناور روی آن. */
+            background: rgba(255, 255, 255, 0.028);
+            border: 0;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            color: #fff;
+            text-decoration: none;
+            font-family: inherit;
+            line-height: 1;
+            cursor: pointer;
+            transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+        }
+
+        .nav-ico {
+            width: 23px;
+            height: 23px;
+            display: block;
+        }
+
+        /* سبدِ دستیِ تیغه‌دار (گزینهٔ D از شش مدلی که به مالک نشان داده شد).
+           تیغه‌های عمودیِ داخل عمداً هستند: در اندازهٔ ریز همین‌ها هستند که
+           به چشم می‌گویند «این یک ظرف است» و سبد را از هر آیکونِ دیگری جدا
+           می‌کنند. نسبتِ قابِ دید (۴۴×۲۴) با نسبتِ رندر یکی است تا هیچ‌چیز
+           کش نیاید. */
+        .nav-ico-cart {
+            width: 50px;
+            height: 27px;
+        }
+
+        .nav-icon-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: .2px;
+            opacity: .85;
+            white-space: nowrap;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .nav-icon-btn:hover { background: rgba(255, 255, 255, .10); }
+            .nav-icon-btn:hover .nav-icon-label { opacity: 1; }
+        }
+
+        .nav-icon-btn:active {
+            transform: translateY(1px);
+            background: rgba(0, 0, 0, .18);
+        }
+
         .user-box {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px 12px;
-            border-radius: 100px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 4px;
         }
 
         .user-name {
-            color: #fff;
-            font-size: 0.82rem;
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .logout-btn {
-            background: rgba(231, 76, 60, 0.25);
-            color: #ffbcbc;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            cursor: pointer;
+            max-width: 84px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .cart-btn {
             position: relative;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            cursor: pointer;
         }
 
         .cart-badge {
             position: absolute;
-            top: -6px;
-            left: -6px;
+            top: -2px;
+            /* سمتِ راست، نه چپ: دستهٔ چرخ‌دستی در سمتِ چپِ آیکون است و نشان
+               درست رویش می‌افتاد و پنهانش می‌کرد. */
+            right: 2px;
+            left: auto;
             background: var(--danger);
             color: #fff;
-            font-size: 10px;
-            min-width: 18px;
-            height: 18px;
+            font-size: 9.5px;
+            min-width: 16px;
+            height: 16px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid var(--primary);
+            /* حلقهٔ دورِ نشان هم‌رنگِ نوارِ تیره تا روی آن بنشیند، نه شناور بماند */
+            border: 2px solid #17406f;
             font-weight: 800;
         }
 
@@ -532,7 +721,7 @@
         .dynamic-section {
             background: var(--surface);
             border-radius: var(--radius);
-            margin-bottom: 25px;
+            margin-bottom: 16px;
             border: 1px solid var(--border);
             overflow: hidden;
         }
@@ -541,11 +730,13 @@
             height: 4px;
         }
 
+        /* ارتفاعِ سکشن فقط از فضای خالی کم شد، نه از کارت‌ها:
+           حاشیهٔ عمودیِ تیتر ۱۵ → ۹ و کفِ ردیف ۲۰ → ۱۲. */
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 18px;
+            padding: 9px 18px;
             font-weight: 800;
         }
 
@@ -553,7 +744,12 @@
             display: flex;
             gap: 12px;
             overflow-x: auto;
-            padding: 0 18px 20px;
+            /* ⚠️ بالا ۱۰px فاصله دارد و این تزئینی نیست: overflow-x:auto باعث
+               می‌شود overflow-y هم auto شود، یعنی این ردیف یک ظرفِ اسکرول است و
+               هر چیزی که از بالایش بزند بریده می‌شود. کارتِ محصول روی hover
+               ۵px بالا می‌پرد، پس ضلعِ بالایی‌اش زیرِ هدرِ سکشن گم می‌شد.
+               این فاصله جا برایِ همان پرش (و کمی از سایه‌اش) باز می‌کند. */
+            padding: 10px 18px 12px;
             scrollbar-width: none;
         }
 
@@ -657,8 +853,10 @@
             transition: .2s;
         }
 
-        .banner-nav:hover {
-            background: rgba(0, 0, 0, .55);
+        @media (hover: hover) and (pointer: fine) {
+            .banner-nav:hover {
+                background: rgba(0, 0, 0, .55);
+            }
         }
 
         .banner-nav-right { right: 14px; }
@@ -708,7 +906,9 @@
            با خروجِ آخرین عکس، اولین عکس بی‌فاصله وارد می‌شود) */
         .irb-marquee-wrap { overflow: hidden; padding: 16px 18px; }
         .irb-marquee-track { display: flex; gap: 12px; width: max-content; animation: irb-marquee linear infinite; }
-        .irb-marquee-track:hover { animation-play-state: paused; }
+        @media (hover: hover) and (pointer: fine) {
+            .irb-marquee-track:hover { animation-play-state: paused; }
+        }
         @keyframes irb-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
         .irb-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
@@ -729,6 +929,172 @@
         .irb-lb-prev { right: 16px; }
         .irb-lb-next { left: 16px; }
 
+        /* ═══ کشویِ دسته‌بندیِ موبایل ═══
+           قبلاً یک فهرستِ سادهٔ سفید با خطِ جداکننده بود؛ نه معلوم بود کلیک‌شدنی
+           است نه لمس بازخوردی داشت. حالا هر ردیف یک کلیدِ آبیِ روشن است با
+           بازخوردِ فشردن، و فلشِ زیردسته‌ها از افقی به پایین می‌چرخد. */
+        .mob-item {
+            margin-bottom: 6px;
+        }
+
+        .mob-row {
+            display: flex;
+            align-items: stretch;
+            background: var(--blue-soft);
+            border: 1px solid var(--blue-line);
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            transition: background var(--dur) var(--ease);
+        }
+
+        .mob-row.is-open {
+            background: var(--blue-press);
+        }
+
+        .mob-link {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            /* هدفِ لمس ۴۸px — بالاتر از حداقلِ ۴۴px چون ردیفِ فهرست است */
+            min-height: 48px;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--primary);
+            text-decoration: none;
+            transition: background var(--dur) var(--ease);
+        }
+
+        .mob-link:active {
+            background: var(--blue-press);
+        }
+
+        .mob-toggle {
+            flex: 0 0 auto;
+            width: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: 0;
+            border-inline-start: 1px solid var(--blue-line);
+            color: var(--primary);
+            cursor: pointer;
+            font-family: inherit;
+            transition: background var(--dur) var(--ease);
+        }
+
+        .mob-toggle:active {
+            background: var(--blue-press);
+        }
+
+        /* نوکِ فلش در حالتِ بسته افقی است (به سمتِ چپ، یعنی جهتِ ادامهٔ
+           خواندن در صفحهٔ راست‌چین)؛ با باز شدنِ زیردسته‌ها می‌چرخد و
+           رو به پایین می‌ایستد. */
+        .mob-chev {
+            width: 17px;
+            height: 17px;
+            display: block;
+            transform: rotate(90deg);
+            transition: transform 220ms var(--ease);
+        }
+
+        .mob-row.is-open .mob-chev {
+            transform: rotate(0deg);
+        }
+
+        /* زیردسته‌ها یک پله تودرتو و یک پله روشن‌تر، تا سلسله‌مراتب دیده شود */
+        .mob-children {
+            padding: 6px 12px 0 0;
+        }
+
+        .mob-children .mob-row {
+            background: #f4f8fd;
+        }
+
+        .mob-children .mob-link {
+            min-height: 44px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* ═══ اسکرولِ بی‌پایان ═══ */
+        #gridSentinel {
+            height: 1px;
+        }
+
+        #gridLoading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            margin: 22px 0 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        #gridLoading.visible {
+            display: flex;
+        }
+
+        .grid-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--blue-line);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: grid-spin .7s linear infinite;
+        }
+
+        @keyframes grid-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ═══ ورودِ کارت‌ها: از عمق بیرون می‌آیند و سرِ جایشان می‌ایستند ═══
+           کارت کوچک و محو و کمی پایین‌تر شروع می‌کند و به اندازهٔ واقعی می‌رسد.
+           ⚠️ هر دو کلاس بعد از پایانِ انیمیشن با JS برداشته می‌شوند؛ اگر بمانند،
+           ترنزیشنِ ۵۲۰ms این‌ها روی transformِ hover هم سوار می‌شود و بالاپریدنِ
+           کارت کشدار و کند می‌شود. */
+        .product-card.card-enter {
+            opacity: 0;
+            transform: scale(.9) translateY(20px);
+        }
+
+        /* کارتِ ردیفِ سکشن جورِ دیگری می‌آید: اول از پهلو دیده می‌شود (روش به
+           سمتِ چپ) و بعد می‌چرخد رو به جلو و ثابت می‌شود. چرخش حولِ محورِ عمودیِ
+           خودِ کارت است تا از قابِ ردیف بیرون نزند و بریده نشود. */
+        .product-card.spin-enter {
+            opacity: 0;
+            transform: perspective(760px) rotateY(-68deg);
+        }
+
+        .product-card.card-in {
+            opacity: 1;
+            transform: none;
+            transition: opacity 380ms var(--ease), transform 520ms var(--ease);
+        }
+
+        /* چرخش کمی کندتر و با منحنیِ پرتابی‌تر از ورودِ کارت‌های گرید */
+        .product-card.spin-enter.card-in {
+            transition: opacity 300ms var(--ease), transform 620ms cubic-bezier(.2, .9, .22, 1);
+        }
+
+        /* خودِ بلوکِ سکشن هم پرتاب می‌شود — و چون زودتر از کارت‌هایش شروع
+           می‌کند، اول قابِ سکشن می‌نشیند و بعد محصولاتش می‌چرخند و می‌آیند. */
+        .dynamic-section.sec-enter {
+            opacity: 0;
+            transform: scale(.96) translateY(26px);
+        }
+
+        .dynamic-section.sec-in {
+            opacity: 1;
+            transform: none;
+            transition: opacity 400ms var(--ease), transform 560ms var(--ease);
+        }
+
         .products-grid {
             display: grid;
             grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
@@ -738,28 +1104,43 @@
 
         .product-card {
             background: var(--surface);
-            padding: 12px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border-strong);
             display: flex;
             flex-direction: column;
             position: relative;
-            transition: 0.3s;
+            transition: border-color var(--dur) var(--ease),
+                        transform var(--dur) var(--ease),
+                        box-shadow var(--dur) var(--ease);
             cursor: pointer;
         }
 
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border-color: var(--primary);
+        /* پشتِ گاردِ اشاره‌گرِ دقیق: روی موبایل، استایلِ hover بعد از لمس
+           می‌چسبید و کارت تا لمسِ بعدی بالا و سایه‌دار می‌ماند. */
+        @media (hover: hover) and (pointer: fine) {
+            .product-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                border-color: var(--border-hover);
+            }
+        }
+
+        /* بازخوردِ لمس — چیزی که تا حالا روی موبایل اصلاً نبود */
+        .product-card:active {
+            border-color: var(--border-hover);
+            background: #fbfcfe;
         }
 
         .card-img-wrap {
             width: 100%;
-            aspect-ratio: 1;
+            /* ⚠️ بلندیِ کارت تقریباً همین قاب است. از ۱:۱ به ۵:۴ آمد تا کارت
+               حدودِ یک دکمهٔ «افزودن به سبد» کوتاه‌تر شود. عکس بریده نمی‌شود —
+               object-fit:contain است، فقط کمی کوچک‌تر می‌نشیند. */
+            aspect-ratio: 5 / 4;
             background: #fff;
-            border-radius: 10px;
-            margin-bottom: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -773,15 +1154,17 @@
             transition: transform 0.3s ease;
         }
 
-        .product-card:hover .card-img {
-            transform: scale(1.08);
+        @media (hover: hover) and (pointer: fine) {
+            .product-card:hover .card-img {
+                transform: scale(1.08);
+            }
         }
 
         .prod-title {
-            font-size: 0.88rem;
+            font-size: 0.83rem;
             font-weight: 700;
             color: var(--text);
-            height: 2.7rem;
+            height: 2.5rem;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -795,14 +1178,15 @@
             text-align: left;
         }
 
+        /* قیمت هم از همان پالتِ طوسی می‌آید، نه آبیِ برند */
         .cur-price {
             font-weight: 900;
-            font-size: 1.1rem;
-            color: var(--primary);
+            font-size: 1.02rem;
+            color: var(--grey-ink);
         }
 
         .old-price {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-decoration: line-through;
             color: var(--text-muted);
             display: block;
@@ -811,20 +1195,50 @@
 
         .add-btn {
             width: 100%;
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 9px;
+            padding: 9px;
             border: none;
-            background: var(--bg);
-            color: var(--primary);
+            background: var(--grey-soft);
+            color: var(--grey-ink);
             font-weight: 700;
-            border-radius: 8px;
+            border-radius: var(--radius-card);
             cursor: pointer;
-            transition: 0.2s;
+            transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
         }
 
-        .product-card:hover .add-btn {
-            background: var(--primary);
+        @media (hover: hover) and (pointer: fine) {
+            .product-card:hover .add-btn {
+                background: var(--grey-deep);
+                color: #fff;
+            }
+        }
+
+        .add-btn:active {
+            background: var(--grey-deep);
             color: #fff;
+        }
+
+        /* «اطلاع بده» روی کارتِ ناموجود — همان پالتِ طوسی ولی توخالی، تا با
+           دکمهٔ خریدِ پُر اشتباه نشود. قواعدش بعد از قاعده‌های بالا می‌آیند و
+           ویژگیِ بیشتری دارند، پس همان‌ها را بازنویسی می‌کنند. */
+        .add-btn.ghost {
+            background: #fff;
+            color: var(--grey-ink);
+            box-shadow: inset 0 0 0 1.5px var(--grey-line);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .product-card:hover .add-btn.ghost {
+                background: var(--grey-soft);
+                color: var(--grey-ink);
+                box-shadow: inset 0 0 0 1.5px var(--grey-deep);
+            }
+        }
+
+        .add-btn.ghost:active {
+            background: var(--grey-deep);
+            color: #fff;
+            box-shadow: none;
         }
 
         .badge-list {
@@ -990,7 +1404,9 @@
             font-family: inherit;
             line-height: 1;
         }
-        .lb-btn:hover { background: rgba(255, 255, 255, .26); }
+        @media (hover: hover) and (pointer: fine) {
+            .lb-btn:hover { background: rgba(255, 255, 255, .26); }
+        }
         .lb-close { top: 16px; left: 16px; font-size: 1.6rem; }
         .lb-prev { right: 16px; top: 50%; transform: translateY(-50%); }
         .lb-next { left: 16px; top: 50%; transform: translateY(-50%); }
@@ -1093,9 +1509,11 @@
             transition: 0.2s;
         }
 
-        .p-buy-btn:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
+        @media (hover: hover) and (pointer: fine) {
+            .p-buy-btn:hover {
+                background: #c0392b;
+                transform: translateY(-2px);
+            }
         }
 
         .p-section-title {
@@ -1323,24 +1741,39 @@
             }
 
             .user-box {
-                padding: 5px 8px;
-                gap: 4px;
+                gap: 3px;
                 max-width: 150px;
             }
 
             .user-name {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                max-width: 78px;
+                max-width: 64px;
             }
 
-            .logout-btn {
-                flex-shrink: 0;
-            }
+            /* روی موبایل نوار تنگ است: آیکون‌ها کمی جمع‌تر.
+               ⚠️ این بلاک بعد از تعریفِ .nav-ico-cart می‌آید، پس هر اندازه‌ای
+               که این‌جا بنویسی برنده است — نسبتِ کشیدهٔ سبد باید همین‌جا هم
+               حفظ شود وگرنه روی موبایل دوباره مربع می‌شود. */
+            .nav-icon-btn { padding: 5px 6px; }
+            .nav-ico { width: 21px; height: 21px; }
+            .nav-ico-cart { width: 44px; height: 24px; }
+
         }
 
         @media (max-width: 768px) {
+            /* ── کارت روی موبایل ──
+               دو ستون در عرضِ ۳۷۵px یعنی کارتِ ~۱۷۵px؛ با فونتِ دسکتاپ نامِ محصول
+               سه‌خطی می‌شد و کارت دوباره بلند. یک پله ریزتر، و دکمه بالعکس
+               بزرگ‌تر چون هدفِ لمس باید ۴۴px باشد. */
+            .product-card { padding: 9px; }
+            .prod-title { font-size: 0.78rem; height: 2.4rem; }
+            .cur-price { font-size: 0.95rem; }
+            .old-price { font-size: 0.68rem; height: 16px; }
+            .add-btn {
+                min-height: 44px;
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+
             .navbar {
                 padding: 0 12px;
                 gap: 10px;
@@ -1395,10 +1828,12 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .qty-btn:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+        @media (hover: hover) and (pointer: fine) {
+            .qty-btn:hover {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
         }
 
         .qty-btn:active {
@@ -1426,9 +1861,11 @@
             transition: 0.3s;
         }
 
-        .cart-item:hover {
-            border-color: var(--primary-lt);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        @media (hover: hover) and (pointer: fine) {
+            .cart-item:hover {
+                border-color: var(--primary-lt);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            }
         }
 
         /* ── ناوبریِ افقیِ ردیف‌ها روی دسکتاپ ────────────────────────────────────
@@ -1688,15 +2125,19 @@
 
 <header class="top-bar">
     <div class="navbar">
-        <button onclick="toggleDr('menuDrawer')"
-                style="background:none; border:none; color:#fff; font-size:1.6rem; cursor:pointer; display:none;"
-                id="mobMenuBtn">☰
+        <button onclick="toggleDr('menuDrawer')" class="nav-icon-btn" id="mobMenuBtn" aria-label="دسته‌بندی‌ها">
+            <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" aria-hidden="true">
+                <path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>
+            </svg>
+            <span class="nav-icon-label">دسته‌ها</span>
         </button>
-        <style> @media (max-width: 992px) {
-            #mobMenuBtn {
-                display: block !important;
+        <style>
+            #mobMenuBtn { display: none; }
+            @media (max-width: 992px) {
+                #mobMenuBtn { display: inline-flex !important; }
             }
-        } </style>
+        </style>
 
         <!-- لوگو حالا به ریشهٔ سایت (داده‌نما) می‌رود، نه بازگشتِ SPA به خانه‌ی فروشگاه —
              چون از این پس / و /shop دو صفحهٔ جدای‌اند (تصمیمِ معماریِ داده‌نما/فروشگاه/آموزش). -->
@@ -1717,10 +2158,15 @@
             </div>
             <button type="button" class="menu-arrow menu-arrow-left" id="menuArrowLeft" onclick="scrollMenu('left')" aria-label="نمایش دسته‌های بعدی">›</button>
         </div>
+        <!-- ترتیب عمداً «سبد» قبل از «ورود» است: صفحه راست‌چین است، پس اولین
+             فرزند سمتِ راست می‌نشیند و سبد بینِ دسته‌بندی‌ها و ورود قرار می‌گیرد. -->
         <div class="nav-actions">
-            <div id="authWidget"></div>
-            <button class="cart-btn" onclick="toggleDr('cartDrawer')">🛒 <span class="cart-badge" id="cartCount">0</span>
+            <button class="nav-icon-btn cart-btn" onclick="toggleDr('cartDrawer')" aria-label="سبد خرید">
+                <svg class="nav-ico nav-ico-cart" viewBox="0 0 44 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9H40.5L37.5 21H6.5z"/><path d="M12 10 13.4 20"/><path d="M19.6 10 20.1 20"/><path d="M27 10 26.4 20"/><path d="M34.4 10 33 20"/><path d="M14 9C14 2.5 30 2.5 30 9"/></svg>
+                <span class="nav-icon-label">سبد</span>
+                <span class="cart-badge" id="cartCount">0</span>
             </button>
+            <div id="authWidget"></div>
         </div>
     </div>
 </header>
@@ -1850,11 +2296,13 @@
                 جدیدترین محصولات
             </div>
             <div id="productsGrid" class="products-grid"></div>
-            <div style="text-align:center; margin:24px 0;">
-                <button id="loadMoreBtn" onclick="loadMoreProducts()"
-                        style="display:none; padding:12px 28px; background:var(--primary); color:#fff; border:none; border-radius:100px; font-weight:700; cursor:pointer; font-size:0.95rem;">
-                    نمایش محصولات بیشتر
-                </button>
+            <!-- دیده‌بانِ اسکرولِ بی‌پایان: به‌جایِ دکمهٔ «نمایش بیشتر». وقتی این
+                 عنصر به قابِ دید نزدیک شد، صفحهٔ بعد واکشی می‌شود. ارتفاعش ۱px
+                 است تا جایی نگیرد. -->
+            <div id="gridSentinel" aria-hidden="true"></div>
+            <div id="gridLoading" role="status" aria-live="polite">
+                <span class="grid-spinner" aria-hidden="true"></span>
+                <span>در حال بارگذاری…</span>
             </div>
             <!-- متنِ معرفیِ دسته در SPA (زیرِ محصولات؛ معادلِ SSR). فقط در نمای دسته پر می‌شود -->
             <div id="catIntroText"></div>
@@ -2055,12 +2503,11 @@
         enhanceHScrollers();   // ردیف‌هایِ SSRشده (بنرِ ردیفیِ بالایِ فروشگاه)
         syncSearchPlaceholder();
         window.addEventListener('resize', syncSearchPlaceholder);
-        // تعدادِ ستون‌هایِ گرید با تغییرِ عرضِ پنجره عوض می‌شود — دوباره‌محاسبهٔ ردیفِ کامل
-        let gridResizeTimer = null;
-        window.addEventListener('resize', () => {
-            clearTimeout(gridResizeTimer);
-            gridResizeTimer = setTimeout(renderGridTrimmed, 150);
-        });
+        // اسکرولِ بی‌پایان جایِ دکمهٔ «نمایش بیشتر» را گرفت
+        initInfiniteScroll();
+        // ℹ️ شنوندهٔ resize که گرید را بازرندر می‌کرد حذف شد: تنها کارش
+        // دوباره‌حساب‌کردنِ «ردیفِ کامل» برایِ آن دکمه بود، و حالا فقط باعث
+        // می‌شد انیمیشنِ ورودِ همهٔ کارت‌ها با هر تغییرِ عرضِ پنجره از نو پخش شود.
         Promise.all([
             fetch(`${API}/api/categories/tree?type=ONLINE`).then(r => r.json()),
             fetch(`${API}/api/categories/tree?type=COURSE`).then(r => r.json()).catch(() => [])
@@ -2821,9 +3268,10 @@
             // لینک واقعی خزنده‌پذیر به صفحه‌ی SSR دسته + حفظ تجربه‌ی SPA با preventDefault
             return `<li class="dropdown"><a href="/shop/category/${encodeURIComponent(slug)}" onclick="event.preventDefault(); loadCat('${item.id}','${nm}')">${item.name} ${item.children?.length ? '❮' : ''}</a>${item.children?.length ? `<ul class="dropdown-menu">${build(item.children)}</ul>` : ''}</li>`;
         }).join('');
-        // لینک ثابت بلاگ (لینک واقعی <a> — هم برای کاربر هم خزنده)
-        const blogLink = `<li style="display:flex;align-items:center;padding:0 6px;"><a href="/blog" style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,var(--accent),#ffb347);color:#fff;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:800;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(232,134,26,0.45);letter-spacing:0.3px;">✍️ بلاگ</a></li>`;
-        document.getElementById('desktopMenu').innerHTML = build(items) + blogLink;
+        // دکمهٔ بلاگ به‌خواستهٔ مالک از این نوار برداشته شد (۲۰۲۶-۰۹-۱۸).
+        // بلاگ از بین نرفته: در نوارِ هویتِ بالایِ صفحه (site-nav.css) هست و
+        // لینکِ واقعیِ خزنده‌پذیرش همان‌جاست، پس سئو چیزی از دست نداد.
+        document.getElementById('desktopMenu').innerHTML = build(items);
 
         // موقعیت‌دهی زیرمنوهای سطح‌اول (fixed) زیر هر آیتم — چون نوار اسکرول افقی دارد
         document.querySelectorAll('#desktopMenu > .dropdown').forEach(li => {
@@ -2881,20 +3329,30 @@
             const hasKids = item.children && item.children.length > 0;
             const slug = item.slug || item.id;
             const nm = item.name.replace(/'/g, "");
-            return `<div class="mob-item"><div style="display:flex; border-bottom:1px solid var(--border); align-items:stretch;">
-                    <a href="/shop/category/${encodeURIComponent(slug)}" style="flex:1; padding:15px 20px; font-weight:700; text-decoration:none; color:inherit;" onclick="event.preventDefault(); loadCat('${item.id}','${nm}'); closeAll();">${item.name}</a>
-                    ${hasKids ? `<div style="padding:15px 20px; border-right:1px solid #eee;" onclick="toggleSub(this)"><span style="color:#888;">▼</span></div>` : ''}</div>
-                    ${hasKids ? `<div class="mob-children" style="display:none; background:#f9f9f9; padding-right:15px;">${build(item.children)}</div>` : ''}</div>`;
+            // فلش عمداً SVG است نه کاراکترِ «▼»: باید بچرخد و چرخشِ یک گلیف
+            // روی هر قلمی سرِ جای خودش نمی‌ماند.
+            const chev = `<svg class="mob-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5 7.5 10 13 15 7.5"/></svg>`;
+            return `<div class="mob-item"><div class="mob-row">
+                    <a class="mob-link" href="/shop/category/${encodeURIComponent(slug)}" onclick="event.preventDefault(); loadCat('${item.id}','${nm}'); closeAll();">${item.name}</a>
+                    ${hasKids ? `<button type="button" class="mob-toggle" onclick="toggleSub(this)" aria-expanded="false" aria-label="نمایشِ زیردسته‌ها">${chev}</button>` : ''}</div>
+                    ${hasKids ? `<div class="mob-children" style="display:none;">${build(item.children)}</div>` : ''}</div>`;
         }).join('');
-        const blogRow = `<div class="mob-item"><a href="/blog" style="display:flex;align-items:center;gap:10px;padding:14px 20px;text-decoration:none;border-bottom:1px solid var(--border);"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--accent),#ffb347);color:#fff;padding:5px 14px;border-radius:20px;font-size:0.82rem;font-weight:800;box-shadow:0 2px 6px rgba(232,134,26,0.4);">✍️ بلاگ آموزشی</span></a></div>`;
-        document.getElementById('mobileMenuBody').innerHTML = blogRow + build(items);
+        // بلاگ به‌خواستهٔ مالک از این کشو هم برداشته شد، هم‌راستا با نوارِ
+        // دسکتاپ. لینکش در نوارِ هویتِ بالایِ صفحه (site-nav.css) سرِ جاست.
+        document.getElementById('mobileMenuBody').innerHTML = build(items);
     }
 
     function toggleSub(btn) {
-        const sub = btn.parentElement.nextElementSibling;
-        const arrow = btn.querySelector('span');
-        sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
-        arrow.style.transform = sub.style.display === 'block' ? 'rotate(180deg)' : 'rotate(0)';
+        const row = btn.closest('.mob-row');
+        const sub = row.nextElementSibling;
+        const wasOpen = sub.style.display === 'block';
+        sub.style.display = wasOpen ? 'none' : 'block';
+        // چرخشِ فلش با کلاس انجام می‌شود نه استایلِ درون‌خطی، تا ترنزیشنِ CSS
+        // رویش سوار شود و باز/بسته‌شدن پویا دیده شود.
+        row.classList.toggle('is-open', !wasOpen);
+        btn.setAttribute('aria-expanded', String(!wasOpen));
     }
 
     function renderCard(p, sList = []) {
@@ -2909,7 +3367,7 @@
         const img = p.images?.[0] || '';
         const buyBtn = (p.stock > 0)
             ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button>`
-            : `<button class="add-btn" onclick="event.stopPropagation(); requestStockNotify('${p.id}')" style="background:#fff; color:var(--primary); border:1.5px solid var(--primary);">🔔 اطلاع بده</button>`;
+            : `<button class="add-btn ghost" onclick="event.stopPropagation(); requestStockNotify('${p.id}')">🔔 اطلاع بده</button>`;
         return `<div class="product-card" onclick="openProductDetail('${p.id}')"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div>${buyBtn}</div>`;
     }
 
@@ -3299,8 +3757,13 @@
                     secHtml += renderSectionImageRows(sec.id);
                 }
             });
-            document.getElementById('landingSections').innerHTML = secHtml;
-            enhanceHScrollers(document.getElementById('landingSections'));
+            const landing = document.getElementById('landingSections');
+            landing.innerHTML = secHtml;
+            // ⚠️ ترتیب مهم است: کلاس‌های ورود باید پیش از enhanceHScrollers
+            // نشانده شوند، چون آن تابع ردیف را داخلِ یک پوشش جابه‌جا می‌کند و
+            // جابه‌جاییِ DOM انیمیشنِ درحال‌اجرا را قطع می‌کند.
+            animateSectionsIn(landing);
+            enhanceHScrollers(landing);
         } catch (e) {
             document.getElementById('landingSections').innerHTML = '';
         }
@@ -3352,8 +3815,11 @@
         setImageRowBanners(false);
         setBannerSlider(false);
         document.getElementById('latestSectionHeader').innerText = 'دسته: ' + name;
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+        // دوره‌ها صفحه‌بندی ندارند و این تابع خودش innerHTML را می‌نویسد. بدونِ
+        // این دو خط، اسکرولِ بی‌پایان با feedِ قبلی بیدار می‌شد و محصول را وسطِ
+        // فهرستِ دوره‌ها اضافه می‌کرد.
+        state.feed = {type: 'coursecat', param: id, page: 0, size: 0, last: true};
+        state.gridRenderedIds = [];
 
         const all = await fetch(`${API}/api/v1/courses/active`).then(r => r.json()).catch(() => []);
         const list = all.filter(c => c.categoryId === id);
@@ -3503,12 +3969,9 @@
         return cols.length || 1;
     }
 
-    // دکمهٔ «نمایش محصولات بیشتر» همیشه باید زیرِ یک ردیفِ کاملِ کارت بنشیند، نه ردیفِ
-    // ناقص. لیستِ کامل را نگه می‌داریم (state.gridFullList) و فقط
-    // floor(n/cols)*cols تا رندر می‌شود؛ باقی‌مانده تا صفحهٔ بعد (یا resize) بافر
-    // می‌ماند — بدونِ درخواستِ اضافه به سرور. اگر صفحه‌ای در کار نیست
-    // (state.feed.last === true) همه نشان داده می‌شود، وگرنه چند محصولِ آخرِ
-    // فروشگاه برای همیشه پنهان می‌مانند.
+    // ℹ️ منطقِ «بریدنِ ردیفِ ناقص» حذف شد. آن فقط برایِ این بود که دکمهٔ
+    // «نمایش محصولات بیشتر» زیرِ یک ردیفِ کامل بنشیند؛ با رفتنِ دکمه دلیلش هم
+    // رفت و نگه‌داشتنش یعنی چند محصول بی‌دلیل پنهان بمانند.
     function renderGrid(list) {
         const empty = (state.feed && state.feed.type === 'search')
             ? 'نتیجه‌ای برای این جست‌وجو پیدا نشد — املا را بررسی کنید یا عبارتِ کوتاه‌تری امتحان کنید'
@@ -3519,6 +3982,10 @@
         renderGridTrimmed();
     }
 
+    // رندرِ گرید عمداً «افزایشی» است: اگر لیستِ تازه همان لیستِ قبلی به‌اضافهٔ
+    // چند مورد باشد (یعنی صفحهٔ بعد آمده)، فقط همان چند کارتِ تازه به DOM اضافه
+    // می‌شوند. اگر کلِ گرید بازرندر می‌شد، با هر صفحه انیمیشنِ ورودِ همهٔ کارت‌ها
+    // از نو پخش می‌شد و عکس‌های لودشده دوباره از صفر می‌آمدند.
     function renderGridTrimmed() {
         const grid = document.getElementById('productsGrid');
         if (!grid) return;
@@ -3526,19 +3993,190 @@
 
         if (!list.length) {
             grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px;">${state.gridEmptyMsg || 'محصولی یافت نشد'}</p>`;
+            state.gridRenderedIds = [];
             return;
         }
 
-        const isLast = !state.feed || state.feed.last === true;
-        let toShow = list;
-        if (!isLast) {
-            const cols = getGridColumnCount(grid);
-            const completeCount = Math.floor(list.length / cols) * cols;
-            // اگر حتی یک ردیفِ کامل هم نداریم، بهتر است همینِ ناقص را نشان بدهیم
-            // تا این‌که هیچ‌چیز نشان ندهیم
-            if (completeCount > 0) toShow = list.slice(0, completeCount);
+        const ids = list.map(p => p.id);
+        const prev = state.gridRenderedIds || [];
+        // «ادامهٔ همان لیست» یعنی: پیشوندش عیناً همان است، بلندتر شده، و تعدادِ
+        // کارت‌های واقعیِ DOM هم با آن می‌خواند (وگرنه یک نفر بیرون از این تابع
+        // innerHTML را عوض کرده — مثلِ فهرستِ دوره‌ها).
+        const isAppend = prev.length > 0
+                && ids.length > prev.length
+                && grid.querySelectorAll('.product-card').length === prev.length
+                && prev.every((id, i) => ids[i] === id);
+
+        let fresh;
+        if (isAppend) {
+            const before = grid.querySelectorAll('.product-card').length;
+            grid.insertAdjacentHTML('beforeend', list.slice(prev.length).map(p => renderCard(p)).join(''));
+            fresh = [...grid.querySelectorAll('.product-card')].slice(before);
+        } else {
+            grid.innerHTML = list.map(p => renderCard(p)).join('');
+            fresh = [...grid.querySelectorAll('.product-card')];
         }
-        grid.innerHTML = toShow.map(p => renderCard(p)).join('');
+
+        state.gridRenderedIds = ids;
+        animateCardsIn(fresh);
+    }
+
+    // ═════════ ورودِ کارت‌ها ═════════
+    // هر کارت تا وقتی به قابِ دید نرسیده محو و کوچک است؛ با رسیدن، سرِ جایش
+    // می‌ایستد. با تأخیرِ پله‌ای تا یک‌جا همه باهم نپرند.
+    let cardObserver = null;
+
+    function getCardObserver() {
+        if (cardObserver) return cardObserver;
+        if (!('IntersectionObserver' in window)) return null;
+        cardObserver = new IntersectionObserver((entries, obs) => {
+            entries.forEach(e => {
+                if (!e.isIntersecting) return;
+                obs.unobserve(e.target);
+                revealCard(e.target);
+            });
+        }, {rootMargin: '120px 0px', threshold: 0.01});
+        return cardObserver;
+    }
+
+    function revealCard(el) {
+        el.classList.add('card-in');
+        // پاک‌کردنِ کلاس‌ها بعد از پایانِ حرکت — توضیحش بالای CSS هست
+        setTimeout(() => {
+            el.classList.remove('card-enter', 'spin-enter', 'card-in');
+            el.style.transitionDelay = '';
+        }, 900);
+    }
+
+    function motionOff() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function animateCardsIn(cards) {
+        const obs = getCardObserver();
+        // بی‌ناظر یا با «حرکتِ کمتر»، کارت‌ها بدونِ انیمیشن و کاملاً دیده می‌شوند
+        if (!obs || motionOff() || !cards.length) return;
+        cards.forEach((el, i) => {
+            el.classList.add('card-enter');
+            el.style.transitionDelay = Math.min(i, 7) * 45 + 'ms';
+        });
+        // ⚠️ یک فریم صبر لازم است: اگر card-enter و card-in در همان فریم اضافه
+        // شوند مرورگر هر دو را یکی می‌بیند و هیچ حرکتی رخ نمی‌دهد.
+        requestAnimationFrame(() => {
+            cards.forEach(el => {
+                const r = el.getBoundingClientRect();
+                // کارتی که همین حالا در قابِ دید است بی‌معطلی شروع می‌کند.
+                // بدونِ این، تا شلیکِ ناظر (که ناهمگام است) یک لحظه نامرئی
+                // می‌ماند و عوضِ ورودِ نرم، پلک‌زدن دیده می‌شد.
+                if (r.top < window.innerHeight && r.bottom > 0) revealCard(el);
+                else obs.observe(el);
+            });
+        });
+        // تورِ ایمنی: اگر ناظر برایِ کارتی هیچ‌وقت شلیک نکرد (مثلاً داخلِ ظرفی
+        // پنهان رندر شد)، آن کارت برای همیشه محو نماند.
+        setTimeout(() => cards.forEach(el => {
+            if (el.classList.contains('card-enter') && !el.classList.contains('card-in')) revealCard(el);
+        }), 2500);
+    }
+
+    // ═════════ اسکرولِ بی‌پایان ═════════
+    let feedLoading = false;
+
+    function setGridLoading(on) {
+        const el = document.getElementById('gridLoading');
+        if (el) el.classList.toggle('visible', on);
+    }
+
+    async function maybeLoadMore() {
+        const f = state.feed;
+        if (feedLoading || !f || f.last) return;
+        // در نمایِ محصول یا دوره نباید چیزی به گرید اضافه شود
+        if (!document.getElementById('homeView').classList.contains('active')) return;
+        feedLoading = true;
+        setGridLoading(true);
+        try {
+            await loadMoreProducts();
+        } finally {
+            feedLoading = false;
+            setGridLoading(false);
+        }
+        // اگر دیده‌بان هنوز در قاب است (پنجرهٔ بلند و محتوای کم)، ناظر دوباره
+        // شلیک نمی‌کند چون وضعیتِ تلاقی عوض نشده — پس خودمان یک بار سر می‌زنیم.
+        const sentinel = document.getElementById('gridSentinel');
+        if (sentinel && state.feed && !state.feed.last) {
+            const r = sentinel.getBoundingClientRect();
+            if (r.top < window.innerHeight + 400) setTimeout(maybeLoadMore, 120);
+        }
+    }
+
+    // ═════════ ورودِ سکشن‌ها ═════════
+    // ترتیب عمدی است: با رسیدنِ سکشن به قابِ دید اول خودِ بلوک می‌نشیند، و با
+    // ۲۶۰ms تأخیر کارت‌هایش یکی‌یکی از پهلو می‌چرخند و جا می‌افتند.
+    // کارت‌های این ردیف ناظرِ جداگانه ندارند: ردیف افقی است و کارتِ کنارِ قاب
+    // هیچ‌وقت با اسکرولِ عمودی «وارد» نمی‌شد و برای همیشه محو می‌ماند.
+    let sectionObserver = null;
+
+    function revealSection(sec) {
+        sec.classList.add('sec-in');
+        setTimeout(() => sec.classList.remove('sec-enter', 'sec-in'), 900);
+        const cards = [...sec.querySelectorAll('.product-card.spin-enter')];
+        setTimeout(() => cards.forEach((el, i) => {
+            el.style.transitionDelay = Math.min(i, 8) * 70 + 'ms';
+            revealCard(el);
+        }), 260);
+    }
+
+    function animateSectionsIn(root) {
+        const scope = root || document;
+        const sections = [...scope.querySelectorAll('.dynamic-section')];
+        if (!sections.length) return;
+        if (!('IntersectionObserver' in window) || motionOff()) return;
+
+        if (!sectionObserver) {
+            sectionObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(e => {
+                    if (!e.isIntersecting) return;
+                    obs.unobserve(e.target);
+                    revealSection(e.target);
+                });
+            }, {rootMargin: '80px 0px', threshold: 0.01});
+        }
+
+        sections.forEach(sec => {
+            sec.classList.add('sec-enter');
+            sec.querySelectorAll('.product-card').forEach(c => c.classList.add('spin-enter'));
+        });
+
+        // همان دلیلِ گرید: یک فریم صبر تا حالتِ اولیه نقاشی شود
+        requestAnimationFrame(() => {
+            sections.forEach(sec => {
+                const r = sec.getBoundingClientRect();
+                if (r.top < window.innerHeight && r.bottom > 0) revealSection(sec);
+                else sectionObserver.observe(sec);
+            });
+        });
+
+        // تورِ ایمنی — هیچ سکشن یا کارتی نباید محو جا بماند
+        setTimeout(() => {
+            sections.forEach(sec => {
+                if (sec.classList.contains('sec-enter') && !sec.classList.contains('sec-in')) revealSection(sec);
+            });
+        }, 3500);
+    }
+
+    function initInfiniteScroll() {
+        const sentinel = document.getElementById('gridSentinel');
+        if (!sentinel) return;
+        if (!('IntersectionObserver' in window)) {
+            // پشتیبانِ مرورگرِ قدیمی: همان اسکرولِ ساده
+            window.addEventListener('scroll', () => {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 700) maybeLoadMore();
+            }, {passive: true});
+            return;
+        }
+        new IntersectionObserver(entries => {
+            if (entries.some(e => e.isIntersecting)) maybeLoadMore();
+        }, {rootMargin: '700px 0px'}).observe(sentinel);
     }
 
     // ========= صفحه‌بندی گرید («نمایش بیشتر») =========
@@ -3592,9 +4230,6 @@
                 renderGrid(state.current);
             }
 
-            const btn = document.getElementById('loadMoreBtn');
-            if (btn) btn.style.display = state.feed.last ? 'none' : 'inline-block';
-
             // جایِ اسکرول بعد از چیده‌شدنِ کارت‌ها برمی‌گردد، نه قبلش
             requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, snap.scrollY)));
             return;
@@ -3615,9 +4250,6 @@
     async function loadMoreProducts(isFirst = false) {
         const f = state.feed;
         if (!isFirst) f.page++;
-
-        const btn = document.getElementById('loadMoreBtn');
-        if (btn) { btn.disabled = true; btn.innerText = 'در حال بارگذاری...'; }
 
         try {
             let content, last;
@@ -3654,8 +4286,6 @@
             f.last = true;
         }
 
-        if (btn) { btn.disabled = false; btn.innerText = 'نمایش محصولات بیشتر'; }
-
         if (isFirst) {
             // صفحه اول: پنل فیلتر مشخصات را از نو بساز و لیست را نمایش بده
             setupFilters(state.current);
@@ -3664,7 +4294,6 @@
             // صفحات بعدی: فیلترهای فعال را حفظ کن (پنل را بازنساز نکن)
             runFilter();
         }
-        if (btn) btn.style.display = f.last ? 'none' : 'inline-block';
     }
 
     // FILTERS
@@ -3962,15 +4591,25 @@
     function updateAuthWidget() {
         const n = localStorage.getItem('userName');
         // لینک را به /profile تغییر دادیم
+        // دکمهٔ نارنجیِ «ورود / ثبت‌نام» جایش را به آدمک با ریزنوشتهٔ زیرش داد.
+        // حالتِ واردشده هم همان شکل را می‌گیرد تا نوار دوزبانه نشود: همان آدمک،
+        // با نامِ کاربر به‌جایِ «ورود»، و دکمهٔ خروجِ کوچک کنارش.
+        const ICON_USER = `<svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.6 20a7.4 7.4 0 0 1 14.8 0"/></svg>`;
         document.getElementById('authWidget').innerHTML = n ?
             `<div class="user-box">
-            <a href="/profile" class="user-name">${escapeHTML(n)}</a><button class="logout-btn" onclick="logout()">خروج</button></div>` : `<button onclick="document.getElementById('authOverlay').classList.add('active')" style="background:var(--accent); color:#fff; padding:8px 16px; border-radius:100px; border:none; font-weight:700; font-size:0.85rem; cursor:pointer;">ورود / ثبت‌نام</button>`;
+               <a href="/profile" class="nav-icon-btn" title="${escapeHTML(n)}">
+                 ${ICON_USER}<span class="nav-icon-label user-name">${escapeHTML(n)}</span>
+               </a>
+             </div>`
+            : `<button class="nav-icon-btn" onclick="document.getElementById('authOverlay').classList.add('active')" aria-label="ورود یا ثبت‌نام">
+                 ${ICON_USER}<span class="nav-icon-label">ورود</span>
+               </button>`;
     }
 
-    function logout() {
-        localStorage.clear();
-        location.reload();
-    }
+    // ℹ️ تابعِ logoutِ این صفحه حذف شد چون دکمه‌اش برداشته شد. عمداً جایگزین
+    // نشد: خروجِ درست در /profile است که هم تأیید می‌گیرد و هم واقعاً
+    // /api/auth/logout را صدا می‌زند — این‌جا فقط localStorage را پاک می‌کرد و
+    // نشستِ سمتِ سرور باز می‌ماند. آدمکِ نوار به همان /profile می‌رود.
 
     async function checkout() {
         if (!localStorage.getItem('userName')) {
