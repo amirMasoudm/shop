@@ -34,6 +34,15 @@ public class ImageRowBanner {
     // فقط برایِ MARQUEE معنا دارد: مدتِ یک دورِ کاملِ حرکت (ثانیه — عددِ بزرگ‌تر یعنی کندتر)
     private int rotationSpeedSeconds = 5;
 
+    /**
+     * رنگِ شناسهٔ پنجره — نوارِ باریکِ کنارِ ردیف در فروشگاه از این می‌آید.
+     * <p>
+     * {@code null} یا خالی یعنی بی‌رنگ و مصرف‌کننده به آبیِ برند برمی‌گردد.
+     * مقدارش مستقیم داخلِ استایلِ HTML می‌نشیند، پس سرویس سخت‌گیرانه
+     * نرمال‌سازی‌اش می‌کند (فقط {@code #rrggbb}).
+     */
+    private String color;
+
     private List<ImageRowItem> images = new ArrayList<>();
 
     public ImageRowBanner() {}
@@ -61,6 +70,9 @@ public class ImageRowBanner {
 
     public int getRotationSpeedSeconds() { return rotationSpeedSeconds; }
     public void setRotationSpeedSeconds(int rotationSpeedSeconds) { this.rotationSpeedSeconds = rotationSpeedSeconds; }
+
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 
     public List<ImageRowItem> getImages() { return images; }
     public void setImages(List<ImageRowItem> images) { this.images = images; }

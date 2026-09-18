@@ -1809,6 +1809,27 @@
                     </select>
                 </div>
             </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">رنگِ پنجره</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <input type="color" id="irb-color-picker" value="#1b4f8a"
+                           class="w-10 h-10 p-0 border rounded-lg cursor-pointer"
+                           oninput="setIrbColor(this.value)" title="انتخاب رنگ">
+                    <input type="text" id="irb-color" dir="ltr" placeholder="بی‌رنگ"
+                           class="w-32 p-2 text-sm border rounded-lg outline-none font-mono"
+                           oninput="syncColorUi('irb')">
+                    <button type="button" onclick="setIrbColor('')"
+                            class="text-[11px] px-2 py-1.5 border rounded-lg text-gray-600 hover:bg-gray-100">بی‌رنگ</button>
+                    <span id="irb-color-chip" class="inline-block w-16 h-6 rounded border align-middle"
+                          style="background:repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50%/8px 8px"
+                          title="پیش‌نمایش"></span>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-2 leading-5">
+                    این رنگ در فروشگاه به‌شکلِ یک نوارِ باریکِ عمودی کنارِ همین ردیف دیده
+                    می‌شود. <b>خالی = بی‌رنگ</b> و آبیِ برند به‌کار می‌رود.
+                </p>
+            </div>
+
             <div id="irb-speed-wrap" class="hidden">
                 <label class="block text-sm text-gray-600 mb-1">سرعتِ چرخش/حرکت (ثانیه)</label>
                 <input type="number" id="irb-speed" value="5" min="1" class="w-full p-2.5 border rounded-lg outline-none">
@@ -2784,17 +2805,25 @@
         syncCatColorUi();
     }
 
-    function syncCatColorUi() {
-        const v = normalizeCatColor(document.getElementById('c-color').value);
-        const chip = document.getElementById('c-color-chip');
-        const picker = document.getElementById('c-color-picker');
+    // رنگ‌گزینِ مشترکِ دسته (c-) و پنجرهٔ ردیفی (irb-) — یک منطق، دو مصرف‌کننده.
+    function syncColorUi(prefix) {
+        const v = normalizeCatColor(document.getElementById(prefix + '-color').value);
+        const chip = document.getElementById(prefix + '-color-chip');
+        const picker = document.getElementById(prefix + '-color-picker');
         if (v) {
             chip.style.background = v;
             picker.value = v;
         } else {
-            // شطرنجیِ خاکستری = بی‌رنگ؛ نه سفید، تا این دو به چشم قاطی نشوند
+            // شطرنجیِ خاکستریِ بی‌رنگ؛ نه سفید، تا این دو به چشم قاطی نشوند
             chip.style.background = 'repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50%/8px 8px';
         }
+    }
+
+    function syncCatColorUi() { syncColorUi('c'); }
+
+    function setIrbColor(value) {
+        document.getElementById('irb-color').value = normalizeCatColor(value);
+        syncColorUi('irb');
     }
 
     function editCategory(id) {
@@ -3733,6 +3762,7 @@
         document.getElementById('irb-position').value = '0';
         document.getElementById('irb-display-mode').value = 'STATIC';
         document.getElementById('irb-speed').value = '5';
+        setIrbColor('');
         onImageRowPlacementChange();
         onImageRowDisplayModeChange();
         document.getElementById('irb-modal-title').innerText = 'پنجره‌ی جدید';
@@ -3749,6 +3779,7 @@
         document.getElementById('irb-position').value = g.position != null ? g.position : 0;
         document.getElementById('irb-display-mode').value = g.displayMode || 'STATIC';
         document.getElementById('irb-speed').value = g.rotationSpeedSeconds || 5;
+        setIrbColor(g.color || '');
         onImageRowPlacementChange();
         onImageRowDisplayModeChange();
         if (g.placement === 'SHOP_AFTER_SECTION') populateImageRowSectionSelect(g.afterSectionId);
@@ -3776,6 +3807,7 @@
             position: Number(document.getElementById('irb-position').value) || 0,
             displayMode: document.getElementById('irb-display-mode').value,
             rotationSpeedSeconds: Number(document.getElementById('irb-speed').value) || 5,
+            color: normalizeCatColor(document.getElementById('irb-color').value) || null,
             images: collectImageRowItems()
         };
 

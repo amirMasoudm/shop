@@ -64,7 +64,25 @@ public class ImageRowBannerService {
         if (input.getRotationSpeedSeconds() <= 0) {
             input.setRotationSpeedSeconds(5);
         }
+        input.setColor(normalizeColor(input.getColor()));
         return repo.save(input);
+    }
+
+    /**
+     * رنگ را به شکلِ یکدستِ {@code #rrggbb} درمی‌آورد؛ ورودیِ خالی/نامعتبر ←
+     * {@code null} یعنی بی‌رنگ. سخت‌گیر است چون مقدارش بعداً مستقیم داخلِ
+     * استایلِ HTML می‌نشیند و هر چیزِ دیگری راهِ تزریقِ CSS باز می‌کند.
+     * (همان منطقِ CategoryService.normalizeColor — عمداً هم‌شکل.)
+     */
+    private String normalizeColor(String raw) {
+        if (raw == null) return null;
+        String v = raw.trim();
+        if (v.isEmpty()) return null;
+        if (!v.startsWith("#")) v = "#" + v;
+        if (v.matches("(?i)^#[0-9a-f]{3}$")) {
+            v = "#" + v.charAt(1) + v.charAt(1) + v.charAt(2) + v.charAt(2) + v.charAt(3) + v.charAt(3);
+        }
+        return v.matches("(?i)^#[0-9a-f]{6}$") ? v.toLowerCase() : null;
     }
 
     public void delete(String id) {
