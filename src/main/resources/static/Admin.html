@@ -1168,6 +1168,35 @@
                 <input type="number" id="c-position" placeholder="خالی = انتهایِ هم‌ردیف‌ها" class="w-full p-2.5 border rounded-lg outline-none">
             </div>
 
+            <!-- ================= رنگِ دسته ================= -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <label class="block text-xs font-bold text-slate-700 mb-2">رنگِ دسته</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <!-- منبعِ حقیقت همین فیلدِ متنی است، نه رنگ‌چین: رنگ‌چینِ
+                         مرورگر نمی‌تواند «بی‌رنگ» را نشان بدهد و همیشه یک رنگ
+                         برمی‌گرداند. -->
+                    <input type="color" id="c-color-picker" value="#1b4f8a"
+                           class="w-10 h-10 p-0 border rounded-lg cursor-pointer"
+                           oninput="setCatColor(this.value)" title="انتخاب رنگ">
+                    <input type="text" id="c-color" dir="ltr" placeholder="بی‌رنگ"
+                           class="w-32 p-2 text-sm border rounded-lg outline-none font-mono"
+                           oninput="onCatColorText()">
+                    <button type="button" onclick="setCatColor('')"
+                            class="text-[11px] px-2 py-1.5 border rounded-lg text-gray-600 hover:bg-gray-100">بی‌رنگ</button>
+                    <button type="button" onclick="setCatColor('#ffffff')"
+                            class="text-[11px] px-2 py-1.5 border rounded-lg text-gray-600 hover:bg-gray-100">سفید</button>
+                    <span id="c-color-chip" class="inline-block w-16 h-6 rounded border align-middle"
+                          style="background:repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50%/8px 8px"
+                          title="پیش‌نمایش"></span>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-2 leading-5">
+                    این رنگ در میزِ کارِ قیمت‌گذاری به‌شکلِ یک نوارِ باریک کنارِ ردیفِ هر محصولِ
+                    این دسته دیده می‌شود. <b>خالی = بی‌رنگ</b>؛ زیردستهٔ بی‌رنگ رنگِ والدش را
+                    به ارث می‌برد و اگر هیچ والدی رنگ نداشت، نواری کشیده نمی‌شود.
+                    «سفید» یک رنگِ واقعی است و با بی‌رنگ فرق دارد.
+                </p>
+            </div>
+
             <!-- Filter Attributes Input -->
             <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
                 <label class="block text-xs font-bold text-blue-800 mb-2">ویژگی‌های فیلتر (مثلاً: رنگ، سایز)</label>
@@ -2454,6 +2483,12 @@
                 li.dataset.id = node.id;
 
                 let tagsHtml = '';
+                // نقطهٔ رنگیِ دسته در درخت، تا ادمین بی‌بازکردنِ مودال ببیند چه
+                // رنگی ثبت شده. دستهٔ بی‌رنگ هیچ نقطه‌ای ندارد.
+                const colorDot = node.color
+                        ? `<span class="inline-block w-3 h-3 rounded-full border border-gray-300 align-middle ml-1"
+                                 style="background:${node.color}" title="رنگِ دسته: ${node.color}"></span>`
+                        : '';
                 if (node.filterKeys && node.filterKeys.length > 0) {
                     tagsHtml = `<div class="flex flex-wrap gap-1 items-center mr-4 flex-1 overflow-hidden" style="max-height: 24px;">
                         ${node.filterKeys.map(k => `<span class="tree-tag hidden md:inline-block">${k}</span>`).join('')}
@@ -2465,6 +2500,7 @@
                 content.innerHTML = `
                     <div class="flex items-center gap-1 md:gap-2 flex-1 overflow-hidden">
                         <span class="text-gray-400 cursor-grab">⠿</span>
+                        ${colorDot}
                         <span class="font-bold text-gray-700 text-sm whitespace-nowrap">${node.name}</span>
                         ${tagsHtml}
                     </div>
@@ -2724,7 +2760,41 @@
         renderFilterTags();
         updateCatSeoPreview();
         document.getElementById('cat-modal-title').innerText = 'ایجاد دسته اصلی';
+        syncCatColorUi();
         openModal('categoryModal');
+    }
+
+    // ═════════ رنگِ دسته ═════════
+    // #abc → #aabbcc و هر چیزِ نامعتبر → '' (بی‌رنگ). همین قاعده سمتِ سرور هم
+    // در CategoryService.normalizeColor تکرار شده؛ این‌جا فقط برایِ UI است.
+    function normalizeCatColor(raw) {
+        let v = (raw || '').trim();
+        if (!v) return '';
+        if (v[0] !== '#') v = '#' + v;
+        if (/^#[0-9a-f]{3}$/i.test(v)) v = '#' + v[1] + v[1] + v[2] + v[2] + v[3] + v[3];
+        return /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : '';
+    }
+
+    function setCatColor(value) {
+        document.getElementById('c-color').value = normalizeCatColor(value);
+        syncCatColorUi();
+    }
+
+    function onCatColorText() {
+        syncCatColorUi();
+    }
+
+    function syncCatColorUi() {
+        const v = normalizeCatColor(document.getElementById('c-color').value);
+        const chip = document.getElementById('c-color-chip');
+        const picker = document.getElementById('c-color-picker');
+        if (v) {
+            chip.style.background = v;
+            picker.value = v;
+        } else {
+            // شطرنجیِ خاکستری = بی‌رنگ؛ نه سفید، تا این دو به چشم قاطی نشوند
+            chip.style.background = 'repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50%/8px 8px';
+        }
     }
 
     function editCategory(id) {
@@ -2742,6 +2812,8 @@
         document.getElementById('c-seo-title').value = c.seoTitle || '';
         document.getElementById('c-seo-desc').value = c.seoDescription || '';
         document.getElementById('c-intro').value = c.introText || '';
+        document.getElementById('c-color').value = c.color || '';
+        syncCatColorUi();
         updateCatSeoPreview();
         document.getElementById('cat-modal-title').innerText = 'ویرایش دسته';
         openModal('categoryModal');
@@ -2752,6 +2824,7 @@
         populateSelects();
         state.currentFilters = [];
         renderFilterTags();
+        syncCatColorUi();
         updateCatSeoPreview();
         document.getElementById('c-parent').value = parentId;
         document.getElementById('cat-modal-title').innerText = 'افزودن زیردسته';
@@ -2777,7 +2850,9 @@
             slug: document.getElementById('c-slug').value.trim() || null,
             seoTitle: document.getElementById('c-seo-title').value.trim() || null,
             seoDescription: document.getElementById('c-seo-desc').value.trim() || null,
-            introText: document.getElementById('c-intro').value.trim() || null
+            introText: document.getElementById('c-intro').value.trim() || null,
+            // خالی را عمداً null می‌فرستیم نه '' — سرور null را «بی‌رنگ» می‌فهمد
+            color: normalizeCatColor(document.getElementById('c-color').value) || null
         };
 
         const req = id

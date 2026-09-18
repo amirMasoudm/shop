@@ -19,6 +19,7 @@ import java.util.Map;
  * <ul>
  *   <li>{@code GET /api/v1/pricing/rows} → ADMIN، PRICER، SALES (خواندن)</li>
  *   <li>{@code POST /api/v1/pricing/batch} → فقط ADMIN و PRICER (نوشتن)</li>
+ *   <li>{@code PUT /api/v1/pricing/reorder} → فقط ADMIN و PRICER (چیدمانِ میز)</li>
  *   <li>{@code GET /api/v1/pricing/logs} → فقط ADMIN</li>
  * </ul>
  * محافظت در سطحِ مسیر انجام می‌شود، نه فقط پنهان‌کردنِ دکمه در UI —
@@ -107,6 +108,19 @@ public class PricingWorkspaceController {
     @PostMapping("/batch")
     public ResponseEntity<Map<String, Object>> batch(@RequestBody List<Map<String, Object>> changes) {
         return ResponseEntity.ok(service.applyBatch(changes));
+    }
+
+    /**
+     * ترتیبِ دستیِ ردیف‌ها (درگ‌دراپ). کلِ ترتیب می‌آید، نه فقط ردیفِ جابه‌جاشده.
+     * <p>
+     * ⚠️ در SecurityConfig صریحاً به ADMIN/PRICER محدود شده. بدونِ آن قاعده،
+     * قاعدهٔ عمومیِ {@code /api/v1/pricing/**} به کارشناسِ فروش هم اجازهٔ
+     * نوشتن می‌داد — در حالی که چیدمانِ میز مشترک است و برایِ همه عوض می‌شود.
+     */
+    @PutMapping("/reorder")
+    public ResponseEntity<Map<String, Object>> reorder(
+            @RequestBody List<org.example.shop1.model.dto.WorkspaceOrderDto> items) {
+        return ResponseEntity.ok(Map.of("updated", service.reorder(items)));
     }
 
     @GetMapping("/logs")

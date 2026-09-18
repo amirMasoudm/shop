@@ -56,6 +56,7 @@ public class CategoryService {
         String slugBase = (dto.getSlug() == null || dto.getSlug().trim().isEmpty()) ? dto.getName() : dto.getSlug();
         category.setSlug(generateUniqueSlug(slugBase, null));
         category.setSeoTitle(dto.getSeoTitle());
+        category.setColor(normalizeColor(dto.getColor()));
         category.setSeoDescription(dto.getSeoDescription());
         category.setIntroText(dto.getIntroText());
 
@@ -80,6 +81,7 @@ public class CategoryService {
 
         // ---> سئو <---
         category.setSeoTitle(dto.getSeoTitle());
+        category.setColor(normalizeColor(dto.getColor()));
         category.setSeoDescription(dto.getSeoDescription());
         category.setIntroText(dto.getIntroText());
         // پایداری URL: اگر ادمین صریحاً اسلاگ داد، همان اعمال می‌شود؛
@@ -233,6 +235,25 @@ public class CategoryService {
         }
     }
 
+    /**
+     * رنگ را به شکلِ یکدستِ {@code #rrggbb} درمی‌آورد.
+     * <p>
+     * ورودیِ خالی یا نامعتبر ← {@code null} یعنی «بی‌رنگ». سخت‌گیری‌اش عمدی
+     * است: این مقدار بعداً مستقیم داخلِ استایلِ HTML می‌نشیند، پس هر چیزی جز
+     * یک کدِ هگزِ شش‌رقمی رد می‌شود تا راهی برایِ تزریقِ CSS باز نماند.
+     * سفید (#ffffff) رنگِ معتبری است و با بی‌رنگ اشتباه نمی‌شود.
+     */
+    private String normalizeColor(String raw) {
+        if (raw == null) return null;
+        String v = raw.trim();
+        if (v.isEmpty()) return null;
+        if (!v.startsWith("#")) v = "#" + v;
+        if (v.matches("(?i)^#[0-9a-f]{3}$")) {   // #abc → #aabbcc
+            v = "#" + v.charAt(1) + v.charAt(1) + v.charAt(2) + v.charAt(2) + v.charAt(3) + v.charAt(3);
+        }
+        return v.matches("(?i)^#[0-9a-f]{6}$") ? v.toLowerCase() : null;
+    }
+
     private CategoryResponseDto toDto(Category c) {
         CategoryResponseDto dto = new CategoryResponseDto();
         dto.setId(c.getId());
@@ -244,6 +265,7 @@ public class CategoryService {
         dto.setFilterKeys(c.getFilterKeys());
         dto.setSlug(c.getSlug());
         dto.setSeoTitle(c.getSeoTitle());
+        dto.setColor(c.getColor());
         dto.setSeoDescription(c.getSeoDescription());
         dto.setIntroText(c.getIntroText());
         dto.setChildren(new ArrayList<>());

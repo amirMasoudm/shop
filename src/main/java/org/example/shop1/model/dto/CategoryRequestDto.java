@@ -50,4 +50,9 @@ public class CategoryRequestDto {
 
     public String getIntroText() { return introText; }
     public void setIntroText(String introText) { this.introText = introText; }
+
+    // رنگِ دسته — null/خالی یعنی بی‌رنگ (ارث‌بری از والد)
+    private String color;
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 }

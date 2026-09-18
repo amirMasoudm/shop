@@ -132,6 +132,18 @@ public class Product {
     private Boolean pushSaleFlag;
 
     /**
+     * ترتیبِ دستیِ ردیف در میزِ کارِ قیمت‌گذاری (درگ‌دراپ).
+     * <p>
+     * {@code null} یعنی «هنوز جابه‌جا نشده»؛ چنین ردیف‌هایی بعد از ردیف‌های
+     * ترتیب‌دار و بر اساسِ نام می‌آیند. پس محصولاتِ موجود بدونِ هیچ مهاجرتی سرِ
+     * جای خودشان می‌مانند و ترتیب فقط جایی عوض می‌شود که کسی عمداً دست برده.
+     * <p>
+     * ⚠️ این ترتیب <b>مشترک</b> است نه شخصی — خواستهٔ صریحِ مالک؛ هر کارشناسی
+     * جابه‌جا کند، بقیه هم همان را می‌بینند.
+     */
+    private Integer workspacePosition;
+
+    /**
      * آیا این محصول در ترب نمایش داده شود؟
      * <p>
      * 🔴 <b>{@code null} یعنی «فعال».</b> این تنها معنیِ درست است و اتفاقی نیست:
@@ -185,6 +197,9 @@ public class Product {
 
     public Integer getIncomingStock() { return incomingStock; }
     public void setIncomingStock(Integer incomingStock) { this.incomingStock = incomingStock; }
+
+    public Integer getWorkspacePosition() { return workspacePosition; }
+    public void setWorkspacePosition(Integer workspacePosition) { this.workspacePosition = workspacePosition; }
 
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
     public void setPushSaleFlag(Boolean pushSaleFlag) { this.pushSaleFlag = pushSaleFlag; }

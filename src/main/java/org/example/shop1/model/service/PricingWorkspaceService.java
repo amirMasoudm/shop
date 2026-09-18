@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Objects;
 
 /**
  * منطقِ میزِ کارِ قیمت‌گذاری: خواندنِ ردیف‌ها و ذخیرهٔ دسته‌ایِ تغییرات با لاگ.
@@ -111,8 +113,46 @@ public class PricingWorkspaceService {
             }
             out.add(PricingRowDto.of(p, derivedOnlinePrice(p, factor)));
         }
-        out.sort(Comparator.comparing(PricingRowDto::getName, Comparator.nullsLast(String::compareTo)));
+        // ترتیبِ دستیِ درگ‌دراپ مقدم است؛ هر چه ترتیب نخورده (position == null)
+        // بعد از آن‌ها و الفبایی می‌آید. پس تا کسی چیزی را جابه‌جا نکند، جدول
+        // دقیقاً همان ترتیبِ الفباییِ قبلی را دارد.
+        out.sort(Comparator
+                .comparing(PricingRowDto::getWorkspacePosition,
+                        Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(PricingRowDto::getName,
+                        Comparator.nullsLast(String::compareTo)));
         return out;
+    }
+
+    /**
+     * ثبتِ ترتیبِ دستیِ ردیف‌های میزِ کار.
+     * <p>
+     * فرانت کلِ ترتیب را می‌فرستد و این متد فقط همان‌ها را می‌نویسد. عمداً
+     * <b>لاگِ فعالیت نمی‌زند</b>: جابه‌جاییِ چیدمانِ میز، تغییرِ دادهٔ محصول
+     * نیست و اگر ثبت شود تاریخچهٔ قیمت را پر از نویز می‌کند.
+     *
+     * @return تعدادِ ردیفی که واقعاً جایش عوض شد
+     */
+    public int reorder(List<org.example.shop1.model.dto.WorkspaceOrderDto> items) {
+        if (items == null || items.isEmpty()) return 0;
+        Map<String, Integer> wanted = new LinkedHashMap<>();
+        for (org.example.shop1.model.dto.WorkspaceOrderDto it : items) {
+            if (it == null || it.getId() == null || it.getPosition() == null) continue;
+            wanted.put(it.getId(), it.getPosition());
+        }
+        if (wanted.isEmpty()) return 0;
+
+        List<Product> found = productRepo.findAllById(wanted.keySet());
+        List<Product> changed = new ArrayList<>();
+        for (Product p : found) {
+            Integer pos = wanted.get(p.getId());
+            if (!Objects.equals(p.getWorkspacePosition(), pos)) {
+                p.setWorkspacePosition(pos);
+                changed.add(p);
+            }
+        }
+        if (!changed.isEmpty()) productRepo.saveAll(changed);
+        return changed.size();
     }
 
     /**

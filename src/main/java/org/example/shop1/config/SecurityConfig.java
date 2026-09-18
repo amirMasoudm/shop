@@ -189,6 +189,9 @@ public class SecurityConfig {
                         // باز است، پس میزِ کار را می‌بینند ولی ذخیره‌شان ۴۰۳ می‌گیرد — مرز
                         // سمتِ سرور است، نه فقط پنهان‌کردنِ دکمه در UI.
                         .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasAnyRole("ADMIN", "PRICER")
+                        // چیدمانِ میزِ کار مشترک است و برایِ همه عوض می‌شود، پس
+                        // مثلِ /batch فقط ADMIN و PRICER — نه SALES.
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/pricing/reorder").hasAnyRole("ADMIN", "PRICER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/pricing/marketplace/**").hasAnyRole("ADMIN", "PRICER")
                         .requestMatchers("/api/v1/pricing/**").hasAnyRole("ADMIN", "PRICER", "SALES")
 

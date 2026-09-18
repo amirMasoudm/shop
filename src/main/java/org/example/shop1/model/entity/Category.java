@@ -28,6 +28,16 @@ public class Category {
     private String seoDescription; // متن meta description
     private String introText;      // متنِ معرفیِ ۲۰۰–۴۰۰ کلمه‌ای دسته (رندرِ SSR زیرِ لیستِ محصولات؛ nullable)
 
+    /**
+     * رنگِ شناسهٔ دسته — نوارِ باریکِ کنارِ ردیفِ محصول در میزِ کار از این می‌آید.
+     * <p>
+     * {@code null} یا رشتهٔ خالی یعنی «بی‌رنگ»؛ در آن حالت مصرف‌کننده رنگِ
+     * دستهٔ والد را به‌کار می‌برد و اگر هیچ نیایی رنگ نداشت، هیچ نواری کشیده
+     * نمی‌شود. سفید ({@code #ffffff}) عمداً یک رنگِ معتبر است و با بی‌رنگ
+     * اشتباه نمی‌شود — پس «سفید» انتخابی است، نه نبودِ انتخاب.
+     */
+    private String color;
+
     // --- Constructors ---
     // اضافه کردن فیلد جدید
     private List<String> filterKeys = new ArrayList<>(); // مثلا: ["سایز", "رنگ", "ولتاژ"]
@@ -72,4 +82,7 @@ public class Category {
 
     public String getIntroText() { return introText; }
     public void setIntroText(String introText) { this.introText = introText; }
+
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 }

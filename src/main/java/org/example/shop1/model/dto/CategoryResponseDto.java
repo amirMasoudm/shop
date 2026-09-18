@@ -58,4 +58,10 @@ public class CategoryResponseDto {
 
     public String getIntroText() { return introText; }
     public void setIntroText(String introText) { this.introText = introText; }
+
+    // رنگِ دسته. ارث‌بری از والد سمتِ مصرف‌کننده حساب می‌شود، نه اینجا — چون
+    // درخت همان‌جا در دست است و این‌طور «رنگِ خودش» از «رنگِ ارثی» جدا می‌ماند.
+    private String color;
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 }

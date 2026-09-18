@@ -41,6 +41,9 @@ public class PricingRowDto {
 
     private final Boolean pushSaleFlag;
 
+    /** ترتیبِ دستیِ ردیف؛ null یعنی هنوز جابه‌جا نشده. */
+    private final Integer workspacePosition;
+
     /** قیمتِ سایت دستی ست شده و فرمول بازنویسی‌اش نمی‌کند. */
     private final Boolean priceOverride;
 
@@ -88,6 +91,7 @@ public class PricingRowDto {
         this.floorPriceCheckedAt = p.getFloorPriceCheckedAt() == null ? null : p.getFloorPriceCheckedAt().toString();
         this.floorPriceCheckedBy = p.getFloorPriceCheckedBy();
         this.pushSaleFlag = p.getPushSaleFlag();
+        this.workspacePosition = p.getWorkspacePosition();
         this.slug = p.getSlug();
 
         List<String> missing = new ArrayList<>(3);
@@ -128,6 +132,7 @@ public class PricingRowDto {
     public String getFloorPriceCheckedAt() { return floorPriceCheckedAt; }
     public String getFloorPriceCheckedBy() { return floorPriceCheckedBy; }
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
+    public Integer getWorkspacePosition() { return workspacePosition; }
     public Boolean getPriceOverride() { return priceOverride; }
     public BigDecimal getSuggestedOnlinePrice() { return suggestedOnlinePrice; }
     public String getSlug() { return slug; }

@@ -57,11 +57,40 @@
                 font-size: 9px; line-height: 1.3; margin-top: 2px; white-space: nowrap;
             }
             .pricing-note button { font-size: 9px; }
+
+            /* دستگیرهٔ جابه‌جایی — فقط از همین‌جا می‌شود ردیف را کشید، نه از
+               کلِ ردیف؛ وگرنه کشیدنِ متنِ داخلِ اینپوت‌ها با درگِ ردیف قاطی می‌شد. */
+            .pw-handle {
+                cursor: grab; color: #cbd5e1; user-select: none;
+                font-size: 15px; line-height: 1; padding: 2px;
+            }
+            .pw-handle:hover { color: #6366f1; }
+            .pw-handle:active { cursor: grabbing; }
+            /* وقتی جست‌وجو/فیلتر فعال است جابه‌جایی قفل می‌شود (دلیلش در JS) */
+            #pricing-body.pw-locked .pw-handle { cursor: not-allowed; color: #e2e8f0; }
+
+            /* ظاهرِ ردیف در حالِ کشیدن و جایِ خالیِ مقصد */
+            .pw-ghost { opacity: .35; }
+            .pw-chosen { background: #eef2ff !important; }
+
+            /* نوارِ باریکِ رنگِ دسته، چسبیده به لبهٔ راستِ ردیف (شروعِ سطر در RTL).
+               ⚠️ کادرِ دورش پررنگ است چون «سفید» یک رنگِ معتبرِ دسته است و روی
+               زمینهٔ سفیدِ جدول بی‌کادر اصلاً دیده نمی‌شد — یعنی سفید و بی‌رنگ
+               به چشم یکی می‌شدند، درست همان چیزی که نباید. */
+            .pw-cat-bar {
+                display: inline-block; width: 5px; height: 26px;
+                border-radius: 2px; vertical-align: middle;
+                border: 1px solid rgba(15, 23, 42, .32);
+                box-shadow: 0 0 0 1px rgba(255, 255, 255, .7);
+            }
+            .pw-num { color: #94a3b8; font-size: 10px; font-variant-numeric: tabular-nums; }
         </style>
         <div class="bg-white rounded-xl border shadow-sm overflow-x-auto" style="max-height:70vh; overflow-y:auto;">
             <table class="w-full text-right min-w-[1250px]">
                 <thead class="bg-gray-50 text-gray-500 text-[11px] sticky top-0 z-10">
                 <tr>
+                    <th class="p-3 w-10 text-center" title="شمارهٔ ردیف در همین نما">#</th>
+                    <th class="p-3 w-8" title="برایِ جابه‌جایی، ردیف را از این دستگیره بکشید"></th>
                     <th class="p-3">نام محصول</th>
                     <th class="p-3" title="کارتِ همین محصول در فروشگاه">کارت</th>
                     <th class="p-3">قیمت سایت (تومان)</th>
@@ -129,6 +158,51 @@
                'تغییرات قیمت محصولات — تا بدانید چرا قیمت یک کالا عوض شده.');
 
   let logProductsOnly = false;
+
+  // ═════════ رنگِ دسته‌ها ═════════
+  // درختِ دسته یک بار گرفته و به نقشهٔ تخت تبدیل می‌شود تا رنگِ هر محصول با
+  // یک lookup پیدا شود. رنگِ ارثی هم همین‌جا حساب و کش می‌شود.
+  let catById = {};
+  let resolvedColor = {};
+
+  async function loadCategoryColors() {
+    try {
+      const res = await axios.get(`${API}/categories/tree?type=ONLINE`);
+      catById = {};
+      resolvedColor = {};
+      (function flat(list) {
+        (list || []).forEach(c => { catById[c.id] = c; flat(c.children); });
+      })(res.data || []);
+    } catch (e) {
+      // رنگ‌ها تزئینی‌اند؛ اگر نیامدند جدول باید کارِ خودش را بکند
+      catById = {};
+      resolvedColor = {};
+    }
+  }
+
+  /**
+   * رنگِ مؤثرِ یک دسته: رنگِ خودش، وگرنه رنگِ نزدیک‌ترین والدِ رنگ‌دار.
+   * اگر هیچ نیایی رنگ نداشت، '' برمی‌گردد و هیچ نواری کشیده نمی‌شود.
+   * ⚠️ گاردِ زنجیرهٔ حلقه‌ای دارد: دادهٔ خرابِ parentId نباید مرورگر را قفل کند.
+   */
+  function categoryColor(catId) {
+    if (!catId) return '';
+    if (resolvedColor[catId] !== undefined) return resolvedColor[catId];
+    let cur = catById[catId], guard = 0, out = '';
+    while (cur && guard++ < 25) {
+      if (cur.color) { out = cur.color; break; }
+      cur = cur.parentId ? catById[cur.parentId] : null;
+    }
+    resolvedColor[catId] = out;
+    return out;
+  }
+
+  function catColorCell(r) {
+    const color = categoryColor(r.categoryId);
+    if (!color) return '';
+    const name = (catById[r.categoryId] && catById[r.categoryId].name) || '';
+    return `<span class="pw-cat-bar" style="background:${color}" title="${escapeHTML(name)}"></span>`;
+  }
 
   window.PricingWorkspace = {
     mountWorkspace(el) { el.innerHTML = WORKSPACE_HTML; },
@@ -205,6 +279,9 @@
             const saveBtn = document.getElementById('pricing-save-btn');
             if (saveBtn) saveBtn.style.display = pricingCanEdit ? '' : 'none';
             syncAddProductButton();
+            // رنگ‌ها موازیِ ردیف‌ها لازم‌اند؛ اگر نیایند جدول بی‌نوارِ رنگ رندر
+            // می‌شود، نه این‌که کلاً رندر نشود.
+            await loadCategoryColors();
             renderPricingRows();
         } catch (err) {
             if (err.response && err.response.status === 403) {
@@ -256,9 +333,25 @@
                        class="${width} p-1.5 border rounded text-left ${pending ? 'bg-yellow-50 border-yellow-400' : ''}" dir="ltr">`;
         };
 
-        document.getElementById('pricing-body').innerHTML = rows.length ? rows.map(r => `
-            <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''}">
-                <td class="p-2 font-medium text-gray-800">${escapeHTML(r.name || '')}</td>
+        // جابه‌جایی فقط وقتی مجاز است که نما کاملِ لیست باشد: کشیدنِ ردیف در
+        // فهرستِ فیلترشده، ترتیبِ ردیف‌هایِ پنهان را بی‌خبر به‌هم می‌ریزد.
+        const filtered = !!q || onlyFlagged;
+        const canDrag = pricingCanEdit && !filtered;
+
+        const body = document.getElementById('pricing-body');
+        body.classList.toggle('pw-locked', !canDrag);
+        body.innerHTML = rows.length ? rows.map((r, i) => `
+            <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''}" data-id="${r.id}">
+                <td class="p-2 text-center pw-num">${i + 1}</td>
+                <td class="p-2 text-center">${canDrag
+                    ? `<span class="pw-handle" title="بکشید و جابه‌جا کنید">⠿</span>`
+                    : `<span class="pw-handle" title="${filtered ? 'برایِ جابه‌جایی اول جست‌وجو/فیلتر را پاک کنید' : 'شما دسترسیِ ویرایش ندارید'}">⠿</span>`}</td>
+                <td class="p-2 font-medium text-gray-800">
+                    <span class="inline-flex items-center gap-2">
+                        ${catColorCell(r)}
+                        <span>${escapeHTML(r.name || '')}</span>
+                    </span>
+                </td>
                 <td class="p-2 whitespace-nowrap">${cardCell(r)}</td>
                 <td class="p-2">
                     ${priceInput(r, 'onlinePrice', r.onlinePrice)}
@@ -297,7 +390,58 @@
                            onchange="onPricingFlag(this)" class="w-4 h-4">
                 </td>
             </tr>
-        `).join('') : '<tr><td colspan="12" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
+        `).join('') : '<tr><td colspan="14" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
+
+        initRowSortable(canDrag);
+    }
+
+    // ═════════ جابه‌جاییِ ردیف‌ها ═════════
+    let rowSortable = null;
+
+    function initRowSortable(enabled) {
+        const body = document.getElementById('pricing-body');
+        if (!body || typeof Sortable === 'undefined') return;
+        if (!rowSortable) {
+            rowSortable = Sortable.create(body, {
+                handle: '.pw-handle',
+                draggable: 'tr[data-id]',
+                animation: 150,
+                ghostClass: 'pw-ghost',
+                chosenClass: 'pw-chosen',
+                onEnd: saveRowOrder
+            });
+        }
+        rowSortable.option('disabled', !enabled);
+    }
+
+    /**
+     * ترتیبِ تازه را ذخیره می‌کند.
+     * <p>
+     * کلِ ترتیب فرستاده می‌شود، نه فقط ردیفِ جابه‌جاشده — چون یک جابه‌جایی جایِ
+     * همهٔ ردیف‌هایِ بعدش را هم عوض می‌کند. شماره‌ها ۱۰تا۱۰ فاصله می‌گیرند تا
+     * اگر روزی «درج در میان» لازم شد، جا باشد و همهٔ ردیف‌ها بازنویسی نشوند.
+     */
+    async function saveRowOrder() {
+        const ids = [...document.querySelectorAll('#pricing-body tr[data-id]')].map(tr => tr.dataset.id);
+        if (!ids.length) return;
+
+        // ترتیبِ حافظه را هم همان لحظه هم‌راست می‌کنیم تا شماره‌ها بعد از رندرِ
+        // بعدی نپرند و نیازی به واکشیِ کاملِ جدول نباشد.
+        const order = {};
+        ids.forEach((id, i) => { order[id] = (i + 1) * 10; });
+        pricingRows.forEach(r => { if (order[r.id] !== undefined) r.workspacePosition = order[r.id]; });
+        pricingRows.sort((a, b) => (a.workspacePosition ?? Infinity) - (b.workspacePosition ?? Infinity));
+
+        try {
+            await axios.put(`${API}/v1/pricing/reorder`,
+                    ids.map((id, i) => ({id, position: (i + 1) * 10})));
+            // شماره‌ها را دوباره بکش (۱،۲،۳… طبقِ جایِ تازه)
+            renderPricingRows();
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'ذخیرهٔ ترتیبِ ردیف‌ها ناموفق بود'), 'error');
+            // ترتیبِ واقعی را از سرور برگردان تا نمای کاربر با دیتابیس یکی شود
+            fetchPricingRows();
+        }
     }
 
     /**
