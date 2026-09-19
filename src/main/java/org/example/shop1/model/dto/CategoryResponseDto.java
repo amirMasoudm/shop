@@ -34,6 +34,12 @@ public class CategoryResponseDto {
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
 
+    // ترتیبِ نوارِ چیپیِ موبایل. جایگزینی با position عمداً سمتِ مصرف‌کننده است،
+    // نه این‌جا — تا «ترتیبِ خودش» از «ترتیبِ ارثی» قابلِ تفکیک بماند.
+    private Integer stripPosition;
+    public Integer getStripPosition() { return stripPosition; }
+    public void setStripPosition(Integer stripPosition) { this.stripPosition = stripPosition; }
+
     // *** Getter & Setter جدید ***
     public List<String> getFilterKeys() { return filterKeys; }
     public void setFilterKeys(List<String> filterKeys) { this.filterKeys = filterKeys; }

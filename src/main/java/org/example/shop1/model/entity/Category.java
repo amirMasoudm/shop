@@ -22,6 +22,18 @@ public class Category {
     // ترتیب نمایش بین هم‌ردیف‌ها (برای درگ‌دراپ و مرتب‌سازی پایدار)
     private Integer position = 0;
 
+    /**
+     * ترتیبِ همین دسته در نوارِ چیپیِ زیرِ جست‌وجویِ موبایل — جدا از {@link #position}.
+     * <p>
+     * خواستهٔ صریحِ مالک: منویِ فروشگاه (نوارِ دسکتاپ و کشویِ موبایل) یک ایندکس
+     * داشته باشد و آن نوار یک ایندکسِ دیگر، چون کارکردشان یکی نیست: منو فهرستِ
+     * کامل است و نوار میان‌بُرِ پرکاربردها.
+     * <p>
+     * {@code null} یعنی «جدا تنظیم نشده» و مصرف‌کننده به {@code position} برمی‌گردد،
+     * پس دسته‌های موجود بدونِ مهاجرت سرِ جای خودشان می‌مانند.
+     */
+    private Integer stripPosition;
+
     // ---> فیلدهای سئو برای صفحه‌ی مستقل دسته (/category/{slug}) <---
     private String slug;           // آدرس تمیز و یکتا
     private String seoTitle;       // عنوان تگ <title> و og:title
@@ -70,6 +82,9 @@ public class Category {
 
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
+
+    public Integer getStripPosition() { return stripPosition; }
+    public void setStripPosition(Integer stripPosition) { this.stripPosition = stripPosition; }
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }

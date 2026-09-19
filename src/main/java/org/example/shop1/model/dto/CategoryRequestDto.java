@@ -27,6 +27,11 @@ public class CategoryRequestDto {
     private Integer position;
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
+
+    // ترتیبِ نوارِ چیپیِ موبایل؛ null یعنی «همان ترتیبِ منو»
+    private Integer stripPosition;
+    public Integer getStripPosition() { return stripPosition; }
+    public void setStripPosition(Integer stripPosition) { this.stripPosition = stripPosition; }
     // اضافه کردن به DTO ورودی
     private List<String> filterKeys;
 

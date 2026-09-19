@@ -1166,6 +1166,12 @@
             <div>
                 <label class="block text-sm text-gray-600 mb-1">ترتیبِ نمایش در منویِ فروشگاه (عددِ کوچک‌تر = جلوتر)</label>
                 <input type="number" id="c-position" placeholder="خالی = انتهایِ هم‌ردیف‌ها" class="w-full p-2.5 border rounded-lg outline-none">
+                <p class="text-[11px] text-gray-400 mt-1">همین یک عدد هم نوارِ دسکتاپ را می‌چیند هم کشویِ دسته‌بندیِ موبایل را.</p>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">ترتیب در نوارِ چیپیِ موبایل (زیرِ جست‌وجو)</label>
+                <input type="number" id="c-strip-position" placeholder="خالی = همان ترتیبِ منو" class="w-full p-2.5 border rounded-lg outline-none">
+                <p class="text-[11px] text-gray-400 mt-1">این نوارِ میان‌بُر زیرِ کادرِ جست‌وجویِ موبایل است و ترتیبش از منو جداست. <b>خالی = همان ترتیبِ منو</b>.</p>
             </div>
 
             <!-- ================= رنگِ دسته ================= -->
@@ -1742,6 +1748,12 @@
             <div>
                 <label class="block text-sm text-gray-600 mb-1">ترتیبِ نمایش در منویِ فروشگاه (عددِ کوچک‌تر = جلوتر)</label>
                 <input type="number" id="cc-position" placeholder="خالی = انتهایِ هم‌ردیف‌ها" class="w-full p-2.5 border rounded-lg outline-none">
+                <p class="text-[11px] text-gray-400 mt-1">همین یک عدد هم نوارِ دسکتاپ را می‌چیند هم کشویِ دسته‌بندیِ موبایل را.</p>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">ترتیب در نوارِ چیپیِ موبایل (زیرِ جست‌وجو)</label>
+                <input type="number" id="cc-strip-position" placeholder="خالی = همان ترتیبِ منو" class="w-full p-2.5 border rounded-lg outline-none">
+                <p class="text-[11px] text-gray-400 mt-1">این نوارِ میان‌بُر زیرِ کادرِ جست‌وجویِ موبایل است و ترتیبش از منو جداست. <b>خالی = همان ترتیبِ منو</b>.</p>
             </div>
             <div>
                 <label class="block text-sm text-gray-600 mb-1">عنوان سئو (Meta Title)</label>
@@ -2832,6 +2844,7 @@
         document.getElementById('c-id').value = c.id;
         document.getElementById('c-name').value = c.name;
         document.getElementById('c-position').value = c.position != null ? c.position : '';
+        document.getElementById('c-strip-position').value = c.stripPosition != null ? c.stripPosition : '';
         populateSelects();
         document.getElementById('c-parent').value = c.parentId || '';
         state.currentFilters = c.filterKeys || [];
@@ -2869,11 +2882,14 @@
 
         const id = document.getElementById('c-id').value;
         const posVal = document.getElementById('c-position').value.trim();
+        const stripVal = document.getElementById('c-strip-position').value.trim();
         const data = {
             name: name,
             parentId: document.getElementById('c-parent').value || null,
             type: 'ONLINE',
             position: posVal !== '' ? Number(posVal) : null,
+            // خالی عمداً null می‌رود نه صفر — null یعنی «از ترتیبِ منو پیروی کن»
+            stripPosition: stripVal !== '' ? Number(stripVal) : null,
             filterKeys: state.currentFilters,
             // فیلدهای سئو (اسلاگ خالی = ساخت خودکار سمت سرور)
             slug: document.getElementById('c-slug').value.trim() || null,
@@ -3610,6 +3626,7 @@
         document.getElementById('cc-name').value = c.name || '';
         document.getElementById('cc-slug').value = c.slug || '';
         document.getElementById('cc-position').value = c.position != null ? c.position : '';
+        document.getElementById('cc-strip-position').value = c.stripPosition != null ? c.stripPosition : '';
         document.getElementById('cc-seo-title').value = c.seoTitle || '';
         document.getElementById('cc-seo-desc').value = c.seoDescription || '';
         document.getElementById('cc-intro').value = c.introText || '';
@@ -3623,11 +3640,13 @@
 
         const id = document.getElementById('cc-id').value;
         const ccPosVal = document.getElementById('cc-position').value.trim();
+        const ccStripVal = document.getElementById('cc-strip-position').value.trim();
         const data = {
             name: name,
             parentId: null,
             type: 'COURSE',
             position: ccPosVal !== '' ? Number(ccPosVal) : null,
+            stripPosition: ccStripVal !== '' ? Number(ccStripVal) : null,
             filterKeys: [],
             slug: document.getElementById('cc-slug').value.trim() || null,
             seoTitle: document.getElementById('cc-seo-title').value.trim() || null,

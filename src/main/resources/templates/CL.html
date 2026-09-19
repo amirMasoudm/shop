@@ -4350,8 +4350,14 @@
                 data-cid="${id || ''}"
              ><span class="dot"${color ? ` style="background:${color};opacity:1"` : ''}></span>${escapeHTML(name)}</a>`;
 
+        // ⚠️ نوار ترتیبِ خودش را دارد و عمداً از منو جدا است: منو (نوارِ دسکتاپ و
+        // کشویِ موبایل) فهرستِ کامل است و با position چیده می‌شود، این نوار
+        // میان‌بُرِ پرکاربردهاست و با stripPosition. هر دسته‌ای که stripPosition
+        // نداشته باشد به همان positionِ منو برمی‌گردد، پس هیچ دسته‌ای جا نمی‌ماند.
+        const ord = c => (c.stripPosition != null ? c.stripPosition : (c.position || 0));
+        const ordered = (items || []).slice().sort((a, b) => ord(a) - ord(b));
         strip.innerHTML = chip(null, 'همه', null, false)
-                + (items || []).map(c => chip(c.id, c.name, c.color, false)).join('');
+                + ordered.map(c => chip(c.id, c.name, c.color, false)).join('');
         // ⚠️ تعیینِ چیپِ فعال عمداً این‌جا تکرار نمی‌شود و به syncCatStrip
         // سپرده می‌شود: آن یکی ریشهٔ سطحِ اول را هم حساب می‌کند. قبلاً این‌جا
         // فقط `id === feed.param` مقایسه می‌شد، پس در صفحهٔ یک زیردسته هیچ

@@ -52,6 +52,7 @@ public class CategoryService {
         }
 
         // ترتیب: اگر ادمین صریح داد همان اعمال شود، وگرنه مثلِ قبل به انتهای هم‌ردیف‌ها اضافه شود
+        category.setStripPosition(dto.getStripPosition());
         category.setPosition(dto.getPosition() != null ? dto.getPosition()
                 : nextPositionAmongSiblings(typeToSave, category.getParentId()));
 
@@ -81,6 +82,9 @@ public class CategoryService {
         if (dto.getPosition() != null) {
             category.setPosition(dto.getPosition());
         }
+        // ⚠️ برخلافِ position این یکی بی‌قید ست می‌شود: خالی‌گذاشتنِ
+        // فیلد در پنل یعنی «برگرد به ترتیبِ منو»، و این باید پاک‌شدنی باشد.
+        category.setStripPosition(dto.getStripPosition());
 
         // ---> سئو <---
         category.setSeoTitle(dto.getSeoTitle());
@@ -302,6 +306,7 @@ public class CategoryService {
         dto.setType(c.getType());
         dto.setLevel(c.getLevel());
         dto.setPosition(c.getPosition());
+        dto.setStripPosition(c.getStripPosition());
         dto.setFilterKeys(c.getFilterKeys());
         dto.setSlug(c.getSlug());
         dto.setSeoTitle(c.getSeoTitle());
