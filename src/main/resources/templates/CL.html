@@ -156,13 +156,6 @@
             --glow: 0 0 0 3px rgba(27, 79, 138, .08), 0 2px 14px rgba(27, 79, 138, .18);
             --glow-strong: 0 0 0 3px rgba(27, 79, 138, .16), 0 3px 22px rgba(27, 79, 138, .32);
 
-            /* نوارِ شناسه — دو پهلویِ کمانی که سرِ بالا و پایین به یک نقطه
-               می‌رسند. ⚠️ عمداً ماسکِ SVG است نه clip-path: چندضلعی فقط خطِ
-               صاف می‌دهد و خواستهٔ مالک لبهٔ خمیده بود.
-               preserveAspectRatio='none' یعنی همین یک شکل هر قد و پهنایی را
-               می‌گیرد، از نوارِ بلندِ کنارِ بنرها تا نوارِ یک‌خطیِ سرِ تیتر. */
-            --leaf: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 100' preserveAspectRatio='none'><path d='M6 0C12 18 12 82 6 100 0 82 0 18 6 0Z' fill='black'/></svg>");
-
             --radius: 12px;
             /* گوشهٔ کارت — یک پله گردتر از دورِ قبل، ولی هنوز نه کپسولی */
             --radius-card: 6px;
@@ -178,6 +171,15 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        /* ⚠️ هالهٔ آبیِ محوی که روی هر دکمه‌ای می‌افتاد، هایلایتِ لمسِ خودِ
+           مرورگر بود نه استایلِ ما — از نوارِ بالا تا «بازگشت به لیست» و
+           چیپ‌های زیرِ جست‌وجو. این ویژگی ارثی است، پس یک اعلانِ روی html
+           همه‌جا را می‌گیرد. به‌جایش هر کنترل بازخوردِ :active خودش را دارد،
+           وگرنه دکمه‌ها زیرِ انگشت بی‌جان می‌شدند. */
+        html {
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* حلقهٔ فوکوس — تا امروز صفر مورد :focus-visible در این صفحه بود، یعنی
@@ -905,16 +907,24 @@
         /* نوارِ شناسهٔ پنجره: از سرِ تیتر تا کفِ عکس‌ها، با دو سرِ تیز — همان
            لهجهٔ نوارِ رنگیِ سکشن‌ها، فقط چرخیده و بلند. رنگش از پنلِ ادمین
            می‌آید (--irb-accent) و اگر پنجره بی‌رنگ بود، آبیِ برند. */
+        /* ⚠️ شکلِ نوار عمداً با border ساخته می‌شود، نه mask یا clip-path:
+           الگویش لبهٔ نوارِ «سابقه و اعتبار» در صفحهٔ خانه است — آن‌جا یک
+           borderِ ضخیمِ کناری است که با گردیِ گوشه به borderهای نازکِ بالا و
+           پایین می‌پیچد، پس دو سرش رو به داخل خم می‌شود (نه تیز، نه بریده).
+           همان کار اینجا با borderهای شفاف انجام می‌شود؛ و چون
+           border-inline-start و شعاع‌های منطقی‌اند، جهتِ صفحه هم رعایت می‌شود. */
         .irb-card::before {
             content: '';
             position: absolute;
             top: 0;
             bottom: 8px;
             inset-inline-start: 0;
-            width: 9px;
-            background: var(--irb-accent, var(--primary));
-            -webkit-mask: var(--leaf) no-repeat center / 100% 100%;
-            mask: var(--leaf) no-repeat center / 100% 100%;
+            width: 17px;
+            border-inline-start: 6px solid var(--irb-accent, var(--primary));
+            border-top: 7px solid transparent;
+            border-bottom: 7px solid transparent;
+            border-start-start-radius: 16px;
+            border-end-start-radius: 16px;
         }
         .irb-head {
             position: static;
@@ -1281,13 +1291,15 @@
         #latestSectionHeader::before {
             content: '';
             position: absolute;
-            top: 1px;
-            bottom: 1px;
+            top: 0;
+            bottom: 0;
             inset-inline-start: 0;
-            width: 9px;
-            background: var(--primary);
-            -webkit-mask: var(--leaf) no-repeat center / 100% 100%;
-            mask: var(--leaf) no-repeat center / 100% 100%;
+            width: 13px;
+            border-inline-start: 5px solid var(--primary);
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-start-start-radius: 12px;
+            border-end-start-radius: 12px;
         }
 
         /* ═══ اسکرولِ بی‌پایان ═══ */
@@ -1400,11 +1412,6 @@
            ⚠️ دو چیز با هم آن «آبیِ محو»ی بود که مالک دید: یکی ته‌رنگِ
            ‎#fbfcfe‎ی که خودمان می‌گذاشتیم، یکی هایلایتِ پیش‌فرضِ خودِ مرورگر
            روی لمس. هر دو رفتند و جایشان را بلندشدن و سایه گرفت. */
-        .product-card,
-        .add-btn {
-            -webkit-tap-highlight-color: transparent;
-        }
-
         .product-card:active {
             transform: translateY(-4px) scale(1.012);
             box-shadow: 0 12px 26px rgba(15, 42, 80, .18);
@@ -1442,7 +1449,7 @@
             position: absolute;
             inset: 0;
             background: #fff;
-            animation: zapWhite 380ms ease-out both;
+            animation: zapWhite 440ms ease-out both;
         }
 
         @keyframes zapWhite {
@@ -1451,10 +1458,13 @@
             100% { opacity: .97; }
         }
 
+        /* ⚠️ ۵۴٪ + ۵۴٪ عمدی است: ۸٪ رویِ هم می‌افتند و چون سرِ داخلیِ هر
+           رشته یک خطِ صافِ کوتاه است، همان‌جا یک خطِ پیوسته می‌شود — یعنی
+           واقعاً به هم می‌چسبند، نه اینکه نزدیکِ هم بایستند. */
         .zap {
             position: absolute;
             top: 50%;
-            width: 52%;
+            width: 54%;
             height: 30px;
             margin-top: -15px;
             color: var(--primary);
@@ -1464,12 +1474,12 @@
 
         .zap-r {
             right: 0;
-            animation: zapInR 280ms 40ms cubic-bezier(.35, 0, .2, 1) both;
+            animation: zapInR 260ms 30ms cubic-bezier(.35, 0, .2, 1) both;
         }
 
         .zap-l {
             left: 0;
-            animation: zapInL 280ms 40ms cubic-bezier(.35, 0, .2, 1) both;
+            animation: zapInL 260ms 30ms cubic-bezier(.35, 0, .2, 1) both;
         }
 
         @keyframes zapInR {
@@ -1486,22 +1496,29 @@
             to { transform: scaleX(-1) translateX(0); opacity: 1; }
         }
 
-        /* جرقهٔ لحظهٔ به‌هم‌رسیدن */
+        /* جرقهٔ لحظهٔ چسبیدن.
+           ⚠️ مغزش عمداً شفاف است و فقط حلقه پخش می‌شود: نقطهٔ سفیدِ قبلی درست
+           روی محلِ اتصال می‌نشست و خطِ رعد را می‌برید — همان چیزی که به چشم
+           «به هم نچسبیده‌اند» می‌آمد. تا پیش از تأخیر هم کدریِ صفر دارد،
+           وگرنه با fill-modeِ both از فریمِ اول دیده می‌شد. */
         .zap-spark {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 8px;
-            height: 8px;
-            margin: -4px 0 0 -4px;
+            width: 64px;
+            height: 64px;
+            margin: -32px 0 0 -32px;
             border-radius: 50%;
-            background: #fff;
-            animation: zapSpark 240ms 250ms ease-out both;
+            background: radial-gradient(circle, rgba(27, 79, 138, .42) 0%,
+                                                rgba(27, 79, 138, .16) 45%,
+                                                rgba(27, 79, 138, 0) 70%);
+            animation: zapSpark 180ms 280ms ease-out both;
         }
 
         @keyframes zapSpark {
-            from { transform: scale(.3); opacity: 1; box-shadow: 0 0 0 0 rgba(27, 79, 138, .55); }
-            to { transform: scale(1); opacity: 0; box-shadow: 0 0 0 26px rgba(27, 79, 138, 0); }
+            0% { opacity: 0; transform: scale(.15); }
+            25% { opacity: 1; }
+            100% { opacity: 0; transform: scale(1); }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1642,6 +1659,10 @@
             padding: 30px;
             margin-top: 10px;
             border: 1px solid var(--border);
+        }
+
+        .back-nav:active {
+            opacity: .55;
         }
 
         .back-nav {
@@ -2072,6 +2093,11 @@
 
         .filter-fab.visible {
             display: flex;
+        }
+
+        .filter-fab:active {
+            transform: scale(.96);
+            filter: brightness(.92);
         }
 
         /* SKELETON */
@@ -5119,9 +5145,12 @@
     }
 
     // ═══ جلوه‌هایِ کارت ═══
-    const ZAP_SVG = `<svg viewBox="0 0 60 24" fill="none" stroke="currentColor" stroke-width="2.6"
+    // ⚠️ preserveAspectRatio="none" عمدی است: بی آن، SVG نسبتِ خودش را
+    // نگه می‌داشت و در جعبهٔ پهن‌تر وسط‌چین می‌شد؛ دو طرفِ مسیر خالی می‌ماند و
+    // سرِ داخلیِ دو رشته به هم نمی‌رسید — همان نقطهٔ سفیدِ وسط.
+    const ZAP_SVG = `<svg viewBox="0 0 60 24" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="2.6"
                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M0 12h9l7-7 6 14 7-14 6 14 6-7h13"/></svg>`;
+                        <path d="M0 12h9l7-7 6 14 7-14 6 14 6-7h19"/></svg>`;
 
     /** فلاشِ کوتاهِ سفید روی کارت — لحظهٔ افزودن به سبد. */
     function cardFlash(btn) {
@@ -5147,7 +5176,7 @@
                         <span class="zap zap-l">${ZAP_SVG}</span>
                         <span class="zap-spark"></span>`;
         card.appendChild(fx);
-        return new Promise(resolve => setTimeout(() => { fx.remove(); resolve(); }, 380));
+        return new Promise(resolve => setTimeout(() => { fx.remove(); resolve(); }, 440));
     }
 
     function animateCardsIn(cards) {

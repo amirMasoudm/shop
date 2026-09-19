@@ -22,6 +22,17 @@ header.topnav {
     gap: 26px;
     font-family: Vazirmatn, Tahoma, sans-serif;
 }
+
+/* ⚠️ هالهٔ لمسِ خودِ مرورگر روی لینک‌های این نوار هم می‌افتاد. خاموشی و
+   بازخوردِ جایگزین با هم می‌آیند — یکی بدونِ دیگری یعنی دکمهٔ بی‌جان. */
+header.topnav a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+header.topnav a:active {
+    color: #fff;
+    opacity: .6;
+}
 header.topnav .brand {
     font-weight: 900;
     font-size: 1.05rem;
