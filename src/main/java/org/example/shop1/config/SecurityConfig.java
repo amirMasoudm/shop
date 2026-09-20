@@ -181,18 +181,16 @@ public class SecurityConfig {
                         // میزِ کار در حالتِ فقط-خواندنی کافی است.
                         .requestMatchers(HttpMethod.GET, "/api/v1/pricing/rows", "/api/v1/pricing/capabilities", "/api/v1/pricing/logs/products")
                                 .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
-                        // 🔒 نوشتن در میزِ کار: ADMIN و کارشناسِ ارشد (PRICER).
-                        // تصمیمِ قبلیِ مالک «فقط ادمین بنویسد» بود؛ بعداً خودش کارشناسِ ارشد
-                        // را هم اضافه کرد و گفت «همان اختیارِ ادمین در میز». کارشناسِ فروشِ
-                        // و قیمت‌گذاری (SALES) و کارشناسِ فروش (SUPPORT) همچنان فقط مشاهده.
-                        // خواندنِ ردیف‌ها/توانایی‌ها/لاگ در خطِ GETِ بالا برایِ هر چهار نقش
-                        // باز است، پس میزِ کار را می‌بینند ولی ذخیره‌شان ۴۰۳ می‌گیرد — مرز
-                        // سمتِ سرور است، نه فقط پنهان‌کردنِ دکمه در UI.
-                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasAnyRole("ADMIN", "PRICER")
-                        // چیدمانِ میزِ کار مشترک است و برایِ همه عوض می‌شود، پس
-                        // مثلِ /batch فقط ADMIN و PRICER — نه SALES.
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/pricing/reorder").hasAnyRole("ADMIN", "PRICER")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/marketplace/**").hasAnyRole("ADMIN", "PRICER")
+                        // 🔒 نوشتن در میزِ کار: ADMIN، کارشناسِ ارشد (PRICER)، و کارشناسِ
+                        // فروش و قیمت‌گذاری (SALES).
+                        // ⚠️ تاریخچهٔ تصمیم: اول «فقط ادمین» بود، بعد کارشناسِ ارشد اضافه شد،
+                        // و در ۲۰۲۶-۰۹-۲۰ مالک صریحاً گفت «تمامِ کارشناس‌ها، نه فقط ارشد».
+                        // SUPPORT (کارشناسِ پشتیبانی) عمداً بیرون ماند: شغلِ دیگری است و
+                        // تا حالا فقط مشاهده داشته؛ بازکردنش باید تصمیمِ جداگانه باشد.
+                        // مرز همچنان سمتِ سرور است، نه فقط پنهان‌کردنِ دکمه در UI.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/batch").hasAnyRole("ADMIN", "PRICER", "SALES")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/pricing/reorder").hasAnyRole("ADMIN", "PRICER", "SALES")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pricing/marketplace/**").hasAnyRole("ADMIN", "PRICER", "SALES")
                         .requestMatchers("/api/v1/pricing/**").hasAnyRole("ADMIN", "PRICER", "SALES")
 
                         // Torob Product API — ترب خودش با JWTِ ed25519 احراز می‌شود، نه سشنِ ما.

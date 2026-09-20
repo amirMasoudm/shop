@@ -32,12 +32,18 @@ public class PricingWorkspaceController {
     private final PricingWorkspaceService service;
     private final ActivityLogService activityLog;
     private final org.example.shop1.model.service.marketplace.FloorPriceService floorPriceService;
+    private final org.example.shop1.model.service.marketplace.MikrotikCatalogService mikrotikCatalog;
+    private final org.example.shop1.model.service.marketplace.MikrotikPriceSyncService mikrotikSync;
 
     public PricingWorkspaceController(PricingWorkspaceService service, ActivityLogService activityLog,
-                                      org.example.shop1.model.service.marketplace.FloorPriceService floorPriceService) {
+                                      org.example.shop1.model.service.marketplace.FloorPriceService floorPriceService,
+                                      org.example.shop1.model.service.marketplace.MikrotikCatalogService mikrotikCatalog,
+                                      org.example.shop1.model.service.marketplace.MikrotikPriceSyncService mikrotikSync) {
         this.service = service;
         this.activityLog = activityLog;
         this.floorPriceService = floorPriceService;
+        this.mikrotikCatalog = mikrotikCatalog;
+        this.mikrotikSync = mikrotikSync;
     }
 
     // ==========================================================
@@ -99,6 +105,33 @@ public class PricingWorkspaceController {
      * توانایی‌هایِ نقشِ کاربرِ فعلی — تا UI بداند کدام ستون را قفل کند.
      * مرزِ واقعی همچنان سمتِ سرور است؛ این فقط برایِ نمایش است.
      */
+    // ═════════ مرجعِ دلاریِ میکروتیک ═════════
+    // خزشِ کاتالوگ طول می‌کشد (۵۶۱ صفحهٔ محصول)، پس شروع و وضعیت جدا شده‌اند
+    // تا پنل نوارِ پیشرفت نشان دهد و درخواستِ HTTP معلق نماند.
+
+    @PostMapping("/mikrotik/refresh")
+    public ResponseEntity<Map<String, Object>> mikrotikRefresh(
+            @RequestParam(defaultValue = "false") boolean force) {
+        return ResponseEntity.ok(mikrotikCatalog.startRefresh(force));
+    }
+
+    @GetMapping("/mikrotik/status")
+    public ResponseEntity<Map<String, Object>> mikrotikStatus() {
+        return ResponseEntity.ok(mikrotikCatalog.status());
+    }
+
+    /** پیشنهادها برایِ تأییدِ انسان — چیزی نوشته نمی‌شود. */
+    @GetMapping("/mikrotik/proposals")
+    public ResponseEntity<Map<String, Object>> mikrotikProposals() {
+        return ResponseEntity.ok(mikrotikSync.proposals());
+    }
+
+    /** نوشتنِ همان‌هایی که تأیید شده‌اند. */
+    @PostMapping("/mikrotik/apply")
+    public ResponseEntity<Map<String, Object>> mikrotikApply(@RequestBody List<Map<String, Object>> picks) {
+        return ResponseEntity.ok(mikrotikSync.apply(picks));
+    }
+
     @GetMapping("/capabilities")
     public ResponseEntity<Map<String, Object>> capabilities() {
         return ResponseEntity.ok(Map.of(

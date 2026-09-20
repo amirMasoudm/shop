@@ -190,8 +190,9 @@
             // مشاهده‌یِ قیمت‌گذاری — بدونِ هیچ محصولی برایِ SALES/SUPPORT.
             const isAdmin = roles.includes('ROLE_ADMIN');
             const isPricer = roles.includes('ROLE_PRICER');
+            const isSales = roles.includes('ROLE_SALES');
             const isSupport = roles.includes('ROLE_SUPPORT');
-            const hasPricing = isAdmin || isPricer || roles.includes('ROLE_SALES') || isSupport;
+            const hasPricing = isAdmin || isPricer || isSales || isSupport;
             const hasProducts = isAdmin || isPricer;
             let firstProductsRefresh = true;
 
@@ -200,7 +201,9 @@
                 // مشاهده. ماژول با pricingCanEdit=false دکمه‌ی ذخیره را قایم و پیامِ
                 // «فقط مشاهده» را نشان می‌دهد. مرزِ واقعی سمتِ سرور است
                 // (POSTهایِ /v1/pricing برایِ همین دو نقش باز است، نه بیشتر).
-                window.pricingCanEdit = isAdmin || isPricer;
+                // ⚠️ SALES هم از ۲۰۲۶-۰۹-۲۰ اجازهٔ نوشتن دارد (خواستهٔ مالک:
+                // «تمامِ کارشناس‌ها»)؛ مرزِ واقعی در SecurityConfig است، این فقط UI.
+                window.pricingCanEdit = isAdmin || isPricer || isSales;
 
                 PricingWorkspace.mountWorkspace(document.getElementById('tab-pricing'));
                 // پنلِ فروش: لاگِ فقط-محصولات (رویدادهایِ مدیریتی دیده نشود)

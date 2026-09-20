@@ -32,6 +32,10 @@ public class PricingWorkspaceService {
             "torobFloorPrice", "torobUrl",
             "digikalaFloorPrice", "digikalaUrl",
             "pushSaleFlag",
+            // موجودی‌ها — خواستهٔ صریحِ مالک: همهٔ خانه‌ها قابلِ اصلاح باشند.
+            // ⚠️ منبعِ اصلی‌شان همچنان ورودِ دسته‌ای است؛ دستْ‌ویرایش اینجا یعنی
+            // اصلاحِ انسانی روی همان عدد، و در لاگِ فعالیت ثبت می‌شود.
+            "stockIsfahan", "stockTehran", "incomingStock",
             "priceOverride"); // فقط برایِ «بازگشت به فرمول» (false کردن)
 
     /** ضریبِ «تلهٔ هزاربرابری» — بیش از این نسبت، تأییدِ دوم لازم دارد. */
@@ -266,6 +270,24 @@ public class PricingWorkspaceService {
                                 p.getId(), p.getName(), field, oldVal, newVal);
                         applied++;
                     }
+                    case "stockIsfahan", "stockTehran", "incomingStock" -> {
+                        Integer newVal = toInt(rawValue);
+                        Integer oldVal = switch (field) {
+                            case "stockIsfahan" -> p.getStockIsfahan();
+                            case "stockTehran" -> p.getStockTehran();
+                            default -> p.getIncomingStock();
+                        };
+                        switch (field) {
+                            case "stockIsfahan" -> p.setStockIsfahan(newVal);
+                            case "stockTehran" -> p.setStockTehran(newVal);
+                            default -> p.setIncomingStock(newVal);
+                        }
+                        p.setUpdatedAt(Instant.now());
+                        productRepo.save(p);
+                        activityLog.recordProduct(ActivityLog.Action.STOCK_CHANGE, ActivityLog.Source.MANUAL,
+                                p.getId(), p.getName(), field, oldVal, newVal);
+                        applied++;
+                    }
                     case "torobUrl", "digikalaUrl" -> {
                         String newVal = str(rawValue);
                         String oldVal = "torobUrl".equals(field) ? p.getTorobUrl() : p.getDigikalaUrl();
@@ -363,6 +385,15 @@ public class PricingWorkspaceService {
         String s = String.valueOf(raw).trim().replace(",", "");
         if (s.isEmpty()) return null;
         return new BigDecimal(s);
+    }
+
+    /** عددِ صحیحِ موجودی؛ خالی/نامعتبر ← null یعنی «ثبت نشده»، نه صفر. */
+    private Integer toInt(Object raw) {
+        if (raw == null) return null;
+        String v = String.valueOf(raw).trim().replace(",", "");
+        if (v.isEmpty()) return null;
+        try { return Integer.valueOf(new java.math.BigDecimal(v).intValueExact()); }
+        catch (Exception e) { return null; }
     }
 
     private String str(Object o) {

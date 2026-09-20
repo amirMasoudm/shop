@@ -30,6 +30,7 @@
                         class="hidden px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold shadow"
                         title="محصولِ تازه با همین مودالِ محصولات ساخته می‌شود">＋ افزودن محصول</button>
                 <button onclick="refreshAllDigikala()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold" title="فقط محصولاتی که قبلاً به دیجی‌کالا وصل شده‌اند">↻ به‌روزرسانی کف دیجی‌کالا</button>
+                <button id="pricing-mikrotik-btn" onclick="syncMikrotikPrices()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold" title="قیمتِ پیشنهادیِ خودِ میکروتیک (MSRP) را از mikrotik.com می‌گیرد و پیش از نوشتن به تأیید می‌دهد">$ مرجعِ دلاریِ میکروتیک</button>
                 <button onclick="exportPricingExcel()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold">⬇ خروجی اکسل</button>
                 <button id="pricing-save-btn" onclick="savePricingChanges()" disabled
                         class="px-5 py-2 rounded-lg bg-green-600 text-white font-bold text-sm shadow disabled:opacity-40 disabled:cursor-not-allowed">
@@ -114,7 +115,11 @@
             .pw-ro { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
             /* موجودی‌ها — خواستهٔ مالک: بولدتر. صفر عمداً کم‌رنگ می‌ماند تا
                «هست ولی کم» از «نیست» فرق کند. */
+            /* ⚠️ با #pricing-body قید خورده‌اند چون خانهٔ موجودی حالا خودش input
+               است و قاعدهٔ عمومیِ اینپوت‌ها (وزنِ ۷۰۰) ویژگیِ بالاتری دارد. */
+            #pricing-body input.pw-stock,
             .pw-stock { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; color: #334155; }
+            #pricing-body input.pw-stock-zero,
             .pw-stock-zero { font-size: 13px; font-weight: 700; color: #cbd5e1; }
             .pw-excluded { opacity: .55; }
 
@@ -309,6 +314,8 @@
             document.getElementById('pricing-save-btn').style.display = 'none';
             const pctBox = document.getElementById('pricing-pct-box');
             if (pctBox) pctBox.style.display = 'none';
+            const mtBtn = document.getElementById('pricing-mikrotik-btn');
+            if (mtBtn) mtBtn.style.display = 'none';
         }
         fetchPricingRows();
     }
@@ -415,14 +422,17 @@
         body.innerHTML = rows.length ? rows.map((r, i) => `
             <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''} ${pricingExcluded.has(r.id) ? 'pw-excluded' : ''}" data-id="${r.id}">
                 <td class="p-2 text-center pw-num">${i + 1}</td>
+                <td class="p-2 text-center">${canDrag
+                    ? `<span class="pw-handle" title="بکشید و جابه‌جا کنید">⠿</span>`
+                    : `<span class="pw-handle" title="${filtered ? 'برایِ جابه‌جایی اول جست‌وجو/فیلتر را پاک کنید' : 'شما دسترسیِ ویرایش ندارید'}">⠿</span>`}</td>
+                <!-- ⚠️ ترتیبِ این خانه باید دقیقاً همان ترتیبِ سرستون‌ها باشد؛
+                     قبلاً یک ستون جلوتر بود و تیترِ «استثنا» بالایِ چک‌باکسِ
+                     خودش نمی‌افتاد. -->
                 <td class="p-2 text-center">
                     <input type="checkbox" ${pricingExcluded.has(r.id) ? 'checked' : ''}
                            data-id="${r.id}" onchange="togglePricingExclude(this)" class="w-4 h-4"
                            title="تیک بزن تا «درصد تغییرات» این ردیف را رد کند">
                 </td>
-                <td class="p-2 text-center">${canDrag
-                    ? `<span class="pw-handle" title="بکشید و جابه‌جا کنید">⠿</span>`
-                    : `<span class="pw-handle" title="${filtered ? 'برایِ جابه‌جایی اول جست‌وجو/فیلتر را پاک کنید' : 'شما دسترسیِ ویرایش ندارید'}">⠿</span>`}</td>
                 <td class="p-2">
                     <span class="inline-flex items-center gap-2">
                         ${catColorCell(r)}
@@ -446,9 +456,9 @@
                 <td class="p-2 text-center">${isMikrotikRow(r)
                     ? priceInput(r, 'dollarPrice', r.dollarPrice, 'w-16')
                     : '<span class="text-gray-300" title="این ستون فقط برایِ محصولاتِ میکروتیک معنی دارد">—</span>'}</td>
-                <td class="p-2 text-center">${stockCell(r.stockIsfahan)}</td>
-                <td class="p-2 text-center">${stockCell(r.stockTehran)}</td>
-                <td class="p-2 text-center ${r.incomingStock ? 'text-blue-600 pw-stock' : 'pw-stock-zero'}">${r.incomingStock ?? '—'}</td>
+                <td class="p-2 text-center">${stockCell(r, 'stockIsfahan')}</td>
+                <td class="p-2 text-center">${stockCell(r, 'stockTehran')}</td>
+                <td class="p-2 text-center">${stockCell(r, 'incomingStock')}</td>
                 <td class="p-2 ${r.weOwnBuyBox ? 'pw-ours' : ''}">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
@@ -609,11 +619,26 @@
         if (tr) tr.classList.toggle('pw-excluded', box.checked);
     }
 
-    /** خانهٔ موجودی: عددِ بولد، ولی صفر/نبود کم‌رنگ. */
-    function stockCell(v) {
+    /**
+     * خانهٔ موجودی — حالا ویرایش‌پذیر (خواستهٔ مالک: همهٔ خانه‌ها قابلِ اصلاح).
+     * عددِ بولد، ولی صفر/نبود کم‌رنگ می‌ماند تا «کم» از «نیست» فرق کند.
+     */
+    function stockCell(r, field) {
+        const v = r[field];
         const n = Number(v);
-        if (v === null || v === undefined || v === '') return '<span class="pw-stock-zero">—</span>';
-        return n > 0 ? `<span class="pw-stock">${n}</span>` : `<span class="pw-stock-zero">${n}</span>`;
+        const has = !(v === null || v === undefined || v === '');
+        if (!pricingCanEdit) {
+            if (!has) return '<span class="pw-stock-zero">—</span>';
+            return n > 0 ? `<span class="pw-stock">${n}</span>` : `<span class="pw-stock-zero">${n}</span>`;
+        }
+        const key = `${r.id}|${field}`;
+        const pending = pricingDirty.has(key);
+        const shown = pending ? pricingDirty.get(key).value : (has ? v : '');
+        const tone = field === 'incomingStock' && n > 0 ? 'text-blue-600 ' : '';
+        return `<input type="text" inputmode="numeric" value="${shown}"
+                   data-id="${r.id}" data-field="${field}"
+                   oninput="onPricingEdit(this)"
+                   class="w-12 p-1 border rounded text-center ${tone}${n > 0 ? 'pw-stock' : 'pw-stock-zero'} ${pending ? 'bg-yellow-50 border-yellow-400' : ''}" dir="ltr">`;
     }
 
     /** ستون‌هایِ تومانی — این‌ها جداکنندهٔ هزارگان می‌گیرند، «مرجع $» نه. */
@@ -733,6 +758,107 @@
             Swal.fire({icon: 'success', title: `${touched} خانه تغییر کرد`,
                        text: 'برایِ قطعی‌شدن «ذخیره تغییرات» را بزن', timer: 2200, showConfirmButton: false});
         });
+    }
+
+    /**
+     * «مرجعِ دلاریِ میکروتیک» — کاتالوگ را تازه می‌کند، پیشنهاد می‌گیرد،
+     * <b>به تأیید می‌دهد</b>، بعد می‌نویسد.
+     * <p>
+     * ⚠️ سه مرحله عمدی است: خزشِ ۵۶۱ صفحهٔ محصول چند ده ثانیه طول می‌کشد، پس
+     * نمی‌شود در یک درخواستِ HTTP نگهش داشت؛ و نوشتنِ خودکارِ بی‌تأیید یعنی
+     * ریسکِ نشستنِ قیمت روی محصولِ اشتباه.
+     */
+    async function syncMikrotikPrices() {
+        if (!pricingCanEdit) return;
+        try {
+            await axios.post(`${API}/v1/pricing/mikrotik/refresh`);
+
+            // نوارِ پیشرفت تا وقتی خزش تمام شود
+            let st = null;
+            Swal.fire({
+                title: 'گرفتنِ کاتالوگِ میکروتیک',
+                html: '<div id="mt-prog" style="font-size:13px">در حال شروع…</div>',
+                allowOutsideClick: false, showConfirmButton: false,
+                didOpen: () => Swal.showLoading && Swal.showLoading()
+            });
+            for (let i = 0; i < 400; i++) {
+                const res = await axios.get(`${API}/v1/pricing/mikrotik/status`);
+                st = res.data || {};
+                const el = document.getElementById('mt-prog');
+                if (el) {
+                    el.innerHTML = st.running
+                        ? `${st.done || 0} از ${st.total || '؟'} صفحه خوانده شد…`
+                        : `کاتالوگ آماده است: <b>${st.count || 0}</b> محصولِ قیمت‌دار`;
+                }
+                if (!st.running) break;
+                await new Promise(r => setTimeout(r, 1200));
+            }
+            if (st && st.error) { Swal.fire('خطا', 'گرفتنِ کاتالوگ ناموفق بود: ' + st.error, 'error'); return; }
+            if (!st || !st.count) { Swal.fire('چیزی نیامد', 'کاتالوگِ میکروتیک خالی برگشت', 'warning'); return; }
+
+            const pr = (await axios.get(`${API}/v1/pricing/mikrotik/proposals`)).data || {};
+            const list = pr.proposals || [];
+            if (!list.length) {
+                Swal.fire({icon: 'success', title: 'همه‌چیز به‌روز است',
+                    html: `کاتالوگ ${pr.catalogSize} محصول دارد و <b>${pr.unchanged}</b> محصولِ ما از قبل همین عدد را داشت.`});
+                return;
+            }
+
+            // ⚠️ هر ردیف تیکِ خودش را دارد. در آزمونِ واقعی دیدیم که محصولِ
+            // دستِدوم هم به همان کدِ قطعه می‌خورد؛ قیمتِ مرجعِ نو برایِ آن معنی ندارد
+            // و کارشناس باید بتواند تکی کنارش بگذارد.
+            const rows = list.map((x, i) => `
+                <tr>
+                    <td style="padding:3px 6px"><input type="checkbox" checked data-mt="${i}"></td>
+                    <td style="text-align:right;padding:3px 6px">${escapeHTML(x.name || '')}</td>
+                    <td style="padding:3px 6px;direction:ltr;color:#6b7280">${escapeHTML(x.code || '')}</td>
+                    <td style="padding:3px 6px;direction:ltr;color:#9ca3af">${x.current == null ? '—' : '$' + x.current}</td>
+                    <td style="padding:3px 6px;direction:ltr;font-weight:700;color:#166534">$${x.usd}</td>
+                </tr>`).join('');
+
+            const ok = await Swal.fire({
+                icon: 'question',
+                title: `${list.length} محصول تغییر می‌کند`,
+                width: 760,
+                html: `<div style="font-size:12px;text-align:right;margin-bottom:6px">`
+                    + `کاتالوگ: <b>${pr.catalogSize}</b> محصولِ میکروتیک · از قبل درست: <b>${pr.unchanged}</b>`
+                    + `<br>🔴 این عدد <b>قیمتِ پیشنهادیِ میکروتیک (MSRP)</b> است، نه قیمتِ خریدِ نماینده.</div>`
+                    + `<div style="max-height:320px;overflow:auto;border:1px solid #e5e7eb;border-radius:8px">`
+                    + `<table style="width:100%;font-size:11px;border-collapse:collapse">`
+                    + `<thead style="position:sticky;top:0;background:#f9fafb"><tr>`
+                    + `<th style="padding:4px"><input type="checkbox" checked id="mt-all"></th>`
+                    + `<th style="padding:4px">محصولِ ما</th><th style="padding:4px">کدِ قطعه</th>`
+                    + `<th style="padding:4px">فعلی</th><th style="padding:4px">تازه</th></tr></thead>`
+                    + `<tbody>${rows}</tbody></table></div>`,
+                showCancelButton: true, confirmButtonText: 'تیک‌خورده‌ها را ثبت کن', cancelButtonText: 'انصراف',
+                didOpen: () => {
+                    const all = document.getElementById('mt-all');
+                    if (all) all.addEventListener('change', () => {
+                        document.querySelectorAll('[data-mt]').forEach(b => { b.checked = all.checked; });
+                    });
+                },
+                preConfirm: () => [...document.querySelectorAll('[data-mt]')]
+                    .filter(b => b.checked).map(b => Number(b.dataset.mt))
+            });
+            if (!ok.isConfirmed) return;
+            const picked = (ok.value || []).map(i => list[i]).filter(Boolean);
+            if (!picked.length) { Swal.fire('چیزی تیک نخورد', 'هیچ محصولی انتخاب نشد', 'info'); return; }
+
+            toggleLoader(true);
+            const res = await axios.post(`${API}/v1/pricing/mikrotik/apply`,
+                picked.map(x => ({id: x.id, usd: x.usd})));
+            toggleLoader(false);
+            await Swal.fire({icon: 'success', title: `${res.data.applied} محصول به‌روز شد`,
+                timer: 1800, showConfirmButton: false});
+            await fetchPricingRows();
+        } catch (err) {
+            toggleLoader(false);
+            if (err.response && err.response.status === 403) {
+                Swal.fire('دسترسی ندارید', 'نقشِ شما اجازهٔ این کار را ندارد.', 'error');
+            } else {
+                Swal.fire('خطا', serverError(err, 'گرفتنِ قیمتِ میکروتیک ناموفق بود'), 'error');
+            }
+        }
     }
 
     /** آیا ریشهٔ دستهٔ این ردیف میکروتیک است؟ گاردِ حلقه دارد. */
@@ -1086,6 +1212,7 @@
     const LOG_ACTION_LABELS = {
         PRICE_CHANGE: 'تغییر قیمت', FLOOR_PRICE_CHANGE: 'تغییر کف رقبا',
         FLAG_CHANGE: 'تغییر پرچم فروش', LOGIN: 'ورود به سیستم',
+        STOCK_CHANGE: 'اصلاح موجودی',
         PRODUCT_CREATE: 'افزودن محصول', PRODUCT_UPDATE: 'ویرایش محصول',
         PRODUCT_DELETE: 'حذف محصول',
         ANALYTICS_EXPORT: 'خروجیِ دادهٔ رفتاری', ANALYTICS_ERASE: 'حذفِ دادهٔ رفتاریِ کاربر'
@@ -1148,7 +1275,7 @@
     findDigikala, refreshDigikala, openTorobSearch, refreshAllDigikala,
     daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace,
     addProductFromPricing, completeProductCard, applyPricingPercent,
-    togglePricingExclude
+    togglePricingExclude, syncMikrotikPrices
   });
   // میزبان (Admin.html) بعد از تشخیصِ نقش این را ست می‌کند
   Object.defineProperty(window, 'pricingCanEdit', {
