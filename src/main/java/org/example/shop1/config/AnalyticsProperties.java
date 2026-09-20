@@ -57,6 +57,26 @@ public class AnalyticsProperties {
     private List<String> paidMediums = List.of();
 
     /**
+     * نشانه‌هایِ User-Agentِ خزنده — زیررشته، کوچک‌شده. نگاه کن به
+     * {@code CrawlerDetector}.
+     * <p>
+     * ⚠️ برخلافِ جدولِ دامنه‌هایِ بالا این یکی <b>پیش‌فرضِ جاوایی دارد</b>، و عمدی
+     * است: آن‌ها دانشِ کسب‌وکارِ یک فروشگاهِ مشخص‌اند («ترب»، «ایمالز») و نباید در
+     * هستهٔ اپ بنشینند، ولی نامِ خزنده‌ها دانشِ عمومیِ وب است و به هیچ فروشگاهی گره
+     * نمی‌خورد. مهم‌تر اینکه اگر این فهرست خالی بماند فیلتر بی‌صدا از کار می‌افتد و
+     * آمار دوباره آلوده می‌شود — خرابیِ خاموش، بدترین نوعش. پراپرتی همچنان می‌تواند
+     * کلِ فهرست را جایگزین کند.
+     */
+    private List<String> crawlerTokens = List.of(
+            "bot", "crawler", "spider", "crawl", "slurp", "fetcher", "archiver", "monitor",
+            "googlebot", "bingbot", "yandex", "duckduckbot", "baiduspider", "applebot",
+            "facebookexternalhit", "twitterbot", "telegrambot", "whatsapp", "skypeuripreview",
+            "ahrefs", "semrush", "mj12bot", "dotbot", "petalbot", "dataforseo", "screaming frog",
+            "gptbot", "claudebot", "ccbot", "perplexitybot", "bytespider",
+            "headlesschrome", "phantomjs", "puppeteer", "playwright", "python-requests",
+            "curl/", "wget");
+
+    /**
      * مسیرِ فایلِ CSVِ ژئو (IPِ شروع، IPِ پایان، …، شهر). خالی = شهر ثبت نمی‌شود.
      * <p>
      * 🔴 هیچ فراخوانیِ APIِ بیرونی در مسیرِ درخواست نیست؛ فایل یک‌بار هنگامِ بالاآمدن
@@ -110,6 +130,9 @@ public class AnalyticsProperties {
 
     public List<String> getPaidMediums() { return paidMediums; }
     public void setPaidMediums(List<String> paidMediums) { this.paidMediums = paidMediums; }
+
+    public List<String> getCrawlerTokens() { return crawlerTokens; }
+    public void setCrawlerTokens(List<String> crawlerTokens) { this.crawlerTokens = crawlerTokens; }
 
     public String getGeoCsv() { return geoCsv; }
     public void setGeoCsv(String geoCsv) { this.geoCsv = geoCsv; }

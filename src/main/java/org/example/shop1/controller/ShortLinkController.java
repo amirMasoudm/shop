@@ -9,6 +9,7 @@ import org.example.shop1.model.reposritory.CampaignRepository;
 import org.example.shop1.model.service.analytics.AnalyticsContext;
 import org.example.shop1.model.service.analytics.CampaignService;
 import org.example.shop1.model.service.analytics.ChannelResolver;
+import org.example.shop1.model.service.analytics.CrawlerDetector;
 import org.example.shop1.model.service.analytics.TrafficSource;
 import org.example.shop1.model.service.analytics.UserEventRecorder;
 import org.example.shop1.model.service.analytics.VisitorSessionWriter;
@@ -52,15 +53,17 @@ public class ShortLinkController {
     private final UserEventRecorder analytics;
     private final VisitorSessionWriter sessions;
     private final ChannelResolver channelResolver;
+    private final CrawlerDetector crawlers;
 
     public ShortLinkController(CampaignRepository repo, CampaignService campaigns,
                                UserEventRecorder analytics, VisitorSessionWriter sessions,
-                               ChannelResolver channelResolver) {
+                               ChannelResolver channelResolver, CrawlerDetector crawlers) {
         this.repo = repo;
         this.campaigns = campaigns;
         this.analytics = analytics;
         this.sessions = sessions;
         this.channelResolver = channelResolver;
+        this.crawlers = crawlers;
     }
 
     @GetMapping("/l/{code}")
@@ -77,20 +80,28 @@ public class ShortLinkController {
         // کوئری است، ولی «معتبرتر» یعنی معتبرتر، نه معتبر.
         String target = CampaignService.normalizeLandingPath(campaign.getLandingPath());
 
-        AnalyticsContext ctx = sessions.startSession(request, response,
-                channelOf(campaign), campaign.getSlug());
+        // 🔴 این مسیر تنها جایی است که گاردِ خزندهٔ VisitorIdentityFilter را دور
+        // می‌زند: فیلتر برایِ ربات زمینه‌ای نمی‌سازد، ولی startSession وقتی زمینه‌ای
+        // نبیند خودش یکی می‌سازد و کوکیِ ناشناس را هم می‌نویسد. پس اتکا به «زمینهٔ
+        // نال» اینجا جواب نمی‌دهد و قضاوت باید صریح تکرار شود.
+        //
+        // ریدایرکت خودش دست‌نخورده انجام می‌شود — فقط شمارشِ کلیک انجام نمی‌شود.
+        if (!crawlers.isCrawler(request.getHeader("User-Agent"))) {
+            AnalyticsContext ctx = sessions.startSession(request, response,
+                    channelOf(campaign), campaign.getSlug());
 
-        // سندِ بازدیدکننده هم همین‌جا ساخته/به‌روز می‌شود تا کلیک در «کاربران» دیده شود.
-        analytics.touchVisitor(ctx, new TrafficSource(ctx.channel(), campaign.getSource(),
-                campaign.getMedium(), campaign.getSlug(), campaign.getTerm(), campaign.getContent(),
-                null, target));
+            // سندِ بازدیدکننده هم همین‌جا ساخته/به‌روز می‌شود تا کلیک در «کاربران» دیده شود.
+            analytics.touchVisitor(ctx, new TrafficSource(ctx.channel(), campaign.getSource(),
+                    campaign.getMedium(), campaign.getSlug(), campaign.getTerm(), campaign.getContent(),
+                    null, target));
 
-        analytics.record(ctx, EventType.LINK_CLICK, "/l/" + code,
-                "CAMPAIGN", campaign.getId(), campaign.getName(),
-                Map.of("code", code, "landingPath", target), null);
-        analytics.record(ctx, EventType.SESSION_START, target,
-                "CAMPAIGN", campaign.getId(), campaign.getName(),
-                Map.of("landingPath", target), null);
+            analytics.record(ctx, EventType.LINK_CLICK, "/l/" + code,
+                    "CAMPAIGN", campaign.getId(), campaign.getName(),
+                    Map.of("code", code, "landingPath", target), null);
+            analytics.record(ctx, EventType.SESSION_START, target,
+                    "CAMPAIGN", campaign.getId(), campaign.getName(),
+                    Map.of("landingPath", target), null);
+        }
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, campaigns.taggedPath(campaign))

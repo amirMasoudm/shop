@@ -52,12 +52,14 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
     private final ChannelResolver channelResolver;
     private final GeoCityService geo;
     private final VisitorSessionWriter cookies;
+    private final CrawlerDetector crawlers;
 
     public VisitorIdentityFilter(ChannelResolver channelResolver, GeoCityService geo,
-                                 VisitorSessionWriter cookies) {
+                                 VisitorSessionWriter cookies, CrawlerDetector crawlers) {
         this.channelResolver = channelResolver;
         this.geo = geo;
         this.cookies = cookies;
+        this.crawlers = crawlers;
     }
 
     @Override
@@ -79,6 +81,20 @@ public class VisitorIdentityFilter extends OncePerRequestFilter {
     }
 
     private void establish(HttpServletRequest request, HttpServletResponse response) {
+        // 🔴 خزنده نه کوکی می‌گیرد، نه زمینه، نه رویداد. جایِ این قضاوت عمداً اینجاست
+        // و نه کنارِ isStaffTraffic() در ثبت‌کننده: آن یکی از SecurityContext می‌خواند
+        // و به درخواست نیاز ندارد، ولی تشخیصِ ربات به User-Agent نیاز دارد — و یکی از
+        // مسیرهایِ ثبت ممکن است اصلاً درخواست در دستش نباشد. سراغِ
+        // RequestContextHolder رفتن آنجا یک وابستگیِ پنهان به نخِ درخواست می‌ساخت که
+        // در جابِ شبانه می‌شکند. اینجا درخواست حتماً هست.
+        //
+        // با همین یک return هیچ تغییری در UserEventRecorder لازم نیست: هر پنج ورودیِ
+        // ثبت با زمینهٔ نال ساکت برمی‌گردند.
+        //
+        // ⚠️ این فقط ردگیری را خاموش می‌کند. خروجیِ خودِ صفحه ذره‌ای فرق نمی‌کند —
+        // دادنِ محتوایِ متفاوت به خزنده مصداقِ cloaking است و جریمه دارد.
+        if (crawlers.isCrawler(request.getHeader("User-Agent"))) return;
+
         String anonId = cookie(request, ANON_COOKIE);
         if (anonId == null || !isUuid(anonId)) {
             anonId = UUID.randomUUID().toString();
