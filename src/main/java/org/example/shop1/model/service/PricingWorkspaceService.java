@@ -44,7 +44,12 @@ public class PricingWorkspaceService {
      * تغییرش اثرِ زنجیره‌ای روی قیمتِ عمومی دارد — تصمیمش مالِ کارشناسِ قیمت‌گذاری
      * است. بقیهٔ فیلدها برای هر دو نقش باز است.
      */
-    private static final List<String> PRICER_ONLY_FIELDS = List.of("partnerBulkPrice");
+    /**
+     * ⚠️ عمداً خالی است. تا پیش از این «فروش تعدادی» فقط دستِ ADMIN/PRICER بود؛
+     * مالک صریحاً خواست همهٔ کارشناس‌ها بتوانند قیمت‌ها را بزنند.
+     * برایِ برگرداندنِ محدودیت، همین فهرست دوباره پر می‌شود — مسیرِ بررسی سرِ جایش است.
+     */
+    private static final List<String> PRICER_ONLY_FIELDS = List.of();
 
     private final ProductRepository productRepo;
     private final ActivityLogService activityLog;
@@ -179,6 +184,9 @@ public class PricingWorkspaceService {
             Object rawValue = ch.get("value");
             boolean confirmed = Boolean.TRUE.equals(ch.get("confirmed"))
                     || "true".equalsIgnoreCase(String.valueOf(ch.get("confirmed")));
+            // از کدام مسیر آمده؟ «percent» یعنی ابزارِ درصد، نه تایپِ دستی —
+            // برچسبِ زیرِ قیمتِ سایت همین را نشان می‌دهد.
+            boolean viaPercent = "percent".equals(str(ch.get("via")));
 
             if (id == null || field == null) {
                 errors.add("ردیفِ ناقص (id یا field ندارد)");
@@ -230,6 +238,8 @@ public class PricingWorkspaceService {
                                 // ویرایشِ مستقیمِ قیمتِ سایت = تصمیمِ آگاهانه‌ی انسان؛
                                 // از این به بعد فرمول بازنویسی‌اش نمی‌کند
                                 p.setPriceOverride(true);
+                                // تایپِ دستی برچسبِ «درصدی» را پاک می‌کند، اعمالِ درصد می‌گذارد
+                                p.setPricePercentAdjusted(viaPercent);
                             }
                             case "partnerUnitPrice" -> p.setPartnerUnitPrice(newVal);
                             case "partnerBulkPrice" -> {
@@ -321,6 +331,16 @@ public class PricingWorkspaceService {
      * <p>
      * UI هم با همین تصمیم می‌گیرد کدام خانه قابلِ تایپ باشد.
      */
+    /**
+     * آیا «فروش تعدادی» برایِ کاربرِ جاری باز است؟
+     * <p>
+     * از خودِ فهرستِ محدودیت خوانده می‌شود، نه از نقش — تا اگر روزی محدودیت
+     * برگشت، UI خودبه‌خود درست شود و دو جا لازم نباشد دست ببریم.
+     */
+    public boolean canEditBulkPrice() {
+        return !PRICER_ONLY_FIELDS.contains("partnerBulkPrice") || canEditPricerOnlyFields();
+    }
+
     public boolean canEditPricerOnlyFields() {
         var auth = org.springframework.security.core.context.SecurityContextHolder
                 .getContext().getAuthentication();

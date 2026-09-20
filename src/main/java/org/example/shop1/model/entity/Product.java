@@ -108,6 +108,14 @@ public class Product {
      */
     private Boolean priceOverride;
 
+    /**
+     * قیمتِ دستی، بعداً درصد هم خورده است — برایِ برچسبِ «دستی درصدی».
+     * <p>
+     * فقط وقتی معنی دارد که {@link #priceOverride} هم true باشد. هر ویرایشِ
+     * دستیِ بعدی این را پاک می‌کند، چون آن عدد دیگر حاصلِ درصد نیست.
+     */
+    private Boolean pricePercentAdjusted;
+
     /** قیمتِ خرید/مرجع به دلار — برایِ رصدِ حساسیت به نرخِ ارز، مستقل از basePriceِ ریالی. */
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal dollarPrice;
@@ -193,6 +201,9 @@ public class Product {
 
     public BigDecimal getPartnerBulkPrice() { return partnerBulkPrice; }
     public void setPartnerBulkPrice(BigDecimal partnerBulkPrice) { this.partnerBulkPrice = partnerBulkPrice; }
+
+    public Boolean getPricePercentAdjusted() { return pricePercentAdjusted; }
+    public void setPricePercentAdjusted(Boolean v) { this.pricePercentAdjusted = v; }
 
     public Boolean getPriceOverride() { return priceOverride; }
     public void setPriceOverride(Boolean priceOverride) { this.priceOverride = priceOverride; }

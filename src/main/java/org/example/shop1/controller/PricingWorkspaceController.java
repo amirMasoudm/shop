@@ -102,7 +102,7 @@ public class PricingWorkspaceController {
     @GetMapping("/capabilities")
     public ResponseEntity<Map<String, Object>> capabilities() {
         return ResponseEntity.ok(Map.of(
-                "canEditBulkPrice", service.canEditPricerOnlyFields()));
+                "canEditBulkPrice", service.canEditBulkPrice()));
     }
 
     @PostMapping("/batch")

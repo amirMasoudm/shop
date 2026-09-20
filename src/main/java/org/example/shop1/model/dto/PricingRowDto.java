@@ -50,6 +50,9 @@ public class PricingRowDto {
     /** قیمتِ سایت دستی ست شده و فرمول بازنویسی‌اش نمی‌کند. */
     private final Boolean priceOverride;
 
+    /** قیمتِ دستی، بعداً درصد هم خورده — برچسبِ «دستی درصدی». */
+    private final Boolean pricePercentAdjusted;
+
     /** مقدارِ پیشنهادیِ فرمول — تا کارشناس ببیند قیمتِ دستی چقدر از فرمول عقب افتاده. */
     private final BigDecimal suggestedOnlinePrice;
 
@@ -73,6 +76,7 @@ public class PricingRowDto {
     public PricingRowDto(Product p, BigDecimal suggestedOnlinePrice) {
         this.suggestedOnlinePrice = suggestedOnlinePrice;
         this.priceOverride = p.getPriceOverride();
+        this.pricePercentAdjusted = p.getPricePercentAdjusted();
         this.id = p.getId();
         this.name = p.getName();
         this.categoryId = p.getCategoryId();
@@ -141,6 +145,7 @@ public class PricingRowDto {
     public Boolean getPushSaleFlag() { return pushSaleFlag; }
     public Integer getWorkspacePosition() { return workspacePosition; }
     public Boolean getPriceOverride() { return priceOverride; }
+    public Boolean getPricePercentAdjusted() { return pricePercentAdjusted; }
     public BigDecimal getSuggestedOnlinePrice() { return suggestedOnlinePrice; }
     public String getSlug() { return slug; }
     public List<String> getCardMissing() { return cardMissing; }
