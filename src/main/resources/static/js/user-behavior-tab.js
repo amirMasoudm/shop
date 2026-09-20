@@ -473,13 +473,76 @@
         return wrap;
     }
 
+    /** اندازهٔ دستهٔ سرور — با VISITORS_PAGE در AnalyticsAdminController یکی است. */
+    const VISITORS_PAGE = 100;
+
     // ---- نمای ۳: بازدیدکنندگان ----
+    /**
+     * صفحهٔ بعدیِ فهرست فقط با زدنِ دکمه گرفته می‌شود.
+     * <p>
+     * ⚠️ سرور از اول {@code page} را می‌پذیرفت و ۱۰۰تا۱۰۰تا می‌داد؛ این نما
+     * همیشه صفحهٔ صفر را می‌خواست و بقیه هیچ‌وقت دیده نمی‌شد. عمداً «یکجا همه»
+     * نمی‌آید: تعدادِ بازدیدکننده‌ها سقف ندارد و یک درخواستِ بی‌مرز هم مرورگر
+     * را می‌خواباند هم مونگو را.
+     */
+    let visitorsPage = 0;
+    let visitorsRows = null;   // tbodyِ جدولِ فعلی، برایِ افزودنِ دسته‌های بعدی
+
+    function resetVisitorsPaging() {
+        visitorsPage = 0;
+        visitorsRows = null;
+    }
+
+    function visitorRow(v) {
+        return [
+            String(v._id || '').slice(0, 8),
+            v.userId ? 'شناخته‌شده' : 'ناشناس',
+            faDate(v.lastSeenAt) || '—',
+            (v.firstTouch && CHANNEL_LABELS[v.firstTouch.channel]) || '—',
+            {node: lastSourceCell(v)},
+            v.visits, v.productViews, v.orders,
+            {node: archivedCell(v)},
+            {button: 'سفر', anonId: v._id, userId: v.userId}
+        ];
+    }
+
+    /** دستهٔ بعدی را می‌گیرد و به تهِ همان جدول می‌چسباند. */
+    async function loadMoreVisitors(btn) {
+        const filter = host.querySelector('[data-visitor-filter]').value;
+        const label = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'در حال گرفتن…';
+        let rows;
+        try {
+            rows = await getJson(`${API}/visitors?filter=${encodeURIComponent(filter)}`
+                + `&page=${visitorsPage + 1}`);
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = label;
+            return;
+        }
+        visitorsPage++;
+        (rows || []).forEach(v => visitorsRows.appendChild(rowEl(visitorRow(v))));
+
+        // دستهٔ ناقص یعنی به تهِ فهرست رسیدیم — دکمه دیگر کاری ندارد.
+        if (!rows || rows.length < VISITORS_PAGE) {
+            btn.replaceWith(Object.assign(document.createElement('p'), {
+                className: 'text-xs text-gray-400 mt-3 text-center',
+                textContent: 'به انتهای فهرست رسیدید.'
+            }));
+            return;
+        }
+        btn.disabled = false;
+        btn.textContent = label;
+    }
+
     async function loadVisitors() {
         const box = host.querySelector('[data-visitors]');
         const filter = host.querySelector('[data-visitor-filter]').value;
+        resetVisitorsPaging();
         let rows;
         try {
-            rows = await getJson(`${API}/visitors?filter=${encodeURIComponent(filter)}`);
+            rows = await getJson(`${API}/visitors?filter=${encodeURIComponent(filter)}&page=0`);
         } catch (e) { return emptyNote(box, 'واکشی ناموفق بود.'); }
         if (!rows.length) return emptyNote(box, 'بازدیدکننده‌ای با این فیلتر نیست.');
 
@@ -487,16 +550,8 @@
         const table = tableEl(
             ['شناسه', 'کاربر', 'آخرین حضور', 'اولین منبع', 'آخرین منبع', 'بازدید', 'مشاهدهٔ محصول', 'سفارش',
                 'فعالیت ثبت‌شده در آرشیو', ''],
-            rows.map(v => [
-                String(v._id || '').slice(0, 8),
-                v.userId ? 'شناخته‌شده' : 'ناشناس',
-                faDate(v.lastSeenAt) || '—',
-                (v.firstTouch && CHANNEL_LABELS[v.firstTouch.channel]) || '—',
-                {node: lastSourceCell(v)},
-                v.visits, v.productViews, v.orders,
-                {node: archivedCell(v)},
-                {button: 'سفر', anonId: v._id, userId: v.userId}
-            ]));
+            rows.map(visitorRow));
+        visitorsRows = table.querySelector('tbody');
         box.appendChild(section('بازدیدکنندگان', table,
             'ستونِ «اولین منبع» هرگز عوض نمی‌شود — انتساب به همان چیزی می‌ماند که این آدم را '
             + 'اولین‌بار آورد. «آخرین منبع» یعنی منبعِ همین بازدید، و '
@@ -508,6 +563,17 @@
             + 'هم دادهٔ زنده و هم آن‌چه آرشیو شده. ستونِ آخر می‌گوید چه مقدارش از آرشیو می‌آید؛ '
             + 'رویدادِ خامِ آن بخش دیگر در دیتابیس نیست و فقط در فایلِ آرشیو هست، '
             + 'پس در «سفرِ کاربر» دیده نمی‌شود.'));
+
+        // دکمه فقط وقتی معنی دارد که دستهٔ اول پر آمده باشد؛ دستهٔ ناقص یعنی
+        // همین‌ها همهٔ فهرست‌اند.
+        if (rows.length >= VISITORS_PAGE) {
+            const more = document.createElement('button');
+            more.className = 'w-full mt-3 py-2.5 rounded-xl border bg-white text-indigo-600 '
+                + 'font-bold text-sm hover:bg-indigo-50 disabled:opacity-50';
+            more.textContent = `نمایشِ ${VISITORS_PAGE} تای بعدی`;
+            more.addEventListener('click', () => loadMoreVisitors(more));
+            box.appendChild(more);
+        }
     }
 
     // ---- نمای ۴: سفرِ کاربر (تنها نمایی که دادهٔ خام می‌خواند) ----
@@ -967,7 +1033,19 @@
 
         const tbody = document.createElement('tbody');
         tbody.className = 'divide-y text-xs';
-        rows.forEach(r => {
+        tbody.dataset.rows = '1';
+        rows.forEach(r => tbody.appendChild(rowEl(r)));
+        table.appendChild(tbody);
+        wrap.appendChild(table);
+        return wrap;
+    }
+
+    /**
+     * یک ردیفِ جدول.
+     * ⚠️ عمداً از tableEl جدا شد: «نمایشِ بیشتر» باید ردیف‌های تازه را با
+     * همان منطق بسازد، وگرنه دستهٔ دوم با دستهٔ اول فرق می‌کرد.
+     */
+    function rowEl(r) {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-gray-50';
             r.forEach(v => {
@@ -998,11 +1076,7 @@
                 }
                 tr.appendChild(td);
             });
-            tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-        wrap.appendChild(table);
-        return wrap;
+        return tr;
     }
 
     function section(title, child, note) {
