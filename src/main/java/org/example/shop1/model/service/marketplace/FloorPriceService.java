@@ -41,6 +41,13 @@ public class FloorPriceService {
     /** گاردِ عقلانیت: بیرونِ این بازه نسبت به قیمتِ خودمان ذخیره نمی‌شود. */
     private static final BigDecimal SANITY_FACTOR = BigDecimal.TEN;
 
+    /**
+     * نامِ خودِ ما در دیجی‌کالا — عیناً همان رشته‌ای که APIِ دیجی‌کالا
+     * در {@code default_variant.seller.title} برمی‌گرداند (با پاسخِ واقعی آزموده شد).
+     * اگر روزی نامِ غرفه عوض شد، فقط همین خط عوض می‌شود.
+     */
+    public static final String OUR_DIGIKALA_SELLER = "ارتباطات شبکه داده نما";
+
     private final ProductRepository productRepo;
     private final ActivityLogService activityLog;
     private final Map<String, MarketplacePriceProvider> providers = new HashMap<>();
@@ -137,8 +144,12 @@ public class FloorPriceService {
 
         throttle(market);
         BigDecimal fetched;
+        String sellerTitle = null;
         try {
-            fetched = prov.fetchPriceToman(externalId);
+            // یک درخواست، دو خروجی: قیمت و فروشندهٔ باکسِ خرید.
+            MarketplacePriceProvider.Snapshot snap = prov.fetchSnapshot(externalId);
+            fetched = snap.priceToman();
+            sellerTitle = snap.sellerTitle();
         } catch (Exception e) {
             log.warn("خطا در واکشیِ {} برایِ {}: {}", market, productId, e.toString());
             fetched = null;
@@ -170,6 +181,8 @@ public class FloorPriceService {
 
         BigDecimal old = p.getDigikalaFloorPrice();
         p.setDigikalaFloorPrice(fetched);
+        // ⚠️ فقط وقتی چیزی آمد بنویس؛ پاسخِ بی‌فروشنده نباید دانستهٔ قبلی را پاک کند.
+        if (sellerTitle != null) p.setDigikalaSellerTitle(sellerTitle);
         p.setFloorPriceCheckedAt(Instant.now());
         p.setFloorPriceCheckedBy(activityLog.currentUsername());
         p.setUpdatedAt(Instant.now());
@@ -185,7 +198,25 @@ public class FloorPriceService {
         res.put("ourPrice", ours);
         // هشدارِ صرفاً نمایشی؛ قیمتِ ما خودکار عوض نمی‌شود
         res.put("weAreAboveMarket", ours != null && ours.compareTo(fetched) > 0);
+        res.put("sellerTitle", p.getDigikalaSellerTitle());
+        res.put("weOwnBuyBox", weOwnBuyBox(p));
         return res;
+    }
+
+    /**
+     * آیا باکسِ خریدِ دیجی‌کالا دستِ خودِ ماست؟
+     * <p>
+     * وقتی جواب مثبت است، «کفِ بازار» رقیب نیست — خودِ ماییم؛ و کارشناس
+     * نباید برایِ جلوزدن از خودمان قیمت را پایین بیاورد.
+     */
+    public static boolean weOwnBuyBox(Product p) {
+        String s = p == null ? null : p.getDigikalaSellerTitle();
+        return s != null && normalizeSeller(s).equals(normalizeSeller(OUR_DIGIKALA_SELLER));
+    }
+
+    /** نیم‌فاصله/فاصله‌هایِ تکراری را یکدست می‌کند تا مقایسهٔ نام سرِ یک کاراکتر نشکند. */
+    private static String normalizeSeller(String s) {
+        return s.replace('‌', ' ').replaceAll("\s+", " ").trim();
     }
 
     /** «به‌روزرسانیِ همه» — فقط محصولاتی که هویتشان قبلاً تأیید شده. */

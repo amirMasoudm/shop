@@ -173,6 +173,17 @@ public class Product {
      */
     private String digikalaDkp;
 
+    /**
+     * نامِ فروشنده‌ای که آخرین بار «باکسِ خرید»ِ دیجی‌کالا را داشت.
+     * <p>
+     * هدفش یک چیز است: وقتی کفِ قیمتِ بازار خودِ ماییم، کارشناس نباید فکر کند
+     * دارد با یک رقیب رقابت می‌کند. مقایسهٔ نام سمتِ سرور انجام می‌شود
+     * (نگاه کن به {@code FloorPriceService.OUR_DIGIKALA_SELLER}).
+     * <p>
+     * {@code null} یعنی هنوز واکشی نشده یا دیجی‌کالا فروشنده‌ای برنگرداند.
+     */
+    private String digikalaSellerTitle;
+
     /** آخرین باری که کفِ قیمتِ رقبا بررسی شد و توسطِ چه کسی. */
     private Instant floorPriceCheckedAt;
     private String floorPriceCheckedBy;
@@ -223,6 +234,9 @@ public class Product {
 
     public String getDigikalaUrl() { return digikalaUrl; }
     public void setDigikalaUrl(String digikalaUrl) { this.digikalaUrl = digikalaUrl; }
+
+    public String getDigikalaSellerTitle() { return digikalaSellerTitle; }
+    public void setDigikalaSellerTitle(String digikalaSellerTitle) { this.digikalaSellerTitle = digikalaSellerTitle; }
 
     public String getDigikalaDkp() { return digikalaDkp; }
     public void setDigikalaDkp(String digikalaDkp) { this.digikalaDkp = digikalaDkp; }

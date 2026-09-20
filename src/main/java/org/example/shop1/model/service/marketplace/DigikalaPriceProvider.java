@@ -100,6 +100,31 @@ public class DigikalaPriceProvider implements MarketplacePriceProvider {
     }
 
     @Override
+    public Snapshot fetchSnapshot(String dkp) {
+        if (dkp == null || dkp.isBlank()) return new Snapshot(null, null);
+        try {
+            JsonNode root = getJson(String.format(PRODUCT_API, enc(dkp)));
+            if (root == null) return new Snapshot(null, null);
+            JsonNode product = root.path("data").path("product");
+            JsonNode defVar = product.path("default_variant");
+
+            BigDecimal price = tomanOf(defVar.path("price").path("selling_price"));
+            if (price == null) {
+                for (JsonNode v : product.path("variants")) {
+                    BigDecimal c = tomanOf(v.path("price").path("selling_price"));
+                    if (c != null && (price == null || c.compareTo(price) < 0)) price = c;
+                }
+            }
+            // نامِ فروشندهٔ باکسِ خرید در همین پاسخ هست؛ درخواستِ دوم لازم نیست.
+            String seller = defVar.path("seller").path("title").asText(null);
+            return new Snapshot(price, seller == null || seller.isBlank() ? null : seller);
+        } catch (Exception e) {
+            log.warn("واکشیِ برداشتِ دیجی‌کالا برایِ DKP {} ناموفق: {}", dkp, e.toString());
+            return new Snapshot(null, null);
+        }
+    }
+
+    @Override
     public BigDecimal fetchPriceToman(String dkp) {
         if (dkp == null || dkp.isBlank()) return null;
         try {

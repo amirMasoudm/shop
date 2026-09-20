@@ -36,6 +36,9 @@ public class PricingRowDto {
     private final BigDecimal digikalaFloorPrice;
     private final String digikalaUrl;
     private final String digikalaDkp;   // هویتِ تأییدشده در دیجی‌کالا (خالی = هنوز وصل نشده)
+    private final String digikalaSellerTitle;   // فروشندهٔ باکسِ خرید در آخرین واکشی
+    /** باکسِ خرید دستِ خودِ ماست؟ کفِ بازار آن‌وقت رقیب نیست، خودِ ماییم. */
+    private final boolean weOwnBuyBox;
     private final String floorPriceCheckedAt;
     private final String floorPriceCheckedBy;
 
@@ -88,6 +91,8 @@ public class PricingRowDto {
         this.digikalaFloorPrice = p.getDigikalaFloorPrice();
         this.digikalaUrl = p.getDigikalaUrl();
         this.digikalaDkp = p.getDigikalaDkp();
+        this.digikalaSellerTitle = p.getDigikalaSellerTitle();
+        this.weOwnBuyBox = org.example.shop1.model.service.marketplace.FloorPriceService.weOwnBuyBox(p);
         this.floorPriceCheckedAt = p.getFloorPriceCheckedAt() == null ? null : p.getFloorPriceCheckedAt().toString();
         this.floorPriceCheckedBy = p.getFloorPriceCheckedBy();
         this.pushSaleFlag = p.getPushSaleFlag();
@@ -129,6 +134,8 @@ public class PricingRowDto {
     public BigDecimal getDigikalaFloorPrice() { return digikalaFloorPrice; }
     public String getDigikalaUrl() { return digikalaUrl; }
     public String getDigikalaDkp() { return digikalaDkp; }
+    public String getDigikalaSellerTitle() { return digikalaSellerTitle; }
+    public boolean isWeOwnBuyBox() { return weOwnBuyBox; }
     public String getFloorPriceCheckedAt() { return floorPriceCheckedAt; }
     public String getFloorPriceCheckedBy() { return floorPriceCheckedBy; }
     public Boolean getPushSaleFlag() { return pushSaleFlag; }

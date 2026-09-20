@@ -20,6 +20,10 @@
                 <p class="text-xs text-gray-500 mt-1">
                     همه مبالغ به <b>تومان</b> است. برای ویرایش روی خانه کلیک کنید؛ تغییرات با «ذخیره تغییرات» یکجا ثبت می‌شود.
                 </p>
+                <p class="text-[11px] text-gray-500 mt-1 leading-5">
+                    <b>کفِ ترب چیست:</b> آن عددِ بزرگِ بالایِ صفحهٔ ترب (کنارِ مشخصاتِ محصول) کفِ ما نیست.
+                    کفِ ترب <b>اولین ردیف از فهرستِ فروشگاه‌هاست که پایینِ همان مشخصات می‌آید</b>.
+                </p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <button id="pricing-add-product" onclick="addProductFromPricing()"
@@ -44,6 +48,14 @@
             <label class="flex items-center gap-2 text-xs text-gray-600 bg-white border rounded-lg px-3">
                 <input type="checkbox" id="pricing-only-flagged" onchange="renderPricingRows()"> فقط «خیلی بفروشید»
             </label>
+            <div id="pricing-pct-box" class="flex items-center gap-2 bg-white border rounded-lg px-3 py-1.5"
+                 title="درصد را وارد کن و «اعمال» بزن؛ تغییر روی همین ردیف‌هایِ نما می‌نشیند و تا «ذخیره» قطعی نیست">
+                <span class="text-xs text-gray-600 font-bold">درصد تغییرات</span>
+                <input type="text" id="pricing-pct" inputmode="decimal" placeholder="مثلاً ‎5‎ یا ‎-3‎"
+                       class="w-24 p-1.5 border rounded text-center text-sm font-bold" dir="ltr">
+                <button onclick="applyPricingPercent()"
+                        class="px-3 py-1.5 rounded bg-indigo-600 text-white text-xs font-bold">اعمال</button>
+            </div>
         </div>
 
         <style>
@@ -84,6 +96,21 @@
                 box-shadow: 0 0 0 1px rgba(255, 255, 255, .7);
             }
             .pw-num { color: #94a3b8; font-size: 10px; font-variant-numeric: tabular-nums; }
+
+            /* خوانایی — خواستهٔ مالک: نام و قیمت‌ها درشت‌تر و پررنگ‌تر.
+               tabular-nums یعنی رقم‌ها هم‌عرض‌اند و ستونِ اعداد تکان نمی‌خورد. */
+            .pw-name { font-size: 13.5px; font-weight: 700; color: #0f172a; line-height: 1.75; }
+            #pricing-body input[data-field] {
+                font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+            }
+            .pw-ro { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+            /* ⚠️ کفِ بازار وقتی باکسِ خریدِ دیجی‌کالا دستِ خودمان است، رقیب نیست:
+               خودِ ماییم. آبی یعنی «برای جلوزدن از خودت قیمت پایین نیاور». */
+            .pw-ours input, .pw-ours .pw-ro {
+                color: #1d4ed8; border-color: #93c5fd; background: #eff6ff;
+            }
+            .pw-ours-tag { font-size: 9px; font-weight: 800; color: #1d4ed8; white-space: nowrap; }
         </style>
         <div class="bg-white rounded-xl border shadow-sm overflow-x-auto" style="max-height:70vh; overflow-y:auto;">
             <table class="w-full text-right min-w-[1250px]">
@@ -96,7 +123,7 @@
                     <th class="p-3">قیمت سایت (تومان)</th>
                     <th class="p-3">همکار تک (تومان)</th>
                     <th class="p-3" title="قیمت عمده / خرید چندتایی">فروش تعدادی (تومان)</th>
-                    <th class="p-3" title="قیمت خرید/مرجع به دلار">قیمت دلاری ($)</th>
+                    <th class="p-3 w-20" title="قیمتِ پیشنهادیِ خودِ میکروتیک (MSRP) — فقط برایِ محصولاتِ میکروتیک">مرجع $</th>
                     <th class="p-3" title="فقط‌خواندنی — منبع: ورود دسته‌ای">اصفهان</th>
                     <th class="p-3" title="فقط‌خواندنی — منبع: ورود دسته‌ای">تهران</th>
                     <th class="p-3" title="خریداری‌شده ولی نرسیده — در موجودی فروش شمرده نمی‌شود">در راه</th>
@@ -242,6 +269,8 @@
         window.PricingWorkspace.mountWorkspace(host);
         if (!pricingCanEdit) {
             document.getElementById('pricing-save-btn').style.display = 'none';
+            const pctBox = document.getElementById('pricing-pct-box');
+            if (pctBox) pctBox.style.display = 'none';
         }
         fetchPricingRows();
     }
@@ -320,11 +349,14 @@
                 const shownVal = value !== null && value !== undefined && value !== '' ? fmtMoney(value) : '—';
                 const why = (field === 'partnerBulkPrice' && !canEditBulkPrice)
                     ? ' title="فقط کارشناس قیمت‌گذاری می‌تواند این را تغییر دهد"' : '';
-                return `<span dir="ltr" class="text-gray-500"${why}>${shownVal}</span>`;
+                return `<span dir="ltr" class="text-gray-600 pw-ro"${why}>${shownVal}</span>`;
             }
             const key = `${r.id}|${field}`;
             const pending = pricingDirty.has(key);
-            const shown = pending ? pricingDirty.get(key).value : (value ?? '');
+            const rawShown = pending ? pricingDirty.get(key).value : (value ?? '');
+            // ⚠️ فقط ستون‌هایِ تومانی کاما می‌گیرند. «مرجع $» اعشار دارد (۷۹.۰۰)
+            // و کامازدن به آن عدد را خراب می‌کند.
+            const shown = TOMAN_FIELDS.has(field) ? fmtMoney(rawShown) : rawShown;
             // oninput نه onchange: onchange فقط موقعِ ازدست‌دادنِ فوکوس شلیک می‌شود،
             // یعنی کاربر باید Tab بزند/جای دیگر کلیک کند تا نتیجه را ببیند.
             return `<input type="text" inputmode="decimal" value="${shown === null ? '' : shown}"
@@ -346,10 +378,10 @@
                 <td class="p-2 text-center">${canDrag
                     ? `<span class="pw-handle" title="بکشید و جابه‌جا کنید">⠿</span>`
                     : `<span class="pw-handle" title="${filtered ? 'برایِ جابه‌جایی اول جست‌وجو/فیلتر را پاک کنید' : 'شما دسترسیِ ویرایش ندارید'}">⠿</span>`}</td>
-                <td class="p-2 font-medium text-gray-800">
+                <td class="p-2">
                     <span class="inline-flex items-center gap-2">
                         ${catColorCell(r)}
-                        <span>${escapeHTML(r.name || '')}</span>
+                        <span class="pw-name">${escapeHTML(r.name || '')}</span>
                     </span>
                 </td>
                 <td class="p-2 whitespace-nowrap">${cardCell(r)}</td>
@@ -364,15 +396,18 @@
                 </td>
                 <td class="p-2">${priceInput(r, 'partnerUnitPrice', r.partnerUnitPrice)}</td>
                 <td class="p-2">${priceInput(r, 'partnerBulkPrice', r.partnerBulkPrice)}</td>
-                <td class="p-2">${priceInput(r, 'dollarPrice', r.dollarPrice, 'w-20')}</td>
+                <td class="p-2 text-center">${isMikrotikRow(r)
+                    ? priceInput(r, 'dollarPrice', r.dollarPrice, 'w-16')
+                    : '<span class="text-gray-300" title="این ستون فقط برایِ محصولاتِ میکروتیک معنی دارد">—</span>'}</td>
                 <td class="p-2 text-center text-gray-500">${r.stockIsfahan ?? '—'}</td>
                 <td class="p-2 text-center text-gray-500">${r.stockTehran ?? '—'}</td>
                 <td class="p-2 text-center ${r.incomingStock ? 'text-blue-600 font-bold' : 'text-gray-400'}">${r.incomingStock ?? '—'}</td>
-                <td class="p-2">
+                <td class="p-2 ${r.weOwnBuyBox ? 'pw-ours' : ''}">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
-                        ${pricingCanEdit ? `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="صفحه جست‌وجوی ترب را باز می‌کند؛ کمترین قیمت را ببین و اینجا وارد کن">🔍 ترب</button>` : ''}
+                        ${pricingCanEdit ? `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="${TOROB_RULE}">🔍 ترب</button>` : ''}
                     </div>
+                    ${r.weOwnBuyBox ? `<div class="pw-ours-tag mt-0.5" title="فروشندهٔ باکسِ خرید در دیجی‌کالا: ${escapeHTML(r.digikalaSellerTitle || '')}">★ باکسِ خرید دستِ خودمان است</div>` : ''}
                 </td>
                 <td class="p-2">
                     <div class="flex items-center gap-1">
@@ -490,9 +525,130 @@
         editProduct(id);
     }
 
+    /** ستون‌هایِ تومانی — این‌ها جداکنندهٔ هزارگان می‌گیرند، «مرجع $» نه. */
+    const TOMAN_FIELDS = new Set(['onlinePrice', 'partnerUnitPrice', 'partnerBulkPrice',
+                                  'torobFloorPrice', 'digikalaFloorPrice']);
+
+    const TOROB_RULE = 'صفحهٔ ترب باز می‌شود. ⚠️ عددِ بالایِ صفحه (کنارِ مشخصات) کف نیست؛ '
+        + 'کف، اولین ردیفِ فهرستِ فروشگاه‌هایِ پایینِ همان مشخصات است.';
+
+    /** ارقامِ فارسی/عربی → لاتین، تا ورودیِ کیبوردِ فارسی هم عدد حساب شود. */
+    function normalizeDigits(s) {
+        return String(s == null ? '' : s)
+            .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+            .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    }
+
+    /**
+     * کاماگذاریِ زندهٔ یک اینپوتِ تومانی، با نگه‌داشتنِ جایِ مکان‌نما.
+     * <p>
+     * ⚠️ بدونِ بازگرداندنِ مکان‌نما، با هر کاما که اضافه می‌شود نشانگر می‌پرد
+     * آخرِ خط و تایپِ وسطِ عدد غیرممکن می‌شود. معیار «چند رقم پیش از مکان‌نما
+     * بود» است، نه شمارهٔ کاراکتر — چون تعدادِ کاماها عوض می‌شود.
+     */
+    function reformatMoneyInput(input) {
+        const before = input.value;
+        const caret = input.selectionStart == null ? before.length : input.selectionStart;
+        const digitsBefore = normalizeDigits(before.slice(0, caret)).replace(/\D/g, '').length;
+        const clean = normalizeDigits(before).replace(/\D/g, '');
+        const out = clean === '' ? '' : Number(clean).toLocaleString('en-US');
+        if (out === before) return;
+        input.value = out;
+        let seen = 0, pos = digitsBefore === 0 ? 0 : out.length;
+        for (let i = 0; i < out.length && digitsBefore > 0; i++) {
+            if (out[i] >= '0' && out[i] <= '9') seen++;
+            if (seen === digitsBefore) { pos = i + 1; break; }
+        }
+        try { input.setSelectionRange(pos, pos); } catch (e) { /* اینپوتِ بی‌فوکوس */ }
+    }
+
+    /**
+     * «درصد تغییرات» — درصدِ مثبت/منفی روی هر سه ستونِ قیمتِ ردیف‌هایِ <b>همین نما</b>.
+     * <p>
+     * ⚠️ دو تصمیمِ عمدی:
+     * <br>۱) نتیجه مثلِ ویرایشِ دستی «در انتظارِ ذخیره» (زرد) می‌نشیند، نه مستقیم روی
+     * سرور — تا قبلِ «ذخیره تغییرات» برگشت‌پذیر باشد.
+     * <br>۲) روی ردیف‌هایی که قیمتشان از فرمولِ «فروش تعدادی × ضریب» می‌آید، درصد
+     * روی «فروش تعدادی» اعمال می‌شود نه روی قیمتِ سایت؛ چون نوشتنِ مستقیمِ قیمتِ
+     * سایت آن ردیف را برایِ همیشه «دستی» می‌کند و فرمول دیگر به‌روزش نمی‌کند.
+     */
+    function applyPricingPercent() {
+        if (!pricingCanEdit) return;
+        const box = document.getElementById('pricing-pct');
+        const pct = Number(normalizeDigits((box.value || '').replace(/[٪%\s,]/g, '')));
+        if (!isFinite(pct) || pct === 0) {
+            Swal.fire('عدد بده', 'یک درصدِ مثبت یا منفی وارد کن، مثلاً ‎5‎ یا ‎-3‎', 'warning');
+            return;
+        }
+
+        const q = (document.getElementById('pricing-search').value || '').trim().toLowerCase();
+        const onlyFlagged = document.getElementById('pricing-only-flagged').checked;
+        const rows = pricingRows.filter(r => {
+            if (onlyFlagged && !r.pushSaleFlag) return false;
+            if (q && !(r.name || '').toLowerCase().includes(q)) return false;
+            return true;
+        });
+        if (!rows.length) { Swal.fire('ردیفی نیست', 'این نما خالی است', 'info'); return; }
+
+        const scope = (q || onlyFlagged) ? 'ردیف‌هایِ همین نما (فیلترشده)' : 'همهٔ ردیف‌هایِ میز';
+        const bulkNote = canEditBulkPrice ? ''
+            : '<br><b>«فروش تعدادی» تغییر نمی‌کند</b> چون نقشِ شما اجازهٔ ویرایشش را ندارد؛ '
+              + 'در آن ردیف‌ها قیمتِ سایت مستقیم عوض می‌شود و «دستی» علامت می‌خورد.';
+
+        Swal.fire({
+            icon: 'question',
+            title: `${pct > 0 ? '+' : ''}${pct}٪ روی ${rows.length} ردیف`,
+            html: `دامنه: <b>${scope}</b>.<br>ستون‌ها: قیمت سایت، همکار تک، فروش تعدادی.`
+                + `<br>نتیجه زرد می‌شود و تا زدنِ «ذخیره تغییرات» قطعی نیست.${bulkNote}`,
+            showCancelButton: true, confirmButtonText: 'اعمال کن', cancelButtonText: 'انصراف'
+        }).then(res => {
+            if (!res.isConfirmed) return;
+            const mul = 1 + pct / 100;
+            const bump = (r, field) => {
+                const cur = Number(r[field]);
+                if (!isFinite(cur) || cur <= 0) return false;
+                const next = Math.round(cur * mul);
+                if (next === cur) return false;
+                pricingDirty.set(`${r.id}|${field}`, {id: r.id, field, value: String(next)});
+                return true;
+            };
+
+            let touched = 0;
+            rows.forEach(r => {
+                if (bump(r, 'partnerUnitPrice')) touched++;
+                // قیمتِ سایت: اگر مشتقِ فرمول است از راهِ «فروش تعدادی» برود
+                const derived = !r.priceOverride && Number(r.partnerBulkPrice) > 0;
+                if (canEditBulkPrice && Number(r.partnerBulkPrice) > 0) {
+                    if (bump(r, 'partnerBulkPrice')) touched++;
+                }
+                if (!derived || !canEditBulkPrice) {
+                    if (bump(r, 'onlinePrice')) touched++;
+                }
+            });
+
+            renderPricingRows();
+            updatePricingDirtyUi();
+            box.value = '';
+            Swal.fire({icon: 'success', title: `${touched} خانه تغییر کرد`,
+                       text: 'برایِ قطعی‌شدن «ذخیره تغییرات» را بزن', timer: 2200, showConfirmButton: false});
+        });
+    }
+
+    /** آیا ریشهٔ دستهٔ این ردیف میکروتیک است؟ گاردِ حلقه دارد. */
+    function isMikrotikRow(r) {
+        let cur = r && r.categoryId ? catById[r.categoryId] : null, guard = 0;
+        while (cur && guard++ < 25) {
+            const slug = (cur.slug || '').toLowerCase();
+            if (slug === 'mikrotik' || (cur.name || '').includes('میکروتیک')) return true;
+            cur = cur.parentId ? catById[cur.parentId] : null;
+        }
+        return false;
+    }
+
     function onPricingEdit(input) {
         const id = input.dataset.id, field = input.dataset.field;
-        const raw = input.value.trim().replace(/,/g, '');
+        if (TOMAN_FIELDS.has(field)) reformatMoneyInput(input);
+        const raw = normalizeDigits(input.value).trim().replace(/,/g, '');
         const row = pricingRows.find(r => r.id === id);
         const original = row ? (row[field] ?? '') : '';
 
@@ -890,7 +1046,7 @@
     savePricingChanges, exportPricingExcel, revertToFormula,
     findDigikala, refreshDigikala, openTorobSearch, refreshAllDigikala,
     daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace,
-    addProductFromPricing, completeProductCard
+    addProductFromPricing, completeProductCard, applyPricingPercent
   });
   // میزبان (Admin.html) بعد از تشخیصِ نقش این را ست می‌کند
   Object.defineProperty(window, 'pricingCanEdit', {
