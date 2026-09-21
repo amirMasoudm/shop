@@ -26,7 +26,7 @@ import java.util.List;
 public class TorobPriceProvider implements MarketplacePriceProvider {
 
     /**
-     * ⚠️ عمداً گوگل است، نه جست‌وجویِ خودِ ترب.
+     * ⚠️ عمداً جست‌وجویِ بیرونی است، نه جست‌وجویِ خودِ ترب.
      * <p>
      * قاعدهٔ مالک این است: «اولین نتیجهٔ ترب که در سرچِ گوگل می‌آید» — آن
      * لینک کارشناس را مستقیم می‌برد به صفحهٔ خودِ محصول. جست‌وجویِ داخلیِ ترب
@@ -35,8 +35,14 @@ public class TorobPriceProvider implements MarketplacePriceProvider {
      * <p>
      * {@code site:torob.com} یعنی نتیجهٔ اول قطعاً همان «اولین نتیجهٔ ترب» است،
      * نه چیزی که کارشناس باید بینِ فروشگاه‌های دیگر دنبالش بگردد.
+     * <p>
+     * <b>🔴 چرا گوگل نیست — اندازه‌گیری‌شده:</b> با {@code &btnI=1} گوگل روی
+     * صفحهٔ «Redirect Notice» می‌ایستد و یک کلیکِ اضافه می‌خواهد؛ یعنی به صفحهٔ
+     * محصول نمی‌رسد. پیشوندِ {@code \}ِ داک‌داک‌گو یک‌هوپ می‌نشیند روی صفحهٔ
+     * محصول. هر دو موتور به <b>همان</b> آدرسِ ترب رسیدند، پس مقصد عوض نشده —
+     * فقط راهی که واقعاً می‌رساند.
      */
-    private static final String GOOGLE_SEARCH = "https://www.google.com/search?q=";
+    private static final String LUCKY_SEARCH = "https://duckduckgo.com/?q=";
 
     @Override
     public String marketKey() { return "torob"; }
@@ -47,13 +53,12 @@ public class TorobPriceProvider implements MarketplacePriceProvider {
 
     @Override
     public String searchPageUrl(String query) {
-        String q = "خرید " + (query == null ? "" : query) + " site:torob.com";
-        // btnI = همان «I'm Feeling Lucky»ِ خودِ گوگل: به‌جایِ صفحهٔ نتایج، یک‌راست
-        // می‌برد به نتیجهٔ اول. قابلیتِ خودِ گوگل است، نه خزش — فقط یک آدرس
-        // ساخته می‌شود و مرورگرِ خودِ کارشناس بازش می‌کند.
-        // ℹ️ اگر گوگل نتیجه‌ای نداشت، خودش صفحهٔ نتایج را نشان می‌دهد —
-        // یعنی بدترین حالت، همان رفتارِ قبلی است، نه خطا.
-        return GOOGLE_SEARCH + java.net.URLEncoder.encode(q, StandardCharsets.UTF_8) + "&btnI=1";
+        // پیشوندِ داخل در داک‌داک‌گو یعنی «برو به نتیجهٔ اول»؛ site: هم تضمین
+        // می‌کند آن نتیجه حتماً ترب باشد.
+        String q = "\\" + "خرید " + (query == null ? "" : query) + " site:torob.com";
+        // ℹ️ اگر نتیجه‌ای نباشد، خودِ موتور صفحهٔ نتایج را نشان می‌دهد —
+        // بدترین حالت یک کلیکِ اضافه است، نه خطا.
+        return LUCKY_SEARCH + java.net.URLEncoder.encode(q, StandardCharsets.UTF_8);
     }
 
     @Override
