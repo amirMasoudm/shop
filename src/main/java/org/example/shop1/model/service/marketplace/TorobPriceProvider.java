@@ -14,8 +14,9 @@ import java.util.List;
  * و می‌بندد، حتی با هدرهایِ کاملِ مرورگرمانند.
  * <p>
  * <b>این یک سیگنالِ صریح از طرفِ آن‌هاست و دور زده نمی‌شود</b> — نه چرخشِ IP،
- * نه حلِ چالش، نه هیچ ترفندِ دیگر. به‌جایش فقط آدرسِ جست‌وجویِ آماده ساخته می‌شود
- * تا کارشناس خودش ببیند و عدد را وارد کند. این ۹۰٪ ارزش را نگه می‌دارد (کارشناس
+ * نه حلِ چالش، نه هیچ ترفندِ دیگر. به‌جایش فقط یک لینکِ گوگل ساخته می‌شود
+ * تا کارشناس با مرورگرِ خودش واردِ صفحهٔ محصول شود و ردیفِ فروشگاه را
+ * کپی کند. این ۹۰٪ ارزش را نگه می‌دارد (کارشناس
  * دیگر لازم نیست کوئری بنویسد) بدونِ جنگیدن با سیستمِ آن‌ها.
  * <p>
  * مسیرِ اصلی همچنان تیکتِ رسمیِ پنلِ فروشندگانِ ترب است؛ اگر دادهٔ «کمترین قیمتِ
@@ -24,7 +25,18 @@ import java.util.List;
 @Component
 public class TorobPriceProvider implements MarketplacePriceProvider {
 
-    private static final String SEARCH_PAGE = "https://torob.com/search/?query=";
+    /**
+     * ⚠️ عمداً گوگل است، نه جست‌وجویِ خودِ ترب.
+     * <p>
+     * قاعدهٔ مالک این است: «اولین نتیجهٔ ترب که در سرچِ گوگل می‌آید» — آن
+     * لینک کارشناس را مستقیم می‌برد به صفحهٔ خودِ محصول. جست‌وجویِ داخلیِ ترب
+     * دو ایراد داشت: یکی اینکه فهرستِ کاندیدا می‌داد و یک کلیکِ اضافه می‌خواست،
+     * دوم اینکه {@code /search/} در robots.txtِ خودِ ترب Disallow است.
+     * <p>
+     * {@code site:torob.com} یعنی نتیجهٔ اول قطعاً همان «اولین نتیجهٔ ترب» است،
+     * نه چیزی که کارشناس باید بینِ فروشگاه‌های دیگر دنبالش بگردد.
+     */
+    private static final String GOOGLE_SEARCH = "https://www.google.com/search?q=";
 
     @Override
     public String marketKey() { return "torob"; }
@@ -35,8 +47,8 @@ public class TorobPriceProvider implements MarketplacePriceProvider {
 
     @Override
     public String searchPageUrl(String query) {
-        return SEARCH_PAGE + java.net.URLEncoder.encode(
-                query == null ? "" : query, StandardCharsets.UTF_8);
+        String q = "خرید " + (query == null ? "" : query) + " site:torob.com";
+        return GOOGLE_SEARCH + java.net.URLEncoder.encode(q, StandardCharsets.UTF_8);
     }
 
     @Override
