@@ -1032,14 +1032,27 @@
     }
 
     /** ترب — فقط صفحه را با کوئریِ آماده باز می‌کند. */
+    /**
+     * جست‌وجوی ترب برای یک ردیف.
+     * <p>
+     * ⚠️ متنِ جست‌وجو ذخیره می‌شود (Product.torobQuery) چون نامِ کاملِ محصول
+     * برای جست‌وجو بد است — خریدار مدل را خلاصه می‌زند. کارشناس یک بار
+     * عبارتِ درست را می‌نویسد و دفعهٔ بعد همان می‌آید.
+     * <p>
+     * ⚠️ خالی‌کردنِ فیلد یعنی «برگرد به ساختِ خودکار از عنوان»، نه
+     * «جست‌وجوی خالی» — برای همین با isConfirmed کار می‌کنیم نه با خودِ مقدار.
+     */
     async function openTorobSearch(id) {
         const row = pricingRows.find(r => r.id === id);
         if (!row) return;
-        const {value: query} = await Swal.fire({
+        const saved = row.torobQuery || '';
+        const res = await Swal.fire({
             title: 'یافتنِ صفحهٔ ترب',
             input: 'text',
-            inputValue: row.name || '',
-            inputLabel: 'متن جست‌وجو (معمولاً فقط مدل بهتر جواب می‌دهد)',
+            inputValue: saved || row.name || '',
+            inputLabel: saved
+                ? 'متن جست‌وجو (ذخیره‌شده — خالی‌اش کنی، دوباره از عنوان ساخته می‌شود)'
+                : 'متن جست‌وجو (معمولاً فقط مدل بهتر جواب می‌دهد؛ ذخیره می‌شود)',
             html: '<div style="font-size:12px;text-align:right;color:#666;line-height:2">'
                 + '<b>یک‌راست صفحهٔ همین محصول در ترب</b> باز می‌شود (نتیجهٔ اولِ جست‌وجو).<br>'
                 + 'برو پایینِ مشخصات، <b>اولین ردیفِ فهرستِ فروشگاه‌ها</b> را کپی کن '
@@ -1047,13 +1060,35 @@
                 + '⚠️ عددِ بزرگِ بالای صفحه کف نیست.</div>',
             showCancelButton: true, confirmButtonText: 'باز کن', cancelButtonText: 'انصراف'
         });
+        if (!res.isConfirmed) return;
+
+        const typed = String(res.value == null ? '' : res.value).trim();
+        // خالی → از عنوان ساخته شود
+        const query = typed || (row.name || '').trim();
         if (!query) return;
+
+        // فقط وقتی عوض شده ذخیره کن، و بی‌سروصدا — این یک تنظیم است نه قیمت،
+        // پس کاربر نباید برایش «ذخیره تغییرات» بزند.
+        if (typed !== saved) saveTorobQuery(row, typed);
+
         try {
-            const res = await axios.get(`${API}/v1/pricing/marketplace/search-url`,
+            const u = await axios.get(`${API}/v1/pricing/marketplace/search-url`,
                 {params: {market: 'torob', query}});
-            window.open(res.data.url, '_blank', 'noopener');
+            window.open(u.data.url, '_blank', 'noopener');
         } catch (err) {
             Swal.fire('خطا', serverError(err, 'ساخت آدرس ناموفق بود'), 'error');
+        }
+    }
+
+    /** ذخیرهٔ بی‌سروصدای متنِ جست‌وجو؛ خالی = پاک‌کردن (برگشت به ساختِ خودکار). */
+    async function saveTorobQuery(row, typed) {
+        try {
+            await axios.post(`${API}/v1/pricing/batch`,
+                [{id: row.id, field: 'torobQuery', value: typed || null}]);
+            row.torobQuery = typed || null;   // نمایِ محلی هم تازه بماند
+        } catch (err) {
+            // ذخیره‌نشدنِ متنِ جست‌وجو نباید جلوی بازشدنِ صفحه را بگیرد
+            console.warn('ذخیرهٔ متنِ جست‌وجوی ترب ناموفق بود', err);
         }
     }
 

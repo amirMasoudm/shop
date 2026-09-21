@@ -168,6 +168,17 @@ public class Product {
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal torobFloorPrice;
     private String torobUrl;
+
+    /**
+     * متنِ جست‌وجویِ ترب برایِ همین محصول، دست‌نویسِ کارشناس.
+     * <p>
+     * نامِ کاملِ محصول برایِ جست‌وجو بد است (خریدار مدل را خلاصه می‌زند)؛
+     * کارشناس یک بار عبارتِ درست را می‌نویسد و دفعهٔ بعد همان می‌آید.
+     * <p>
+     * {@code null} یعنی «از عنوانِ محصول بساز» — پس پاک‌کردنِ فیلد
+     * برگشت به حالتِ خودکار است، نه جست‌وجویِ خالی.
+     */
+    private String torobQuery;
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal digikalaFloorPrice;
     private String digikalaUrl;
@@ -236,6 +247,9 @@ public class Product {
 
     public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }
     public void setTorobFloorPrice(BigDecimal torobFloorPrice) { this.torobFloorPrice = torobFloorPrice; }
+
+    public String getTorobQuery() { return torobQuery; }
+    public void setTorobQuery(String torobQuery) { this.torobQuery = torobQuery; }
 
     public String getTorobUrl() { return torobUrl; }
     public void setTorobUrl(String torobUrl) { this.torobUrl = torobUrl; }

@@ -29,7 +29,7 @@ public class PricingWorkspaceService {
     /** فیلدهایِ قابلِ ویرایش از میزِ کار. هر چیزِ دیگری رد می‌شود. */
     private static final List<String> EDITABLE = List.of(
             "onlinePrice", "partnerUnitPrice", "partnerBulkPrice", "dollarPrice",
-            "torobFloorPrice", "torobUrl",
+            "torobFloorPrice", "torobUrl", "torobQuery",
             "digikalaFloorPrice", "digikalaUrl",
             "pushSaleFlag",
             // موجودی‌ها — خواستهٔ صریحِ مالک: همهٔ خانه‌ها قابلِ اصلاح باشند.
@@ -288,10 +288,18 @@ public class PricingWorkspaceService {
                                 p.getId(), p.getName(), field, oldVal, newVal);
                         applied++;
                     }
-                    case "torobUrl", "digikalaUrl" -> {
+                    case "torobUrl", "digikalaUrl", "torobQuery" -> {
                         String newVal = str(rawValue);
-                        String oldVal = "torobUrl".equals(field) ? p.getTorobUrl() : p.getDigikalaUrl();
-                        if ("torobUrl".equals(field)) p.setTorobUrl(newVal); else p.setDigikalaUrl(newVal);
+                        String oldVal = switch (field) {
+                            case "torobUrl" -> p.getTorobUrl();
+                            case "torobQuery" -> p.getTorobQuery();
+                            default -> p.getDigikalaUrl();
+                        };
+                        switch (field) {
+                            case "torobUrl" -> p.setTorobUrl(newVal);
+                            case "torobQuery" -> p.setTorobQuery(newVal);
+                            default -> p.setDigikalaUrl(newVal);
+                        }
                         p.setUpdatedAt(Instant.now());
                         productRepo.save(p);
                         activityLog.recordProduct(ActivityLog.Action.FLOOR_PRICE_CHANGE, ActivityLog.Source.MANUAL,

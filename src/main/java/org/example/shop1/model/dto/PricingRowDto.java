@@ -33,6 +33,8 @@ public class PricingRowDto {
 
     private final BigDecimal torobFloorPrice;
     private final String torobUrl;
+    /** متنِ جست‌وجویِ ذخیره‌شده؛ خالی یعنی «از عنوان بساز». */
+    private final String torobQuery;
     private final BigDecimal digikalaFloorPrice;
     private final String digikalaUrl;
     private final String digikalaDkp;   // هویتِ تأییدشده در دیجی‌کالا (خالی = هنوز وصل نشده)
@@ -92,6 +94,7 @@ public class PricingRowDto {
         this.stock = p.getStock();
         this.torobFloorPrice = p.getTorobFloorPrice();
         this.torobUrl = p.getTorobUrl();
+        this.torobQuery = p.getTorobQuery();
         this.digikalaFloorPrice = p.getDigikalaFloorPrice();
         this.digikalaUrl = p.getDigikalaUrl();
         this.digikalaDkp = p.getDigikalaDkp();
@@ -135,6 +138,7 @@ public class PricingRowDto {
     public Integer getStock() { return stock; }
     public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }
     public String getTorobUrl() { return torobUrl; }
+    public String getTorobQuery() { return torobQuery; }
     public BigDecimal getDigikalaFloorPrice() { return digikalaFloorPrice; }
     public String getDigikalaUrl() { return digikalaUrl; }
     public String getDigikalaDkp() { return digikalaDkp; }
