@@ -290,10 +290,12 @@ public class LegacyRedirectService {
             return same;
         }
 
-        // ۱) حلقه‌زدایی
+        // ۱) حلقه‌زدایی. مقصدِ رکوردِ حذف‌شده را نگه می‌داریم — نگاه کن به قدمِ ۳.
         int loopsRemoved = 0;
+        String abandonedTarget = null;
         Optional<LegacyRedirect> selfTarget = repo.findByFromPath(toNormalized);
         if (selfTarget.isPresent()) {
+            abandonedTarget = selfTarget.get().getToPath();
             repo.delete(selfTarget.get());
             loopsRemoved++;
         }
@@ -305,9 +307,22 @@ public class LegacyRedirectService {
         // صاف‌کردن به مقصدی که پذیرفته نشده، خرابیِ بزرگ‌تری است از زنجیرهٔ دوپرشی.
         int flattened = 0;
         if ((int) result.get("created") + (int) result.get("updated") > 0) {
+            // مسیرهایی که باید به مقصدِ تازه منتقل شوند:
+            //   • مسیرِ قدیم — زنجیرهٔ عادی (A→B و حالا B→C، پس A باید به C برسد)
+            //   • مقصدِ رهاشده — نگاه کن به توضیحِ پایین
+            String abandonedNormalized = abandonedTarget == null ? null : normalize(abandonedTarget);
+
             for (LegacyRedirect r : repo.findAll()) {
                 if (r.getToPath() == null) continue;
-                if (!normalize(r.getToPath()).equals(from)) continue;
+                String rTo = normalize(r.getToPath());
+                boolean pointsAtOld = rTo.equals(from);
+                // 🔴 <b>موردی که در تستِ واقعی گرفته شد:</b> اگر اسلاگ عوض شود و بعد
+                // به مقدارِ قبلی برگردد، رکوردهایی که در مرحلهٔ اول به اسلاگِ میانی
+                // صاف شده بودند به یک اسلاگِ مرده اشاره می‌کنند — یعنی ۳۰۱ به ۴۰۴.
+                // حلقه‌زدایی آن اسلاگِ میانی را رها می‌کند، پس هرچه به آن اشاره دارد
+                // باید به مقصدِ زندهٔ تازه منتقل شود.
+                boolean pointsAtAbandoned = abandonedNormalized != null && rTo.equals(abandonedNormalized);
+                if (!pointsAtOld && !pointsAtAbandoned) continue;
                 if (normalize(r.getFromPath()).equals(toNormalized)) continue;   // حلقه نساز
                 r.setToPath(to);
                 repo.save(r);
