@@ -23,6 +23,8 @@
                 <p class="text-[11px] text-gray-500 mt-1 leading-5">
                     <b>کفِ ترب چیست:</b> آن عددِ بزرگِ بالایِ صفحهٔ ترب (کنارِ مشخصاتِ محصول) کفِ ما نیست.
                     کفِ ترب <b>اولین ردیف از فهرستِ فروشگاه‌هاست که پایینِ همان مشخصات می‌آید</b>.
+                    همان ردیف را کپی کنید و در خانهٔ «کف ترب» <b>Ctrl+V</b> بزنید؛ لازم نیست عدد را
+                    تایپ کنید — نامِ فروشگاه و «تومان» و بقیه خودشان کنار می‌روند.
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -408,6 +410,7 @@
             return `<input type="text" inputmode="decimal" value="${shown === null ? '' : shown}"
                        data-id="${r.id}" data-field="${field}"
                        oninput="onPricingEdit(this)"
+                       onpaste="onPricePaste(event)"
                        ${derived ? `title="محاسبه‌شده از فروش تعدادی × ${pricingFactor} — با ذخیره ثبت می‌شود"` : ''}
                        class="${width} p-1.5 border rounded text-left ${pending ? 'bg-yellow-50 border-yellow-400' : ''}${derived ? ' bg-green-50 border-green-400' : ''}" dir="ltr">`;
         };
@@ -646,7 +649,8 @@
                                   'torobFloorPrice', 'digikalaFloorPrice']);
 
     const TOROB_RULE = 'صفحهٔ ترب باز می‌شود. ⚠️ عددِ بالایِ صفحه (کنارِ مشخصات) کف نیست؛ '
-        + 'کف، اولین ردیفِ فهرستِ فروشگاه‌هایِ پایینِ همان مشخصات است.';
+        + 'کف، اولین ردیفِ فهرستِ فروشگاه‌هایِ پایینِ همان مشخصات است. '
+        + 'همان ردیف را کپی کن و همین‌جا Ctrl+V بزن — عدد خودش درمی‌آید.';
 
     /** ارقامِ فارسی/عربی → لاتین، تا ورودیِ کیبوردِ فارسی هم عدد حساب شود. */
     function normalizeDigits(s) {
@@ -758,6 +762,92 @@
             Swal.fire({icon: 'success', title: `${touched} خانه تغییر کرد`,
                        text: 'برایِ قطعی‌شدن «ذخیره تغییرات» را بزن', timer: 2200, showConfirmButton: false});
         });
+    }
+
+    /**
+     * اعدادِ داخلِ یک متنِ درهم را درمی‌آورد.
+     * <p>
+     * ⚠️ جداکننده‌ها عمداً همه‌ی این‌ها را شامل می‌شوند: {@code , . ٫ ٬ ،} —
+     * ترب عددش را با «٫» (جداکنندهٔ اعشاریِ عربی) می‌نویسد، نه کاما؛ اگر جا
+     * می‌افتاد، «۱۹٫۵۰۰٫۰۰۰» سه عددِ جدا خوانده می‌شد.
+     * ⚠️ فاصله عمداً جداکننده نیست، وگرنه «۶۸ فروشنده» و عددِ بعدی به هم
+     * می‌چسبیدند.
+     */
+    function numbersInText(text) {
+        const t = normalizeDigits(String(text == null ? '' : text));
+        const re = /\d[\d.,\u066B\u066C\u060C]*\d|\d/g;
+        const out = [];
+        let m;
+        while ((m = re.exec(t)) !== null) {
+            const digits = m[0].replace(/\D/g, '');
+            if (digits) out.push(Number(digits));
+        }
+        return out;
+    }
+
+    /**
+     * پیستِ متنِ کپی‌شده از صفحهٔ ترب (یا هر جای دیگر) داخلِ خانهٔ قیمت.
+     * <p>
+     * کارشناس ردیفِ فروشگاه را کپی می‌کند و همین‌جا می‌چسباند؛ نامِ فروشگاه و
+     * «تومان» و ستاره و بقیه ریخته می‌شود دور و فقط عدد می‌ماند.
+     * <p>
+     * ⚠️ بدونِ این، پیستِ متنِ درهم فاجعه بود نه فقط بی‌فایده: پاک‌سازیِ فعلی
+     * <b>همهٔ</b> رقم‌های متن را به هم می‌چسباند، پس «★۵ … ۱۹٫۵۰۰٫۰۰۰ تومان»
+     * می‌شد عددِ ۵۱۹۵۰۰۰۰۰.
+     * <p>
+     * ⚠️ وقتی چند قیمت در متن باشد <b>حدس نمی‌زنیم</b>: عددِ بالایِ صفحهٔ ترب و
+     * ردیفِ اولِ فروشگاه‌ها هر دو شش‌رقمی‌اند و هیچ قاعده‌ای نمی‌تواند بینشان
+     * درست انتخاب کند — از کاربر پرسیده می‌شود.
+     */
+    async function onPricePaste(e) {
+        const input = e.target;
+        if (!input || !TOMAN_FIELDS.has(input.dataset.field)) return;
+
+        const cb = e.clipboardData || window.clipboardData;
+        const text = cb ? cb.getData('text') : '';
+        if (!text) return;
+
+        const nums = numbersInText(text);
+        if (!nums.length) return;            // عددی نبود؛ بگذار پیستِ عادی کار کند
+        e.preventDefault();
+
+        // شش‌رقمی‌به‌بالا یعنی «قیمت»؛ بقیه ستاره و شمارِ فروشنده و سالِ عضویت‌اند
+        const prices = [...new Set(nums.filter(n => n >= 100000))];
+        let value;
+        if (prices.length === 1) {
+            value = prices[0];
+        } else if (prices.length > 1) {
+            const opts = {};
+            prices.sort((a, b) => a - b).forEach(n => { opts[String(n)] = n.toLocaleString('en-US') + ' تومان'; });
+            const pick = await Swal.fire({
+                icon: 'question',
+                title: 'کدام عدد؟',
+                html: 'در متنِ کپی‌شده چند قیمت بود.<br>کفِ ترب قیمتِ <b>اولین ردیفِ فهرستِ فروشگاه‌ها</b>ست، '
+                    + 'نه عددِ بالای صفحه.',
+                input: 'radio',
+                inputOptions: opts,
+                inputValue: String(prices[0]),
+                showCancelButton: true, confirmButtonText: 'همین', cancelButtonText: 'بی‌خیال'
+            });
+            if (!pick.isConfirmed || !pick.value) return;
+            value = Number(pick.value);
+        } else {
+            value = Math.max.apply(null, nums);
+        }
+
+        input.value = String(value);
+        onPricingEdit(input);
+
+        // 🔴 تقسیمِ خودسرانه بر ده نمی‌کنیم: اشتباهِ ده‌برابری در این ستون یعنی
+        // تصمیمِ قیمتیِ غلط. فقط می‌گوییم و انتخاب با آدم است.
+        if (/ریال|rial/i.test(normalizeDigits(text))) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'متن «ریال» داشت',
+                html: `عدد <b>${value.toLocaleString('en-US')}</b> همان‌طور که بود ثبت شد و تقسیم بر ۱۰ <b>نشد</b>.`
+                    + '<br>اگر واقعاً ریالی است، خودتان تومانش کنید.'
+            });
+        }
     }
 
     /**
@@ -1275,7 +1365,7 @@
     findDigikala, refreshDigikala, openTorobSearch, refreshAllDigikala,
     daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace,
     addProductFromPricing, completeProductCard, applyPricingPercent,
-    togglePricingExclude, syncMikrotikPrices
+    togglePricingExclude, syncMikrotikPrices, onPricePaste
   });
   // میزبان (Admin.html) بعد از تشخیصِ نقش این را ست می‌کند
   Object.defineProperty(window, 'pricingCanEdit', {
