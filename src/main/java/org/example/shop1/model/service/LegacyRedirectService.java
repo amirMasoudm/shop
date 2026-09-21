@@ -228,6 +228,79 @@ public class LegacyRedirectService {
     public record MappingRow(String fromPath, String toPath, String note) {}
 
     /**
+     * ثبتِ یک ریدایرکت با صاف‌کردنِ زنجیره و حذفِ حلقه.
+     * <p>
+     * 🔴 <b>چرا جدا از {@link #importRows}:</b> برخلافِ {@code ProductRedirectService}
+     * که هنگامِ خواندن زنجیره را با {@code MAX_HOPS} دنبال می‌کند، مسیرِ ریدایرکتِ
+     * قدیمی فقط یک {@code findByFromPath} می‌زند و <b>هیچ پرشی را دنبال نمی‌کند</b>.
+     * پس زنجیره باید در <b>زمانِ نوشتن</b> صاف شود، وگرنه
+     * {@code /blog/A → /blog/B → /blog/C} یعنی {@code A} به صفحه‌ای می‌رسد که خودش
+     * ۳۰۱ می‌دهد — و گوگل آن را یک پرشِ اضافه می‌بیند.
+     * <p>
+     * دو کارِ اضافه نسبت به واردکردنِ ساده، به همین ترتیب:
+     * <ol>
+     *   <li><b>حلقه‌زدایی</b> — هر ریدایرکتی که {@code fromPath}ش برابرِ مسیرِ
+     *       <i>تازه</i> است حذف می‌شود. بدونِ این، برگرداندنِ اسلاگ به مقدارِ قبلی
+     *       یک ریدایرکتِ خودارجاع می‌ساخت و صفحه هرگز باز نمی‌شد.</li>
+     *   <li><b>صاف‌کردن</b> — هر ریدایرکتی که مقصدش مسیرِ <i>قدیم</i> بود، مستقیم به
+     *       مسیرِ تازه می‌رود.</li>
+     * </ol>
+     * ترتیب عمدی است: اول حلقه‌زدایی، بعد ثبت، بعد صاف‌کردن. اگر صاف‌کردن زودتر
+     * انجام می‌شد، رکوردی که همین الان حذف شده بود دوباره به‌روز می‌شد.
+     */
+    public Map<String, Object> addOneFlattened(String fromRaw, String toRaw, String note,
+                                               java.util.function.Predicate<String> targetExists) {
+        String from = normalize(fromRaw);
+        String to = toRaw == null ? "" : toRaw.trim();
+        String toNormalized = normalize(to);
+
+        // مسیرِ قدیم و تازه یکی‌اند — چیزی برایِ ثبت نیست و ثبتش یعنی حلقه
+        if (from.equals(toNormalized)) {
+            Map<String, Object> same = new LinkedHashMap<>();
+            same.put("created", 0);
+            same.put("updated", 0);
+            same.put("skippedMissingTarget", List.of());
+            same.put("skippedInvalid", List.of(fromRaw + " → " + toRaw));
+            same.put("unchanged", true);
+            same.put("total", repo.count());
+            return same;
+        }
+
+        // ۱) حلقه‌زدایی
+        int loopsRemoved = 0;
+        Optional<LegacyRedirect> selfTarget = repo.findByFromPath(toNormalized);
+        if (selfTarget.isPresent()) {
+            repo.delete(selfTarget.get());
+            loopsRemoved++;
+        }
+
+        // ۲) ثبتِ خودِ ریدایرکت — با همان اعتبارسنجیِ مقصد که واردکردنِ دسته‌ای دارد
+        Map<String, Object> result = importRows(List.of(new MappingRow(from, to, note)), targetExists);
+
+        // اگر ثبت نشد (مقصد وجود ندارد یا مسیر رزرو است) زنجیره را هم دست نمی‌زنیم:
+        // صاف‌کردن به مقصدی که پذیرفته نشده، خرابیِ بزرگ‌تری است از زنجیرهٔ دوپرشی.
+        int flattened = 0;
+        if ((int) result.get("created") + (int) result.get("updated") > 0) {
+            for (LegacyRedirect r : repo.findAll()) {
+                if (r.getToPath() == null) continue;
+                if (!normalize(r.getToPath()).equals(from)) continue;
+                if (normalize(r.getFromPath()).equals(toNormalized)) continue;   // حلقه نساز
+                r.setToPath(to);
+                repo.save(r);
+                flattened++;
+            }
+        }
+
+        result = new LinkedHashMap<>(result);
+        result.put("flattened", flattened);
+        result.put("loopsRemoved", loopsRemoved);
+        if (flattened > 0 || loopsRemoved > 0) reloadKeys();
+        log.info("ریدایرکتِ اسلاگ: {} → {} · {} زنجیره صاف شد · {} حلقه حذف شد.",
+                from, to, flattened, loopsRemoved);
+        return result;
+    }
+
+    /**
      * واردکردنِ دسته‌ای.
      * <p>
      * 🔴 مقصد <b>پیش از</b> ذخیره باید وجود داشته باشد. ریدایرکت به صفحه‌ای که ۴۰۴

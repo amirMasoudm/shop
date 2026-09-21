@@ -60,9 +60,15 @@ public class LegacyRedirectAdminController {
         if (from == null || from.isBlank() || to == null || to.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "مسیرِ قدیمی و مقصد هر دو لازم‌اند");
         }
-        Map<String, Object> result = service.importRows(
-                List.of(new LegacyRedirectService.MappingRow(from, to, body.get("note"))),
-                this::targetExists);
+        // 🔴 ثبتِ تکی زنجیره را صاف می‌کند و حلقه را حذف، ولی واردکردنِ دسته‌ایِ CSV
+        // عمداً همان رفتارِ خامِ قبلی را دارد: فایلِ نگاشتِ وردپرس یک عکسِ فوریِ
+        // سازگار است و بازنویسیِ مقصدهایش وسطِ ایمپورت، نگاشت را از آنچه اپراتور
+        // در فایل می‌بیند جدا می‌کند.
+        Map<String, Object> result = service.addOneFlattened(from, to, body.get("note"), this::targetExists);
+        if (Boolean.TRUE.equals(result.get("unchanged"))) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "مسیرِ قدیم و مقصد یکی‌اند — ثبتش فقط یک حلقه می‌سازد");
+        }
         if ((int) result.get("created") + (int) result.get("updated") == 0) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "ثبت نشد — مقصد وجود ندارد یا مسیر نامعتبر است");
