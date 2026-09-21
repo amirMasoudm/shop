@@ -48,7 +48,12 @@ public class TorobPriceProvider implements MarketplacePriceProvider {
     @Override
     public String searchPageUrl(String query) {
         String q = "خرید " + (query == null ? "" : query) + " site:torob.com";
-        return GOOGLE_SEARCH + java.net.URLEncoder.encode(q, StandardCharsets.UTF_8);
+        // btnI = همان «I'm Feeling Lucky»ِ خودِ گوگل: به‌جایِ صفحهٔ نتایج، یک‌راست
+        // می‌برد به نتیجهٔ اول. قابلیتِ خودِ گوگل است، نه خزش — فقط یک آدرس
+        // ساخته می‌شود و مرورگرِ خودِ کارشناس بازش می‌کند.
+        // ℹ️ اگر گوگل نتیجه‌ای نداشت، خودش صفحهٔ نتایج را نشان می‌دهد —
+        // یعنی بدترین حالت، همان رفتارِ قبلی است، نه خطا.
+        return GOOGLE_SEARCH + java.net.URLEncoder.encode(q, StandardCharsets.UTF_8) + "&btnI=1";
     }
 
     @Override
