@@ -34,6 +34,7 @@ public class StoreWebController {
     private final CourseService courseService;
     private final org.example.shop1.model.service.ImageRowBannerService imageRowBannerService;
     private final org.example.shop1.model.service.ProductRedirectService productRedirectService;
+    private final org.example.shop1.model.service.LegacyRedirectService legacyRedirectService;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
     @org.springframework.beans.factory.annotation.Value("${analytics.ga4.measurement-id:}")
@@ -47,7 +48,8 @@ public class StoreWebController {
                               BannerService bannerService, EducationArchiveService educationArchiveService,
                               CourseService courseService,
                               org.example.shop1.model.service.ImageRowBannerService imageRowBannerService,
-                              org.example.shop1.model.service.ProductRedirectService productRedirectService) {
+                              org.example.shop1.model.service.ProductRedirectService productRedirectService,
+                              org.example.shop1.model.service.LegacyRedirectService legacyRedirectService) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.categoryService = categoryService;
@@ -57,6 +59,7 @@ public class StoreWebController {
         this.courseService = courseService;
         this.imageRowBannerService = imageRowBannerService;
         this.productRedirectService = productRedirectService;
+        this.legacyRedirectService = legacyRedirectService;
     }
 
     // ================= صفحه‌ی داده نما (ریشه‌ی سایت) =================
@@ -188,6 +191,35 @@ public class StoreWebController {
      * ⚠️ فقط بعد از شکستِ {@code resolveProduct} صدا زده می‌شود — یعنی محصولِ زنده همیشه
      * مقدم است و یک ریدایرکتِ اشتباه نمی‌تواند صفحهٔ سالمی را بدزدد.
      */
+    /**
+     * اسلاگِ قدیمیِ مقاله — اگر در {@code legacy_redirects} مقصدی داشته باشد، ۳۰۱؛
+     * وگرنه {@code null} تا فراخوان ۴۰۴ واقعی بدهد.
+     * <p>
+     * 🔴 <b>چرا اینجا و نه در {@code LegacyRedirectFilter}:</b> آن فیلتر پیش از
+     * مسیریابیِ اسپرینگ اجرا می‌شود و نمی‌داند مقالهٔ زنده‌ای با این اسلاگ هست یا نه.
+     * اینجا می‌دانیم که نیست، چون تازه شکست خورده‌ایم. برای همین
+     * {@code isLateResolved} این مسیرها را از آن فیلتر کنار می‌گذارد و تنها راهِ
+     * اعمالشان همین‌جاست.
+     * <p>
+     * ⚠️ {@code Location} با {@code toLocationHeader} ساخته می‌شود، نه با مسیرِ خام:
+     * اسلاگ‌ها فارسی‌اند و هدرِ HTTP نویسهٔ غیرِ لاتین-۱ نمی‌پذیرد — تامکت هدر را
+     * بی‌صدا حذف می‌کند و نتیجه ۳۰۱ِ بدونِ مقصد می‌شود.
+     */
+    private Object articleRedirectOrNull(String slugOrId) {
+        Optional<org.example.shop1.model.entity.LegacyRedirect> hit =
+                legacyRedirectService.resolve("/blog/" + slugOrId);
+        if (hit.isEmpty()) return null;
+
+        String location = org.example.shop1.model.service.LegacyRedirectService
+                .toLocationHeader(hit.get().getToPath());
+        legacyRedirectService.countHit(hit.get().getFromPath());
+
+        org.springframework.web.servlet.view.RedirectView rv =
+                new org.springframework.web.servlet.view.RedirectView(location);
+        rv.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+        return rv;
+    }
+
     private Object redirectOrNull(String slug, HttpServletRequest request) {
         Optional<Product> target = productRedirectService.resolveTarget(slug);
         if (target.isEmpty()) return null;
@@ -484,11 +516,19 @@ public class StoreWebController {
     }
 
     @GetMapping("/blog/{slugOrId}")
-    public String articlePage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
+    public Object articlePage(@PathVariable String slugOrId, Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
 
-        Article a = articleService.getPublishedBySlugOrId(slugOrId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "مقاله یافت نشد"));
+        Optional<Article> found = articleService.getPublishedBySlugOrId(slugOrId);
+        if (found.isEmpty()) {
+            // ⚠️ فقط بعد از شکستِ جست‌وجو — یعنی مقالهٔ زنده همیشه مقدم است و یک
+            // ریدایرکتِ کهنه نمی‌تواند صفحهٔ سالمی را بدزدد. همان قاعده‌ای که
+            // redirectOrNull برای محصول دارد.
+            Object moved = articleRedirectOrNull(slugOrId);
+            if (moved != null) return moved;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "مقاله یافت نشد");
+        }
+        Article a = found.get();
 
         String baseUrl = buildBaseUrl(request);
         String slug = (a.getSlug() != null && !a.getSlug().isEmpty()) ? a.getSlug() : a.getId();

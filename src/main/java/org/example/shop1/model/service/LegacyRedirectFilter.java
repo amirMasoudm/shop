@@ -51,7 +51,11 @@ public class LegacyRedirectFilter extends OncePerRequestFilter {
         if (shouldTry(request)) {
             try {
                 String key = LegacyRedirectService.normalize(request.getRequestURI());
-                if (service.mightRedirect(key)) {
+                // 🔴 مسیرهای دیرحل عمداً اینجا رد می‌شوند. این فیلتر پیش از مسیریابیِ
+                // اسپرینگ اجرا می‌شود و نمی‌داند مقالهٔ زنده‌ای با این اسلاگ هست یا نه؛
+                // اگر اینجا ۳۰۱ می‌داد، یک ریدایرکتِ کهنه می‌توانست مقالهٔ سالم را بدزدد.
+                // کنترلرِ مقاله همین رکورد را بعد از شکستِ جست‌وجو اعمال می‌کند.
+                if (service.mightRedirect(key) && !LegacyRedirectService.isLateResolved(key)) {
                     Optional<LegacyRedirect> hit = service.resolve(key);
                     if (hit.isPresent()) {
                         send301(response, hit.get());

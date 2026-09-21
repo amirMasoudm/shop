@@ -138,25 +138,48 @@ class LegacyRedirectChainTest {
     }
 
     /**
-     * 🔴 <b>قفلی که تسکِ ریدایرکتِ اسلاگِ مقاله به آن خورد.</b>
+     * 🔴 <b>استثنای «دیرحل» — این تست عمداً عوض شد.</b>
      * <p>
-     * {@code /blog} جزو پیشوندهای رزرو است، پس هیچ مسیرِ {@code /blog/…} نمی‌تواند
-     * <b>مبدأِ</b> ریدایرکت شود. علتش عمدی است: {@code LegacyRedirectFilter} پیش از
-     * مسیریابیِ اسپرینگ اجرا می‌شود، پس یک ریدایرکتِ {@code /blog/x} می‌توانست مقالهٔ
-     * زندهٔ همان اسلاگ را بدزدد.
+     * پیش از این، {@code /blog} جزو پیشوندهای رزرو بود و هیچ مسیرِ {@code /blog/…}
+     * نمی‌توانست مبدأِ ریدایرکت شود. علتش این بود که {@code LegacyRedirectFilter}
+     * پیش از مسیریابیِ اسپرینگ اجرا می‌شود و یک رکوردِ کهنه می‌توانست مقالهٔ زندهٔ
+     * همان اسلاگ را بدزدد.
      * <p>
-     * این تست عمداً وضعِ <i>موجود</i> را تثبیت می‌کند، نه وضعِ مطلوب را. اگر روزی
-     * تصمیم گرفته شد مقاله هم مثلِ محصول ریدایرکتِ اسلاگ بگیرد، این تست باید
-     * آگاهانه عوض شود — نه اینکه بی‌صدا رد شود.
+     * حالا همان نگهبان به شکلِ دقیق‌تری برقرار است: فیلتر عمداً به این مسیرها دست
+     * نمی‌زند و ریدایرکت فقط در کنترلر و فقط <b>بعد از شکستِ</b> پیداکردنِ مقاله
+     * اعمال می‌شود. پس مقالهٔ زنده همچنان مقدم است، ولی اسلاگِ مرده می‌تواند ۳۰۱ بدهد.
      */
     @Test
-    void مسیرِ_بلاگ_فعلاً_مبدأِ_ریدایرکت_نمی‌شود() {
-        assertTrue(LegacyRedirectService.isReservedPath("/blog/هر-اسلاگی"));
+    void زیرمسیرِ_بلاگ_مبدأ_می‌شود_ولی_خودِ_بلاگ_و_هاب_نه() {
+        assertFalse(LegacyRedirectService.isReservedPath("/blog/یک-اسلاگ"),
+                "اسلاگِ مقاله باید بتواند مبدأ باشد");
+        assertTrue(LegacyRedirectService.isLateResolved("/blog/یک-اسلاگ"));
+
+        // خودِ فهرستِ بلاگ و مسیرِ هاب هندلرِ فروافتادن ندارند، پس همچنان رزرو می‌مانند
+        assertTrue(LegacyRedirectService.isReservedPath("/blog"));
+        assertTrue(LegacyRedirectService.isReservedPath("/blog/hub/میکروتیک"));
+        assertFalse(LegacyRedirectService.isLateResolved("/blog/hub/میکروتیک"));
 
         Map<String, Object> out = service.addOneFlattened(
                 "/blog/اسلاگ-قدیم", "/blog/اسلاگ-تازه", null, TARGET_EXISTS);
 
-        assertEquals(0, (int) out.get("created") + (int) out.get("updated"));
-        assertTrue(store.isEmpty());
+        assertEquals(1, (int) out.get("created") + (int) out.get("updated"));
+        assertEquals("/blog/اسلاگ-تازه", targetOf("/blog/اسلاگ-قدیم"));
+    }
+
+    /**
+     * سناریویِ واقعیِ تلهٔ سوم: یکی از ریدایرکت‌های وردپرسی مقصدش مقاله‌ای است که
+     * اسلاگش عوض می‌شود. بعد از تغییر باید <b>مستقیم</b> به اسلاگِ تازه برسد، نه با
+     * دو پرش.
+     */
+    @Test
+    void ریدایرکتِ_وردپرسی_بعد_از_تغییرِ_اسلاگِ_مقصد_مستقیم_می‌شود() {
+        seed("/عیبیابی-میکروتیک-به-روش-متخصصان", "/blog/عیبیابی-میکروتیک");
+
+        Map<String, Object> out = service.addOneFlattened(
+                "/blog/عیبیابی-میکروتیک", "/blog/عیب-یابی-میکروتیک", null, TARGET_EXISTS);
+
+        assertEquals(1, out.get("flattened"));
+        assertEquals("/blog/عیب-یابی-میکروتیک", targetOf("/عیبیابی-میکروتیک-به-روش-متخصصان"));
     }
 }

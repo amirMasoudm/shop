@@ -4031,9 +4031,69 @@
         } catch (e) { Swal.fire('خطا', 'آپلود تصویر شاخص ناموفق بود', 'error'); }
     }
 
+    /**
+     * آدرسِ مقاله عوض شد — همان کادرِ محصول، با متنِ یکسان.
+     *
+     * چرا تأیید و نه خودکار: مقالهٔ منتشرنشده اگر اسلاگش اصلاح شود، ریدایرکت فقط
+     * زباله می‌سازد. تصمیم با کسی است که می‌داند صفحه ایندکس شده یا نه.
+     */
+    async function offerArticleSlugRedirect(oldSlug, newSlug, title) {
+        const r = await Swal.fire({
+            title: 'آدرسِ مقاله عوض شد',
+            html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
+                     مقاله: <b>${escapeHTML(title || '')}</b><br>
+                     آدرسِ قبلی: <code style="direction:ltr; display:inline-block; max-width:100%; word-break:break-all;">/blog/${escapeHTML(oldSlug)}</code><br>
+                     آدرسِ جدید: <code style="direction:ltr; display:inline-block; max-width:100%; word-break:break-all;">/blog/${escapeHTML(newSlug)}</code><br><br>
+                     آدرسِ قبلی از الان <b>۴۰۴</b> می‌دهد. ریدایرکتِ ۳۰۱ به آدرسِ جدید ثبت شود؟
+                     <span style="display:block; color:#6b7280; font-size:.82rem;">
+                       اگر این مقاله قبلاً منتشر/ایندکس شده بود، «بله» را بزنید.
+                     </span>
+                   </div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'بله، ریدایرکت ثبت کن',
+            cancelButtonText: 'نه، لازم نیست',
+            confirmButtonColor: '#1b4f8a'
+        });
+        if (!r.isConfirmed) return;
+
+        try {
+            // ⚠️ اسلاگ دیکدشده فرستاده می‌شود، نه درصد-کدشده: سرور خودش fromPath را
+            // نرمال می‌کند و مقصد را برای پیداکردنِ مقاله خام می‌خواند.
+            const res = await axios.post(`${API}/v1/legacy-redirects`, {
+                fromPath: `/blog/${oldSlug}`,
+                toPath: `/blog/${newSlug}`,
+                note: `تغییرِ اسلاگِ «${title || ''}» از پنل`
+            });
+            const flattened = (res.data && res.data.flattened) || 0;
+            Swal.fire({
+                icon: 'success',
+                title: 'ریدایرکت ثبت شد',
+                text: flattened > 0
+                        ? `${flattened} ریدایرکتِ قدیمی هم مستقیم به آدرسِ تازه وصل شد.`
+                        : '',
+                timer: flattened > 0 ? 2600 : 1400,
+                showConfirmButton: false
+            });
+        } catch (e) {
+            const msg = (e.response && e.response.data && (e.response.data.message || e.response.data))
+                    || 'ثبتِ ریدایرکت ناموفق بود';
+            // ⚠️ مقاله از قبل ذخیره شده؛ این فقط هشدار است نه شکستِ ذخیره. نبودنِ
+            // دسترسی به /api/v1/legacy-redirects (۴۰۳) هم دقیقاً همین‌جا و به همین
+            // شکلِ بی‌خطر فرود می‌آید — مقاله سالم ذخیره مانده.
+            Swal.fire('ریدایرکت ثبت نشد', String(msg) + ' — آدرسِ قبلی ۴۰۴ می‌دهد.', 'error');
+        }
+    }
+
     function saveArticle() {
         const title = document.getElementById('a-title').value.trim();
         if (!title) { Swal.fire('خطا', 'عنوان مقاله را وارد کنید', 'error'); return; }
+
+        // اسلاگِ پیش از ذخیره. فقط روی ویرایش معنی دارد — مقالهٔ تازه اسلاگِ قبلی ندارد.
+        const editingId = document.getElementById('a-id').value || null;
+        const oldSlug = editingId
+                ? ((state.articles || []).find(x => x.id === editingId) || {}).slug || null
+                : null;
 
         const data = {
             id: document.getElementById('a-id').value || null,
@@ -4049,7 +4109,22 @@
         };
 
         axios.post(`${API}/v1/articles/admin`, data)
-            .then(() => { closeModal('articleModal'); fetchArticles(); Swal.fire({icon:'success', title:'ذخیره شد', timer:1200, showConfirmButton:false}); })
+            .then(async res => {
+                closeModal('articleModal');
+                fetchArticles();
+
+                // 🔴 اسلاگِ تازه از پاسخِ سرور خوانده می‌شود، نه از فیلدِ فرم:
+                // ArticleService.save آن را از generateUniqueSlug رد می‌کند و ممکن
+                // است چیزِ دیگری برگرداند (یکتاسازی یا slugify). با خواندن از فرم،
+                // ریدایرکت به آدرسی می‌رفت که اصلاً وجود ندارد.
+                const newSlug = res && res.data ? res.data.slug : null;
+
+                if (oldSlug && newSlug && oldSlug !== newSlug) {
+                    await offerArticleSlugRedirect(oldSlug, newSlug, title);
+                } else {
+                    Swal.fire({icon:'success', title:'ذخیره شد', timer:1200, showConfirmButton:false});
+                }
+            })
             .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'ذخیره مقاله ناموفق بود', 'error'));
     }
 

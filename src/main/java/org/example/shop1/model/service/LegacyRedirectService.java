@@ -98,10 +98,34 @@ public class LegacyRedirectService {
     public static boolean isReservedPath(String normalizedPath) {
         if (normalizedPath == null || normalizedPath.equals("/")) return true;
         if (normalizedPath.endsWith(".html")) return true;
+        // مسیرهایی که دیرهنگام حل می‌شوند، با اینکه زیرِ یک پیشوندِ رزروند، مبدأ
+        // شدنشان بی‌خطر است — نگاه کن به isLateResolved
+        if (isLateResolved(normalizedPath)) return false;
         for (String prefix : RESERVED_PREFIXES) {
             if (normalizedPath.equals(prefix) || normalizedPath.startsWith(prefix + "/")) return true;
         }
         return false;
+    }
+
+    /**
+     * مسیرهایی که ریدایرکتشان <b>بعد از</b> شکستِ صفحهٔ زنده حل می‌شود، نه پیش از
+     * مسیریابی.
+     * <p>
+     * 🔴 <b>چرا این استثنا بی‌خطر است:</b> نگهبانِ {@link #isReservedPath} برایِ این
+     * بود که {@code LegacyRedirectFilter} — که پیش از مسیریابیِ اسپرینگ اجرا می‌شود —
+     * نتواند صفحهٔ زنده را بدزدد. برایِ این مسیرها آن ریسک وجود ندارد، چون
+     * {@code LegacyRedirectFilter} عمداً به آن‌ها دست نمی‌زند و ریدایرکت فقط در
+     * کنترلر و فقط وقتی مقالهٔ زنده پیدا نشد اعمال می‌شود. همان الگویی که
+     * {@code ProductRedirectService} از اول داشت: «صفحهٔ زنده همیشه مقدم است».
+     * <p>
+     * ⚠️ فقط یک لایه: {@code /blog/{slug}} بله، {@code /blog/hub/…} نه. مسیرِ هاب
+     * هندلرِ جداگانه‌ای دارد که این فروافتادن را صدا نمی‌زند، پس رکوردی با آن مبدأ
+     * هیچ‌وقت اعمال نمی‌شد و فقط ردیفِ مرده می‌ساخت.
+     */
+    public static boolean isLateResolved(String normalizedPath) {
+        if (normalizedPath == null || !normalizedPath.startsWith("/blog/")) return false;
+        String rest = normalizedPath.substring("/blog/".length());
+        return !rest.isEmpty() && !rest.contains("/");
     }
 
     private static final List<String> RESERVED_PREFIXES = List.of(
