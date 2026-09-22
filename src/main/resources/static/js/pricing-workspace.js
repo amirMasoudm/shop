@@ -466,7 +466,10 @@
                 <td class="p-2 ${r.weOwnBuyBox ? 'pw-ours' : ''}">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
-                        ${pricingCanEdit ? `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="${TOROB_RULE}">🔍 ترب</button>` : ''}
+                        ${pricingCanEdit ? (r.torobUrl
+                            ? `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-300 rounded px-1.5 py-1 shrink-0" title="${TOROB_LINKED}">🔍 ترب</button>
+                               <button onclick="editTorobLink('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1 py-1 shrink-0" title="تغییرِ آدرس یا متنِ جست‌وجو">✎</button>`
+                            : `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="${TOROB_RULE}">🔍 ترب</button>`) : ''}
                     </div>
                     ${r.weOwnBuyBox ? `<div class="pw-ours-tag mt-0.5" title="فروشندهٔ باکسِ خرید در دیجی‌کالا: ${escapeHTML(r.digikalaSellerTitle || '')}">★ باکسِ خرید دستِ خودمان است</div>` : ''}
                 </td>
@@ -648,6 +651,10 @@
     /** ستون‌هایِ تومانی — این‌ها جداکنندهٔ هزارگان می‌گیرند، «مرجع $» نه. */
     const TOMAN_FIELDS = new Set(['onlinePrice', 'partnerUnitPrice', 'partnerBulkPrice',
                                   'torobFloorPrice', 'digikalaFloorPrice']);
+
+    const TOROB_LINKED = 'آدرسِ صفحهٔ این محصول در ترب ذخیره شده — مستقیم باز می‌شود. '
+        + '⚠️ عددِ بزرگِ بالایِ صفحه کف نیست؛ کف، اولین ردیفِ فهرستِ فروشگاه‌هاست. '
+        + 'همان ردیف را کپی کن و همین‌جا Ctrl+V بزن.';
 
     const TOROB_RULE = 'یک‌راست صفحهٔ همین محصول در ترب باز می‌شود (نتیجهٔ اولِ جست‌وجو). '
         + '⚠️ عددِ بزرگِ بالایِ آن صفحه کف نیست؛ کف، اولین ردیفِ فهرستِ فروشگاه‌هایِ '
@@ -1045,32 +1052,48 @@
     async function openTorobSearch(id) {
         const row = pricingRows.find(r => r.id === id);
         if (!row) return;
-        const saved = row.torobQuery || '';
+        // 🔴 اگر آدرسِ خودِ صفحه را داریم، هیچ موتورِ جست‌وجویی لازم نیست —
+        // یک‌هاپ، بی‌ابهام، و بی‌وابستگی به رتبه‌بندیِ کسی.
+        if (row.torobUrl) { window.open(row.torobUrl, '_blank', 'noopener'); return; }
+        return editTorobLink(id);
+    }
+
+    /**
+     * تعیینِ «این محصول در ترب کجاست».
+     * <p>
+     * یک فیلد، دو معنی: آدرس بدهی ذخیره می‌شود و از آن به بعد مستقیم باز
+     * می‌شود؛ متن بدهی، متنِ جست‌وجو ذخیره می‌شود. خالی یعنی «هر دو پاک، و
+     * از عنوانِ محصول بساز».
+     */
+    async function editTorobLink(id) {
+        const row = pricingRows.find(r => r.id === id);
+        if (!row) return;
+        const saved = row.torobUrl || row.torobQuery || '';
         const res = await Swal.fire({
             title: 'یافتنِ صفحهٔ ترب',
             input: 'text',
             inputValue: saved || row.name || '',
-            inputLabel: saved
-                ? 'متن جست‌وجو (ذخیره‌شده — خالی‌اش کنی، دوباره از عنوان ساخته می‌شود)'
-                : 'متن جست‌وجو (معمولاً فقط مدل بهتر جواب می‌دهد؛ ذخیره می‌شود)',
+            inputLabel: 'آدرسِ صفحهٔ ترب، یا متنِ جست‌وجو',
             html: '<div style="font-size:12px;text-align:right;color:#666;line-height:2">'
-                + '<b>یک‌راست صفحهٔ همین محصول در ترب</b> باز می‌شود (نتیجهٔ اولِ جست‌وجو).<br>'
-                + 'برو پایینِ مشخصات، <b>اولین ردیفِ فهرستِ فروشگاه‌ها</b> را کپی کن '
-                + 'و همین‌جا در خانهٔ «کف ترب» Ctrl+V بزن.<br>'
-                + '⚠️ عددِ بزرگِ بالای صفحه کف نیست.</div>',
+                + '<b>آدرسِ صفحهٔ ترب</b> را بچسبانی، ذخیره می‌شود و از این به بعد '
+                + 'دکمه <b>مستقیم</b> همان صفحه را باز می‌کند.<br>'
+                + 'متن بنویسی، به‌جایش جست‌وجو می‌شود. خالی بگذاری، از عنوانِ محصول ساخته می‌شود.<br>'
+                + '⚠️ در آن صفحه، عددِ بزرگِ بالا کف نیست؛ کف <b>اولین ردیفِ فهرستِ فروشگاه‌ها</b>ست.</div>',
             showCancelButton: true, confirmButtonText: 'باز کن', cancelButtonText: 'انصراف'
         });
         if (!res.isConfirmed) return;
 
         const typed = String(res.value == null ? '' : res.value).trim();
-        // خالی → از عنوان ساخته شود
+        const isUrl = /^https?:\/\//i.test(typed);
+
+        // ذخیره بی‌سروصداست: این تنظیم است نه قیمت، پس کاربر نباید برایش
+        // «ذخیره تغییرات» بزند. خالی هر دو را پاک می‌کند.
+        await saveTorobTarget(row, isUrl ? typed : null, isUrl ? null : (typed || null));
+
+        if (isUrl) { window.open(typed, '_blank', 'noopener'); return; }
+
         const query = typed || (row.name || '').trim();
         if (!query) return;
-
-        // فقط وقتی عوض شده ذخیره کن، و بی‌سروصدا — این یک تنظیم است نه قیمت،
-        // پس کاربر نباید برایش «ذخیره تغییرات» بزند.
-        if (typed !== saved) saveTorobQuery(row, typed);
-
         try {
             const u = await axios.get(`${API}/v1/pricing/marketplace/search-url`,
                 {params: {market: 'torob', query}});
@@ -1080,15 +1103,23 @@
         }
     }
 
-    /** ذخیرهٔ بی‌سروصدای متنِ جست‌وجو؛ خالی = پاک‌کردن (برگشت به ساختِ خودکار). */
-    async function saveTorobQuery(row, typed) {
+    /**
+     * ذخیرهٔ «این محصول در ترب کجاست»: آدرس، یا متنِ جست‌وجو، یا هیچ‌کدام.
+     * ⚠️ هر دو با هم نوشته می‌شوند تا هیچ‌وقت آدرسِ کهنه و متنِ تازه کنارِ هم
+     * نمانند و معلوم نباشد کدام برنده است.
+     */
+    async function saveTorobTarget(row, url, query) {
+        if ((row.torobUrl || null) === url && (row.torobQuery || null) === query) return;
         try {
-            await axios.post(`${API}/v1/pricing/batch`,
-                [{id: row.id, field: 'torobQuery', value: typed || null}]);
-            row.torobQuery = typed || null;   // نمایِ محلی هم تازه بماند
+            await axios.post(`${API}/v1/pricing/batch`, [
+                {id: row.id, field: 'torobUrl', value: url},
+                {id: row.id, field: 'torobQuery', value: query}
+            ]);
+            row.torobUrl = url;
+            row.torobQuery = query;
+            renderPricingRows();   // دکمه باید سبز/خاکستری شود
         } catch (err) {
-            // ذخیره‌نشدنِ متنِ جست‌وجو نباید جلوی بازشدنِ صفحه را بگیرد
-            console.warn('ذخیرهٔ متنِ جست‌وجوی ترب ناموفق بود', err);
+            console.warn('ذخیرهٔ مقصدِ ترب ناموفق بود', err);
         }
     }
 
@@ -1405,7 +1436,7 @@
     findDigikala, refreshDigikala, openTorobSearch, refreshAllDigikala,
     daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace,
     addProductFromPricing, completeProductCard, applyPricingPercent,
-    togglePricingExclude, syncMikrotikPrices, onPricePaste
+    togglePricingExclude, syncMikrotikPrices, onPricePaste, editTorobLink
   });
   // میزبان (Admin.html) بعد از تشخیصِ نقش این را ست می‌کند
   Object.defineProperty(window, 'pricingCanEdit', {
