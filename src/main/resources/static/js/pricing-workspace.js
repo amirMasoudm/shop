@@ -21,7 +21,8 @@
                     همه مبالغ به <b>تومان</b> است. برای ویرایش روی خانه کلیک کنید؛ تغییرات با «ذخیره تغییرات» یکجا ثبت می‌شود.
                 </p>
                 <p class="text-[11px] text-gray-500 mt-1 leading-5">
-                    <b>کفِ ترب چیست:</b> دکمهٔ «ترب» یک‌راست صفحهٔ همان محصول در ترب را باز می‌کند.
+                    <b>کفِ ترب چیست:</b> دکمهٔ «ترب» جست‌وجویِ خودِ ترب را باز می‌کند؛ محصول را که
+                    پیدا کردید، با «✎» آدرسِ همان صفحه را ذخیره کنید تا دفعهٔ بعد یک‌راست برود.
                     آن عددِ بزرگِ بالایِ صفحه (کنارِ مشخصاتِ محصول) کفِ ما نیست.
                     کفِ ترب <b>اولین ردیف از فهرستِ فروشگاه‌هاست که پایینِ همان مشخصات می‌آید</b>.
                     همان ردیف را کپی کنید و در خانهٔ «کف ترب» <b>Ctrl+V</b> بزنید؛ لازم نیست عدد را
@@ -466,10 +467,9 @@
                 <td class="p-2 ${r.weOwnBuyBox ? 'pw-ours' : ''}">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
-                        ${pricingCanEdit ? (r.torobUrl
-                            ? `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-300 rounded px-1.5 py-1 shrink-0" title="${TOROB_LINKED}">🔍 ترب</button>
-                               <button onclick="editTorobLink('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1 py-1 shrink-0" title="تغییرِ آدرس یا متنِ جست‌وجو">✎</button>`
-                            : `<button onclick="openTorobSearch('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="${TOROB_RULE}">🔍 ترب</button>`) : ''}
+                        ${pricingCanEdit ? `
+                            <button onclick="openTorobSearch('${r.id}')" class="text-[10px] ${r.torobUrl ? 'bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white' : 'bg-gray-100 hover:bg-indigo-600 hover:text-white'} border rounded px-1.5 py-1 shrink-0" title="${r.torobUrl ? TOROB_LINKED : TOROB_RULE}">🔍 ترب</button>
+                            <button onclick="editTorobLink('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1 py-1 shrink-0" title="${TOROB_EDIT}">✎</button>` : ''}
                     </div>
                     ${r.weOwnBuyBox ? `<div class="pw-ours-tag mt-0.5" title="فروشندهٔ باکسِ خرید در دیجی‌کالا: ${escapeHTML(r.digikalaSellerTitle || '')}">★ باکسِ خرید دستِ خودمان است</div>` : ''}
                 </td>
@@ -652,12 +652,16 @@
     const TOMAN_FIELDS = new Set(['onlinePrice', 'partnerUnitPrice', 'partnerBulkPrice',
                                   'torobFloorPrice', 'digikalaFloorPrice']);
 
-    const TOROB_LINKED = 'آدرسِ صفحهٔ این محصول در ترب ذخیره شده — مستقیم باز می‌شود. '
+    const TOROB_LINKED = 'آدرسِ صفحهٔ این محصول ذخیره شده — مستقیم باز می‌شود، بدونِ جست‌وجو. '
         + '⚠️ عددِ بزرگِ بالایِ صفحه کف نیست؛ کف، اولین ردیفِ فهرستِ فروشگاه‌هاست. '
         + 'همان ردیف را کپی کن و همین‌جا Ctrl+V بزن.';
 
-    const TOROB_RULE = 'یک‌راست صفحهٔ همین محصول در ترب باز می‌شود (نتیجهٔ اولِ جست‌وجو). '
-        + '⚠️ عددِ بزرگِ بالایِ آن صفحه کف نیست؛ کف، اولین ردیفِ فهرستِ فروشگاه‌هایِ '
+    const TOROB_EDIT = 'آدرسِ صفحهٔ این محصول در ترب را بگذار (اولویت با آدرس است)، '
+        + 'یا متنِ جست‌وجو را عوض کن. خالی = برگرد به عنوانِ محصول.';
+
+    const TOROB_RULE = 'جست‌وجوی خودِ ترب باز می‌شود. اگر کپچا خواست، یک‌بار حلش کن. '
+        + 'محصولِ درست را که پیدا کردی، آدرسش را با «✎» ذخیره کن تا دفعهٔ بعد مستقیم برود. '
+        + '⚠️ عددِ بزرگِ بالایِ صفحهٔ محصول کف نیست؛ کف، اولین ردیفِ فهرستِ فروشگاه‌هایِ '
         + 'پایینِ مشخصات است. همان ردیف را کپی کن و همین‌جا Ctrl+V بزن — عدد خودش درمی‌آید.';
 
     /** ارقامِ فارسی/عربی → لاتین، تا ورودیِ کیبوردِ فارسی هم عدد حساب شود. */
@@ -1038,24 +1042,42 @@
         return `بررسی: ${d} روز پیش`;
     }
 
-    /** ترب — فقط صفحه را با کوئریِ آماده باز می‌کند. */
     /**
-     * جست‌وجوی ترب برای یک ردیف.
+     * دکمهٔ ترب — <b>یک کلیک، یک مقصد</b>. هیچ دیالوگی وسط نمی‌آید.
      * <p>
-     * ⚠️ متنِ جست‌وجو ذخیره می‌شود (Product.torobQuery) چون نامِ کاملِ محصول
-     * برای جست‌وجو بد است — خریدار مدل را خلاصه می‌زند. کارشناس یک بار
-     * عبارتِ درست را می‌نویسد و دفعهٔ بعد همان می‌آید.
-     * <p>
-     * ⚠️ خالی‌کردنِ فیلد یعنی «برگرد به ساختِ خودکار از عنوان»، نه
-     * «جست‌وجوی خالی» — برای همین با isConfirmed کار می‌کنیم نه با خودِ مقدار.
+     * اولویت، به ترتیب:
+     * <ol>
+     *   <li>آدرسِ ذخیره‌شدهٔ صفحهٔ محصول ({@code torobUrl}) — مستقیم باز می‌شود.</li>
+     *   <li>وگرنه جست‌وجویِ <b>خودِ ترب</b> با متنِ ذخیره‌شده ({@code torobQuery}).</li>
+     *   <li>وگرنه همان متن از عنوانِ محصول ساخته می‌شود.</li>
+     * </ol>
+     * ⚠️ تنظیم‌کردن کارِ «✎» است، نه این دکمه. قبلاً اگر آدرسی نبود این دکمه
+     * دیالوگ باز می‌کرد؛ یعنی کارشناس برای یک کارِ روزمره هر بار دو مرحله
+     * می‌رفت. حالا دکمه فقط می‌برد.
      */
     async function openTorobSearch(id) {
         const row = pricingRows.find(r => r.id === id);
         if (!row) return;
-        // 🔴 اگر آدرسِ خودِ صفحه را داریم، هیچ موتورِ جست‌وجویی لازم نیست —
-        // یک‌هاپ، بی‌ابهام، و بی‌وابستگی به رتبه‌بندیِ کسی.
+        // 🔴 آدرس داریم؟ هیچ جست‌وجویی لازم نیست — یک‌هاپ و بی‌ابهام.
         if (row.torobUrl) { window.open(row.torobUrl, '_blank', 'noopener'); return; }
-        return editTorobLink(id);
+        return openTorobQuery(row, (row.torobQuery || row.name || '').trim());
+    }
+
+    /**
+     * بازکردنِ جست‌وجویِ ترب با یک متن.
+     * <p>
+     * آدرس را سرور می‌سازد (TorobPriceProvider) تا قاعده یک‌جا باشد و با عوض
+     * شدنِ فرمتِ ترب، فقط یک فایل تغییر کند.
+     */
+    async function openTorobQuery(row, query) {
+        if (!query) return;
+        try {
+            const u = await axios.get(`${API}/v1/pricing/marketplace/search-url`,
+                {params: {market: 'torob', query}});
+            window.open(u.data.url, '_blank', 'noopener');
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'ساخت آدرس ناموفق بود'), 'error');
+        }
     }
 
     /**
@@ -1075,9 +1097,9 @@
             inputValue: saved || row.name || '',
             inputLabel: 'آدرسِ صفحهٔ ترب، یا متنِ جست‌وجو',
             html: '<div style="font-size:12px;text-align:right;color:#666;line-height:2">'
-                + '<b>آدرسِ صفحهٔ ترب</b> را بچسبانی، ذخیره می‌شود و از این به بعد '
-                + 'دکمه <b>مستقیم</b> همان صفحه را باز می‌کند.<br>'
-                + 'متن بنویسی، به‌جایش جست‌وجو می‌شود. خالی بگذاری، از عنوانِ محصول ساخته می‌شود.<br>'
+                + '<b>آدرسِ صفحهٔ محصول در ترب</b> را بچسبانی، ذخیره می‌شود و از این به بعد '
+                + 'دکمه <b>مستقیم</b> همان را باز می‌کند — <b>اولویت با آدرس است</b>.<br>'
+                + 'متن بنویسی، در <b>خودِ ترب</b> جست‌وجو می‌شود. خالی بگذاری، از عنوانِ محصول ساخته می‌شود.<br>'
                 + '⚠️ در آن صفحه، عددِ بزرگِ بالا کف نیست؛ کف <b>اولین ردیفِ فهرستِ فروشگاه‌ها</b>ست.</div>',
             showCancelButton: true, confirmButtonText: 'باز کن', cancelButtonText: 'انصراف'
         });
@@ -1091,16 +1113,7 @@
         await saveTorobTarget(row, isUrl ? typed : null, isUrl ? null : (typed || null));
 
         if (isUrl) { window.open(typed, '_blank', 'noopener'); return; }
-
-        const query = typed || (row.name || '').trim();
-        if (!query) return;
-        try {
-            const u = await axios.get(`${API}/v1/pricing/marketplace/search-url`,
-                {params: {market: 'torob', query}});
-            window.open(u.data.url, '_blank', 'noopener');
-        } catch (err) {
-            Swal.fire('خطا', serverError(err, 'ساخت آدرس ناموفق بود'), 'error');
-        }
+        return openTorobQuery(row, typed || (row.name || '').trim());
     }
 
     /**
