@@ -1,0 +1,175 @@
+package org.example.shop1.model.service;
+
+import jakarta.servlet.RequestDispatcher;
+import org.example.shop1.model.entity.Article;
+import org.example.shop1.model.entity.LegacyRedirect;
+import org.example.shop1.model.entity.Product;
+import org.example.shop1.model.reposritory.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+/**
+ * نگهبانِ فالبکِ ۴۰۴.
+ * <p>
+ * این فالبک روی هر درخواستی که به ۴۰۴ می‌رسد اجرا می‌شود، پس دو خطا اینجا گران است:
+ * <b>کم‌گرفتن</b> یعنی صدها آدرسِ ایندکس‌شده می‌افتند، و <b>زیاد‌گرفتن</b> یعنی آدرسِ
+ * بی‌معنا یا مسیرِ APIِ محافظت‌شده به جایی ریدایرکت می‌شود. تست‌ها هر دو طرف را
+ * می‌پوشانند.
+ */
+class LegacyPathFallbackTest {
+
+    private ArticleService articleService;
+    private ProductRepository productRepo;
+    private LegacyRedirectService legacyRedirects;
+    private LegacyPathFallback fallback;
+
+    @BeforeEach
+    void setUp() {
+        articleService = mock(ArticleService.class);
+        productRepo = mock(ProductRepository.class);
+        legacyRedirects = mock(LegacyRedirectService.class);
+
+        when(articleService.getPublishedBySlugOrId(anyString())).thenReturn(Optional.empty());
+        when(productRepo.findBySlug(anyString())).thenReturn(Optional.empty());
+        when(legacyRedirects.resolve(anyString())).thenReturn(Optional.empty());
+
+        // جدولِ مسیریابیِ ساختگی: فقط /shop و /blog هندلر دارند.
+        // ⚠️ PathPatternParser صریح لازم است: بدونِ آن RequestMappingInfo شرطِ الگو را
+        // به شکلِ قدیمیِ AntPath می‌سازد و getPathPatternsCondition نال برمی‌گرداند —
+        // درحالی‌که اپِ واقعی روی اسپرینگ‌بوت ۳ همین پارسر را دارد.
+        RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+        config.setPatternParser(new org.springframework.web.util.pattern.PathPatternParser());
+        RequestMappingHandlerMapping mapping = mock(RequestMappingHandlerMapping.class);
+        Map<RequestMappingInfo, org.springframework.web.method.HandlerMethod> handlers = new HashMap<>();
+        handlers.put(RequestMappingInfo.paths("/shop").methods(RequestMethod.GET).options(config).build(), null);
+        handlers.put(RequestMappingInfo.paths("/blog").methods(RequestMethod.GET).options(config).build(), null);
+        when(mapping.getHandlerMethods()).thenReturn(handlers);
+
+        ObjectProvider<RequestMappingHandlerMapping> provider = mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(mapping);
+
+        fallback = new LegacyPathFallback(articleService, productRepo, legacyRedirects, provider);
+    }
+
+    /** درخواستی که به ۴۰۴ رسیده — همان چیزی که کنترلرِ خطا می‌بیند. */
+    private MockHttpServletRequest notFound(String uri) {
+        MockHttpServletRequest r = new MockHttpServletRequest("GET", "/error");
+        r.setAttribute(RequestDispatcher.ERROR_REQUEST_URI, uri);
+        r.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, 404);
+        return r;
+    }
+
+    private void publishedArticle(String slug) {
+        Article a = new Article();
+        a.setSlug(slug);
+        when(articleService.getPublishedBySlugOrId(slug)).thenReturn(Optional.of(a));
+    }
+
+    private void redirect(String from, String to) {
+        LegacyRedirect r = new LegacyRedirect();
+        r.setFromPath(from);
+        r.setToPath(to);
+        when(legacyRedirects.resolve(from)).thenReturn(Optional.of(r));
+    }
+
+    // ── قاعدهٔ ۱ ──────────────────────────────────────────────────────────
+    @Test
+    void اسلشِ_پایانی_به_مسیرِ_واقعی_می‌رسد() {
+        assertEquals("/shop", fallback.resolve(notFound("/shop/")));
+        assertEquals("/blog", fallback.resolve(notFound("/blog/")));
+    }
+
+    // ── قاعدهٔ ۲ ──────────────────────────────────────────────────────────
+    @Test
+    void مسیرِ_تک‌بخشی_که_اسلاگِ_مقاله_است() {
+        publishedArticle("keyloggers");
+        assertEquals("/blog/keyloggers", fallback.resolve(notFound("/keyloggers/")));
+        assertEquals("/blog/keyloggers", fallback.resolve(notFound("/keyloggers")));
+    }
+
+    @Test
+    void اسلاگِ_فارسیِ_درصد_کدشده_هم_کار_می‌کند() {
+        publishedArticle("روش-کدگذاری-هافمن");
+        assertEquals("/blog/روش-کدگذاری-هافمن",
+                fallback.resolve(notFound("/%D8%B1%D9%88%D8%B4-%DA%A9%D8%AF%DA%AF%D8%B0%D8%A7%D8%B1%DB%8C-%D9%87%D8%A7%D9%81%D9%85%D9%86/")));
+    }
+
+    /**
+     * 🔴 مهم‌ترین تستِ این کلاس: اسلاگِ مقاله عوض شده، پس {@code /blog/{x}} خودش ۳۰۱
+     * می‌دهد. رفتن به آن یعنی دو پرش؛ باید یک‌راست به مقصدِ نهایی رفت.
+     */
+    @Test
+    void اسلاگِ_عوض‌شده_یک_پرش_تا_مقصدِ_نهایی() {
+        redirect("/blog/mtctce-06-97", "/blog/دوره-mtctce-شهریور-97");
+        assertEquals("/blog/دوره-mtctce-شهریور-97", fallback.resolve(notFound("/mtctce-06-97/")));
+    }
+
+    // ── قاعدهٔ ۳ ──────────────────────────────────────────────────────────
+    @Test
+    void مسیرِ_محصولِ_قدیمی_به_آدرسِ_هیبرید() {
+        Product p = new Product();
+        p.setId("p1");
+        p.setSlug("qrt-5");
+        // دُمِ فارسی مشتق است، نه فیلد: از persianSlug/name ساخته می‌شود
+        p.setPersianSlug("میکروتیک QRT 5");
+        when(productRepo.findBySlug("qrt-5")).thenReturn(Optional.of(p));
+
+        String target = fallback.resolve(notFound("/product/qrt-5/"));
+        assertNotNull(target);
+        assertTrue(target.startsWith("/shop/product/qrt-5/"), "باید آدرسِ هیبریدِ کامل باشد: " + target);
+    }
+
+    // ── گاردها ───────────────────────────────────────────────────────────
+    @Test
+    void مسیرِ_بی‌معنا_۴۰۴_می‌ماند() {
+        assertNull(fallback.resolve(notFound("/in-adres-vojud-nadarad/")));
+    }
+
+    @Test
+    void مسیرهای_ممنوع_دست‌نخورده_می‌مانند() {
+        publishedArticle("robots.txt");   // حتی اگر چنین مقاله‌ای بود هم نباید دست بخورد
+        assertNull(fallback.resolve(notFound("/api/v1/legacy-redirects")), "API");
+        assertNull(fallback.resolve(notFound("/l/abc123")), "لینکِ کوتاه");
+        assertNull(fallback.resolve(notFound("/robots.txt")), "robots");
+        assertNull(fallback.resolve(notFound("/sitemap.xml")), "نقشهٔ سایت");
+        assertNull(fallback.resolve(notFound("/Admin.html")), "پنل");
+        assertNull(fallback.resolve(notFound("/css/site-nav.css")), "استاتیک");
+        assertNull(fallback.resolve(notFound("/uploads/x.png")), "آپلودها");
+        assertNull(fallback.resolve(notFound("/")), "ریشه");
+    }
+
+    @Test
+    void فقط_خواندن_و_فقط_۴۰۴() {
+        publishedArticle("keyloggers");
+
+        MockHttpServletRequest post = new MockHttpServletRequest("POST", "/error");
+        post.setAttribute(RequestDispatcher.ERROR_REQUEST_URI, "/keyloggers/");
+        post.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, 404);
+        post.setAttribute("jakarta.servlet.error.method", "POST");
+        assertNull(fallback.resolve(post), "POST نباید به ۳۰۱ تبدیل شود");
+
+        MockHttpServletRequest err500 = notFound("/keyloggers/");
+        err500.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, 500);
+        assertNull(fallback.resolve(err500), "فقط ۴۰۴ فالبک می‌گیرد");
+    }
+
+    @Test
+    void حلقه_ساخته_نمی‌شود() {
+        // ریدایرکتی که به خودش برمی‌گردد نباید ۳۰۱ بسازد
+        redirect("/blog/x", "/x");
+        assertNull(fallback.resolve(notFound("/x/")), "مقصدی که با خودِ مسیر یکی است حلقه است");
+    }
+}
