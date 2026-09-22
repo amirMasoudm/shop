@@ -470,7 +470,7 @@
                         ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
                         ${pricingCanEdit ? `
                             <button onclick="openTorobSearch('${r.id}')" class="text-[10px] ${r.torobUrl ? 'bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white' : 'bg-gray-100 hover:bg-indigo-600 hover:text-white'} border rounded px-1.5 py-1 shrink-0" title="${r.torobUrl ? TOROB_LINKED : TOROB_RULE}">🔍 ترب</button>
-                            <button onclick="editTorobLink('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1 py-1 shrink-0" title="${TOROB_EDIT}">✎</button>` : ''}
+                            <button onclick="editTorobLink('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1 py-1 shrink-0" title="${r.torobUrl ? TOROB_EDIT : TOROB_SETLINK}">${r.torobUrl ? '✎' : '🔗'}</button>` : ''}
                     </div>
                     ${r.weOwnBuyBox ? `<div class="pw-ours-tag mt-0.5" title="فروشندهٔ باکسِ خرید در دیجی‌کالا: ${escapeHTML(r.digikalaSellerTitle || '')}">★ باکسِ خرید دستِ خودمان است</div>` : ''}
                 </td>
@@ -657,8 +657,15 @@
         + '⚠️ عددِ بزرگِ بالایِ صفحه کف نیست؛ کف، اولین ردیفِ فهرستِ فروشگاه‌هاست. '
         + 'همان ردیف را کپی کن و همین‌جا Ctrl+V بزن.';
 
-    const TOROB_EDIT = 'آدرسِ صفحهٔ این محصول در ترب را بگذار (اولویت با آدرس است)، '
-        + 'یا متنِ سرچِ گوگل را عوض کن. خالی = برگرد به «خرید + نامِ محصول».';
+    const TOROB_EDIT = 'آدرسِ ذخیره‌شده را عوض کن، یا متنِ سرچِ گوگل بگذار. '
+        + 'خالی = برگرد به «خرید + نامِ محصول».';
+
+    /**
+     * ⚠️ این دکمه وقتی لینکی ذخیره نشده 🔗 است نه ✎، چون «✎» به کارشناس
+     * نمی‌گوید اینجا می‌شود لینک گذاشت — و قابلیتی که دیده نشود، نیست.
+     */
+    const TOROB_SETLINK = 'لینکِ صفحهٔ این محصول در ترب را اینجا بگذار؛ '
+        + 'از آن به بعد دکمهٔ «ترب» یک‌راست همان را باز می‌کند و دیگر سرچ نمی‌شود.';
 
     const TOROB_RULE = 'سرچِ گوگل با متنِ «خرید …» باز می‌شود؛ از نتایج، ترب را باز کن. '
         + 'صفحهٔ درست را که پیدا کردی، آدرسش را با «✎» ذخیره کن تا دفعهٔ بعد مستقیم برود. '
