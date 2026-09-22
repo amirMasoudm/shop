@@ -164,6 +164,33 @@ public class Product {
      */
     private Boolean torobEnabled;
 
+    /**
+     * توقفِ تولید (دیسکانتینو) — اعلامِ کارشناس که این کالا دیگر عرضه نمی‌شود.
+     * <p>
+     * پیاده‌سازیِ چارچوبِ سئوی ناموجودی که پیش‌تر تصمیمش گرفته شد: قطعِ دائم
+     * <b>با</b> جایگزین → ۳۰۱ به جایگزین؛ قطعِ دائم <b>بی</b> جایگزین → صفحه می‌ماند.
+     * هیچ‌کدام ۴۰۴ نمی‌شود، چون صفحهٔ ایندکس‌شده سرمایهٔ محتوایی است.
+     * <p>
+     * {@code null} یعنی «در تولید» — محصولاتِ قدیمی این فیلد را ندارند. برای خواندن
+     * از {@link #isProductionStopped()} استفاده کن، نه از خودِ فیلد.
+     */
+    private Boolean discontinued;
+
+    /**
+     * شناسهٔ محصولِ جایگزین. فقط وقتی توقفِ تولید روشن است معنی دارد.
+     * <p>
+     * خودِ جایگزین ممکن است بعدها متوقف شود، پس ارجاع می‌تواند زنجیره شود. دنبال‌کردنش
+     * با سقفِ پرش در لحظهٔ درخواست انجام می‌شود، نه اینجا.
+     */
+    private String replacementProductId;
+
+    /**
+     * آیا توقفِ تولید — و انتقال به جایگزین — با یک پیامِ اضافه به بازدیدکننده گفته
+     * شود؟ تصمیمِ کارشناس است: گاهی گفتنش کمک می‌کند («این مدل جایگزینِ آن است»)،
+     * گاهی فقط حواس‌پرتی است. {@code null} یعنی خیر.
+     */
+    private Boolean discontinuedNoticeVisible;
+
     // کفِ قیمتِ رقبا (برای تصمیمِ قیمت‌گذاری) — هرگز عمومی نشود
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal torobFloorPrice;
@@ -243,6 +270,30 @@ public class Product {
     /** تنها جایِ تفسیرِ «نبودنِ فیلد = فعال» — هرجا لازم شد از همین‌جا بخوان. */
     public boolean isTorobVisible() {
         return torobEnabled == null || torobEnabled;
+    }
+
+    public Boolean getDiscontinued() { return discontinued; }
+    public void setDiscontinued(Boolean discontinued) { this.discontinued = discontinued; }
+
+    public String getReplacementProductId() { return replacementProductId; }
+    public void setReplacementProductId(String replacementProductId) { this.replacementProductId = replacementProductId; }
+
+    public Boolean getDiscontinuedNoticeVisible() { return discontinuedNoticeVisible; }
+    public void setDiscontinuedNoticeVisible(Boolean v) { this.discontinuedNoticeVisible = v; }
+
+    /**
+     * تنها جایِ تفسیرِ «نبودنِ فیلد = در تولید».
+     * <p>
+     * ⚠️ عمداً {@code isDiscontinued} نام نگرفت: کنارِ {@code getDiscontinued} هر دو به
+     * یک خاصیتِ JSON نگاشت می‌شدند و جکسون بر سرِ اینکه کدام را بنویسد می‌شکست.
+     */
+    public boolean isProductionStopped() {
+        return Boolean.TRUE.equals(discontinued);
+    }
+
+    /** پیام فقط وقتی معنی دارد که محصول واقعاً متوقف باشد. */
+    public boolean isDiscontinuedNoticeShown() {
+        return isProductionStopped() && Boolean.TRUE.equals(discontinuedNoticeVisible);
     }
 
     public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }

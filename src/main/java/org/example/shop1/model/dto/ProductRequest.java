@@ -131,6 +131,12 @@ public class ProductRequest {
     private Boolean pushSaleFlag;
     /** تیکِ «نمایش در ترب». نیامدن یعنی «دست نزن»، نه «خاموش کن». */
     private Boolean torobEnabled;
+
+    // توقفِ تولید — همان الگویِ «null یعنی دست نزن». برایِ پاک‌کردنِ جایگزین،
+    // پنل رشتهٔ خالی می‌فرستد، چون null معنای «تغییر نده» دارد.
+    private Boolean discontinued;
+    private String replacementProductId;
+    private Boolean discontinuedNoticeVisible;
     private BigDecimal torobFloorPrice;
     private String torobUrl;
     private BigDecimal digikalaFloorPrice;
@@ -159,6 +165,13 @@ public class ProductRequest {
 
     public Boolean getTorobEnabled() { return torobEnabled; }
     public void setTorobEnabled(Boolean torobEnabled) { this.torobEnabled = torobEnabled; }
+
+    public Boolean getDiscontinued() { return discontinued; }
+    public void setDiscontinued(Boolean discontinued) { this.discontinued = discontinued; }
+    public String getReplacementProductId() { return replacementProductId; }
+    public void setReplacementProductId(String replacementProductId) { this.replacementProductId = replacementProductId; }
+    public Boolean getDiscontinuedNoticeVisible() { return discontinuedNoticeVisible; }
+    public void setDiscontinuedNoticeVisible(Boolean v) { this.discontinuedNoticeVisible = v; }
 
     public BigDecimal getTorobFloorPrice() { return torobFloorPrice; }
     public void setTorobFloorPrice(BigDecimal torobFloorPrice) { this.torobFloorPrice = torobFloorPrice; }

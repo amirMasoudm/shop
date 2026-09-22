@@ -67,7 +67,7 @@
                         "price": "[(${#numbers.formatDecimal(p.onlinePrice != null ? p.onlinePrice : p.price, 1, 0)})]0",
                         "priceValidUntil": "[(${priceValidUntil})]",
                         "itemCondition": "https://schema.org/NewCondition",
-                        "availability": "[(${p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'})]"
+                        "availability": "[(${p.productionStopped ? 'https://schema.org/Discontinued' : (p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock')})]"
                     }[(${aggregateRatingJson})]
                 },
                 {
@@ -2880,6 +2880,22 @@
 
         /* پوشش همیشه هست (حتی روی لمسی) تا چیدمان بینِ دو حالت فرق نکند */
         .hs-wrap { position: relative; }
+
+        /* پیامِ توقفِ تولید — فقط وقتی کارشناس روشنش کرده باشد. رنگِ رز تا با قرمزِ
+           «ناموجود» که موقتی است اشتباه گرفته نشود. */
+        .p-discontinued-note {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-inline-start: 4px solid #e11d48;
+            color: #881337;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            font-size: .88rem;
+            line-height: 1.9;
+            overflow-wrap: anywhere;
+        }
+        .p-discontinued-note a { color: #be123c; font-weight: 700; margin-inline-start: 6px; }
     </style>
 </head>
 <body>
@@ -3789,6 +3805,30 @@
         return tail ? '/shop/product/' + resolver + '/' + tail : '/shop/product/' + resolver;
     }
 
+    // ── توقفِ تولید ─────────────────────────────────────────────────────────
+    // سرور برای محصولِ متوقف با جایگزینِ زنده ۳۰۱ می‌دهد، ولی کلیک روی کارت درخواستِ
+    // سروری نمی‌زند؛ پس همان تصمیم این‌جا تکرار می‌شود — با همان سقفِ پرش و همان
+    // مجموعهٔ دیده‌شده که liveReplacementOfِ سرور دارد. حلقه، جایگزینِ حذف‌شده یا
+    // زنجیرهٔ بلند به «جایگزین نداریم» می‌رسد و صفحهٔ خودِ محصول باز می‌شود.
+    const MAX_REPLACEMENT_HOPS = 5;
+    // محصولِ متوقفی که ما را به صفحهٔ جایگزین آورد — فقط اگر پیامش روشن بود
+    let replacedNoticeSource = null;
+
+    async function liveReplacementOf(p) {
+        if (!p || !p.discontinued) return null;
+        const seen = new Set([p.id]);
+        let cursor = p.replacementProductId;
+        for (let hop = 0; hop < MAX_REPLACEMENT_HOPS && cursor; hop++) {
+            if (seen.has(cursor)) return null;
+            seen.add(cursor);
+            const next = state.all.find(x => x.id === cursor) || await fetchProductBySlugOrId(cursor);
+            if (!next) return null;
+            if (!next.discontinued) return next;
+            cursor = next.replacementProductId;
+        }
+        return null;
+    }
+
     async function openProductDetail(productId, isInitialLoad = false, cardEl = null) {
         // جلوهٔ بازشدنِ کارت همین‌جا شروع می‌شود تا با واکشیِ محصول هم‌زمان
         // بدود؛ انتظارش پایین‌تر است، درست پیش از تعویضِ نما. این‌طور جلوه
@@ -3801,6 +3841,16 @@
         if (!p) p = await fetchProductBySlugOrId(productId);
         if(!p) return;
         await zap;
+
+        // متوقف با جایگزینِ زنده → همان کاری که ۳۰۱ِ سرور می‌کند. بعد از zap، تا جلوهٔ
+        // کارت تمام شده باشد و فراخوانِ دوم آن را از نو شروع نکند.
+        if (p.discontinued) {
+            const target = await liveReplacementOf(p);
+            if (target) {
+                replacedNoticeSource = p.discontinuedNoticeVisible ? p : null;
+                return openProductDetail(target.id, isInitialLoad, null);
+            }
+        }
 
         // رویداد آنالیتیکس: مشاهده محصول (قیف مرحله ۱)
         gaEvent('view_item', {
@@ -3944,6 +3994,39 @@
         `;
         }
 
+        // --- پیامِ توقفِ تولید ---
+        // دو حالت: یا از یک محصولِ متوقف به این‌جا آمده‌ایم («این جایگزینِ آن است»)،
+        // یا خودِ این محصول متوقف است و جایگزینی ندارد («تولیدش متوقف شده»).
+        let noticeSource = replacedNoticeSource;
+        replacedNoticeSource = null;
+        if (!noticeSource && isInitialLoad) {
+            // ورود از ۳۰۱ِ سرور: شناسهٔ مبدأ در ?replaced= آمده. به آن اعتماد نمی‌شود —
+            // باید واقعاً متوقف باشد، پیامش روشن باشد، و زنجیره‌اش به همین صفحه برسد؛
+            // وگرنه هرکسی با دست‌کاریِ آدرس می‌توانست پیامِ جعلی نشان دهد.
+            const rid = new URLSearchParams(location.search).get('replaced');
+            if (rid) {
+                const src = state.all.find(x => x.id === rid) || await fetchProductBySlugOrId(rid);
+                if (src && src.discontinued && src.discontinuedNoticeVisible) {
+                    const t = await liveReplacementOf(src);
+                    if (t && t.id === p.id) noticeSource = src;
+                }
+                // پارامتر فقط پیام‌رسان بود؛ از آدرس برداشته می‌شود تا بازخوانی یا
+                // اشتراک‌گذاری پیام را دوباره نشان ندهد
+                history.replaceState(history.state, '', location.pathname);
+            }
+        }
+        let discontinuedNote = '';
+        if (noticeSource) {
+            discontinuedNote = `<div class="p-discontinued-note">
+                تولیدِ <b>«${escapeHTML(noticeSource.name)}»</b> متوقف شده است؛ این محصول جایگزینِ آن است.
+            </div>`;
+        } else if (p.discontinued && p.discontinuedNoticeVisible) {
+            discontinuedNote = `<div class="p-discontinued-note">
+                تولیدِ این محصول متوقف شده و دیگر عرضه نمی‌شود.
+                <a href="#" onclick="loadCat('${p.categoryId}','${getCatName(p.categoryId).replace(/'/g,"")}'); return false;">محصولاتِ مشابه در «${escapeHTML(getCatName(p.categoryId))}»</a>
+            </div>`;
+        }
+
         // --- بخش ۵: رندر نهایی محتوای صفحه با اضافه شدن بخش نظرات ---
         document.getElementById('productPageContent').innerHTML = `
         <div class="back-nav" onclick="closeProductDetail()">❮ بازگشت به لیست</div>
@@ -3957,6 +4040,7 @@
             <span style="color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(p.name)}</span>
         </nav>
         <!-- پایان بخش Breadcrumb -->
+        ${discontinuedNote}
 
         <div class="p-grid">
             <div class="p-gallery">
@@ -3988,18 +4072,27 @@
                 </div>
             </div>
             <div class="p-buy-box">
-                ${p.stock > 0
-                    ? '<div style="font-weight:700; color:#27ae60; margin-bottom:15px;">● موجود در انبار داده نما</div>'
-                    : '<div style="font-weight:700; color:#e74c3c; margin-bottom:15px;">✕ فعلاً ناموجود</div>'}
+                ${p.discontinued
+                    // ⚠️ «فعلاً ناموجود» این‌جا دروغ است — یعنی برمی‌گردد. اگر کارشناس پیام را
+                    // خاموش گذاشته، فقط «ناموجود» بی‌قید؛ اگر روشن، صریح.
+                    ? (p.discontinuedNoticeVisible
+                        ? '<div style="font-weight:700; color:#be123c; margin-bottom:15px;">⛔ تولید متوقف شده</div>'
+                        : '<div style="font-weight:700; color:#e74c3c; margin-bottom:15px;">✕ ناموجود</div>')
+                    : (p.stock > 0
+                        ? '<div style="font-weight:700; color:#27ae60; margin-bottom:15px;">● موجود در انبار داده نما</div>'
+                        : '<div style="font-weight:700; color:#e74c3c; margin-bottom:15px;">✕ فعلاً ناموجود</div>')}
                 <div style="text-align:left; border-top:1px solid #eee; padding-top:15px;">
                     ${oldPrice}
                     <div style="font-size:1.8rem; font-weight:900; color:var(--primary)">
                         ${Math.round(price).toLocaleString()} <span style="font-size:1rem">تومان</span>
                     </div>
                 </div>
-                ${p.stock > 0
-                    ? `<button class="p-buy-btn" onclick="addToCart('${p.id}','${p.name.replace(/'/g,"")}',${price},'${mainImg}')">افزودن به سبد</button>`
-                    : `<button class="p-buy-btn" onclick="requestStockNotify('${p.id}')" style="background:#fff; color:var(--primary); border:1.5px solid var(--primary);">🔔 اطلاع بده وقتی موجود شد</button>`}
+                ${p.discontinued
+                    // نه خرید، نه «اطلاع بده وقتی موجود شد» — دومی قولی است که عملی نمی‌شود
+                    ? ''
+                    : (p.stock > 0
+                        ? `<button class="p-buy-btn" onclick="addToCart('${p.id}','${p.name.replace(/'/g,"")}',${price},'${mainImg}')">افزودن به سبد</button>`
+                        : `<button class="p-buy-btn" onclick="requestStockNotify('${p.id}')" style="background:#fff; color:var(--primary); border:1.5px solid var(--primary);">🔔 اطلاع بده وقتی موجود شد</button>`)}
             </div>
         </div>`;
 
@@ -4461,9 +4554,13 @@
         const activeSecs = sList.length ? sList : state.secs.filter(s => p.sectionIds && p.sectionIds.includes(s.id));
         activeSecs.forEach(s => tags += `<span class="tag" style="background:${s.stickerColor}">${s.stickerText || s.title}</span>`);
         const img = p.images?.[0] || '';
-        const buyBtn = (p.stock > 0)
-            ? `<button class="add-btn" onclick="event.stopPropagation(); cardFlash(this); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button>`
-            : `<button class="add-btn ghost" onclick="event.stopPropagation(); requestStockNotify('${p.id}')">🔔 اطلاع بده</button>`;
+        // محصولِ متوقف نه خریدنی است نه «اطلاع بده». دکمه به‌جایِ حذف، غیرفعال می‌ماند تا
+        // ارتفاعِ کارت با کارت‌های کناری یکی بماند و ردیفِ گرید به‌هم نریزد.
+        const buyBtn = p.discontinued
+            ? `<button class="add-btn ghost" disabled onclick="event.stopPropagation()" style="cursor:default; opacity:.6;">${p.discontinuedNoticeVisible ? 'توقفِ تولید' : 'ناموجود'}</button>`
+            : (p.stock > 0)
+                ? `<button class="add-btn" onclick="event.stopPropagation(); cardFlash(this); addToCart('${p.id}','${p.name.replace(/'/g, "")}',${price},'${img}')">افزودن به سبد</button>`
+                : `<button class="add-btn ghost" onclick="event.stopPropagation(); requestStockNotify('${p.id}')">🔔 اطلاع بده</button>`;
         return `<div class="product-card" onclick="openProductDetail('${p.id}', false, this)"><div class="badge-list">${tags}</div><div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" decoding="async"></div><div class="prod-title">${p.name}</div><div class="price-box">${old}<div class="cur-price">${Math.round(price).toLocaleString()} تومان</div></div>${buyBtn}</div>`;
     }
 

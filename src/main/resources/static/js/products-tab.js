@@ -261,6 +261,11 @@
         // پیش‌فرضِ محصولِ تازه «نمایش در ترب» است — همان چیزی که برایِ محصولاتِ قدیمی
         // هم صادق است (نبودنِ فیلد یعنی فعال).
         document.getElementById('p-torob-enabled').checked = true;
+        document.getElementById('p-discontinued').checked = false;
+        document.getElementById('p-discontinued-notice').checked = false;
+        document.getElementById('p-replacement-search').value = '';
+        renderReplacementProducts(null, null);
+        toggleDiscontinuedFields();
         document.getElementById('modal-title-action').textContent = 'افزودن محصول';
         document.getElementById('modal-title-id').textContent = 'ID: NEW';
         openModal('productModal');
@@ -284,6 +289,11 @@
         // 🔴 نه !!p.torobEnabled — محصولی که این فیلد را ندارد باید تیک‌خورده بیاید،
         // وگرنه اولین ذخیره از پنل خاموشش می‌کند.
         document.getElementById('p-torob-enabled').checked = (p.torobEnabled !== false);
+        document.getElementById('p-discontinued').checked = (p.discontinued === true);
+        document.getElementById('p-discontinued-notice').checked = (p.discontinuedNoticeVisible === true);
+        document.getElementById('p-replacement-search').value = '';
+        renderReplacementProducts(p.replacementProductId || null, p.id);
+        toggleDiscontinuedFields();
         document.getElementById('p-seo-title').value = p.seoTitle || '';
         document.getElementById('p-seo-desc').value = p.seoDescription || '';
         document.getElementById('p-weight').value = p.weight || '';
@@ -364,7 +374,11 @@
             techSpecs: collectTechSpecs(),
             faqs: collectFaqs(),
             relatedProductIds: collectRelatedIds(),
-            torobEnabled: document.getElementById('p-torob-enabled').checked
+            torobEnabled: document.getElementById('p-torob-enabled').checked,
+            discontinued: document.getElementById('p-discontinued').checked,
+            // وقتی توقف خاموش است جایگزین هم پاک می‌شود — ماندنش فقط رکوردِ مرده می‌ساخت
+            replacementProductId: document.getElementById('p-discontinued').checked ? collectReplacementId() : '',
+            discontinuedNoticeVisible: document.getElementById('p-discontinued-notice').checked
         };
 
         const method = id ? 'put' : 'post';
@@ -515,9 +529,49 @@
 
     function filterRelProducts() {
         const q = document.getElementById('rel-prod-search').value.toLowerCase();
-        document.querySelectorAll('.rel-prod-item').forEach(item => {
+        // ⚠️ محدود به همین لیست: productPickRow کلاسِ rel-prod-item را در لیستِ جایگزین
+        // هم می‌گذارد، و جست‌وجوی سراسری آن‌جا را هم پنهان می‌کرد.
+        document.querySelectorAll('#rel-prod-list .rel-prod-item').forEach(item => {
             item.style.display = item.dataset.name.includes(q) ? 'flex' : 'none';
         });
+    }
+
+    // ── توقفِ تولید ─────────────────────────────────────────────────────────
+    // جایگزین فقط یکی است، پس رادیو و نه تیک؛ و گزینهٔ «بدونِ جایگزین» عمداً اول
+    // می‌آید، چون حالتِ پیش‌فرض و امن است (صفحه می‌ماند، ۳۰۱ی نمی‌خورد).
+    function renderReplacementProducts(selectedId, excludeId) {
+        const none = `
+            <label class="rel-prod-item flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer border-b border-gray-100"
+                   data-name="">
+                <input type="radio" name="p-replacement" value="" class="h-4 w-4" ${selectedId ? '' : 'checked'}>
+                <span class="text-xs text-gray-500">بدونِ جایگزین — صفحه با همین آدرس بماند</span>
+            </label>`;
+        // جایگزینِ متوقف‌شده هم انتخاب‌شدنی است (زنجیره دنبال می‌شود)، ولی علامت می‌خورد
+        const rows = products.filter(p => p.id !== excludeId).map(p => productPickRow(p,
+            `<input type="radio" name="p-replacement" value="${p.id}" class="h-4 w-4"
+                    ${p.id === selectedId ? 'checked' : ''}>`
+            + (p.discontinued ? '<span class="text-[9px] text-rose-700 font-bold">متوقف</span>' : '')));
+        document.getElementById('p-replacement-list').innerHTML = none + rows.join('');
+    }
+
+    function filterReplacementProducts() {
+        const q = document.getElementById('p-replacement-search').value.toLowerCase();
+        document.querySelectorAll('#p-replacement-list .rel-prod-item').forEach(item => {
+            // گزینهٔ «بدونِ جایگزین» همیشه پیدا بماند
+            const always = item.dataset.name === '';
+            item.style.display = (always || item.dataset.name.includes(q)) ? 'flex' : 'none';
+        });
+    }
+
+    function collectReplacementId() {
+        const r = document.querySelector('#p-replacement-list input[name="p-replacement"]:checked');
+        // رشتهٔ خالی یعنی «بدونِ جایگزین» — سرور آن را پاک می‌کند؛ null یعنی «دست نزن»
+        return r ? r.value : '';
+    }
+
+    function toggleDiscontinuedFields() {
+        const on = document.getElementById('p-discontinued').checked;
+        document.getElementById('p-discontinued-fields').classList.toggle('hidden', !on);
     }
 
     function collectRelatedIds() {
@@ -831,7 +885,8 @@
         togglePackInput, applyProductFilters, resetProductFilters,
         openProductModal, editProduct, saveProduct,
         addTechSpecRow, addFaqRow, faqRowHtml, renderFaqRows, collectFaqs,
-        filterRelProducts, handleImageSelect, addImageByUrl,
+        filterRelProducts, filterReplacementProducts, toggleDiscontinuedFields,
+        handleImageSelect, addImageByUrl,
         makeMainImage, removeImage, generateDescriptionWithAI,
         deleteProductWithRedirect
     });

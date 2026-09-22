@@ -180,6 +180,8 @@ public class StoreWebController {
             if (redirect != null) return redirect;
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد");
         }
+        Object moved = discontinuedRedirectOrNull(found.get(), request);
+        if (moved != null) return moved;
         populateProductModel(found.get(), model, request);
         return "CL";
     }
@@ -220,6 +222,57 @@ public class StoreWebController {
         return rv;
     }
 
+    /**
+     * محصولِ متوقف‌شده با جایگزینِ زنده → ۳۰۱ به جایگزین؛ وگرنه {@code null} تا صفحهٔ
+     * خودش (۲۰۰) نشان داده شود.
+     * <p>
+     * 🔴 <b>چرا اینجا و نه در {@code product_redirects}:</b> آن جدول فقط وقتی خوانده
+     * می‌شود که محصول <i>پیدا نشود</i>. محصولِ متوقف‌شده حذف نشده — زنده است و پیدا
+     * می‌شود — پس آن مسیر هرگز به کار نمی‌آمد.
+     * <p>
+     * اگر کارشناس «نمایشِ پیام» را روشن کرده باشد، شناسهٔ محصولِ مبدأ با
+     * {@code ?replaced=} همراه می‌شود تا صفحهٔ مقصد بگوید «این جایگزینِ آن است».
+     * وقتی پیام خاموش است آدرس تمیز می‌ماند — تمیزترین شکل برای سئو پیش‌فرض است.
+     * canonicalِ صفحهٔ مقصد به‌هرحال بدونِ این پارامتر است.
+     */
+    private Object discontinuedRedirectOrNull(Product p, HttpServletRequest request) {
+        Optional<Product> target = liveReplacementOf(p);
+        if (target.isEmpty()) return null;
+
+        String location = buildBaseUrl(request) + hybridPathEncoded(target.get());
+        if (p.isDiscontinuedNoticeShown()) location += "?replaced=" + p.getId();
+
+        org.springframework.web.servlet.view.RedirectView rv =
+                new org.springframework.web.servlet.view.RedirectView(location);
+        rv.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+        return rv;
+    }
+
+    /**
+     * اولین جایگزینِ <b>زنده</b> در زنجیره.
+     * <p>
+     * جایگزین خودش ممکن است بعدها متوقف شود، پس زنجیره دنبال می‌شود — با سقفِ پرش و
+     * مجموعهٔ دیده‌شده. حلقه، جایگزینِ حذف‌شده، یا زنجیرهٔ بیش از حد بلند همه به
+     * «جایگزین نداریم» می‌رسند و صفحهٔ خودِ محصول ۲۰۰ می‌دهد — هرگز ۴۰۴ یا حلقهٔ
+     * ریدایرکت.
+     */
+    private Optional<Product> liveReplacementOf(Product p) {
+        if (p == null || !p.isProductionStopped()) return Optional.empty();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        seen.add(p.getId());
+        String cursor = p.getReplacementProductId();
+        for (int hop = 0;
+             hop < org.example.shop1.model.service.ProductService.MAX_REPLACEMENT_HOPS && cursor != null;
+             hop++) {
+            if (!seen.add(cursor)) return Optional.empty();
+            Product next = productRepo.findById(cursor).orElse(null);
+            if (next == null) return Optional.empty();
+            if (!next.isProductionStopped()) return Optional.of(next);
+            cursor = next.getReplacementProductId();
+        }
+        return Optional.empty();
+    }
+
     private Object redirectOrNull(String slug, HttpServletRequest request) {
         Optional<Product> target = productRedirectService.resolveTarget(slug);
         if (target.isEmpty()) return null;
@@ -247,6 +300,11 @@ public class StoreWebController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "محصول یافت نشد");
         }
         Product p = found.get();
+
+        // توقفِ تولید پیش از تصحیحِ دُم: اگر جایگزین دارد، یک‌راست به آن برو. اگر اول
+        // دُم تصحیح می‌شد، بازدیدکننده دو پرش می‌خورد — یکی به دُمِ درست و یکی به جایگزین.
+        Object moved = discontinuedRedirectOrNull(p, request);
+        if (moved != null) return moved;
 
         // اگر دُم غلط/کهنه بود، ۳۰۱ به فرمِ canonicalِ درست (تثبیتِ آدرس + جلوگیری از محتوای تکراری)
         String correctTail = p.getPersianTail();
@@ -876,6 +934,9 @@ public class StoreWebController {
         }
 
         for (Product p : products) {
+            // آدرسی که ۳۰۱ می‌دهد در نقشهٔ سایت جایی ندارد — گوگل آن را خطا می‌شمرد.
+            // متوقف‌شدهٔ بی‌جایگزین می‌ماند، چون صفحه‌اش زنده است و ۲۰۰ می‌دهد.
+            if (liveReplacementOf(p).isPresent()) continue;
             // آدرسِ هیبریدِ کاملاً percent-encode شده (resolver + دُمِ فارسی)
             String loc = baseUrl + hybridPathEncoded(p);
             Instant mod = p.getUpdatedAt() != null ? p.getUpdatedAt()

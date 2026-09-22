@@ -177,6 +177,7 @@ public class ProductService {
         product.setCategoryId(category.getId());
         product.setPrice(request.getPrice());
         applyStockAndPricingFields(product, request);
+        applyDiscontinuation(product, request);
         product.setDescription(request.getDescription());
         product.setImages(request.getImages());
         if (request.getImageAlts() != null) product.setImageAlts(request.getImageAlts()); // فقط اگر ارسال شد (بدون پاک‌کردنِ ناخواسته)
@@ -239,6 +240,7 @@ public class ProductService {
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         applyStockAndPricingFields(product, request);
+        applyDiscontinuation(product, request);
         product.setDescription(request.getDescription());
         product.setUpdatedAt(Instant.now()); // ثبت زمان آپدیت
         product.setOnlinePrice(request.getOnlinePrice());
@@ -343,6 +345,51 @@ public class ProductService {
        جدول مشخصات فنی، پرسش‌های متداول و محصولات مرتبط (با پاکسازی متن‌ها).
        ردیف‌های خالی حذف می‌شوند.
     */
+    /** سقفِ پرش هنگامِ بررسیِ حلقه — همان عددی که مسیرِ درخواست هم به کار می‌برد. */
+    public static final int MAX_REPLACEMENT_HOPS = 5;
+
+    /**
+     * توقفِ تولید و جایگزین — با همان قاعدهٔ «فقط اگر ارسال شد».
+     * <p>
+     * 🔴 حلقه در لحظهٔ ذخیره گرفته می‌شود، نه در لحظهٔ درخواست. «الف جایگزینش ب، ب
+     * جایگزینش الف» اگر ذخیره می‌شد، هر دو صفحه بی‌مقصد می‌ماندند؛ مسیرِ درخواست
+     * سقفِ پرش دارد و نمی‌شکند، ولی کارشناس هم نمی‌فهمید چرا ریدایرکت کار نمی‌کند.
+     */
+    private void applyDiscontinuation(Product product, ProductRequest request) {
+        if (request.getDiscontinued() != null) product.setDiscontinued(request.getDiscontinued());
+        if (request.getDiscontinuedNoticeVisible() != null) {
+            product.setDiscontinuedNoticeVisible(request.getDiscontinuedNoticeVisible());
+        }
+        if (request.getReplacementProductId() == null) return;
+
+        String rep = request.getReplacementProductId().trim();
+        if (rep.isEmpty()) {                       // «بدونِ جایگزین»
+            product.setReplacementProductId(null);
+            return;
+        }
+        if (rep.equals(product.getId())) {
+            throw new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "محصول نمی‌تواند جایگزینِ خودش باشد");
+        }
+        if (!productRepo.existsById(rep)) {
+            throw new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "محصولِ جایگزین پیدا نشد");
+        }
+        // زنجیره را دنبال کن؛ اگر به خودِ این محصول برگشت، حلقه است
+        if (product.getId() != null) {
+            String cursor = rep;
+            for (int hop = 0; hop < MAX_REPLACEMENT_HOPS && cursor != null; hop++) {
+                if (cursor.equals(product.getId())) {
+                    throw new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "این انتخاب حلقه می‌سازد: جایگزینِ انتخاب‌شده، خودش به همین محصول برمی‌گردد");
+                }
+                Product next = productRepo.findById(cursor).orElse(null);
+                cursor = (next != null && next.isProductionStopped()) ? next.getReplacementProductId() : null;
+            }
+        }
+        product.setReplacementProductId(rep);
+    }
+
     private void applyRichContent(Product product, ProductRequest request) {
         // دُمِ فارسیِ آدرسِ هیبرید (اختیاری؛ اگر خالی بماند هنگام رندر از نامِ محصول ساخته می‌شود)
         if (request.getPersianSlug() != null) {

@@ -53,6 +53,13 @@ public class PublicProductDto {
     private final Double averageRating;
     private final Long reviewCount;
 
+    // توقفِ تولید — فروشگاهِ SPA با این‌ها تصمیم می‌گیرد که به جایگزین برود یا
+    // صفحهٔ متوقف‌شده را نشان دهد. شناسهٔ جایگزین عمومی است، چون خودِ آن محصول
+    // هم عمومی است.
+    private final boolean discontinued;
+    private final String replacementProductId;
+    private final boolean discontinuedNoticeVisible;
+
     public PublicProductDto(Product p) {
         this.id = p.getId();
         this.name = p.getName();
@@ -74,6 +81,9 @@ public class PublicProductDto {
         this.seoDescription = p.getSeoDescription();
         this.averageRating = p.getAverageRating();
         this.reviewCount = p.getReviewCount();
+        this.discontinued = p.isProductionStopped();
+        this.replacementProductId = p.isProductionStopped() ? p.getReplacementProductId() : null;
+        this.discontinuedNoticeVisible = p.isDiscontinuedNoticeShown();
     }
 
     public static PublicProductDto of(Product p) {
@@ -100,4 +110,7 @@ public class PublicProductDto {
     public String getSeoDescription() { return seoDescription; }
     public Double getAverageRating() { return averageRating; }
     public Long getReviewCount() { return reviewCount; }
+    public boolean isDiscontinued() { return discontinued; }
+    public String getReplacementProductId() { return replacementProductId; }
+    public boolean isDiscontinuedNoticeVisible() { return discontinuedNoticeVisible; }
 }

@@ -166,6 +166,9 @@ public class TorobApiController {
             // availability:false. آن دو یکی نیستند: اولی یعنی «نداریمش»، دومی یعنی
             // «داریم ولی موجود نیست» و محصول در ترب می‌ماند.
             if (!p.isTorobVisible()) { skippedDisabled++; continue; }
+            // توقفِ تولید همان «نداریمش» است، نه «ناموجود» — پس کلاً بیرون، نه با
+            // availability:false که محصول را در ترب نگه می‌داشت.
+            if (p.isProductionStopped()) { skippedDisabled++; continue; }
             if (toToman(p.getOnlinePrice()) <= 0) { skippedNoPrice++; continue; }
             if (p.getImages() == null || p.getImages().stream().noneMatch(this::notBlank)) {
                 skippedNoImage++; continue;
