@@ -67,6 +67,8 @@ public class ChatController {
         out.put("userId", user.getId());
         out.put("displayName", chatService.displayName(user));
         out.put("isAgent", chatService.isAgent(user));
+        // پنلِ کارشناس با همین پرچم تصمیم می‌گیرد نمای نظارتیِ مدیر را نشان بدهد یا نه
+        out.put("isAdmin", user.getRole() == Role.ADMIN);
         out.put("businessHours", businessHours.status());
         // کارشناس گفت‌وگوی مشتریِ خودش را ندارد؛ از صف/چت‌های من کار می‌کند.
         if (!chatService.isAgent(user)) {
@@ -99,6 +101,22 @@ public class ChatController {
         return ResponseEntity.ok(chatService.queue().stream().map(chatService::toView).toList());
     }
 
+    /**
+     * نمای نظارتیِ مدیر: همهٔ گفت‌وگوها، صرفِ‌نظر از اینکه دستِ کیست.
+     * <p>
+     * صف و «چت‌های من» عمداً سرِ جای خودشان می‌مانند؛ این یکی جایشان را نمی‌گیرد،
+     * کنارشان می‌نشیند — مدیر هم کارشناس است و صفِ خودش را دارد.
+     */
+    @GetMapping("/conversations/all")
+    public ResponseEntity<List<Map<String, Object>>> allConversations(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Integer limit,
+            Authentication authentication) {
+        requireAdmin(currentUser(authentication));
+        return ResponseEntity.ok(chatService.allConversations(q, limit == null ? 0 : limit)
+                .stream().map(chatService::toView).toList());
+    }
+
     @GetMapping("/conversations/mine")
     public ResponseEntity<List<Map<String, Object>>> mine(Authentication authentication) {
         User agent = requireAgent(currentUser(authentication));
@@ -124,11 +142,15 @@ public class ChatController {
         List<Map<String, Object>> out = new java.util.ArrayList<>();
         for (Role role : List.of(Role.ADMIN, Role.PRICER, Role.SALES, Role.SUPPORT)) {
             for (User u : userRepository.findByRole(role)) {
-                if (u.getId() == null || u.getId().equals(me.getId())) continue;
+                if (u.getId() == null) continue;
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("id", u.getId());
                 row.put("name", chatService.staffDisplayName(u));
                 row.put("role", role.name());
+                // ⚠️ خودِ درخواست‌کننده هم در فهرست می‌ماند و فقط علامت می‌خورد:
+                // مدیر باید بتواند گفت‌وگوی دیگری را به خودش بدهد. حذفِ دارندهٔ
+                // فعلی کارِ کلاینت است، چون فقط او می‌داند کدام گفت‌وگو باز است.
+                row.put("self", u.getId().equals(me.getId()));
                 out.add(row);
             }
         }
@@ -251,7 +273,11 @@ public class ChatController {
         User user = currentUser(authentication);
         Conversation conversation = chatService.requireConversation(id);
         chatService.assertMember(conversation, user);
-        chatService.markRead(conversation, chatService.isAgent(user));
+        // 🔴 مدیری که گفت‌وگوی همکارش را تماشا می‌کند نباید نشانِ نخواندهٔ او را صفر
+        // کند؛ تصمیمش در سرویس است تا هر مصرف‌کنندهٔ دیگری هم همان مرز را بگیرد.
+        if (chatService.shouldMarkRead(conversation, user)) {
+            chatService.markRead(conversation, chatService.isAgent(user));
+        }
         return ResponseEntity.noContent().build();
     }
 
@@ -319,6 +345,13 @@ public class ChatController {
         Object v = body == null ? null : body.get(key);
         if (v instanceof Boolean b) return b;
         return "true".equalsIgnoreCase(String.valueOf(v));
+    }
+
+    private User requireAdmin(User user) {
+        if (user.getRole() != Role.ADMIN) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "این بخش مخصوصِ مدیر است");
+        }
+        return user;
     }
 
     private User requireAgent(User user) {

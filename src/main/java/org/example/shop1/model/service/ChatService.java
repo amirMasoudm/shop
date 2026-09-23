@@ -53,6 +53,10 @@ public class ChatService {
     private static final int PREVIEW_LENGTH = 80;
     private static final int DEFAULT_PAGE_SIZE = 50;
 
+    /** سقفِ واکشیِ نمای مدیر. بالاتر از این، فهرست به‌جای ابزار می‌شود دیوار. */
+    private static final int ADMIN_FETCH_CAP = 500;
+    private static final int ADMIN_PAGE_SIZE = 100;
+
     private final ConversationRepository conversationRepository;
     private final ChatMessageRepository messageRepository;
     private final MongoOperations mongoOperations;
@@ -139,6 +143,51 @@ public class ChatService {
 
     public List<Conversation> myChats(String agentId) {
         return conversationRepository.findByAssignedAgentIdOrderByLastMessageAtDesc(agentId);
+    }
+
+    /**
+     * همهٔ گفت‌وگوها — نمایِ نظارتیِ مدیر. تازه‌ترین‌ها اول.
+     * <p>
+     * ⚠️ جست‌وجو عمداً در جاوا انجام می‌شود، نه با {@code Containing} یا رجکسِ مونگو:
+     * آن مسیر ورودیِ کاربر را مستقیم به الگوی رجکس می‌برد و هم کاراکترهای ویژه
+     * معنی پیدا می‌کنند هم یک الگویِ بدخیم می‌تواند کوئری را بخواباند. واکشی هم
+     * کران‌دار است تا این نما با رشدِ گفت‌وگوها به یک اسکنِ بی‌مرز تبدیل نشود.
+     */
+    public List<Conversation> allConversations(String query, int limit) {
+        int cap = (limit <= 0 || limit > ADMIN_FETCH_CAP) ? ADMIN_PAGE_SIZE : limit;
+        List<Conversation> page = conversationRepository.findAll(
+                        org.springframework.data.domain.PageRequest.of(0, ADMIN_FETCH_CAP,
+                                org.springframework.data.domain.Sort.by(
+                                        org.springframework.data.domain.Sort.Direction.DESC, "lastMessageAt")))
+                .getContent();
+
+        String needle = query == null ? "" : query.trim().toLowerCase();
+        List<Conversation> hit = new ArrayList<>();
+        for (Conversation c : page) {
+            if (!needle.isEmpty() && !matchesSearch(c, needle)) continue;
+            hit.add(c);
+            if (hit.size() >= cap) break;
+        }
+        return hit;
+    }
+
+    private boolean matchesSearch(Conversation c, String needle) {
+        return nullSafe(c.getCustomerName()).toLowerCase().contains(needle)
+                || nullSafe(c.getAssignedAgentName()).toLowerCase().contains(needle)
+                || nullSafe(c.getLastMessagePreview()).toLowerCase().contains(needle);
+    }
+
+    /**
+     * آیا بازکردنِ این گفت‌وگو توسطِ این کاربر باید «خوانده شد» ثبت کند؟
+     * <p>
+     * 🔴 مدیری که برایِ نظارت گفت‌وگوی همکارش را باز می‌کند <b>نباید</b> نشانِ
+     * نخواندهٔ او را صفر کند. بدونِ این مرز، خودِ نظارت کارِ کارشناس را خراب
+     * می‌کرد: پیامِ بی‌پاسخ بی‌صدا سین می‌خورد و از رادارِ کسی که باید جواب بدهد
+     * بیرون می‌رفت — دقیقاً برعکسِ کاری که «برگرداندن به نخوانده» انجام می‌دهد.
+     */
+    public boolean shouldMarkRead(Conversation conversation, User user) {
+        if (!isAgent(user)) return true;                 // مشتری همیشه
+        return user.getId().equals(conversation.getAssignedAgentId());
     }
 
     /**
@@ -231,7 +280,7 @@ public class ChatService {
      * داده باشد، و بازنویسیِ کورکورانه آن تغییر را بی‌صدا پاک می‌کرد.
      */
     public Handover release(String conversationId, User agent, boolean restoreUnread) {
-        String holder = requireHolder(requireConversation(conversationId), agent);
+        String holder = requireHolder(requireConversation(conversationId), agent, false);
 
         Conversation released = mongoOperations.findAndModify(
                 Query.query(Criteria.where("_id").is(conversationId).and("assignedAgentId").is(holder)),
@@ -260,7 +309,9 @@ public class ChatService {
         if (!isAgent(target)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "کاربرِ مقصد کارشناس نیست");
         }
-        String holder = requireHolder(requireConversation(conversationId), agent);
+        // ادمین می‌تواند گفت‌وگوی هنوز برداشته‌نشدهٔ توی صف را هم مستقیم به کسی بدهد؛
+        // برای «انصراف» چنین چیزی بی‌معنی است، پس فقط همین مسیر اجازه‌اش را دارد.
+        String holder = requireHolder(requireConversation(conversationId), agent, true);
         if (target.getId().equals(holder)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "این گفت‌وگو همین حالا هم دستِ همین کارشناس است");
         }
@@ -289,12 +340,16 @@ public class ChatService {
      * فقط دارندهٔ گفت‌وگو (و ادمین، از طرفِ او) حقِ ارجاع/انصراف دارد.
      * شناسهٔ همان دارنده برمی‌گردد تا پیش‌شرطِ اتمیکِ findAndModify شود.
      */
-    private String requireHolder(Conversation conversation, User agent) {
+    private String requireHolder(Conversation conversation, User agent, boolean allowUnassigned) {
         String holder = conversation.getAssignedAgentId();
+        boolean admin = agent.getRole() == Role.ADMIN;
         if (holder == null) {
+            // null برگشتن بی‌خطر است: پیش‌شرطِ findAndModify هم روی همان null بسته
+            // می‌شود، پس اگر بینِ این دو خط کسی گفت‌وگو را بردارد، ارجاع رد می‌شود.
+            if (admin && allowUnassigned) return null;
             throw new ApiException(HttpStatus.CONFLICT, "این گفت‌وگو هنوز برداشته نشده است.");
         }
-        if (!holder.equals(agent.getId()) && agent.getRole() != Role.ADMIN) {
+        if (!holder.equals(agent.getId()) && !admin) {
             throw new ApiException(HttpStatus.FORBIDDEN,
                     "این گفت‌وگو دستِ «" + nullSafe(conversation.getAssignedAgentName()) + "» است.");
         }

@@ -83,6 +83,9 @@ class ChatHandoverTest {
             conversations.put(c.getId(), c);
             return c;
         });
+        when(conversationRepo.findAll(any(org.springframework.data.domain.Pageable.class)))
+                .thenAnswer(inv -> new org.springframework.data.domain.PageImpl<>(
+                        new ArrayList<>(conversations.values())));
         when(messageRepo.save(any(ChatMessage.class))).thenAnswer(inv -> {
             ChatMessage m = inv.getArgument(0);
             if (m.getId() == null) m.setId("sys-" + messages.size());
@@ -341,6 +344,78 @@ class ChatHandoverTest {
 
         ApiException e = assertThrows(ApiException.class, () -> service.transfer(CONV, holder, holder, false));
         assertEquals(400, e.getStatus().value());
+    }
+
+    // ==========================================================
+    // اختیاراتِ مدیر
+    // ==========================================================
+
+    /** مدیر باید بتواند گفت‌وگوی توی صف را مستقیم به کسی بدهد، بی‌آنکه اول خودش برش دارد. */
+    @Test
+    void adminMayAssignAnUnclaimedConversation() {
+        Conversation c = assignedConversation();
+        c.setAssignedAgentId(null);
+        c.setAssignedAgentName(null);
+        c.setStatus(ConversationStatus.OPEN);
+        User admin = staff("admin-1", "مدیر", Role.ADMIN);
+
+        ChatService.Handover result = service.transfer(CONV, admin, other, false);
+
+        assertEquals(other.getId(), result.conversation().getAssignedAgentId());
+        assertEquals(ConversationStatus.ASSIGNED, result.conversation().getStatus());
+    }
+
+    /** ولی کارشناسِ عادی نه — وگرنه «برداشتن» و قیدِ اتمیکش دور زده می‌شد. */
+    @Test
+    void nonAdminCannotAssignAnUnclaimedConversation() {
+        Conversation c = assignedConversation();
+        c.setAssignedAgentId(null);
+        c.setStatus(ConversationStatus.OPEN);
+
+        ApiException e = assertThrows(ApiException.class, () -> service.transfer(CONV, other, holder, false));
+        assertEquals(409, e.getStatus().value());
+    }
+
+    /** خواستهٔ صریحِ مالک: مدیر بتواند گفت‌وگوی همکار را به <b>خودش</b> بدهد. */
+    @Test
+    void adminMayTakeSomeoneElsesConversation() {
+        assignedConversation();
+        User admin = staff("admin-1", "مدیر", Role.ADMIN);
+
+        ChatService.Handover result = service.transfer(CONV, admin, admin, false);
+
+        assertEquals(admin.getId(), result.conversation().getAssignedAgentId());
+        assertEquals(ConversationStatus.ASSIGNED, result.conversation().getStatus());
+    }
+
+    /**
+     * 🔴 نظارت نباید کارِ کارشناس را خراب کند: بازکردنِ گفت‌وگو توسطِ کسی که
+     * دارندهٔ آن نیست، نباید «خوانده شد» ثبت کند و نشانِ نخواندهٔ او را صفر کند.
+     */
+    @Test
+    void watchingDoesNotClearTheAssigneesUnreadBadge() {
+        Conversation c = assignedConversation();
+        User admin = staff("admin-1", "مدیر", Role.ADMIN);
+
+        assertTrue(service.shouldMarkRead(c, holder), "دارنده که باز می‌کند، خوانده می‌شود");
+        assertFalse(service.shouldMarkRead(c, admin), "مدیرِ ناظر نباید سین بزند");
+        assertFalse(service.shouldMarkRead(c, other), "کارشناسِ غیرِدارنده هم همین‌طور");
+        assertTrue(service.shouldMarkRead(c, customer), "مشتری همیشه");
+    }
+
+    /** جست‌وجوی نمای مدیر عمداً در جاوا است؛ باید روی نام، کارشناس و پیش‌نمایش کار کند. */
+    @Test
+    void adminSearchMatchesNameAgentAndPreview() {
+        Conversation a = assignedConversation();
+        a.setCustomerName("رضا کاظمی");
+        a.setAssignedAgentName("خانم سمیعی");
+        a.setLastMessagePreview("قیمت روتر");
+
+        assertEquals(1, service.allConversations("کاظمی", 0).size());
+        assertEquals(1, service.allConversations("سمیعی", 0).size());
+        assertEquals(1, service.allConversations("روتر", 0).size());
+        assertEquals(0, service.allConversations("هیچ‌چیز", 0).size());
+        assertEquals(1, service.allConversations("", 0).size(), "بی‌جست‌وجو یعنی همه");
     }
 
     @Test
