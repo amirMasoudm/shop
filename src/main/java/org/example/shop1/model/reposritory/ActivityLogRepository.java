@@ -15,15 +15,8 @@ import java.time.Instant;
 @Repository
 public interface ActivityLogRepository extends MongoRepository<ActivityLog, String> {
 
-    Page<ActivityLog> findByAtBetweenOrderByAtDesc(Instant from, Instant to, Pageable pageable);
-
-    Page<ActivityLog> findByUsernameAndAtBetweenOrderByAtDesc(
-            String username, Instant from, Instant to, Pageable pageable);
-
-    // فیلترِ نوعِ موجودیت — پایه‌ی دوقسمتی‌شدنِ صفحه‌ی لاگ
-    Page<ActivityLog> findByEntityTypeAndAtBetweenOrderByAtDesc(
-            String entityType, Instant from, Instant to, Pageable pageable);
-
-    Page<ActivityLog> findByUsernameAndEntityTypeAndAtBetweenOrderByAtDesc(
-            String username, String entityType, Instant from, Instant to, Pageable pageable);
+    // ℹ️ متدهایِ مشتق‌شدهٔ جست‌وجو برداشته شدند و جایشان یک کوئریِ پویا در
+    // ActivityLogService نشست. دلیل: با اضافه‌شدنِ فیلترِ «رویداد» به کاربر/نوع/بازهٔ
+    // زمانی، تعدادِ ترکیب‌ها از ۴ به ۸ می‌رسید و هر فیلترِ بعدی دوباره دو برابرش
+    // می‌کرد — یعنی یک متدِ تازه به‌ازای هر ترکیب، نه به‌ازای هر فیلتر.
 }

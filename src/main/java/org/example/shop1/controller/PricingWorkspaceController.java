@@ -160,6 +160,7 @@ public class PricingWorkspaceController {
     public ResponseEntity<Page<ActivityLog>> logs(
             @RequestParam(name = "username", required = false) String username,
             @RequestParam(name = "entityType", required = false) String entityType,
+            @RequestParam(name = "action", required = false) String action,
             @RequestParam(name = "from", required = false) String from,
             @RequestParam(name = "to", required = false) String to,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -167,7 +168,7 @@ public class PricingWorkspaceController {
 
         Instant f = parseInstant(from);
         Instant t = parseInstant(to);
-        return ResponseEntity.ok(activityLog.search(username, entityType, f, t, page, size));
+        return ResponseEntity.ok(activityLog.search(username, entityType, action, f, t, page, size));
     }
 
     /**
@@ -180,13 +181,16 @@ public class PricingWorkspaceController {
     @GetMapping("/logs/products")
     public ResponseEntity<Page<ActivityLog>> productLogs(
             @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "action", required = false) String action,
             @RequestParam(name = "from", required = false) String from,
             @RequestParam(name = "to", required = false) String to,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "50") int size) {
 
+        // نوعِ موجودیت اینجا قفل است (فقط محصول)؛ فیلترِ رویداد ولی آزاد است تا
+        // کارشناس بتواند مثلاً فقط «تغییر قیمت» را ببیند.
         return ResponseEntity.ok(activityLog.search(
-                username, ActivityLogService.ENTITY_PRODUCT,
+                username, ActivityLogService.ENTITY_PRODUCT, action,
                 parseInstant(from), parseInstant(to), page, size));
     }
 

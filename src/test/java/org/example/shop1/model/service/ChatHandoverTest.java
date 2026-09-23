@@ -2,6 +2,7 @@ package org.example.shop1.model.service;
 
 import org.bson.Document;
 import org.example.shop1.exeption.ApiException;
+import org.example.shop1.model.entity.ActivityLog;
 import org.example.shop1.model.entity.ChatMessage;
 import org.example.shop1.model.entity.Conversation;
 import org.example.shop1.model.entity.User;
@@ -54,6 +55,7 @@ class ChatHandoverTest {
     private final Map<String, ChatMessage> messages = new LinkedHashMap<>();
 
     private ChatService service;
+    private ActivityLogService activityLog;
     private User holder;
     private User other;
     private User customer;
@@ -68,9 +70,10 @@ class ChatHandoverTest {
         ChatMessageRepository messageRepo = mock(ChatMessageRepository.class);
         MongoOperations mongo = mock(MongoOperations.class);
 
+        activityLog = mock(ActivityLogService.class);
         service = new ChatService(conversationRepo, messageRepo, mongo,
                 mock(MessageBroadcaster.class), mock(BusinessHoursService.class),
-                mock(UserEventRecorder.class));
+                activityLog, mock(UserEventRecorder.class));
 
         holder = staff("agent-1", "الف", Role.SALES);
         other = staff("agent-2", "ب", Role.SUPPORT);
@@ -344,6 +347,62 @@ class ChatHandoverTest {
 
         ApiException e = assertThrows(ApiException.class, () -> service.transfer(CONV, holder, holder, false));
         assertEquals(400, e.getStatus().value());
+    }
+
+    // ==========================================================
+    // ردِ رویدادها در تاریخچهٔ تغییرات
+    // ==========================================================
+
+    /**
+     * هر جابه‌جاییِ مالکیت باید ردی در تاریخچه بگذارد. بدونِ این، «چرا این مشتری
+     * سه ساعت بی‌جواب ماند» هیچ منبعی برای پاسخ ندارد.
+     */
+    @Test
+    void handoverIsWrittenToTheActivityLog() {
+        assignedConversation();
+        msg("c1", SenderRole.CUSTOMER, 30, true);
+
+        service.transfer(CONV, holder, other, true);
+
+        verify(activityLog).record(eq(ActivityLog.Action.CHAT_TRANSFER), any(),
+                eq(ActivityLogService.ENTITY_CONVERSATION), eq(CONV), eq("مشتری"),
+                eq("assignedAgent"), eq("الف"), eq("ب"));
+        // «n پیام به نخوانده برگشت» رویدادِ جداگانه است، نه حاشیهٔ ارجاع
+        verify(activityLog).record(eq(ActivityLog.Action.CHAT_UNREAD_RESTORE), any(),
+                eq(ActivityLogService.ENTITY_CONVERSATION), eq(CONV), any(),
+                eq("restoredUnread"), isNull(), eq("1"));
+    }
+
+    @Test
+    void releaseAndClaimAreLoggedToo() {
+        assignedConversation();
+        service.release(CONV, holder, false);
+        verify(activityLog).record(eq(ActivityLog.Action.CHAT_RELEASE), any(),
+                eq(ActivityLogService.ENTITY_CONVERSATION), eq(CONV), any(),
+                eq("assignedAgent"), eq("الف"), isNull());
+
+        service.claim(CONV, other);
+        verify(activityLog).record(eq(ActivityLog.Action.CHAT_CLAIM), any(),
+                eq(ActivityLogService.ENTITY_CONVERSATION), eq(CONV), any(),
+                eq("assignedAgent"), isNull(), eq("ب"));
+    }
+
+    /**
+     * ⚠️ بستنِ گفت‌وگو پیش از این فقط شیءِ درون‌حافظه را عوض می‌کرد و هرگز ذخیره
+     * نمی‌شد؛ یعنی با اولین بازخوانی دوباره باز بود.
+     */
+    @Test
+    void closePersistsAndIsLogged() {
+        assignedConversation();
+
+        Conversation closed = service.close(CONV, holder);
+
+        assertEquals(ConversationStatus.CLOSED, closed.getStatus());
+        assertNotNull(closed.getClosedAt());
+        assertEquals(ConversationStatus.CLOSED, conversations.get(CONV).getStatus(), "باید ذخیره شده باشد");
+        verify(activityLog).record(eq(ActivityLog.Action.CHAT_CLOSE), any(),
+                eq(ActivityLogService.ENTITY_CONVERSATION), eq(CONV), any(),
+                eq("status"), eq("ASSIGNED"), eq("CLOSED"));
     }
 
     // ==========================================================

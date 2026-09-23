@@ -39,7 +39,16 @@ public class ActivityLog {
         // صدور/رزروِ کدِ کالا — عملی که برگشت ندارد، چون کد هرگز بازاستفاده نمی‌شود
         HOLOO_CODE_ISSUE,
         // یک دورِ ایمپورتِ موجودی از فایلِ حسابداری
-        HOLOO_STOCK_IMPORT
+        HOLOO_STOCK_IMPORT,
+
+        // ── چرخهٔ عمرِ گفت‌وگوی پشتیبانی ──
+        // «چه کسی کدام گفت‌وگو را برداشت، به که داد، کِی رها کرد» خودش یک رویدادِ
+        // ممیزی است: مشتریِ بی‌جواب همیشه نتیجهٔ یکی از همین‌هاست.
+        CHAT_CLAIM,            // برداشتنِ گفت‌وگو از صف
+        CHAT_TRANSFER,         // ارجاع/تعیینِ کارشناس
+        CHAT_RELEASE,          // انصراف از برداشت (برگشت به صف)
+        CHAT_CLOSE,            // بستنِ گفت‌وگو
+        CHAT_UNREAD_RESTORE    // برگرداندنِ پیام‌های بی‌پاسخ به حالتِ نخوانده
     }
 
     /** مسیرِ انجامِ تغییر — برایِ تفکیکِ کارِ دستی از ورودِ دسته‌ای و (بعداً) هلو. */
@@ -54,7 +63,18 @@ public class ActivityLog {
     private String id;
 
     @Indexed
-    private String username;      // چه کسی
+    private String username;      // چه کسی (کلیدِ ممیزی)
+
+    /**
+     * نامِ خانوادگیِ همان کاربر در لحظهٔ ثبت — خواستهٔ مالک: در تاریخچه، نامِ
+     * خانوادگیِ کارشناس دیده شود نه نامِ کاربری.
+     * <p>
+     * ⚠️ {@code username} عمداً حذف نشد و کنارش ماند: کلیدِ ممیزی و فیلترِ «کدام
+     * کاربر» همان است، رکوردهایِ قدیمی فقط همان را دارند، و دو کارمند می‌توانند
+     * نامِ خانوادگیِ یکسان داشته باشند. این فیلد برای <b>خواندن</b> است، آن یکی
+     * برای <b>شناسایی</b>.
+     */
+    private String displayName;
 
     @Indexed
     private Instant at = Instant.now();  // کِی
@@ -85,6 +105,7 @@ public class ActivityLog {
 
     public ActivityLog() {}
 
+    /** سازندهٔ قدیمی — بدونِ نامِ نمایشی؛ برایِ سازگاری نگه داشته شده. */
     public ActivityLog(String username, Action action, Source source,
                        String entityType, String entityId, String productName,
                        String field, String oldValue, String newValue) {
@@ -105,6 +126,9 @@ public class ActivityLog {
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
 
     public Instant getAt() { return at; }
     public void setAt(Instant at) { this.at = at; }

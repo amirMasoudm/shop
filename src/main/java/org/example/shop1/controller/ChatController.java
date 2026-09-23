@@ -202,12 +202,7 @@ public class ChatController {
     @PostMapping("/conversations/{id}/close")
     public ResponseEntity<Map<String, Object>> close(@PathVariable String id, Authentication authentication) {
         User agent = requireAgent(currentUser(authentication));
-        Conversation conversation = chatService.requireConversation(id);
-        chatService.assertMember(conversation, agent);
-        conversation.setStatus(ConversationStatus.CLOSED);
-        conversation.setClosedAt(Instant.now());
-        chatService.appendSystemMessage(conversation, "گفت‌وگو توسط " + chatService.staffDisplayName(agent) + " بسته شد.");
-        return ResponseEntity.ok(chatService.toView(conversation));
+        return ResponseEntity.ok(chatService.toView(chatService.close(id, agent)));
     }
 
     // ==========================================================

@@ -170,9 +170,15 @@
         <div class="flex flex-col md:flex-row gap-2 mb-3">
             <select id="log-entity-type" onchange="fetchActivityLogs()"
                     class="p-2.5 border rounded-lg outline-none text-sm bg-white">
-                <option value="">همه رویدادها</option>
+                <option value="">همه بخش‌ها</option>
                 <option value="PRODUCT">قیمت‌گذاری محصولات</option>
                 <option value="SETTINGS">تنظیمات فروشگاه</option>
+                <option value="CONVERSATION">چت پشتیبانی</option>
+                <option value="ANALYTICS">دادهٔ رفتاری</option>
+            </select>
+            <select id="log-action" onchange="fetchActivityLogs()"
+                    class="p-2.5 border rounded-lg outline-none text-sm bg-white">
+                <option value="">همه رویدادها</option>
             </select>
             <input type="text" id="log-username" placeholder="نام کاربری (خالی = همه)"
                    class="flex-1 p-2.5 border rounded-lg outline-none text-sm">
@@ -1413,13 +1419,35 @@
         STOCK_CHANGE: 'اصلاح موجودی',
         PRODUCT_CREATE: 'افزودن محصول', PRODUCT_UPDATE: 'ویرایش محصول',
         PRODUCT_DELETE: 'حذف محصول',
-        ANALYTICS_EXPORT: 'خروجیِ دادهٔ رفتاری', ANALYTICS_ERASE: 'حذفِ دادهٔ رفتاریِ کاربر'
+        ANALYTICS_EXPORT: 'خروجیِ دادهٔ رفتاری', ANALYTICS_ERASE: 'حذفِ دادهٔ رفتاریِ کاربر',
+        HOLOO_CODE_ISSUE: 'صدور کد کالا', HOLOO_STOCK_IMPORT: 'ورود موجودی از حسابداری',
+        CHAT_CLAIM: 'برداشتن گفت‌وگو', CHAT_TRANSFER: 'ارجاع گفت‌وگو',
+        CHAT_RELEASE: 'انصراف از گفت‌وگو', CHAT_CLOSE: 'بستن گفت‌وگو',
+        CHAT_UNREAD_RESTORE: 'برگرداندن پیام‌ها به نخوانده'
     };
     const LOG_SOURCE_LABELS = {MANUAL: 'دستی', DERIVED: 'خودکار (فرمول)', BATCH: 'دسته‌ای', HOLOO: 'هلو'};
     // نوعِ موجودیت — پایه‌ی دوقسمتی‌شدنِ لاگ؛ نوعِ جدید فقط یک ردیف اینجا می‌خواهد
-    const LOG_ENTITY_LABELS = {PRODUCT: 'محصول', SETTINGS: 'تنظیمات', CATEGORY: 'دسته', ARTICLE: 'مقاله', USER: 'کاربر', ANALYTICS: 'دادهٔ رفتاری'};
+    const LOG_ENTITY_LABELS = {PRODUCT: 'محصول', SETTINGS: 'تنظیمات', CATEGORY: 'دسته', ARTICLE: 'مقاله', USER: 'کاربر', ANALYTICS: 'دادهٔ رفتاری', CONVERSATION: 'گفت‌وگو'};
+
+    /**
+     * گزینه‌هایِ سلکتِ رویداد از همان نقشهٔ برچسب‌ها ساخته می‌شوند.
+     * ⚠️ عمداً نه دستی: هر رویدادِ تازه فقط یک ردیف در LOG_ACTION_LABELS می‌خواهد،
+     * وگرنه دیر یا زود رویدادی ثبت می‌شود که هیچ راهی برای فیلترکردنش نیست.
+     */
+    function fillLogActionOptions() {
+        const select = document.getElementById('log-action');
+        if (!select || select.dataset.filled === '1') return;
+        Object.keys(LOG_ACTION_LABELS).forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = LOG_ACTION_LABELS[key];
+            select.appendChild(option);
+        });
+        select.dataset.filled = '1';
+    }
 
     async function fetchActivityLogs() {
+        fillLogActionOptions();
         toggleLoader(true);
         try {
             const params = new URLSearchParams();
@@ -1429,8 +1457,11 @@
             // سلکتِ نوعِ رویداد فقط در پنلِ ادمین وجود دارد
             const typeSel = document.getElementById('log-entity-type');
             const et = typeSel ? typeSel.value : '';
+            const actionSel = document.getElementById('log-action');
+            const ac = actionSel ? actionSel.value : '';
             if (u) params.set('username', u);
             if (et) params.set('entityType', et);
+            if (ac) params.set('action', ac);
             if (f) params.set('from', f);
             if (t) params.set('to', t);
             params.set('size', '200');
@@ -1443,7 +1474,9 @@
             document.getElementById('log-body').innerHTML = items.length ? items.map(l => `
                 <tr class="hover:bg-gray-50">
                     <td class="p-2 text-gray-500 whitespace-nowrap">${new Date(l.at).toLocaleString('fa-IR')}</td>
-                    <td class="p-2 font-medium">${escapeHTML(l.username || '')}</td>
+                    <td class="p-2 font-medium" title="${escapeHTML(l.username || '')}">
+                        ${escapeHTML(l.displayName || l.username || '')}
+                    </td>
                     <td class="p-2">${LOG_ACTION_LABELS[l.action] || l.action || ''}</td>
                     <td class="p-2">
                         ${escapeHTML(l.productName || '—')}

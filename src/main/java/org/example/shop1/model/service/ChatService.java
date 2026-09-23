@@ -2,6 +2,7 @@ package org.example.shop1.model.service;
 
 import org.example.shop1.config.SecurityUtils;
 import org.example.shop1.exeption.ApiException;
+import org.example.shop1.model.entity.ActivityLog;
 import org.example.shop1.model.entity.ChatMessage;
 import org.example.shop1.model.entity.Conversation;
 import org.example.shop1.model.entity.User;
@@ -62,6 +63,7 @@ public class ChatService {
     private final MongoOperations mongoOperations;
     private final MessageBroadcaster broadcaster;
     private final BusinessHoursService businessHours;
+    private final ActivityLogService activityLog;
 
     private final Map<String, Deque<Long>> messageHits = new ConcurrentHashMap<>();
     private final Map<String, Deque<Long>> uploadHits = new ConcurrentHashMap<>();
@@ -73,7 +75,9 @@ public class ChatService {
                        MongoOperations mongoOperations,
                        MessageBroadcaster broadcaster,
                        BusinessHoursService businessHours,
+                       ActivityLogService activityLog,
                        org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
+        this.activityLog = activityLog;
         this.analytics = analytics;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
@@ -211,6 +215,8 @@ public class ChatService {
         if (claimed != null) {
             // تاریخچه باید خودتوضیح بماند: چه کسی و کِی برش داشت.
             appendSystemMessage(claimed, "گفت‌وگو توسط " + staffDisplayName(agent) + " برداشته شد.");
+            logChat(ActivityLog.Action.CHAT_CLAIM, claimed, "assignedAgent",
+                    null, staffDisplayName(agent));
             broadcaster.broadcastToAgents(Map.of("event", "queue"));
             return claimed;
         }
@@ -280,7 +286,9 @@ public class ChatService {
      * داده باشد، و بازنویسیِ کورکورانه آن تغییر را بی‌صدا پاک می‌کرد.
      */
     public Handover release(String conversationId, User agent, boolean restoreUnread) {
-        String holder = requireHolder(requireConversation(conversationId), agent, false);
+        Conversation before = requireConversation(conversationId);
+        String holder = requireHolder(before, agent, false);
+        String previousAgent = before.getAssignedAgentName();
 
         Conversation released = mongoOperations.findAndModify(
                 Query.query(Criteria.where("_id").is(conversationId).and("assignedAgentId").is(holder)),
@@ -300,6 +308,8 @@ public class ChatService {
         // شمارِ «برگشته به نخوانده» نه — آن فقط به کارِ کارشناس می‌آید.
         appendSystemMessage(released,
                 "گفت‌وگو توسط " + staffDisplayName(agent) + " به صفِ پشتیبانی برگردانده شد.");
+        logChat(ActivityLog.Action.CHAT_RELEASE, released, "assignedAgent", previousAgent, null);
+        logRestoredUnread(released, restored);
         broadcaster.broadcastToAgents(Map.of("event", "queue"));
         return new Handover(released, restored);
     }
@@ -311,7 +321,9 @@ public class ChatService {
         }
         // ادمین می‌تواند گفت‌وگوی هنوز برداشته‌نشدهٔ توی صف را هم مستقیم به کسی بدهد؛
         // برای «انصراف» چنین چیزی بی‌معنی است، پس فقط همین مسیر اجازه‌اش را دارد.
-        String holder = requireHolder(requireConversation(conversationId), agent, true);
+        Conversation before = requireConversation(conversationId);
+        String holder = requireHolder(before, agent, true);
+        String previousAgent = before.getAssignedAgentName();
         if (target.getId().equals(holder)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "این گفت‌وگو همین حالا هم دستِ همین کارشناس است");
         }
@@ -332,8 +344,56 @@ public class ChatService {
         int restored = restoreUnread ? restoreUnread(moved) : 0;
         appendSystemMessage(moved, "گفت‌وگو توسط " + staffDisplayName(agent)
                 + " به " + staffDisplayName(target) + " ارجاع شد.");
+        logChat(ActivityLog.Action.CHAT_TRANSFER, moved, "assignedAgent",
+                previousAgent, staffDisplayName(target));
+        logRestoredUnread(moved, restored);
         broadcaster.broadcastToAgents(Map.of("event", "queue"));
         return new Handover(moved, restored);
+    }
+
+    /**
+     * بستنِ گفت‌وگو.
+     * <p>
+     * ⚠️ این منطق از کنترلر به اینجا آمد و سرِ راه یک باگِ واقعی بسته شد: نسخهٔ
+     * قبلی وضعیت و زمانِ بسته‌شدن را فقط رویِ شیءِ درون‌حافظه می‌گذاشت و
+     * <b>هیچ‌وقت ذخیره نمی‌کرد</b> — یعنی گفت‌وگو ظاهراً بسته می‌شد و با اولین
+     * بازخوانی دوباره باز بود.
+     */
+    public Conversation close(String conversationId, User agent) {
+        Conversation conversation = requireConversation(conversationId);
+        assertMember(conversation, agent);
+        String previousStatus = conversation.getStatus() == null ? null : conversation.getStatus().name();
+
+        conversation.setStatus(ConversationStatus.CLOSED);
+        conversation.setClosedAt(Instant.now());
+        conversationRepository.save(conversation);
+
+        appendSystemMessage(conversation,
+                "گفت‌وگو توسط " + staffDisplayName(agent) + " بسته شد.");
+        logChat(ActivityLog.Action.CHAT_CLOSE, conversation, "status",
+                previousStatus, ConversationStatus.CLOSED.name());
+        broadcaster.broadcastToAgents(Map.of("event", "queue"));
+        return conversation;
+    }
+
+    /**
+     * ثبتِ رویدادِ گفت‌وگو در تاریخچهٔ تغییرات.
+     * <p>
+     * نامِ مشتری در ستونِ «موجودیت» می‌نشیند تا ردیفِ لاگ بدونِ بازکردنِ گفت‌وگو
+     * خوانا باشد؛ نامِ کارشناس در ستونِ «از/به» چون همان چیزی است که عوض می‌شود.
+     */
+    private void logChat(ActivityLog.Action action, Conversation conversation,
+                         String field, String oldValue, String newValue) {
+        activityLog.record(action, ActivityLog.Source.MANUAL,
+                ActivityLogService.ENTITY_CONVERSATION, conversation.getId(),
+                conversation.getCustomerName(), field, oldValue, newValue);
+    }
+
+    /** «n پیام به نخوانده برگشت» رویدادِ جداگانه‌ای است، نه حاشیهٔ ارجاع. */
+    private void logRestoredUnread(Conversation conversation, int restored) {
+        if (restored <= 0) return;
+        logChat(ActivityLog.Action.CHAT_UNREAD_RESTORE, conversation,
+                "restoredUnread", null, String.valueOf(restored));
     }
 
     /**
