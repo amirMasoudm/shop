@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطای موقت | داده نما</title>
+    <!-- 🔴 عمداً noindex ندارد — نه در متا، نه در هدر. خطای سمتِ سرور موقتی است و
+         گوگل باید صفحه را نگه دارد و بعداً دوباره بیاید. «پیامِ غلط بدتر از پیامِ
+         نبودن است» — همان درسی که در ماجرای ۴۴۴ گرفتیم. -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <style>
+        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
+        .topbar { background:var(--primary); color:#fff; padding:14px 16px; }
+        .topbar .in { max-width:1100px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; }
+        .topbar a { color:#fff; text-decoration:none; font-weight:700; }
+
+        main { max-width:700px; margin:0 auto; padding:56px 16px 40px; text-align:center; }
+        .code { font-size:4.2rem; font-weight:900; color:#9a3412; line-height:1; }
+        h1 { font-size:1.4rem; margin:14px 0 10px; line-height:1.7; }
+        .sub { color:var(--mid); font-size:.95rem; line-height:2; max-width:50ch; margin:0 auto 28px; }
+
+        /* رنگِ کهربایی نه قرمز: خطای موقتی است، فاجعه نیست */
+        .note {
+            background:#fff7ed; border:1px solid #fed7aa; border-inline-start:4px solid #ea580c;
+            border-radius:10px; padding:14px 16px; margin:0 auto 28px; max-width:520px;
+            text-align:right; font-size:.88rem; line-height:1.95; color:#7c2d12;
+        }
+
+        .ways { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+        .ways a, .ways button {
+            display:inline-block; padding:10px 22px; border-radius:100px; text-decoration:none;
+            font-weight:700; font-size:.88rem; border:1px solid #dbe5f1; background:#fff; color:var(--primary);
+            font-family:inherit; cursor:pointer;
+        }
+        .ways .main { background:var(--primary); border-color:var(--primary); color:#fff; }
+        .ways a:hover, .ways button:hover { border-color:var(--primary); }
+
+        footer { background:#1b2a3a; color:#94a3b8; padding:24px 16px; margin-top:52px; text-align:center; font-size:.78rem; }
+
+        @media (max-width:520px) {
+            main { padding-top:38px; }
+            .code { font-size:3.2rem; }
+            h1 { font-size:1.15rem; }
+            .ways { flex-direction:column; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/learn">آموزش</a>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<header class="topbar">
+    <div class="in">
+        <a href="/shop">🛒 فروشگاه داده نما</a>
+        <span style="font-size:.85rem;">شبکه و ارتباطات</span>
+    </div>
+</header>
+
+<main>
+    <div class="code" th:text="${status} ?: '۵۰۰'">۵۰۰</div>
+    <h1>مشکل از سمتِ ماست</h1>
+    <p class="sub">
+        این خطا در سرورِ ما رخ داده، نه در کارِ شما. چیزی از دست نرفته —
+        چند دقیقهٔ دیگر دوباره تلاش کنید.
+    </p>
+
+    <div class="note">
+        اگر همین حالا وسطِ کاری بودید، صفحه را دوباره بارگذاری کنید. اگر باز هم
+        تکرار شد، کمی صبر کنید؛ معمولاً خودش برطرف می‌شود.
+    </div>
+
+    <div class="ways">
+        <button type="button" class="main" onclick="location.reload()">تلاش دوباره</button>
+        <a href="/shop">فروشگاه</a>
+        <a href="/blog">بلاگ آموزشی</a>
+    </div>
+</main>
+
+<footer>© داده نما</footer>
+
+</body>
+</html>

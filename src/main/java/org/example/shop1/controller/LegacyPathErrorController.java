@@ -43,11 +43,29 @@ public class LegacyPathErrorController extends BasicErrorController {
     @Override
     public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
         String target = fallback.resolve(request);
-        if (target == null) return super.errorHtml(request, response);
+        if (target == null) {
+            markNoindexIfNotFound(request, response);
+            return super.errorHtml(request, response);
+        }
 
         sendMovedPermanently(response, target);
         // null یعنی «پاسخ را خودم دادم» — صفحهٔ خطا رندر نمی‌شود
         return null;
+    }
+    /**
+     * فقط روی ۴۰۴ هدرِ {@code noindex}.
+     * <p>
+     * 🔴 عمداً روی ۵xx گذاشته نمی‌شود: خطای سرور موقتی است و گوگل باید صفحه را نگه
+     * دارد و بعداً برگردد. گفتنِ «ایندکس نکن» در لحظهٔ خرابی یعنی صفحهٔ سالم را به‌خاطرِ
+     * یک خطای گذرا از دست بدهیم.
+     * <p>
+     * ⚠️ جایش بعد از شاخهٔ فالبک است تا روی پاسخِ ۳۰۱ ننشیند — noindex روی ریدایرکت
+     * می‌تواند مقصد را هم آلوده کند.
+     */
+    private void markNoindexIfNotFound(HttpServletRequest request, HttpServletResponse response) {
+        if (getStatus(request) == HttpStatus.NOT_FOUND) {
+            response.setHeader("X-Robots-Tag", "noindex");
+        }
     }
 
     @Override
