@@ -70,7 +70,10 @@
 </header>
 
 <main>
-    <div class="code" th:text="${status} ?: '۵۰۰'">۵۰۰</div>
+    <!-- ⚠️ وقتی /error مستقیم صدا زده شود — نه از راهِ ERROR dispatch — اسپرینگ
+         عددِ نگهبانِ ۹۹۹ را در مدل می‌گذارد. Elvis آن را نمی‌گیرد چون null نیست،
+         پس بازهٔ معتبرِ ۵xx را صریح می‌سنجیم. خزنده‌ها و اسکنرها /error را مستقیم می‌زنند. -->
+    <div class="code" th:text="${status != null and status ge 500 and status lt 600} ? ${status} : '۵۰۰'">۵۰۰</div>
     <h1>مشکل از سمتِ ماست</h1>
     <p class="sub">
         این خطا در سرورِ ما رخ داده، نه در کارِ شما. چیزی از دست نرفته —
