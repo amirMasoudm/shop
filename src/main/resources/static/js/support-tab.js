@@ -17,6 +17,9 @@
     let selfId = null;
     let mounted = false;
     let activeConversationId = null;
+    // ⚠️ خودِ سند هم نگه داشته می‌شود نه فقط شناسه: دکمه‌هایِ ارجاع/انصراف باید
+    // بدانند گفت‌وگو دستِ کیست، و دوباره‌پرسیدنش از سرور بی‌مورد بود.
+    let activeConversation = null;
 
     async function mount(hostEl, opts) {
         opts = opts || {};
@@ -46,8 +49,11 @@
                     </aside>
 
                     <section class="flex-1 bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col min-h-0">
-                        <div data-header class="p-3 border-b bg-gray-50 text-sm font-bold text-gray-800">
-                            یک گفت‌وگو را انتخاب کنید
+                        <div class="p-3 border-b bg-gray-50 flex items-center justify-between gap-2">
+                            <div data-header class="text-sm font-bold text-gray-800 truncate">
+                                یک گفت‌وگو را انتخاب کنید
+                            </div>
+                            <div data-actions class="flex items-center gap-2 shrink-0"></div>
                         </div>
                         <div data-thread class="flex-1 min-h-0"></div>
                     </section>
@@ -147,12 +153,211 @@
     }
 
     async function open(conversation) {
+        activeConversation = conversation;
         activeConversationId = conversation.id;
-        const header = host.querySelector('[data-header]');
-        header.textContent = conversation.customerName || 'مشتری';
+        host.querySelector('[data-header]').textContent = conversation.customerName || 'مشتری';
+        renderActions();
         ChatCore.setComposerEnabled(true);
         await ChatCore.openConversation(conversation.id);
         await refresh();
+    }
+
+    /** بعد از ارجاع یا انصراف، گفت‌وگو دیگر مالِ ما نیست؛ پنجره باید خالی شود. */
+    function clearActive() {
+        activeConversation = null;
+        activeConversationId = null;
+        host.querySelector('[data-header]').textContent = 'یک گفت‌وگو را انتخاب کنید';
+        renderActions();
+        ChatCore.closeConversation();
+        ChatCore.setComposerEnabled(false, 'برای پاسخ‌دادن، یک گفت‌وگو را باز کنید.');
+    }
+
+    // ==========================================================
+    // ارجاع و انصراف
+    // ==========================================================
+
+    /**
+     * دکمه‌ها فقط وقتی معنی دارند که گفت‌وگو دستِ خودمان باشد. روی ردیفِ صف
+     * (هنوز برداشته‌نشده) کاری ندارند و سرور هم ۴۰۹ می‌دهد — پس اصلاً ساخته نمی‌شوند.
+     */
+    function renderActions() {
+        const box = host.querySelector('[data-actions]');
+        box.innerHTML = '';
+        if (!activeConversation || !activeConversation.assignedAgentId) return;
+        if (selfId && activeConversation.assignedAgentId !== selfId) return;
+        box.appendChild(actionButton('ارجاع به همکار',
+                'bg-indigo-600 text-white hover:bg-indigo-700', transferActive));
+        box.appendChild(actionButton('انصراف از برداشت',
+                'bg-white text-gray-700 border hover:bg-gray-100', releaseActive));
+    }
+
+    function actionButton(label, classes, onClick) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'text-[11px] font-bold rounded-lg px-3 py-1.5 transition ' + classes;
+        button.textContent = label;
+        button.addEventListener('click', onClick);
+        return button;
+    }
+
+    /** شمارِ پیام‌های بی‌پاسخ. نبودنش نباید جلوی ارجاع را بگیرد، فقط پرسش را کم‌دقت‌تر می‌کند. */
+    async function unansweredInfo(conversationId) {
+        try {
+            return await fetchJson(
+                `${API}/conversations/${encodeURIComponent(conversationId)}/unanswered`);
+        } catch (e) {
+            return {total: 0, seen: 0};
+        }
+    }
+
+    /**
+     * پرسشِ مشترکِ پیش از ارجاع و انصراف.
+     * <p>
+     * خواستهٔ مالک این بود که <b>قبل از هر دو</b> پرسیده شود پیام‌هایِ بی‌پاسخِ مشتری
+     * به حالتِ نخوانده برگردند یا نه. هر دو مسیر عمداً از همین یک تابع رد می‌شوند تا
+     * امکان نداشته باشد یکی‌شان روزی این پرسش را جا بیندازد.
+     */
+    async function askHandover(opts) {
+        if (!window.Swal) {
+            alert('این بخش به پنجرهٔ گفت‌وگوی پنل نیاز دارد؛ صفحه را دوباره بارگذاری کنید.');
+            return null;
+        }
+        const res = await Swal.fire({
+            title: opts.title,
+            html: (opts.bodyHtml || '') + unreadQuestionHtml(opts.info),
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: opts.confirmText,
+            cancelButtonText: 'بی‌خیال',
+            reverseButtons: true,
+            focusConfirm: false,
+            preConfirm: () => {
+                const select = document.getElementById('swal-agent');
+                if (opts.needsAgent && (!select || !select.value)) {
+                    Swal.showValidationMessage('کارشناسِ مقصد را انتخاب کنید');
+                    return false;
+                }
+                const box = document.getElementById('swal-restore');
+                return {
+                    toAgentId: select ? select.value : null,
+                    restoreUnread: !!(box && box.checked)
+                };
+            }
+        });
+        return res.isConfirmed ? res.value : null;
+    }
+
+    function unreadQuestionHtml(info) {
+        const total = (info && info.total) || 0;
+        if (!total) {
+            return '<div style="margin-top:14px;font-size:12px;color:#6b7280;">'
+                 + 'پیامِ بی‌پاسخی از مشتری نمانده است.</div>';
+        }
+        const seen = (info && info.seen) || 0;
+        const seenNote = seen ? ' ' + seen + ' تای آن‌ها را سین کرده‌اید.' : '';
+        return '<label style="display:flex;gap:8px;align-items:flex-start;margin-top:14px;padding:10px;'
+             + 'text-align:right;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;cursor:pointer;">'
+             + '<input type="checkbox" id="swal-restore" checked style="margin-top:4px;">'
+             + '<span style="font-size:12px;line-height:2;color:#7c2d12;"><b>'
+             + total + ' پیامِ مشتری بی‌پاسخ مانده.</b>' + seenNote
+             + ' به حالتِ «نخوانده» برگردند تا کارشناسِ بعدی ببیندشان؟</span></label>';
+    }
+
+    function agentSelectHtml(agents) {
+        const options = agents.map(a =>
+            '<option value="' + escapeHtml(a.id) + '">' + escapeHtml(a.name) + '</option>').join('');
+        return '<div style="text-align:right;">'
+             + '<div style="font-size:12px;color:#374151;margin-bottom:6px;">گفت‌وگو به کدام همکار برود؟</div>'
+             + '<select id="swal-agent" class="swal2-select" style="width:100%;margin:0;">'
+             + '<option value="">— انتخاب کنید —</option>' + options + '</select></div>';
+    }
+
+    async function transferActive() {
+        const conversation = activeConversation;
+        if (!conversation) return;
+
+        let agents = [];
+        try {
+            agents = await fetchJson(`${API}/agents`);
+        } catch (e) {
+            return showError('فهرستِ کارشناسان گرفته نشد');
+        }
+        if (!agents.length) {
+            return showInfo('ارجاع ممکن نیست', 'کارشناسِ دیگری برای ارجاع ثبت نشده است.', 'info');
+        }
+
+        const choice = await askHandover({
+            title: 'ارجاع به همکار',
+            bodyHtml: agentSelectHtml(agents),
+            confirmText: 'ارجاع بده',
+            needsAgent: true,
+            info: await unansweredInfo(conversation.id)
+        });
+        if (!choice) return;
+
+        try {
+            const result = await postJson(
+                `${API}/conversations/${encodeURIComponent(conversation.id)}/transfer`,
+                {toAgentId: choice.toAgentId, restoreUnread: choice.restoreUnread});
+            clearActive();
+            await refresh();
+            showInfo('ارجاع شد',
+                'گفت‌وگو به ' + (result.assignedAgentName || 'همکار') + ' سپرده شد.'
+                + restoredNote(result.restoredUnread), 'success');
+        } catch (err) {
+            showError((err && err.message) || 'ارجاع ناموفق بود');
+            await refresh();
+        }
+    }
+
+    async function releaseActive() {
+        const conversation = activeConversation;
+        if (!conversation) return;
+
+        const choice = await askHandover({
+            title: 'انصراف از برداشت',
+            bodyHtml: '<div style="text-align:right;font-size:12px;color:#374151;line-height:2;">'
+                    + 'گفت‌وگو به صفِ مشترک برمی‌گردد و هر کارشناسی می‌تواند برش دارد.</div>',
+            confirmText: 'بله، به صف برگردد',
+            needsAgent: false,
+            info: await unansweredInfo(conversation.id)
+        });
+        if (!choice) return;
+
+        try {
+            const result = await postJson(
+                `${API}/conversations/${encodeURIComponent(conversation.id)}/release`,
+                {restoreUnread: choice.restoreUnread});
+            clearActive();
+            await refresh();
+            showInfo('به صف برگشت',
+                'گفت‌وگو دوباره در صفِ مشترک است.' + restoredNote(result.restoredUnread), 'success');
+        } catch (err) {
+            showError((err && err.message) || 'انصراف ناموفق بود');
+            await refresh();
+        }
+    }
+
+    function restoredNote(count) {
+        return count > 0 ? ' ' + count + ' پیام به حالتِ نخوانده برگشت.' : '';
+    }
+
+    function showInfo(title, text, icon) {
+        if (window.Swal) Swal.fire(title, text, icon || 'info');
+        else alert(title + '\n' + text);
+    }
+
+    function showError(message) {
+        if (window.Swal) Swal.fire('خطا', message, 'error');
+        else alert(message);
+    }
+
+    // دادهٔ سرور است نه ورودیِ مشتری، ولی چون داخلِ innerHTMLِ مودال می‌نشیند
+    // همان‌جا هم فرار داده می‌شود — نامِ کارکنان از پنلِ ادمین قابلِ تغییر است.
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function waitedFor(iso) {
@@ -175,12 +380,17 @@
         return res.json();
     }
 
-    async function postJson(url) {
+    async function postJson(url, body) {
         // توکنِ CSRF خودمان فرستاده می‌شود و به رَپرِ fetchِ میزبان تکیه نمی‌کنیم —
         // همان دلیلی که در chat-core.js توضیح داده شده.
         const m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
         const headers = m ? {'X-XSRF-TOKEN': decodeURIComponent(m[1])} : {};
-        const res = await fetch(url, {method: 'POST', credentials: 'include', headers: headers});
+        const init = {method: 'POST', credentials: 'include', headers: headers};
+        if (body !== undefined) {
+            headers['Content-Type'] = 'application/json';
+            init.body = JSON.stringify(body);
+        }
+        const res = await fetch(url, init);
         if (!res.ok) throw new Error(await res.text());
         return res.json();
     }

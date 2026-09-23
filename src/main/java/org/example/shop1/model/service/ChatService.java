@@ -174,6 +174,133 @@ public class ChatService {
                 "این گفت‌وگو را همکارتان «" + nullSafe(existing.getAssignedAgentName()) + "» برداشت.");
     }
 
+    /**
+     * نتیجهٔ ارجاع یا انصراف.
+     * <p>
+     * شمارِ پیام‌هایِ برگشته‌به‌نخوانده جدا از خودِ گفت‌وگو برمی‌گردد چون فقط برایِ
+     * پیامِ تأییدِ کارشناس است و جایی در سندِ گفت‌وگو ندارد.
+     */
+    public record Handover(Conversation conversation, int restoredUnread) {}
+
+    /**
+     * پیام‌هایِ مشتری که بعد از آخرین پاسخِ کارشناس آمده‌اند — یعنی بی‌جواب مانده‌اند.
+     * <p>
+     * ⚠️ پیامِ {@code SYSTEM} «پاسخ» به‌حساب نمی‌آید: «گفت‌وگو برداشته شد» جوابِ
+     * مشتری نبوده، و اگر مرز را روی آن می‌گذاشتیم، برداشتنِ ساده باعث می‌شد
+     * پیام‌هایِ بی‌جوابِ قبلش «جواب‌داده‌شده» حساب شوند.
+     */
+    public List<ChatMessage> unansweredCustomerMessages(String conversationId) {
+        List<ChatMessage> lastAgent = messageRepository
+                .findByConversationIdAndSenderRoleOrderByCreatedAtDesc(
+                        conversationId, SenderRole.AGENT, PageRequest.of(0, 1));
+        if (lastAgent.isEmpty()) {
+            return messageRepository.findByConversationIdAndSenderRoleOrderByCreatedAtAsc(
+                    conversationId, SenderRole.CUSTOMER);
+        }
+        return messageRepository.findByConversationIdAndSenderRoleAndCreatedAtAfterOrderByCreatedAtAsc(
+                conversationId, SenderRole.CUSTOMER, lastAgent.get(0).getCreatedAt());
+    }
+
+    /**
+     * برگرداندنِ پیام‌هایِ بی‌پاسخ به حالتِ «نخوانده».
+     * <p>
+     * ⚠️ عمداً {@code readAt} هم پاک می‌شود، نه فقط شمارنده: خواستهٔ مالک «آن‌سین‌شدن»
+     * بود. با دست‌نخوردنِ {@code readAt} پیام سین‌خورده می‌ماند و کارشناسِ بعدی
+     * نمی‌فهمد کدام‌ها را کسی خوانده و بی‌جواب رها کرده.
+     * <p>
+     * برایِ مشتری رویدادی فرستاده نمی‌شود؛ تیکِ دوتاییِ او در همان لحظه عوض نمی‌شود.
+     * (بعد از بازخوانیِ صفحه تکی می‌شود، که درست هم هست: پیامش واقعاً رسیدگی نشده.)
+     */
+    public int restoreUnread(Conversation conversation) {
+        List<ChatMessage> pending = unansweredCustomerMessages(conversation.getId());
+        if (pending.isEmpty()) return 0;
+        mongoOperations.updateMulti(
+                Query.query(Criteria.where("_id").in(pending.stream().map(ChatMessage::getId).toList())),
+                new Update().unset("readAt"),
+                ChatMessage.class);
+        conversation.setUnreadForAgent(pending.size());
+        conversationRepository.save(conversation);
+        return pending.size();
+    }
+
+    /**
+     * انصراف از برداشت — گفت‌وگو به صفِ مشترک برمی‌گردد.
+     * <p>
+     * ⚠️ مثلِ {@link #claim}, اینجا هم {@code findAndModify} با پیش‌شرط است نه
+     * «بخوان-بعد-بنویس»: بینِ خواندن و نوشتن ممکن است ادمین گفت‌وگو را به کسِ دیگری
+     * داده باشد، و بازنویسیِ کورکورانه آن تغییر را بی‌صدا پاک می‌کرد.
+     */
+    public Handover release(String conversationId, User agent, boolean restoreUnread) {
+        String holder = requireHolder(requireConversation(conversationId), agent);
+
+        Conversation released = mongoOperations.findAndModify(
+                Query.query(Criteria.where("_id").is(conversationId).and("assignedAgentId").is(holder)),
+                new Update()
+                        .unset("assignedAgentId")
+                        .unset("assignedAgentName")
+                        .unset("closedAt")
+                        .set("status", ConversationStatus.OPEN),
+                FindAndModifyOptions.options().returnNew(true),
+                Conversation.class);
+        if (released == null) {
+            throw new ApiException(HttpStatus.CONFLICT, "وضعیتِ این گفت‌وگو تغییر کرده؛ فهرست را تازه کنید.");
+        }
+
+        int restored = restoreUnread ? restoreUnread(released) : 0;
+        // متنِ سیستمی را مشتری هم می‌بیند، پس عمداً فقط خودِ رویداد در آن است و
+        // شمارِ «برگشته به نخوانده» نه — آن فقط به کارِ کارشناس می‌آید.
+        appendSystemMessage(released,
+                "گفت‌وگو توسط " + staffDisplayName(agent) + " به صفِ پشتیبانی برگردانده شد.");
+        broadcaster.broadcastToAgents(Map.of("event", "queue"));
+        return new Handover(released, restored);
+    }
+
+    /** ارجاع به کارشناسِ دیگر. همان قیدهایِ {@link #release}، فقط مقصد به‌جای صف. */
+    public Handover transfer(String conversationId, User agent, User target, boolean restoreUnread) {
+        if (!isAgent(target)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "کاربرِ مقصد کارشناس نیست");
+        }
+        String holder = requireHolder(requireConversation(conversationId), agent);
+        if (target.getId().equals(holder)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "این گفت‌وگو همین حالا هم دستِ همین کارشناس است");
+        }
+
+        Conversation moved = mongoOperations.findAndModify(
+                Query.query(Criteria.where("_id").is(conversationId).and("assignedAgentId").is(holder)),
+                new Update()
+                        .set("assignedAgentId", target.getId())
+                        .set("assignedAgentName", staffDisplayName(target))
+                        .set("status", ConversationStatus.ASSIGNED)
+                        .unset("closedAt"),
+                FindAndModifyOptions.options().returnNew(true),
+                Conversation.class);
+        if (moved == null) {
+            throw new ApiException(HttpStatus.CONFLICT, "وضعیتِ این گفت‌وگو تغییر کرده؛ فهرست را تازه کنید.");
+        }
+
+        int restored = restoreUnread ? restoreUnread(moved) : 0;
+        appendSystemMessage(moved, "گفت‌وگو توسط " + staffDisplayName(agent)
+                + " به " + staffDisplayName(target) + " ارجاع شد.");
+        broadcaster.broadcastToAgents(Map.of("event", "queue"));
+        return new Handover(moved, restored);
+    }
+
+    /**
+     * فقط دارندهٔ گفت‌وگو (و ادمین، از طرفِ او) حقِ ارجاع/انصراف دارد.
+     * شناسهٔ همان دارنده برمی‌گردد تا پیش‌شرطِ اتمیکِ findAndModify شود.
+     */
+    private String requireHolder(Conversation conversation, User agent) {
+        String holder = conversation.getAssignedAgentId();
+        if (holder == null) {
+            throw new ApiException(HttpStatus.CONFLICT, "این گفت‌وگو هنوز برداشته نشده است.");
+        }
+        if (!holder.equals(agent.getId()) && agent.getRole() != Role.ADMIN) {
+            throw new ApiException(HttpStatus.FORBIDDEN,
+                    "این گفت‌وگو دستِ «" + nullSafe(conversation.getAssignedAgentName()) + "» است.");
+        }
+        return holder;
+    }
+
     // ==========================================================
     // پیام
     // ==========================================================

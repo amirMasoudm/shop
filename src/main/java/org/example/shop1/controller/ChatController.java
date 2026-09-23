@@ -112,6 +112,71 @@ public class ChatController {
         return ResponseEntity.ok(chatService.toView(chatService.claim(id, agent)));
     }
 
+    /**
+     * کارشناسانی که می‌شود گفت‌وگو را به آن‌ها ارجاع داد.
+     * <p>
+     * 🔴 عمداً فقط شناسه و نامِ نمایشی بیرون می‌رود — نه شماره، نه نامِ کاربری.
+     * این فهرست در پنلِ کارشناس رندر می‌شود و بیش از این چیزی لازم ندارد.
+     */
+    @GetMapping("/agents")
+    public ResponseEntity<List<Map<String, Object>>> agents(Authentication authentication) {
+        User me = requireAgent(currentUser(authentication));
+        List<Map<String, Object>> out = new java.util.ArrayList<>();
+        for (Role role : List.of(Role.ADMIN, Role.PRICER, Role.SALES, Role.SUPPORT)) {
+            for (User u : userRepository.findByRole(role)) {
+                if (u.getId() == null || u.getId().equals(me.getId())) continue;
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("id", u.getId());
+                row.put("name", chatService.staffDisplayName(u));
+                row.put("role", role.name());
+                out.add(row);
+            }
+        }
+        return ResponseEntity.ok(out);
+    }
+
+    /**
+     * چند پیامِ مشتری بی‌پاسخ مانده و چندتایشان سین خورده — پرسشِ پیش از ارجاع/انصراف
+     * با همین عددها معنی پیدا می‌کند، وگرنه کارشناس باید کورکورانه تصمیم بگیرد.
+     */
+    @GetMapping("/conversations/{id}/unanswered")
+    public ResponseEntity<Map<String, Object>> unanswered(@PathVariable String id,
+                                                          Authentication authentication) {
+        User agent = requireAgent(currentUser(authentication));
+        Conversation conversation = chatService.requireConversation(id);
+        chatService.assertMember(conversation, agent);
+        List<ChatMessage> pending = chatService.unansweredCustomerMessages(id);
+        long seen = pending.stream().filter(m -> m.getReadAt() != null).count();
+        return ResponseEntity.ok(Map.of("total", pending.size(), "seen", seen));
+    }
+
+    /** انصراف از برداشت — گفت‌وگو به صفِ مشترک برمی‌گردد. */
+    @PostMapping("/conversations/{id}/release")
+    public ResponseEntity<Map<String, Object>> release(@PathVariable String id,
+                                                       @RequestBody(required = false) Map<String, Object> body,
+                                                       Authentication authentication) {
+        User agent = requireAgent(currentUser(authentication));
+        return ResponseEntity.ok(handoverView(
+                chatService.release(id, agent, truthy(body, "restoreUnread"))));
+    }
+
+    /** ارجاع به کارشناسِ دیگر. */
+    @PostMapping("/conversations/{id}/transfer")
+    public ResponseEntity<Map<String, Object>> transfer(@PathVariable String id,
+                                                        @RequestBody(required = false) Map<String, Object> body,
+                                                        Authentication authentication) {
+        User agent = requireAgent(currentUser(authentication));
+        Object raw = body == null ? null : body.get("toAgentId");
+        String toAgentId = raw == null ? null : String.valueOf(raw).trim();
+        if (toAgentId == null || toAgentId.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "کارشناسِ مقصد انتخاب نشده است");
+        }
+        User target = userRepository.findById(toAgentId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "کارشناسِ مقصد پیدا نشد"));
+        return ResponseEntity.ok(handoverView(
+                chatService.transfer(id, agent, target, truthy(body, "restoreUnread"))));
+    }
+
     @PostMapping("/conversations/{id}/close")
     public ResponseEntity<Map<String, Object>> close(@PathVariable String id, Authentication authentication) {
         User agent = requireAgent(currentUser(authentication));
@@ -240,6 +305,20 @@ public class ChatController {
         }
         return userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "کاربر یافت نشد"));
+    }
+
+    /** نمایِ گفت‌وگو به‌علاوهٔ شمارِ پیام‌هایی که به حالتِ نخوانده برگشتند. */
+    private Map<String, Object> handoverView(ChatService.Handover handover) {
+        Map<String, Object> out = new LinkedHashMap<>(chatService.toView(handover.conversation()));
+        out.put("restoredUnread", handover.restoredUnread());
+        return out;
+    }
+
+    /** بدنهٔ JSON ممکن است بولین بدهد یا رشتهٔ "true"؛ هر دو یعنی بله. */
+    private boolean truthy(Map<String, Object> body, String key) {
+        Object v = body == null ? null : body.get(key);
+        if (v instanceof Boolean b) return b;
+        return "true".equalsIgnoreCase(String.valueOf(v));
     }
 
     private User requireAgent(User user) {

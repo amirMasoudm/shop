@@ -261,6 +261,21 @@
     // رندرِ پیام
     // ==========================================================
 
+    /**
+     * بستنِ پنجره بدونِ بازکردنِ گفت‌وگوی دیگر.
+     * <p>
+     * بعد از ارجاع/انصراف لازم است: با نگه‌داشتنِ conversationId، رویدادهایِ زندهٔ
+     * همان گفت‌وگو — که دیگر مالِ ما نیست — هنوز در همین پنجره می‌نشستند.
+     */
+    function closeConversation() {
+        conversationId = null;
+        oldestLoadedId = null;
+        newestLoadedId = null;
+        reachedTop = false;
+        setReply(null);
+        if (host) el('.chat-messages').innerHTML = '';
+    }
+
     function isOwn(message) {
         if (message.senderRole === 'SYSTEM') return false;
         return selfId ? message.senderId === selfId
@@ -583,7 +598,7 @@
 
     window.ChatCore = {
         connect, disconnect, onEvent,
-        mountThread, openConversation, catchUp,
+        mountThread, openConversation, closeConversation, catchUp,
         setComposerEnabled, markRead,
         requestNotificationPermission,
         currentConversationId: () => conversationId
