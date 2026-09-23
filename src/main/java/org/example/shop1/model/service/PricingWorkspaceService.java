@@ -282,6 +282,18 @@ public class PricingWorkspaceService {
                             case "stockTehran" -> p.setStockTehran(newVal);
                             default -> p.setIncomingStock(newVal);
                         }
+                        if (!"incomingStock".equals(field)) {
+                            // ⚠️ این دو خط رفعِ یک ناهماهنگیِ قدیمی‌اند: ویرایشِ موجودیِ شعبه
+                            // در میزِ کار فقط فیلدِ شعبه را می‌نوشت و stock (موجودیِ فروش، و
+                            // منبعِ availabilityِ ترب) دست‌نخورده می‌ماند — یعنی «فروختم» در
+                            // میزِ کار به فروشگاه و ترب نمی‌رسید. همان قاعده‌ی
+                            // applyStockAndPricingFields اینجا هم اعمال شد: stock = اصفهان +
+                            // تهران، و «در راه» بیرون.
+                            p.setStock(p.getSellableStock());
+                            // مُهرِ «انسان دستی عوض کرد» — پیش‌نمایشِ ایمپورت با همین تشخیص
+                            // می‌دهد کدام ردیف‌ها کارِ دست را بازنویسی می‌کنند.
+                            p.setStockTouchedManuallyAt(Instant.now());
+                        }
                         p.setUpdatedAt(Instant.now());
                         productRepo.save(p);
                         activityLog.recordProduct(ActivityLog.Action.STOCK_CHANGE, ActivityLog.Source.MANUAL,

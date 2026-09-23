@@ -34,6 +34,11 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     // پیدا کردن محصول از روی اسلاگ
     Optional<Product> findBySlug(String slug);
 
+    // کدِ کالا برایِ همگام‌سازیِ موجودی — کلیدِ تطبیقِ ایمپورت و گاردِ یکتایی
+    Optional<Product> findByHolooCode(String holooCode);
+    boolean existsByHolooCode(String holooCode);
+    List<Product> findByHolooCodeIn(List<String> holooCodes);
+
     // پیدا کردن محصولاتی که آیدی آن‌ها در لیست ارسالی است
     List<Product> findByIdIn(List<String> productIds);
 

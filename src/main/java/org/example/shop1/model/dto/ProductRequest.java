@@ -42,6 +42,17 @@ public class ProductRequest {
     // ==========================================
     private String slug;
     private String persianSlug; // دُمِ فارسیِ آدرسِ هیبرید (اختیاری)
+
+    /**
+     * کدِ رزروشده‌ای که کارشناس هنگامِ ساختِ محصول انتخاب کرده.
+     * <p>
+     * فقط در مسیرِ ساخت خوانده می‌شود؛ در ویرایش عمداً نادیده گرفته می‌شود تا کدِ
+     * محصولِ موجود از راهِ یک PUT عوض نشود.
+     */
+    private String holooCode;
+
+    public String getHolooCode() { return holooCode; }
+    public void setHolooCode(String holooCode) { this.holooCode = holooCode; }
     private String seoTitle;
     private String seoDescription;
 

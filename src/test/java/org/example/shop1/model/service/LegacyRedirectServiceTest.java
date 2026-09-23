@@ -42,7 +42,7 @@ class LegacyRedirectServiceTest {
     @Test
     void appPathsCanNeverBecomeRedirectSources() {
         for (String reserved : new String[]{
-                "/", "/shop", "/shop/product/x", "/blog", "/blog/anything",
+                "/", "/shop", "/shop/product/x", "/blog",
                 "/api/v1/products", "/l/abc123", "/admin.html", "/uploads/x.jpg", "/js/app.js"}) {
             assertTrue(LegacyRedirectService.isReservedPath(LegacyRedirectService.normalize(reserved)),
                     "این مسیر باید رزرو باشد: " + reserved);
@@ -50,6 +50,28 @@ class LegacyRedirectServiceTest {
         // ولی یک اسلاگِ ریشه‌ایِ وردپرس آزاد است
         assertFalse(LegacyRedirectService.isReservedPath(
                 LegacyRedirectService.normalize("/عیبیابی-میکروتیک/")));
+    }
+
+    /**
+     * ⚠️ {@code /blog/{اسلاگ}} عمداً رزرو <b>نیست</b>.
+     * <p>
+     * وقتی اسلاگِ یک مقاله عوض می‌شود، آدرسِ قبلی باید بتواند مبدأِ ریدایرکت شود.
+     * امنیتش از جایِ دیگری می‌آید نه از فهرستِ رزرو: این مسیرها «دیرحل‌شونده»اند،
+     * یعنی ریدایرکت فقط <i>بعد از</i> شکستِ جست‌وجویِ مقالهٔ زنده بررسی می‌شود، پس
+     * یک ردیفِ کهنه نمی‌تواند صفحهٔ زنده را بدزدد.
+     * <p>
+     * این تست جایِ همان موردی را گرفت که قبلاً در فهرستِ بالا بود و بعد از انتخابِ
+     * الگویِ دیرحل‌شونده کهنه شده بود.
+     */
+    @Test
+    void articleSlugsAreLateResolvedNotReserved() {
+        String path = LegacyRedirectService.normalize("/blog/anything");
+        assertTrue(LegacyRedirectService.isLateResolved(path));
+        assertFalse(LegacyRedirectService.isReservedPath(path));
+
+        // ولی خودِ /blog و مسیرهای عمیق‌تر همچنان رزرواند
+        assertTrue(LegacyRedirectService.isReservedPath(LegacyRedirectService.normalize("/blog")));
+        assertFalse(LegacyRedirectService.isLateResolved(LegacyRedirectService.normalize("/blog/a/b")));
     }
 
     @Test

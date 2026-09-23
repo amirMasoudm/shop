@@ -268,6 +268,7 @@
         toggleDiscontinuedFields();
         document.getElementById('modal-title-action').textContent = 'افزودن محصول';
         document.getElementById('modal-title-id').textContent = 'ID: NEW';
+        showHolooForNewProduct();
         openModal('productModal');
     }
 
@@ -294,6 +295,7 @@
         document.getElementById('p-replacement-search').value = '';
         renderReplacementProducts(p.replacementProductId || null, p.id);
         toggleDiscontinuedFields();
+        showHolooForExistingProduct(p.holooCode);
         document.getElementById('p-seo-title').value = p.seoTitle || '';
         document.getElementById('p-seo-desc').value = p.seoDescription || '';
         document.getElementById('p-weight').value = p.weight || '';
@@ -380,6 +382,13 @@
             replacementProductId: document.getElementById('p-discontinued').checked ? collectReplacementId() : '',
             discontinuedNoticeVisible: document.getElementById('p-discontinued-notice').checked
         };
+
+        // کدِ کالا فقط هنگامِ ساخت فرستاده می‌شود. در ویرایش عمداً فرستاده نمی‌شود —
+        // سرور هم نادیده‌اش می‌گیرد، ولی نفرستادنش نیت را روشن نگه می‌دارد.
+        if (!id) {
+            const picked = document.getElementById('p-holoo-select');
+            data.holooCode = picked ? picked.value : '';
+        }
 
         const method = id ? 'put' : 'post';
         const url = id ? `${getApi()}/v1/products/${id}` : `${getApi()}/v1/products`;
@@ -876,6 +885,64 @@
     // دارند ولی خودشان بخشی از تبِ محصولات نیستند (مثلاً انتخاب‌گرِ محصولِ سکشنِ
     // لندینگ، لینکِ محصولِ بنر، یا نمایشِ نامِ محصولِ یک نظر) — به‌جایِ فچِ دوباره،
     // همان دیتایِ همین ماژول را می‌خوانند.
+    // ==========================================
+    // کدِ کالا (هلو)
+    // ==========================================
+
+    /**
+     * ویرایش: کد فقط نشان داده می‌شود.
+     * 🔴 عمداً ورودی نیست — کدی که شرکت در هلو روی کالا نشانده نباید از اینجا عوض
+     * شود، وگرنه اولین همگام‌سازی آن کالا را پیدا نمی‌کند. سرور هم همین را اعمال
+     * می‌کند؛ این فقط نیمهٔ کاربریِ همان قاعده است.
+     */
+    function showHolooForExistingProduct(code) {
+        const box = document.getElementById('p-holoo-existing');
+        const fresh = document.getElementById('p-holoo-new');
+        if (!box || !fresh) return;
+        fresh.classList.add('hidden');
+        box.classList.remove('hidden');
+        document.getElementById('p-holoo-code-text').textContent = code || '— هنوز کد ندارد —';
+    }
+
+    /** ساخت: یا کدِ تازه، یا یکی از رزروهایِ مصرف‌نشده. */
+    async function showHolooForNewProduct() {
+        const box = document.getElementById('p-holoo-existing');
+        const fresh = document.getElementById('p-holoo-new');
+        if (!box || !fresh) return;
+        box.classList.add('hidden');
+        fresh.classList.remove('hidden');
+
+        const select = document.getElementById('p-holoo-select');
+        select.innerHTML = '';
+        const first = document.createElement('option');
+        first.value = '';
+        first.textContent = 'کدِ تازه صادر شود';
+        select.appendChild(first);
+
+        try {
+            const res = await axios.get(`${getApi()}/v1/holoo/codes/reserved`);
+            (res.data || []).forEach(c => {
+                const o = document.createElement('option');
+                o.value = c.code;
+                // textContent نه innerHTML: یادداشت را کاربر نوشته
+                o.textContent = c.code + ' — ' + (c.note || 'بدونِ یادداشت');
+                select.appendChild(o);
+            });
+        } catch (e) {
+            // نبودنِ فهرستِ رزرو نباید جلویِ ساختِ محصول را بگیرد؛ کدِ تازه صادر می‌شود
+        }
+    }
+
+    function copyHolooCode() {
+        const text = document.getElementById('p-holoo-code-text').textContent;
+        if (!text) return;
+        navigator.clipboard.writeText(text.trim()).catch(() => {});
+    }
+
+    document.addEventListener('click', e => {
+        if (e.target && e.target.id === 'p-holoo-copy') copyHolooCode();
+    });
+
     window.ProductsTab = { mount, refresh, getProducts: () => products };
 
     // onclickهایِ داخلِ مارک‌آپ سراسری‌اند، پس این‌ها روی window قرار می‌گیرند.

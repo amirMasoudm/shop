@@ -234,6 +234,52 @@ public class Product {
     private Instant floorPriceCheckedAt;
     private String floorPriceCheckedBy;
 
+    /**
+     * کدِ کالا برایِ همگام‌سازیِ موجودی با نرم‌افزارِ حسابداری (هلو) — مثلاً {@code DN-0042}.
+     * <p>
+     * 🔴 <b>چرا فیلدِ واقعی و نه کلیدی در {@code specifications}:</b> آن مپ آزاد است،
+     * ایندکسِ یکتا نمی‌گیرد، و محتوایش به‌عنوانِ «مشخصاتِ فنی» به بیرون هم می‌رود.
+     * تطبیقِ موجودی به کلیدی نیاز دارد که دیتابیس خودش یکتاییِ آن را تضمین کند،
+     * وگرنه دو محصول با یک کد یعنی موجودیِ جابه‌جا نوشته‌شده.
+     * <p>
+     * ⚠️ فقط هنگامِ <b>ساخت</b> صادر می‌شود. ذخیرهٔ محصولِ موجود نه کدِ تازه می‌گیرد و
+     * نه کدِ فعلی را عوض می‌کند — وگرنه هر ویرایش یک شماره می‌سوزاند و کدی که شرکت
+     * در هلو تایپ کرده بی‌صاحب می‌ماند.
+     */
+    private String holooCode;
+
+    /**
+     * آخرین باری که ایمپورتِ هلو این محصول را نوشت.
+     * <p>
+     * در کنارِ {@link #stockTouchedManuallyAt} تنها راهِ تشخیصِ «انسان بعد از ایمپورتِ
+     * قبلی دستی عوضش کرده» است — همان ردیف‌هایی که پیش‌نمایش باید جدا و برجسته
+     * نشان بدهد تا ویرایشِ دستی بی‌صدا بازنویسی نشود.
+     */
+    private Instant stockImportedAt;
+
+    /** آخرین ویرایشِ دستیِ موجودی (میزِ کار یا پنل). */
+    private Instant stockTouchedManuallyAt;
+
+    public String getHolooCode() { return holooCode; }
+    public void setHolooCode(String holooCode) { this.holooCode = holooCode; }
+
+    public Instant getStockImportedAt() { return stockImportedAt; }
+    public void setStockImportedAt(Instant stockImportedAt) { this.stockImportedAt = stockImportedAt; }
+
+    public Instant getStockTouchedManuallyAt() { return stockTouchedManuallyAt; }
+    public void setStockTouchedManuallyAt(Instant v) { this.stockTouchedManuallyAt = v; }
+
+    /**
+     * آیا موجودی بعد از آخرین ایمپورت دستی عوض شده؟
+     * <p>
+     * محصولی که هرگز ایمپورت نشده ولی دستی ویرایش شده هم «دستکاری‌شده» حساب می‌شود:
+     * اولین ایمپورت هم می‌تواند کارِ انسان را بازنویسی کند.
+     */
+    public boolean isStockManuallyTouchedSinceImport() {
+        if (stockTouchedManuallyAt == null) return false;
+        return stockImportedAt == null || stockTouchedManuallyAt.isAfter(stockImportedAt);
+    }
+
     public BigDecimal getPartnerUnitPrice() { return partnerUnitPrice; }
     public void setPartnerUnitPrice(BigDecimal partnerUnitPrice) { this.partnerUnitPrice = partnerUnitPrice; }
 

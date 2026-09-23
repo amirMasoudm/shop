@@ -107,6 +107,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/settings/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/courses/admin/**").hasRole("ADMIN")
+                        // کدِ کالا و ایمپورتِ موجودی — همان دو نقشی که حقِ نوشتنِ محصول
+                        // دارند. 🔴 کدِ کالا در پاسخِ عمومیِ محصول دیده می‌شود (عمدی)، ولی
+                        // ساخت و تغییرش فقط از همین مسیر ممکن است؛ هیچ مسیرِ عمومی‌ای
+                        // نمی‌تواند آن را بنویسد.
+                        .requestMatchers("/api/v1/holoo/**").hasAnyRole("ADMIN", "PRICER")
 
                         // بیکنِ ردگیریِ رفتار — عمومی است چون بازدیدکنندهٔ ناشناس هم باید
                         // ثبت شود. هویت از کوکیِ HttpOnly می‌آید، نه از بدنه.

@@ -44,6 +44,7 @@ class ProductServiceUpdateSemanticsTest {
         productRepo = mock(ProductRepository.class);
         CategoryRepository categoryRepo = mock(CategoryRepository.class);
         service = new ProductService(productRepo, categoryRepo, mock(StockNotificationService.class),
+                mock(HolooCodeService.class),
                 mock(ActivityLogService.class));
 
         when(productRepo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));

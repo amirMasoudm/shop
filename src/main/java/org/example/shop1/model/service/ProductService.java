@@ -26,6 +26,7 @@ public class ProductService {
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
     private final StockNotificationService stockNotificationService;
+    private final HolooCodeService holooCodeService;
 
     private final ActivityLogService activityLog;
 
@@ -49,10 +50,12 @@ public class ProductService {
 
     public ProductService(ProductRepository productRepo, CategoryRepository categoryRepo,
                           StockNotificationService stockNotificationService,
+                          HolooCodeService holooCodeService,
                           ActivityLogService activityLog) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.stockNotificationService = stockNotificationService;
+        this.holooCodeService = holooCodeService;
         this.activityLog = activityLog;
     }
 
@@ -133,8 +136,10 @@ public class ProductService {
             product.setStockIsfahan(request.getStockIsfahan());
             product.setStockTehran(request.getStockTehran());
             product.setStock(product.getSellableStock()); // «در راه» عمداً بیرون است
+            product.setStockTouchedManuallyAt(Instant.now());
         } else if (request.getStock() != null) {
             product.setStock(request.getStock());
+            product.setStockTouchedManuallyAt(Instant.now());
         } else if (product.getStock() == null) {
             // ⚠️ اینجا منشأِ باگِ دیتالاس بود: قبلاً بی‌قید setStock(null) می‌شد، پس هر
             // PUTِ ناقص موجودی را نال می‌کرد و PUTِ بعدی روی همان محصول با NPE می‌شکست.
@@ -218,6 +223,13 @@ public class ProductService {
 
         product.setWarehouseCategoryId(request.getWarehouseCategoryId());
         Product created = productRepo.save(product);
+
+        // 🔴 صدورِ کد فقط اینجا — در مسیرِ ساخت، نه در ذخیره.
+        // شناسهٔ محصول را مونگو هنگامِ ذخیره می‌سازد و دفترِ کد به آن نیاز دارد، پس
+        // ناچار دو نوشتن است. اگر صدور جلوتر می‌آمد، ساختِ ناموفق یک کد را می‌سوزاند.
+        created.setHolooCode(holooCodeService.assignForNewProduct(created.getId(), request.getHolooCode()));
+        created = productRepo.save(created);
+
         activityLog.recordProduct(ActivityLog.Action.PRODUCT_CREATE, ActivityLog.Source.MANUAL,
                 created.getId(), created.getName(), null, null, created.getName());
         return created;

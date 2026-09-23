@@ -113,6 +113,45 @@ public class StoreSettings {
     private java.util.List<String> campaignSources;
     private java.util.List<String> campaignMediums;
 
+    // ===============================
+    // کدِ کالا و ایمپورتِ موجودی
+    // ===============================
+
+    /**
+     * پیشوندِ کدِ کالا، مثلاً {@code DN-}.
+     * <p>
+     * 🔴 عمداً اینجاست و نه در کد: این دو حرف نامِ همین شرکت است و در یک اپِ
+     * قابلِ‌استفادهٔ مجدد نباید هاردکد شود. نال یعنی پیشوندِ خنثایِ سرویس.
+     */
+    private String holooCodePrefix;
+
+    /** تعدادِ ارقامِ کد (پیش‌فرضِ سرویس ۴). */
+    private Integer holooCodeDigits;
+
+    /**
+     * آستانهٔ گاردِ صفرشدنِ انبوه: اگر یک ایمپورت بخواهد بیش از این درصد از محصولاتِ
+     * کددار را صفر کند، بدونِ تأییدِ صریح رد می‌شود.
+     * <p>
+     * ⚠️ عدد در تنظیمات است نه در کد، چون «چند درصد مشکوک است» به اندازهٔ کاتالوگ و
+     * عادتِ انبار بستگی دارد. نال یعنی پیش‌فرضِ سرویس.
+     */
+    private Integer stockImportMassZeroPercent;
+
+    /** سقفِ تعدادِ پیامکِ «موجود شد» در یک ایمپورت. بیشتر از این، ایمپورت می‌ایستد و می‌پرسد. */
+    private Integer stockImportSmsCap;
+
+    public String getHolooCodePrefix() { return holooCodePrefix; }
+    public void setHolooCodePrefix(String holooCodePrefix) { this.holooCodePrefix = holooCodePrefix; }
+
+    public Integer getHolooCodeDigits() { return holooCodeDigits; }
+    public void setHolooCodeDigits(Integer holooCodeDigits) { this.holooCodeDigits = holooCodeDigits; }
+
+    public Integer getStockImportMassZeroPercent() { return stockImportMassZeroPercent; }
+    public void setStockImportMassZeroPercent(Integer v) { this.stockImportMassZeroPercent = v; }
+
+    public Integer getStockImportSmsCap() { return stockImportSmsCap; }
+    public void setStockImportSmsCap(Integer v) { this.stockImportSmsCap = v; }
+
     public java.util.List<String> getCampaignSources() { return campaignSources; }
     public void setCampaignSources(java.util.List<String> campaignSources) { this.campaignSources = campaignSources; }
 

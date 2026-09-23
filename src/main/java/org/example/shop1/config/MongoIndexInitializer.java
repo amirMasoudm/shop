@@ -77,7 +77,13 @@ public class MongoIndexInitializer implements CommandLineRunner {
             new UniqueField("campaigns", "code", "uk_campaigns_code", "string"),
             // اسلاگ همان چیزی است که در utm_campaign و در جمع‌بندیِ روزانه کلید است؛
             // تکراری‌اش یعنی دو کارزار در گزارش روی هم می‌افتند.
-            new UniqueField("campaigns", "slug", "uk_campaigns_slug", "string")
+            new UniqueField("campaigns", "slug", "uk_campaigns_slug", "string"),
+            // کدِ کالا باید یکتا باشد وگرنه ایمپورتِ موجودی نمی‌داند عدد را روی کدام
+            // محصول بنویسد و بی‌صدا یکی‌شان را جا می‌اندازد. محصولاتِ بدونِ کد از
+            // قاعده معاف‌اند (همان الگویِ partial index که برایِ paymentRefNumber هست).
+            new UniqueField("products", "holooCode", "uk_products_holooCode", "string"),
+            // همان یکتایی روی دفترِ کدها — تا دو صدورِ هم‌زمان یک کد ننشانند
+            new UniqueField("holoo_codes", "code", "uk_holoo_codes_code", "string")
     );
 
     /**

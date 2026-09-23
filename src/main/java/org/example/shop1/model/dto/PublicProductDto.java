@@ -60,6 +60,18 @@ public class PublicProductDto {
     private final String replacementProductId;
     private final boolean discontinuedNoticeVisible;
 
+    /**
+     * کدِ کالا — 🔴 <b>عمداً</b> عمومی است.
+     * <p>
+     * تصمیمِ مالک: قرار است مشتری و کارشناس در چتِ پشتیبانی با همین کد به یک محصولِ
+     * مشخص ارجاع بدهند، پس باید روی صفحهٔ محصول دیده شود. خودِ کد حساس نیست —
+     * یک شناسهٔ مبهم است که نه قیمتِ خرید را لو می‌دهد و نه چیزِ دیگری.
+     * <p>
+     * ⚠️ عمومی یعنی <b>فقط‌خواندنی</b>: هیچ مسیرِ عمومی‌ای نمی‌تواند ستش کند. نوشتن
+     * فقط در مسیرِ ساختِ محصول است که ADMIN/PRICER می‌خواهد.
+     */
+    private final String holooCode;
+
     public PublicProductDto(Product p) {
         this.id = p.getId();
         this.name = p.getName();
@@ -84,6 +96,7 @@ public class PublicProductDto {
         this.discontinued = p.isProductionStopped();
         this.replacementProductId = p.isProductionStopped() ? p.getReplacementProductId() : null;
         this.discontinuedNoticeVisible = p.isDiscontinuedNoticeShown();
+        this.holooCode = p.getHolooCode();
     }
 
     public static PublicProductDto of(Product p) {
@@ -113,4 +126,5 @@ public class PublicProductDto {
     public boolean isDiscontinued() { return discontinued; }
     public String getReplacementProductId() { return replacementProductId; }
     public boolean isDiscontinuedNoticeVisible() { return discontinuedNoticeVisible; }
+    public String getHolooCode() { return holooCode; }
 }

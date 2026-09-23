@@ -55,6 +55,10 @@
                     class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">تاریخچه تغییرات</button>
             <button id="tabbtn-products" onclick="showSalesTab('products')"
                     class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">محصولات</button>
+            <!-- کدِ کالا و موجودی: همان دو نقشی که حقِ نوشتنِ محصول دارند (ADMIN/PRICER)،
+                 پس کنارِ تبِ محصولات پنهان/آشکار می‌شود. -->
+            <button id="tabbtn-holoo" onclick="showSalesTab('holoo')"
+                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">کد کالا و موجودی</button>
             <!-- پشتیبانی عمداً برایِ هر چهار نقش باز است (ADMIN/PRICER/SALES/SUPPORT):
                  صف مشترک است و هر کارشناسی می‌تواند تصاحب کند. -->
             <button id="tabbtn-support" onclick="showSalesTab('support')"
@@ -68,6 +72,7 @@
         <div id="tab-pricing"></div>
         <div id="tab-activityLog" class="hidden-section"></div>
         <div id="tab-products" class="hidden-section"></div>
+        <div id="tab-holoo" class="hidden-section"></div>
         <div id="tab-support" class="hidden-section"></div>
     </main>
 </div>
@@ -82,6 +87,7 @@
 <script src="/js/Sortable.min.js"></script>
 <script src="/js/admin-modal-utils.js"></script>
 <script src="/js/products-tab.js"></script>
+<script src="/js/holoo-tab.js"></script>
 <!-- چتِ پشتیبانی — chat-core.js همان هسته‌ای است که حبابِ مشتری هم استفاده می‌کند -->
 <script src="/js/chat-core.js"></script>
 <script src="/js/support-tab.js"></script>
@@ -141,13 +147,16 @@
         document.getElementById('tab-activityLog').classList.toggle('hidden-section', id !== 'log');
         document.getElementById('tab-products').classList.toggle('hidden-section', id !== 'products');
         document.getElementById('tab-support').classList.toggle('hidden-section', id !== 'support');
+        document.getElementById('tab-holoo').classList.toggle('hidden-section', id !== 'holoo');
         document.getElementById('tabbtn-workspace').classList.toggle('active', id === 'workspace');
         document.getElementById('tabbtn-log').classList.toggle('active', id === 'log');
         document.getElementById('tabbtn-products').classList.toggle('active', id === 'products');
         document.getElementById('tabbtn-support').classList.toggle('active', id === 'support');
+        document.getElementById('tabbtn-holoo').classList.toggle('active', id === 'holoo');
         if (id === 'log') fetchActivityLogs();
         // mount تنبل است: تا کارشناس تبِ پشتیبانی را باز نکند، وب‌سوکت وصل نمی‌شود.
         if (id === 'support') SupportTab.mount(document.getElementById('tab-support'));
+        if (id === 'holoo') HolooTab.mount(document.getElementById('tab-holoo'));
     }
 
     async function logoutSales() {
@@ -217,6 +226,8 @@
 
             if (hasProducts) {
                 document.getElementById('tabbtn-products').classList.remove('hidden');
+                // همان حقِ نوشتنِ محصول، همان تب: کدِ کالا بخشی از ساختِ محصول است
+                document.getElementById('tabbtn-holoo').classList.remove('hidden');
                 // ⚠️ mount اینجا و بی‌قیدوشرط انجام می‌شود، نه با بازکردنِ تب: دکمه‌های
                 // «افزودن محصول» و «تکمیل کارت» در میزِ کار همین مودال را صدا می‌زنند،
                 // پس باید از همان اول در صفحه باشد.
