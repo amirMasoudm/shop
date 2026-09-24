@@ -123,6 +123,56 @@ class LegacyPathFallbackTest {
         assertEquals("/blog/دوره-mtctce-شهریور-97", fallback.resolve(notFound("/mtctce-06-97/")));
     }
 
+    // ── قاعدهٔ ۲-ب: پرمالینکِ تاریخ‌دارِ وردپرس ─────────────────────────────
+    /** لینک‌هایی که هنوز داخلِ متنِ مقالات مانده‌اند و تا امروز ۴۰۴ می‌دادند. */
+    @Test
+    void پرمالینکِ_تاریخ‌دار_به_مقالهٔ_زنده_می‌رسد() {
+        publishedArticle("mikrotik-introduction");
+        assertEquals("/blog/mikrotik-introduction",
+                fallback.resolve(notFound("/2025/05/01/mikrotik-introduction/")), "چهاربخشی");
+        assertEquals("/blog/mikrotik-introduction",
+                fallback.resolve(notFound("/2025/05/mikrotik-introduction/")), "سه‌بخشی");
+        assertEquals("/blog/mikrotik-introduction",
+                fallback.resolve(notFound("/2025/05/01/mikrotik-introduction")), "بی‌اسلش");
+    }
+
+    /** دقیقاً مثلِ قاعدهٔ ۲: اسلاگِ عوض‌شده یک پرش تا مقصدِ نهایی، نه دو. */
+    @Test
+    void پرمالینکِ_تاریخ‌دار_با_اسلاگِ_عوض‌شده_یک_پرش() {
+        redirect("/blog/old-slug", "/blog/new-slug");
+        assertEquals("/blog/new-slug", fallback.resolve(notFound("/2025/05/01/old-slug/")));
+    }
+
+    /** نیمی از این لینک‌ها مقالهٔ متناظر ندارند؛ آن‌ها باید ۴۰۴ِ صادق بگیرند. */
+    @Test
+    void پرمالینکِ_تاریخ‌دارِ_بی‌مقاله_۴۰۴_می‌ماند() {
+        assertNull(fallback.resolve(notFound("/2025/05/01/mikrotik-access-points/")));
+    }
+
+    /**
+     * ⚠️ تاریخ باید معنادار باشد، نه فقط عدد. تستِ واقعی این است که <b>حتی با مقالهٔ
+     * موجود</b> هم تاریخِ بی‌معنی رد شود — وگرنه «ماهِ ۱۳» فقط به‌خاطرِ نبودنِ مقاله
+     * ۴۰۴ می‌گرفت و قاعده عملاً هر مسیرِ چهاربخشی را می‌پذیرفت.
+     */
+    @Test
+    void تاریخِ_بی‌معنی_حتی_با_مقالهٔ_موجود_پذیرفته_نمی‌شود() {
+        publishedArticle("mikrotik-introduction");
+        assertNull(fallback.resolve(notFound("/2025/13/01/mikrotik-introduction/")), "ماهِ ۱۳");
+        assertNull(fallback.resolve(notFound("/2025/05/32/mikrotik-introduction/")), "روزِ ۳۲");
+        assertNull(fallback.resolve(notFound("/25/05/01/mikrotik-introduction/")), "سالِ دورقمی");
+        assertNull(fallback.resolve(notFound("/abcd/05/01/mikrotik-introduction/")), "سالِ غیرعددی");
+        assertNull(fallback.resolve(notFound("/shop/05/01/mikrotik-introduction/")), "پیشوندِ غیرتاریخی");
+        assertNull(fallback.resolve(notFound("/2025/13/99/chizi-ke-nist/")), "نمونهٔ خودِ تسک");
+    }
+
+    /** {@code /2025/05/01} بایگانیِ روز است، نه نوشته‌ای به اسلاگِ «01». */
+    @Test
+    void بایگانیِ_تاریخ_بدونِ_اسلاگ_۴۰۴_می‌ماند() {
+        publishedArticle("01");   // حتی اگر چنین اسلاگی بود
+        assertNull(fallback.resolve(notFound("/2025/05/01/")));
+        assertNull(fallback.resolve(notFound("/2025/05/")));
+    }
+
     // ── قاعدهٔ ۳ ──────────────────────────────────────────────────────────
     @Test
     void مسیرِ_محصولِ_قدیمی_به_آدرسِ_هیبرید() {

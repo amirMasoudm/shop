@@ -34,6 +34,9 @@ import java.util.Optional;
  *   <li><b>اسلشِ پایانی</b> — تطبیقِ اسلشِ پایانی در اسپرینگ‌بوت ۳ پیش‌فرض خاموش شد،
  *       ولی سایتِ وردپرسی همه‌جا اسلش داشت. اگر نسخهٔ بی‌اسلش هندلر دارد، همان.</li>
  *   <li><b>مسیرِ تک‌بخشی</b> — {@code /{x}} که {@code x} اسلاگِ مقاله‌ای است.</li>
+ *   <li><b>پرمالینکِ تاریخ‌دار</b> — {@code /{YYYY}/{MM}/{DD}/{x}} یا
+ *       {@code /{YYYY}/{MM}/{x}}، خواهرِ قاعدهٔ قبلی: همان اسلاگ، با پیشوندِ تاریخِ
+ *       وردپرس. این لینک‌ها هنوز داخلِ متنِ بعضی مقالات مانده‌اند.</li>
  *   <li><b>{@code /product/{x}}</b> — اگر محصولی با آن اسلاگ باشد.</li>
  * </ol>
  * <p>
@@ -175,27 +178,17 @@ public class LegacyPathFallback {
 
         // قاعدهٔ ۲ — مسیرِ تک‌بخشی که اسلاگِ یک مقاله است
         if (segments.length == 1) {
-            String blogPath = "/blog/" + segments[0];
-            if (articleService.getPublishedBySlugOrId(segments[0]).isPresent()) {
-                log.info("فالبکِ ۴۰۴ [اسلاگِ مقاله]: {} → {}", path, blogPath);
-                return blogPath;
-            }
-            // اسلاگ عوض شده: مقصدِ نهاییِ زنجیره، نه خودِ /blog/{x} که ۳۰۱ می‌دهد
-            String chained = followRedirects(blogPath);
-            // 🔴 گاردِ حلقه فقط همین‌جا لازم است، و عمداً سراسری نیست. سه قاعدهٔ دیگر
-            // مقصدی می‌دهند که وجودش <b>اثبات شده</b> (هندلرِ واقعی، مقالهٔ منتشرشده،
-            // محصولِ موجود) پس نمی‌توانند به خودشان برگردند. ولی مقصدِ زنجیره هرچه
-            // باشد از دیتابیس می‌آید و می‌تواند به همین مسیر اشاره کند —
-            // «/blog/x → /x» یعنی ۳۰۱ِ بی‌پایان.
-            //
-            // ⚠️ نسخهٔ اولِ این گارد سراسری بود و قاعدهٔ ۱ را می‌کشت: آن‌جا مقصد همان
-            // مسیرِ بدونِ اسلش است و normalize هم اسلشِ پایانی را برمی‌دارد، پس هر
-            // «/shop/» حلقه تشخیص داده می‌شد.
-            if (chained != null
-                    && !LegacyRedirectService.normalize(chained).equals(LegacyRedirectService.normalize(path))) {
-                log.info("فالبکِ ۴۰۴ [اسلاگِ مقالهٔ تغییریافته]: {} → {}", path, chained);
-                return chained;
-            }
+            String target = articleTarget(segments[0], path, "اسلاگِ مقاله");
+            if (target != null) return target;
+        }
+
+        // قاعدهٔ ۲-ب — پرمالینکِ تاریخ‌دارِ وردپرس: /{YYYY}/{MM}/{DD}/{x} یا /{YYYY}/{MM}/{x}.
+        // عمداً از همان کمکیِ قاعدهٔ ۲ می‌رود تا اسلاگِ عوض‌شده هم از زنجیرهٔ ریدایرکت
+        // رد شود و یک‌پرشی بماند، نه دوپرشی.
+        String datedSlug = wordpressDatedSlug(segments);
+        if (datedSlug != null) {
+            String target = articleTarget(datedSlug, path, "پرمالینکِ وردپرس");
+            if (target != null) return target;
         }
 
         // قاعدهٔ ۳ — /product/{x}
@@ -208,6 +201,63 @@ public class LegacyPathFallback {
             }
         }
         return null;
+    }
+
+    /**
+     * مقصدِ یک اسلاگِ مقاله: خودِ مقاله اگر منتشر شده، وگرنه مقصدِ نهاییِ زنجیرهٔ
+     * ریدایرکت (اسلاگ عوض شده)، وگرنه {@code null}.
+     */
+    private String articleTarget(String slug, String path, String rule) {
+        String blogPath = "/blog/" + slug;
+        if (articleService.getPublishedBySlugOrId(slug).isPresent()) {
+            log.info("فالبکِ ۴۰۴ [{}]: {} → {}", rule, path, blogPath);
+            return blogPath;
+        }
+        // اسلاگ عوض شده: مقصدِ نهاییِ زنجیره، نه خودِ /blog/{x} که ۳۰۱ می‌دهد
+        String chained = followRedirects(blogPath);
+        // 🔴 گاردِ حلقه فقط همین‌جا لازم است، و عمداً سراسری نیست. قاعده‌های دیگر
+        // مقصدی می‌دهند که وجودش <b>اثبات شده</b> (هندلرِ واقعی، مقالهٔ منتشرشده،
+        // محصولِ موجود) پس نمی‌توانند به خودشان برگردند. ولی مقصدِ زنجیره هرچه
+        // باشد از دیتابیس می‌آید و می‌تواند به همین مسیر اشاره کند —
+        // «/blog/x → /x» یعنی ۳۰۱ِ بی‌پایان.
+        //
+        // ⚠️ نسخهٔ اولِ این گارد سراسری بود و قاعدهٔ ۱ را می‌کشت: آن‌جا مقصد همان
+        // مسیرِ بدونِ اسلش است و normalize هم اسلشِ پایانی را برمی‌دارد، پس هر
+        // «/shop/» حلقه تشخیص داده می‌شد.
+        if (chained != null
+                && !LegacyRedirectService.normalize(chained).equals(LegacyRedirectService.normalize(path))) {
+            log.info("فالبکِ ۴۰۴ [{}، اسلاگِ تغییریافته]: {} → {}", rule, path, chained);
+            return chained;
+        }
+        return null;
+    }
+
+    /**
+     * اسلاگِ پرمالینکِ تاریخ‌دارِ وردپرس، یا {@code null} اگر مسیر از این جنس نیست.
+     * <p>
+     * ⚠️ سال و ماه و روز باید <b>تاریخِ معنادار</b> باشند، نه فقط عدد: بدونِ این، هر
+     * مسیرِ چهاربخشی‌ای که سه بخشِ اولش شبیهِ عدد است (مثلاً {@code /2025/13/99/x})
+     * به این قاعده می‌افتاد و یک کوئریِ بی‌مورد می‌خورد.
+     * <p>
+     * ⚠️ اسلاگِ تمام‌عددی رد می‌شود: {@code /2025/05/01} بایگانیِ روزِ اول است، نه
+     * نوشته‌ای به اسلاگِ «01». خودِ وردپرس هم به همین دلیل اسلاگِ عددی نمی‌سازد.
+     */
+    private String wordpressDatedSlug(String[] segments) {
+        if (segments.length != 3 && segments.length != 4) return null;
+        if (!inRange(segments[0], 4, 4, 1990, 2100)) return null;   // سال
+        if (!inRange(segments[1], 1, 2, 1, 12)) return null;        // ماه
+        if (segments.length == 4 && !inRange(segments[2], 1, 2, 1, 31)) return null;  // روز
+        String slug = segments[segments.length - 1];
+        if (slug.isEmpty() || slug.chars().allMatch(Character::isDigit)) return null;
+        return slug;
+    }
+
+    /** رشتهٔ تمام‌رقمی با طولِ مجاز و مقدارِ داخلِ بازه. */
+    private static boolean inRange(String s, int minLen, int maxLen, int min, int max) {
+        if (s.length() < minLen || s.length() > maxLen) return false;
+        if (!s.chars().allMatch(c -> c >= '0' && c <= '9')) return false;
+        int v = Integer.parseInt(s);
+        return v >= min && v <= max;
     }
 
     /** مقصدِ نهاییِ زنجیرهٔ ریدایرکت، یا {@code null} اگر اصلاً ریدایرکتی نبود. */
