@@ -97,7 +97,9 @@ public class LegacyPathFallback {
             String path = cleanPath(raw);
             if (path == null) return null;
 
-            return targetFor(path);
+            // شکلی که مرورگر واقعاً خواسته (دیکدشده، با اسلشِ پایانی) — قاعدهٔ ۱ به آن
+            // نیاز دارد تا بفهمد اصلاً چیزی برایِ اصلاح وجود داشته یا نه.
+            return targetFor(path, decodeAndStrip(raw));
         } catch (Exception e) {
             // نجاتِ آدرس هرگز نباید خودش خطا بسازد؛ ۴۰۴ِ عادی بدترین حالتش است
             log.debug("فالبکِ مسیرِ قدیمی ناموفق بود: {}", e.toString());
@@ -111,18 +113,31 @@ public class LegacyPathFallback {
         return "GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method);
     }
 
-    /** دیکد، حذفِ کوئری و اسلشِ پایانی، و ردِ مسیرهای ممنوع. {@code null} یعنی رد. */
-    private String cleanPath(String rawUri) {
+    /**
+     * حذفِ کوئری/فرگمنت و دیکد — یعنی همان چیزی که مرورگر واقعاً درخواست کرده،
+     * <b>با</b> اسلشِ پایانی.
+     * <p>
+     * ⚠️ دیکد عمداً اینجاست و نه بعدتر: مقایسهٔ «آیا مسیر اصلاح شد؟» باید روی شکلِ
+     * دیکدشده انجام شود. اگر با رشتهٔ خام مقایسه شود، هر آدرسِ فارسیِ درصد-کدشده
+     * «عوض‌شده» حساب می‌شود و همان حلقهٔ ۳۰۱ برمی‌گردد.
+     */
+    private String decodeAndStrip(String rawUri) {
         String p = rawUri;
         int cut = p.indexOf('?');
         if (cut >= 0) p = p.substring(0, cut);
         cut = p.indexOf('#');
         if (cut >= 0) p = p.substring(0, cut);
         try {
-            p = URLDecoder.decode(p, StandardCharsets.UTF_8);
+            return URLDecoder.decode(p, StandardCharsets.UTF_8);
         } catch (Exception ignored) {
             // مسیرِ درصد-کدشدهٔ خراب: خام می‌ماند و در نهایت ۴۰۴ می‌گیرد
+            return p;
         }
+    }
+
+    /** دیکد، حذفِ کوئری و اسلشِ پایانی، و ردِ مسیرهای ممنوع. {@code null} یعنی رد. */
+    private String cleanPath(String rawUri) {
+        String p = decodeAndStrip(rawUri);
         while (p.length() > 1 && p.endsWith("/")) p = p.substring(0, p.length() - 1);
         if (p.isEmpty() || !p.startsWith("/") || p.equals("/")) return null;
         if (p.contains("..")) return null;
@@ -135,10 +150,24 @@ public class LegacyPathFallback {
         return p;
     }
 
-    private String targetFor(String path) {
-        // قاعدهٔ ۱ — همین مسیر بدونِ اسلشِ پایانی هندلرِ واقعی دارد
-        if (hasGetHandler(path)) {
-            log.info("فالبکِ ۴۰۴ [اسلشِ پایانی]: {} → {}", path, path);
+    /**
+     * @param requested شکلِ دیکدشدهٔ چیزی که مرورگر خواست (با اسلشِ پایانی). قاعدهٔ ۱
+     *                  بدونِ آن نمی‌داند اصلاً چیزی برایِ اصلاح وجود داشته یا نه.
+     */
+    private String targetFor(String path, String requested) {
+        // قاعدهٔ ۱ — همین مسیر بدونِ اسلشِ پایانی هندلرِ واقعی دارد.
+        //
+        // 🔴 شرطِ «cleanPath واقعاً چیزی را اصلاح کرده باشد» حیاتی است و نبودنش یک
+        // حلقهٔ ۳۰۱ِ بی‌پایان می‌ساخت: hasGetHandler با *الگو* تطبیق می‌دهد، پس
+        // «/blog/هرچه» به الگویِ /blog/{slug} می‌خورد حتی وقتی آن مقاله وجود ندارد.
+        // آن‌وقت مقصد دقیقاً خودِ همان مسیر می‌شد و مرورگر تا ابد ۳۰۱ می‌گرفت
+        // (سنجشِ پراد: /blog/nabashad-xyz، /shop/product/nabashad-xyz و…).
+        //
+        // ⚠️ راهِ درست همین است، نه گاردِ سراسریِ «مقصد = مبدأ»: آن نسخه قاعدهٔ ۱ را
+        // می‌کشت، چون دلیلِ وجودیِ این قاعده دقیقاً همان حالتی است که مقصد با مسیرِ
+        // تمیزشده یکی است و فقط اسلشِ پایانی فرق دارد.
+        if (!path.equals(requested) && hasGetHandler(path)) {
+            log.info("فالبکِ ۴۰۴ [اسلشِ پایانی]: {} → {}", requested, path);
             return path;
         }
 

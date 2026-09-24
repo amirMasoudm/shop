@@ -56,6 +56,12 @@ class LegacyPathFallbackTest {
         Map<RequestMappingInfo, org.springframework.web.method.HandlerMethod> handlers = new HashMap<>();
         handlers.put(RequestMappingInfo.paths("/shop").methods(RequestMethod.GET).options(config).build(), null);
         handlers.put(RequestMappingInfo.paths("/blog").methods(RequestMethod.GET).options(config).build(), null);
+        // 🔴 الگوها عمداً اینجا هستند: حلقهٔ ۳۰۱ فقط با آن‌ها بازتولید می‌شود، چون
+        // hasGetHandler با الگو تطبیق می‌دهد نه با وجودِ واقعیِ مقاله/محصول.
+        handlers.put(RequestMappingInfo.paths("/blog/{slugOrId}").methods(RequestMethod.GET).options(config).build(), null);
+        handlers.put(RequestMappingInfo.paths("/blog/hub/{slug}").methods(RequestMethod.GET).options(config).build(), null);
+        handlers.put(RequestMappingInfo.paths("/shop/product/{slug}").methods(RequestMethod.GET).options(config).build(), null);
+        handlers.put(RequestMappingInfo.paths("/shop/category/{slug}").methods(RequestMethod.GET).options(config).build(), null);
         when(mapping.getHandlerMethods()).thenReturn(handlers);
 
         ObjectProvider<RequestMappingHandlerMapping> provider = mock(ObjectProvider.class);
@@ -164,6 +170,41 @@ class LegacyPathFallbackTest {
         MockHttpServletRequest err500 = notFound("/keyloggers/");
         err500.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, 500);
         assertNull(fallback.resolve(err500), "فقط ۴۰۴ فالبک می‌گیرد");
+    }
+
+    /**
+     * 🔴 حلقهٔ ۳۰۱ِ بی‌پایان — روی پراد سنجیده شد و با همین چهار آدرس بازتولید می‌شود.
+     * <p>
+     * قاعدهٔ ۱ با <b>الگو</b> تطبیق می‌داد، پس «/blog/هرچه» هندلر داشت حتی وقتی آن
+     * مقاله وجود نداشت؛ مقصد خودِ همان مسیر می‌شد و مرورگر تا ابد ۳۰۱ می‌گرفت.
+     * گوگل این‌ها را «Redirect error» گزارش می‌کند، نه «صفحه حذف شد» — یعنی آدرسِ
+     * مرده هیچ‌وقت از ایندکس پاک نمی‌شود.
+     */
+    @Test
+    void آدرسِ_ناموجودِ_زیرِ_الگو_۴۰۴_می‌ماند_نه_حلقه() {
+        assertNull(fallback.resolve(notFound("/blog/nabashad-xyz-123")), "مقالهٔ ناموجود");
+        assertNull(fallback.resolve(notFound("/blog/hub/nabashad-xyz-123")), "هابِ ناموجود");
+        assertNull(fallback.resolve(notFound("/shop/product/nabashad-xyz-123")), "محصولِ ناموجود");
+        assertNull(fallback.resolve(notFound("/shop/category/nabashad-xyz")), "دستهٔ ناموجود");
+    }
+
+    /**
+     * ⚠️ تلهٔ رفع: اگر مقایسهٔ «آیا مسیر اصلاح شد؟» روی رشتهٔ خام انجام می‌شد، هر
+     * آدرسِ فارسیِ درصد-کدشده «عوض‌شده» حساب می‌شد و حلقه برمی‌گشت. مقایسه باید روی
+     * شکلِ دیکدشده باشد.
+     */
+    @Test
+    void مسیرِ_فارسیِ_درصد_کدشدهٔ_بی‌اسلش_حلقه_نمی‌سازد() {
+        // /blog/نبود-چنین-چیزی — بدونِ اسلشِ پایانی، مقاله هم وجود ندارد
+        assertNull(fallback.resolve(notFound(
+                "/blog/%D9%86%D8%A8%D9%88%D8%AF-%DA%86%D9%86%DB%8C%D9%86-%DA%86%DB%8C%D8%B2%DB%8C")));
+    }
+
+    /** دلیلِ وجودیِ قاعدهٔ ۱ نباید قربانی شود: اسلشِ پایانی هنوز یک پرش می‌گیرد. */
+    @Test
+    void اسلشِ_پایانیِ_مسیرِ_الگودار_هنوز_یک_پرش_می‌گیرد() {
+        assertEquals("/blog/har-che", fallback.resolve(notFound("/blog/har-che/")));
+        assertEquals("/shop/product/har-che", fallback.resolve(notFound("/shop/product/har-che/")));
     }
 
     @Test
