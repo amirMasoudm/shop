@@ -68,29 +68,52 @@ public class CategoryService {
     }
 
     @Transactional
+    /**
+     * ویرایشِ دسته — <b>ادغامی، نه جایگزینی</b>.
+     * <p>
+     * برای هر فیلد سه حالت هست و فقط بدنهٔ درخواست تعیینش می‌کند (نگاه کن به
+     * {@link CategoryRequestDto#has}):
+     * <ul>
+     *   <li>کلید نیامده ← مقدارِ قبلی دست نمی‌خورد</li>
+     *   <li>کلید با {@code null} آمده ← پاک می‌شود</li>
+     *   <li>کلید با مقدار آمده ← ست می‌شود</li>
+     * </ul>
+     * 🔴 پیش از این هر فیلدی که در بدنه نبود پاک می‌شد، و {@code parentId}ِ نیامده دسته
+     * را به ریشه می‌برد — یعنی یک PUTِ فقط-نام هم سئو را می‌برد هم درخت را.
+     * <p>
+     * ⚠️ پاک‌شدنی ماندنِ {@code stripPosition}/{@code seoTitle}/{@code color} عمدی است:
+     * خالی‌گذاشتنِ این‌ها در پنل یعنی «برش دار» (مثلاً تگ از نوارِ زیرِ جست‌وجو
+     * برداشته شود). برای همین رفع «اگر null بود ننویس» نیست؛ آن این قابلیت را می‌کشت.
+     * پنل همیشه همهٔ کلیدها را صریح می‌فرستد، پس رفتارِ پنل عوض نشده است.
+     */
     public Category update(String id, CategoryRequestDto dto) {
         Category category = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
+        // نام و نوع و ترتیبِ منو ساختاری‌اند و پاک‌شدنی نیستند: null همان «دست نزن» است
         if (dto.getName() != null) {
             category.setName(dto.getName());
         }
-        category.setFilterKeys(dto.getFilterKeys());
+        if (dto.has("filterKeys")) {
+            category.setFilterKeys(dto.getFilterKeys());
+        }
         if (dto.getType() != null && !dto.getType().isEmpty()) {
             category.setType(dto.getType());
         }
         if (dto.getPosition() != null) {
             category.setPosition(dto.getPosition());
         }
-        // ⚠️ برخلافِ position این یکی بی‌قید ست می‌شود: خالی‌گذاشتنِ
-        // فیلد در پنل یعنی «برگرد به ترتیبِ منو»، و این باید پاک‌شدنی باشد.
-        category.setStripPosition(dto.getStripPosition());
+        // ⚠️ برخلافِ position این یکی پاک‌شدنی است: خالی‌گذاشتنِ فیلد در پنل
+        // (یعنی null ِ صریح) یعنی «برگرد به ترتیبِ منو».
+        if (dto.has("stripPosition")) {
+            category.setStripPosition(dto.getStripPosition());
+        }
 
-        // ---> سئو <---
-        category.setSeoTitle(dto.getSeoTitle());
-        category.setColor(normalizeColor(dto.getColor()));
-        category.setSeoDescription(dto.getSeoDescription());
-        category.setIntroText(dto.getIntroText());
+        // ---> سئو و رنگ: پاک‌شدنی، ولی فقط وقتی صریحاً خواسته شود <---
+        if (dto.has("seoTitle")) category.setSeoTitle(dto.getSeoTitle());
+        if (dto.has("color")) category.setColor(normalizeColor(dto.getColor()));
+        if (dto.has("seoDescription")) category.setSeoDescription(dto.getSeoDescription());
+        if (dto.has("introText")) category.setIntroText(dto.getIntroText());
         // پایداری URL: اگر ادمین صریحاً اسلاگ داد، همان اعمال می‌شود؛
         // اگر نداد و دسته هنوز اسلاگ ندارد، از نام ساخته می‌شود؛ در غیر این صورت اسلاگ قبلی حفظ می‌شود
         if (dto.getSlug() != null && !dto.getSlug().trim().isEmpty()) {
@@ -102,9 +125,17 @@ public class CategoryService {
         // ابتدا نام/ویژگی‌ها ذخیره شود
         repo.save(category);
 
-        // تغییر والد از فرم ویرایش: فیلد parentId (و newParentId برای سازگاری) پشتیبانی می‌شود
-        String target = dto.getNewParentId() != null ? dto.getNewParentId() : dto.getParentId();
-        if (target != null && target.trim().isEmpty()) target = null;
+        // تغییر والد از فرم ویرایش: فیلد parentId (و newParentId برای سازگاری) پشتیبانی می‌شود.
+        // 🔴 کلیدِ نیامده یعنی «والد دست نخورد» — نه ریشه. فقط null ِ صریح یعنی ریشه.
+        // newParentId اولویتش را نگه می‌دارد: اگر آمده بود (حتی null)، همان برنده است.
+        final String target;
+        if (dto.has("newParentId")) {
+            target = blankToNull(dto.getNewParentId());
+        } else if (dto.has("parentId")) {
+            target = blankToNull(dto.getParentId());
+        } else {
+            return repo.findById(id).orElse(category);
+        }
 
         String current = category.getParentId();
         boolean parentChanged = (target == null) ? (current != null) : !target.equals(current);
@@ -352,6 +383,11 @@ public class CategoryService {
        منطق تمیز: از حلقه جلوگیری می‌کند و ancestors/level خودش و همه فرزندان را بازحساب می‌کند.
     */
     @Transactional
+    /** رشتهٔ خالی/فاصله همان null است — پنل «ریشه» را گاهی این‌طور می‌فرستد. */
+    private static String blankToNull(String s) {
+        return (s == null || s.trim().isEmpty()) ? null : s;
+    }
+
     public Category moveCategory(String categoryId, String newParentId) {
         Category node = repo.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -389,11 +425,15 @@ public class CategoryService {
         return node;
     }
 
-    /*
-       مرتب‌سازی/جابجایی کل درخت با یک درخواست (درگ‌دراپ).
-       فرانت‌اند ساختار کامل درخت را می‌فرستد و اینجا parentId/position/ancestors/level
-       همه به‌صورت قطعی از روی همان ساختار بازحساب می‌شود.
-    */
+    /**
+     * مرتب‌سازی/جابجایی کل درخت با یک درخواست (درگ‌دراپ).
+     * فرانت‌اند ساختار کامل درخت را می‌فرستد و اینجا parentId/position/ancestors/level
+     * همه به‌صورت قطعی از روی همان ساختار بازحساب می‌شود.
+     * <p>
+     * ⚠️ {@code parentId}ِ هر آیتم سه‌حالته است، مثلِ {@link #update}: کلیدِ نیامده
+     * یعنی «والدِ فعلی بماند»، {@code null}ِ صریح یعنی ریشه. پیش از این آیتمی که کلید
+     * را نداشت بی‌صدا به ریشه می‌رفت.
+     */
     @Transactional
     public void reorder(List<CategoryOrderDto> items) {
         if (items == null || items.isEmpty()) return;
@@ -404,7 +444,14 @@ public class CategoryService {
         // نقشه‌ی والدِ ارسال‌شده برای محاسبه‌ی ancestors
         Map<String, String> parentMap = new HashMap<>();
         for (CategoryOrderDto it : items) {
-            String pid = (it.getParentId() != null && it.getParentId().trim().isEmpty()) ? null : it.getParentId();
+            final String pid;
+            if (it.hasParentId()) {
+                pid = blankToNull(it.getParentId());
+            } else {
+                Category existing = byId.get(it.getId());
+                if (existing == null) continue;          // همان رفتارِ حلقهٔ بعدی: ناموجود نادیده
+                pid = existing.getParentId();
+            }
             parentMap.put(it.getId(), pid);
         }
 
