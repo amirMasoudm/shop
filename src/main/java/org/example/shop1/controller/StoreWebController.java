@@ -812,7 +812,7 @@ public class StoreWebController {
         sb.append("{\"@type\":\"Organization\",\"name\":\"داده نما\"")
                 .append(",\"alternateName\":\"شرکت ارتباطات شبکه داده نما\"")
                 .append(",\"url\":\"").append(esc(baseUrl)).append("/\"")
-                .append(",\"logo\":\"").append(esc(baseUrl)).append("/logo.png\"")
+                .append(",\"logo\":\"").append(esc(baseUrl)).append("/img/logo.png\"")
                 .append(",\"description\":\"").append(esc(description)).append("\"}");
         return sb.toString();
     }
@@ -843,7 +843,7 @@ public class StoreWebController {
         model.addAttribute("baseUrl", baseUrl);
         model.addAttribute("currentUrl", request.getRequestURL().toString());
         // تصویر پیش‌فرض سئو؛ در صفحه‌ی محصول با تصویر واقعی بازنویسی می‌شود
-        model.addAttribute("ogImage", baseUrl + "/logo.png");
+        model.addAttribute("ogImage", baseUrl + "/img/logo.png");
 
         // آنالیتیکس (GA4 + تایید Search Console) — فقط وقتی مقدار دارند رندر می‌شوند
         model.addAttribute("ga4Id", ga4Id != null ? ga4Id.trim() : "");

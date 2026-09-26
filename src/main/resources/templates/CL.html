@@ -2911,7 +2911,7 @@
             <span th:text="${categoryName}">دسته‌بندی</span>
         </nav>
         <div style="display:flex; flex-wrap:wrap; gap:24px;">
-            <img th:src="${p.images != null and !p.images.isEmpty() ? p.images[0] : baseUrl + '/logo.png'}"
+            <img th:src="${p.images != null and !p.images.isEmpty() ? p.images[0] : baseUrl + '/img/logo.png'}"
                  th:alt="${p.imageAlts != null and !p.imageAlts.isEmpty() and p.imageAlts[0] != null and !p.imageAlts[0].isEmpty() ? p.imageAlts[0] : p.name}"
                  fetchpriority="high" decoding="async"
                  style="width:320px; max-width:100%; aspect-ratio:1; border-radius:12px; border:1px solid #eee; object-fit:cover;">
@@ -3042,7 +3042,7 @@
             <a th:each="prod : ${catProducts}"
                th:href="${baseUrl + '/shop/product/' + (prod.slug != null and !prod.slug.isEmpty() ? prod.slug : prod.id) + (prod.persianTail != null and !prod.persianTail.isEmpty() ? '/' + prod.persianTail : '')}"
                style="display:block; border:1px solid #e5e7eb; border-radius:12px; padding:12px; text-decoration:none; color:inherit; background:#fff;">
-                <img th:src="${prod.images != null and !prod.images.isEmpty() ? prod.images[0] : baseUrl + '/logo.png'}"
+                <img th:src="${prod.images != null and !prod.images.isEmpty() ? prod.images[0] : baseUrl + '/img/logo.png'}"
                      th:alt="${prod.name}" loading="lazy" decoding="async"
                      style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
                 <div th:text="${prod.name}" style="font-size:14px; font-weight:bold; color:#1f2937; margin-bottom:6px;">نام محصول</div>

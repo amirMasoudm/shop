@@ -85,7 +85,7 @@
     <div class="grid" th:if="${cards != null and !cards.isEmpty()}">
         <a class="card" th:each="a : ${cards}"
            th:href="${baseUrl + '/blog/' + (a.slug != null and !a.slug.isEmpty() ? a.slug : a.id)}">
-            <img th:src="${a.coverImage != null and !a.coverImage.isEmpty() ? a.coverImage : '/logo.png'}"
+            <img th:src="${a.coverImage != null and !a.coverImage.isEmpty() ? a.coverImage : '/img/logo.png'}"
                  th:alt="${a.title}" loading="lazy">
             <div class="b">
                 <h2 th:text="${a.title}">عنوان مقاله</h2>
