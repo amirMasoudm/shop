@@ -442,6 +442,125 @@ public class StoreWebController {
                     .orElse("داده نما");
         }
         model.addAttribute("categoryName", catName);
+
+        model.addAttribute("productJsonLd", buildProductJsonLd(p, baseUrl,
+                baseUrl + hybridPath(p), (String) model.getAttribute("seoDescription"),
+                (String) model.getAttribute("ogImage"), aggregateRatingJson, catName));
+    }
+
+    /**
+     * اسکیمای محصول — سمتِ سرور، مثلِ اسکیمای دسته و FAQ.
+     * <p>
+     * 🔴 <b>چرا از قالب بیرون آمد:</b> حالا سه فیلد (brand، sku، mpn) باید وقتی
+     * مقدار ندارند <b>اصلاً نوشته نشوند</b>، نه اینکه رشتهٔ تهی بگیرند. ساختنِ
+     * JSONِ شرطی با {@code th:if} داخلِ متنِ اینلاین یعنی ویرگولِ اضافه و JSONِ
+     * نامعتبر — همان دلیلی که اسکیمای دسته از اول سروری نوشته شد.
+     */
+    private String buildProductJsonLd(Product p, String baseUrl, String canonical,
+                                      String description, String image,
+                                      String aggregateRatingJson, String categoryName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[{\"@type\":\"Product\"")
+                .append(",\"name\":\"").append(esc(p.getName())).append("\"");
+        if (image != null && !image.isBlank()) {
+            sb.append(",\"image\":\"").append(esc(image)).append("\"");
+        }
+        sb.append(",\"description\":\"").append(esc(description)).append("\"");
+
+        // 🔴 sku کدِ کالایِ خودمان است و mpn کدِ مدلِ سازنده. تا پیش از این هر دو
+        // شناسهٔ مونگو بودند — یعنی یک رشتهٔ هگزِ بی‌معنا که به هیچ کاتالوگی نمی‌خورد.
+        String sku = blank(p.getHolooCode());
+        if (sku != null) sb.append(",\"sku\":\"").append(esc(sku)).append("\"");
+        String mpn = manufacturerPartNumber(p);
+        if (mpn != null) sb.append(",\"mpn\":\"").append(esc(mpn)).append("\"");
+
+        // ⚠️ برندِ نامعلوم یعنی حذفِ کاملِ فیلد، نه نامِ فروشگاه. برندِ غلط سیگنالِ
+        // سازنده را خراب می‌کند و در نتایجِ خرید به ضررمان است.
+        String brand = brandOf(p);
+        if (brand != null) {
+            sb.append(",\"brand\":{\"@type\":\"Brand\",\"name\":\"").append(esc(brand)).append("\"}");
+        }
+
+        java.math.BigDecimal price = p.getOnlinePrice() != null ? p.getOnlinePrice() : p.getPrice();
+        sb.append(",\"offers\":{\"@type\":\"Offer\"")
+                .append(",\"url\":\"").append(esc(canonical)).append("\"")
+                .append(",\"priceCurrency\":\"IRR\"")
+                // ×۱۰ چون قیمت‌های ما تومان‌اند و واحدِ اعلام‌شده ریال است
+                .append(",\"price\":\"").append(price == null ? "0"
+                        : price.setScale(0, java.math.RoundingMode.HALF_UP)
+                        .multiply(java.math.BigDecimal.TEN).toPlainString()).append("\"")
+                .append(",\"validFrom\":\"").append(priceValidFrom(p)).append("\"")
+                .append(",\"priceValidUntil\":\"").append(java.time.LocalDate.now().plusYears(1)).append("\"")
+                .append(",\"itemCondition\":\"https://schema.org/NewCondition\"")
+                .append(",\"availability\":\"").append(availabilityOf(p)).append("\"}");
+
+        if (aggregateRatingJson != null && !aggregateRatingJson.isEmpty()) {
+            sb.append(aggregateRatingJson);
+        }
+        sb.append("}");
+
+        sb.append(",{\"@type\":\"BreadcrumbList\",\"itemListElement\":[")
+                .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"فروشگاه\",\"item\":\"")
+                .append(esc(baseUrl)).append("/shop\"},")
+                .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"").append(esc(categoryName))
+                .append("\",\"item\":\"").append(esc(canonical)).append("\"}]}");
+
+        return sb.append("]}").toString();
+    }
+
+    private static String availabilityOf(Product p) {
+        if (p.isProductionStopped()) return "https://schema.org/Discontinued";
+        return (p.getStock() != null && p.getStock() > 0)
+                ? "https://schema.org/InStock" : "https://schema.org/OutOfStock";
+    }
+
+    /** کدِ مدلِ سازنده از مشخصاتِ فنی. امروز فقط رویِ بخشی از محصولات هست. */
+    private static String manufacturerPartNumber(Product p) {
+        if (p.getSpecifications() == null) return null;
+        return blank(p.getSpecifications().get("Product code"));
+    }
+
+    /**
+     * تاریخِ شروعِ اعتبارِ قیمت — آخرین باری که خودِ محصول به‌روز شد.
+     * <p>
+     * دقیق‌ترین چیزی است که داریم: فیلدِ جدایی برایِ «زمانِ تغییرِ قیمت» وجود ندارد،
+     * و ساختنِ تاریخِ دلخواه یعنی به گوگل عددِ بی‌پشتوانه دادن.
+     */
+    private static String priceValidFrom(Product p) {
+        java.time.Instant t = p.getUpdatedAt() != null ? p.getUpdatedAt() : p.getCreatedAt();
+        if (t == null) t = java.time.Instant.now();
+        return t.atZone(java.time.ZoneOffset.UTC).toLocalDate().toString();
+    }
+
+    /**
+     * برندِ محصول از نزدیک‌ترین دسته‌ای که {@code brandName} دارد.
+     * <p>
+     * از خودِ دسته شروع می‌کند و بعد نیاها را از نزدیک به دور بالا می‌رود — چون
+     * {@code ancestors} از ریشه به پایین ذخیره می‌شود، از آخر به اول پیمایش می‌شود.
+     * اگر هیچ‌کدام برند نداشتند، {@code null} یعنی «ننویس».
+     */
+    private String brandOf(Product p) {
+        if (p.getCategoryId() == null) return null;
+        Optional<Category> own = categoryRepo.findById(p.getCategoryId());
+        if (own.isEmpty()) return null;
+
+        String direct = blank(own.get().getBrandName());
+        if (direct != null) return direct;
+
+        List<String> ancestors = own.get().getAncestors();
+        if (ancestors == null) return null;
+        for (int i = ancestors.size() - 1; i >= 0; i--) {
+            String found = categoryRepo.findById(ancestors.get(i))
+                    .map(Category::getBrandName).map(StoreWebController::blank).orElse(null);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static String blank(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
     }
 
     // ================= صفحه‌ی سئوی دسته‌بندی =================
@@ -607,8 +726,12 @@ public class StoreWebController {
             model.addAttribute("ogImage", img.startsWith("http") ? img : baseUrl + img);
         }
 
-        // اسکیمای Article (سروری، مثل الگوی دسته)
-        String json = "{\"@context\":\"https://schema.org/\",\"@type\":\"Article\"" +
+        // اسکیمای Article + BreadcrumbList (سروری، مثل الگوی دسته)
+        //
+        // 🔴 بردکرامب تا امروز فقط رویِ محصول و دسته بود، پس سرچ کنسول از ۲۵۵ مقاله
+        // فقط ۲۵ بردکرامبِ معتبر می‌دید. حالا هر دو در یک @graph می‌آیند.
+        String json = "{\"@context\":\"https://schema.org/\",\"@graph\":[" +
+                "{\"@type\":\"Article\"" +
                 ",\"headline\":\"" + esc(a.getTitle()) + "\"" +
                 ",\"description\":\"" + esc(description) + "\"" +
                 ",\"url\":\"" + esc(canonical) + "\"" +
@@ -616,7 +739,8 @@ public class StoreWebController {
                         ? ",\"image\":\"" + esc(a.getCoverImage().startsWith("http") ? a.getCoverImage() : baseUrl + a.getCoverImage()) + "\"" : "") +
                 ",\"datePublished\":\"" + a.getCreatedAt() + "\"" +
                 ",\"dateModified\":\"" + a.getUpdatedAt() + "\"" +
-                ",\"publisher\":{\"@type\":\"Organization\",\"name\":\"فروشگاه داده نما\",\"url\":\"" + esc(baseUrl) + "\"}}";
+                ",\"publisher\":{\"@type\":\"Organization\",\"name\":\"فروشگاه داده نما\",\"url\":\"" + esc(baseUrl) + "\"}}" +
+                "," + articleBreadcrumbJson(a, baseUrl, canonical) + "]}";
         model.addAttribute("articleJsonLd", json);
 
         // مقالات هم‌خوشه (لینک‌سازی داخلی خودکار خوشه‌ی محتوایی)
@@ -628,6 +752,37 @@ public class StoreWebController {
         }
 
         return "article";
+    }
+
+    /**
+     * مسیرِ نان‌ریزهٔ مقاله: خانه ← بلاگ ← [خوشه] ← عنوان.
+     * <p>
+     * ⚠️ اگر مقاله خوشه ندارد، آن پله <b>حذف</b> می‌شود و شماره‌ها پشتِ‌سرِهم
+     * می‌مانند — پلهٔ خالی یا شمارهٔ پریده، بردکرامب را در نگاهِ گوگل نامعتبر می‌کند.
+     * <p>
+     * ⚠️ آدرس‌ها از {@code buildBaseUrl} می‌آیند، نه دامنهٔ هاردکد: همان قاعده‌ای که
+     * بقیهٔ اسکیما رعایت می‌کند تا روی لوکال و پراد هر دو درست بماند.
+     */
+    private String articleBreadcrumbJson(Article a, String baseUrl, String canonical) {
+        StringBuilder sb = new StringBuilder("{\"@type\":\"BreadcrumbList\",\"itemListElement\":[");
+        int pos = 1;
+        sb.append("{\"@type\":\"ListItem\",\"position\":").append(pos++)
+                .append(",\"name\":\"خانه\",\"item\":\"").append(esc(baseUrl)).append("/\"}");
+        sb.append(",{\"@type\":\"ListItem\",\"position\":").append(pos++)
+                .append(",\"name\":\"بلاگ\",\"item\":\"").append(esc(baseUrl)).append("/blog\"}");
+
+        String hubSlug = a.getHubSlug();
+        if (hubSlug != null && !hubSlug.isBlank()) {
+            String hubName = (a.getHub() != null && !a.getHub().isBlank()) ? a.getHub() : hubSlug;
+            sb.append(",{\"@type\":\"ListItem\",\"position\":").append(pos++)
+                    .append(",\"name\":\"").append(esc(hubName)).append("\",\"item\":\"")
+                    .append(esc(baseUrl + "/blog/hub/" + hubSlug)).append("\"}");
+        }
+
+        sb.append(",{\"@type\":\"ListItem\",\"position\":").append(pos)
+                .append(",\"name\":\"").append(esc(a.getTitle())).append("\",\"item\":\"")
+                .append(esc(canonical)).append("\"}]}");
+        return sb.toString();
     }
 
     // صفحه‌ی خوشه‌ی محتوایی: /blog/hub/{hubSlug}

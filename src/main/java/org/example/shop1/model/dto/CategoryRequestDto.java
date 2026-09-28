@@ -90,4 +90,9 @@ public class CategoryRequestDto {
     private String color;
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; mark("color"); }
+
+    // نامِ سازنده برایِ اسکیمای محصول — خالی یعنی «نمی‌دانیم»، نه «بی‌برند»
+    private String brandName;
+    public String getBrandName() { return brandName; }
+    public void setBrandName(String brandName) { this.brandName = brandName; mark("brandName"); }
 }

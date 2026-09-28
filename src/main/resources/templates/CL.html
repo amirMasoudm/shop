@@ -44,52 +44,10 @@
     <!-- canonical همیشه آدرس رسمی (اسلاگ) صفحه است تا نسخه‌های تکراری ایندکس نشوند -->
     <link rel="canonical" th:href="${canonicalUrl != null ? canonicalUrl : currentUrl}">
 
-    <!-- بخش اسکیما (Schema Markup) هوشمند و داینامیک -->
-    <script type="application/ld+json" th:if="${p != null}">
-        {
-            "@context": "https://schema.org/",
-            "@graph": [
-                {
-                    "@type": "Product",
-                    "name": "[(${p.name})]",
-                    "image": "[(${ogImage})]",
-                    "description": "[(${seoDescription})]",
-                    "sku": "[(${p.id})]",
-                    "mpn": "[(${p.id})]",
-                    "brand": {
-                        "@type": "Brand",
-                        "name": "فروشگاه داده نما"
-                    },
-                    "offers": {
-                        "@type": "Offer",
-                        "url": "[(${canonicalUrl != null ? canonicalUrl : currentUrl})]",
-                        "priceCurrency": "IRR",
-                        "price": "[(${#numbers.formatDecimal(p.onlinePrice != null ? p.onlinePrice : p.price, 1, 0)})]0",
-                        "priceValidUntil": "[(${priceValidUntil})]",
-                        "itemCondition": "https://schema.org/NewCondition",
-                        "availability": "[(${p.productionStopped ? 'https://schema.org/Discontinued' : (p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock')})]"
-                    }[(${aggregateRatingJson})]
-                },
-                {
-                    "@type": "BreadcrumbList",
-                    "itemListElement": [
-                        {
-                            "@type": "ListItem",
-                            "position": 1,
-                            "name": "فروشگاه",
-                            "item": "[(${baseUrl + '/shop'})]"
-                        },
-                        {
-                            "@type": "ListItem",
-                            "position": 2,
-                            "name": "[(${categoryName})]",
-                            "item": "[(${canonicalUrl != null ? canonicalUrl : currentUrl})]"
-                        }
-                    ]
-                }
-            ]
-        }
-    </script>
+    <!-- اسکیمای محصول (Product + BreadcrumbList) — سروری ساخته می‌شود.
+         ⚠️ عمداً دیگر اینلاین نیست: brand/sku/mpn وقتی مقدار ندارند باید اصلاً
+         نوشته نشوند، و JSONِ شرطی در قالب ویرگولِ اضافه می‌سازد. -->
+    <script type="application/ld+json" th:if="${productJsonLd != null}" th:utext="${productJsonLd}"></script>
 
     <script th:inline="javascript" th:if="${productSlug != null}">
         window.SERVER_PRODUCT_SLUG = [[${productSlug}]];

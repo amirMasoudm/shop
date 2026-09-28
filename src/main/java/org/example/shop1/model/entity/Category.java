@@ -50,6 +50,20 @@ public class Category {
      */
     private String color;
 
+    /**
+     * نامِ سازندهٔ واقعی برایِ دادهٔ ساختاریافته — مثلاً {@code Ubiquiti} رویِ دستهٔ
+     * یوبیکیوتی.
+     * <p>
+     * 🔴 <b>چرا فیلدِ داده و نه نگاشتی در کد:</b> فهرستِ برندها مخصوصِ همین فروشگاه
+     * است و در یک اپِ قابلِ‌استفادهٔ مجدد نباید هاردکد شود. محصول برندش را از نزدیک‌ترین
+     * نیایی می‌گیرد که این فیلد را دارد.
+     * <p>
+     * ⚠️ نامِ خودِ دسته جایگزینش نیست: «یوبیکیوتی (UBNT)» نامِ نمایشیِ فارسی است، ولی
+     * گوگل نامِ سازنده را می‌خواهد. و {@code null} یعنی «نمی‌دانیم» — در آن حالت فیلدِ
+     * {@code brand} در اسکیما اصلاً نوشته نمی‌شود، چون برندِ غلط از نبودنِ برند بدتر است.
+     */
+    private String brandName;
+
     // --- Constructors ---
     // اضافه کردن فیلد جدید
     private List<String> filterKeys = new ArrayList<>(); // مثلا: ["سایز", "رنگ", "ولتاژ"]
@@ -100,4 +114,7 @@ public class Category {
 
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
+
+    public String getBrandName() { return brandName; }
+    public void setBrandName(String brandName) { this.brandName = brandName; }
 }

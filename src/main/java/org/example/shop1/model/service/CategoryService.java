@@ -63,6 +63,7 @@ public class CategoryService {
         category.setColor(normalizeColor(dto.getColor()));
         category.setSeoDescription(dto.getSeoDescription());
         category.setIntroText(dto.getIntroText());
+        category.setBrandName(blankToNull(dto.getBrandName()));
 
         return repo.save(category);
     }
@@ -114,6 +115,9 @@ public class CategoryService {
         if (dto.has("color")) category.setColor(normalizeColor(dto.getColor()));
         if (dto.has("seoDescription")) category.setSeoDescription(dto.getSeoDescription());
         if (dto.has("introText")) category.setIntroText(dto.getIntroText());
+        // رشتهٔ خالی یعنی «پاکش کن» و به null تبدیل می‌شود: اسکیما باید بتواند فرقِ
+        // «برند ندارد» را با «برندش رشتهٔ تهی است» بفهمد.
+        if (dto.has("brandName")) category.setBrandName(blankToNull(dto.getBrandName()));
         // پایداری URL: اگر ادمین صریحاً اسلاگ داد، همان اعمال می‌شود؛
         // اگر نداد و دسته هنوز اسلاگ ندارد، از نام ساخته می‌شود؛ در غیر این صورت اسلاگ قبلی حفظ می‌شود
         if (dto.getSlug() != null && !dto.getSlug().trim().isEmpty()) {
@@ -344,6 +348,7 @@ public class CategoryService {
         dto.setColor(c.getColor());
         dto.setSeoDescription(c.getSeoDescription());
         dto.setIntroText(c.getIntroText());
+        dto.setBrandName(c.getBrandName());
         dto.setChildren(new ArrayList<>());
         return dto;
     }

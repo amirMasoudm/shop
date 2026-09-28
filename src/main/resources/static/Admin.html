@@ -1241,6 +1241,15 @@
                        class="w-full p-2 text-sm border rounded-lg outline-none"
                        oninput="updateCatSeoPreview()">
 
+                <label class="block text-[11px] text-gray-600 mt-2 mb-1">نام سازنده (برند)</label>
+                <input type="text" id="c-brand" dir="ltr" placeholder="مثلاً: Ubiquiti"
+                       class="w-full p-2 text-sm border rounded-lg outline-none font-mono">
+                <p class="text-[10px] text-gray-500 mt-1 leading-5">
+                    نامِ لاتینِ سازنده، برای دادهٔ ساختاریافتهٔ گوگل. محصولاتِ این دسته و
+                    زیردسته‌هایش همین برند را می‌گیرند. <b>خالی بگذارید اگر مطمئن نیستید</b> —
+                    برندِ غلط از نبودنِ برند بدتر است.
+                </p>
+
                 <div class="flex items-center justify-between mt-2 mb-1">
                     <label class="text-[11px] text-gray-600">توضیح متا (meta description)</label>
                     <span id="c-seo-desc-count" class="text-[10px] text-gray-400">0/160</span>
@@ -2861,6 +2870,7 @@
         document.getElementById('c-seo-title').value = c.seoTitle || '';
         document.getElementById('c-seo-desc').value = c.seoDescription || '';
         document.getElementById('c-intro').value = c.introText || '';
+        document.getElementById('c-brand').value = c.brandName || '';
         document.getElementById('c-color').value = c.color || '';
         syncCatColorUi();
         updateCatSeoPreview();
@@ -2903,6 +2913,9 @@
             seoTitle: document.getElementById('c-seo-title').value.trim() || null,
             seoDescription: document.getElementById('c-seo-desc').value.trim() || null,
             introText: document.getElementById('c-intro').value.trim() || null,
+            // خالی عمداً null می‌رود: سرور null را «برند نامعلوم» می‌فهمد و فیلد را
+            // از اسکیما حذف می‌کند، نه اینکه رشتهٔ تهی بنویسد
+            brandName: document.getElementById('c-brand').value.trim() || null,
             // خالی را عمداً null می‌فرستیم نه '' — سرور null را «بی‌رنگ» می‌فهمد
             color: normalizeCatColor(document.getElementById('c-color').value) || null
         };

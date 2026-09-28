@@ -70,4 +70,9 @@ public class CategoryResponseDto {
     private String color;
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
+
+    /** نامِ سازنده — پنل با همین فیلد ویرایشش می‌کند و اسکیمای محصول از آن می‌خواند. */
+    private String brandName;
+    public String getBrandName() { return brandName; }
+    public void setBrandName(String brandName) { this.brandName = brandName; }
 }
