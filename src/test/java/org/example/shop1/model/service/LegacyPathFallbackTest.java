@@ -33,6 +33,7 @@ class LegacyPathFallbackTest {
 
     private ArticleService articleService;
     private ProductRepository productRepo;
+    private org.example.shop1.model.reposritory.CategoryRepository categoryRepo;
     private LegacyRedirectService legacyRedirects;
     private LegacyPathFallback fallback;
 
@@ -40,10 +41,12 @@ class LegacyPathFallbackTest {
     void setUp() {
         articleService = mock(ArticleService.class);
         productRepo = mock(ProductRepository.class);
+        categoryRepo = mock(org.example.shop1.model.reposritory.CategoryRepository.class);
         legacyRedirects = mock(LegacyRedirectService.class);
 
         when(articleService.getPublishedBySlugOrId(anyString())).thenReturn(Optional.empty());
         when(productRepo.findBySlug(anyString())).thenReturn(Optional.empty());
+        when(categoryRepo.findBySlug(anyString())).thenReturn(Optional.empty());
         when(legacyRedirects.resolve(anyString())).thenReturn(Optional.empty());
 
         // جدولِ مسیریابیِ ساختگی: فقط /shop و /blog هندلر دارند.
@@ -67,7 +70,15 @@ class LegacyPathFallbackTest {
         ObjectProvider<RequestMappingHandlerMapping> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(mapping);
 
-        fallback = new LegacyPathFallback(articleService, productRepo, legacyRedirects, provider);
+        fallback = new LegacyPathFallback(articleService, productRepo, categoryRepo,
+                legacyRedirects, provider);
+    }
+
+    private void category(String slug, String type) {
+        org.example.shop1.model.entity.Category c = new org.example.shop1.model.entity.Category();
+        c.setSlug(slug);
+        c.setType(type);
+        when(categoryRepo.findBySlug(slug)).thenReturn(Optional.of(c));
     }
 
     /** درخواستی که به ۴۰۴ رسیده — همان چیزی که کنترلرِ خطا می‌بیند. */
@@ -262,5 +273,66 @@ class LegacyPathFallbackTest {
         // ریدایرکتی که به خودش برمی‌گردد نباید ۳۰۱ بسازد
         redirect("/blog/x", "/x");
         assertNull(fallback.resolve(notFound("/x/")), "مقصدی که با خودِ مسیر یکی است حلقه است");
+    }
+
+    // ── قاعدهٔ ۴ — دستهٔ ووکامرس ─────────────────────────────────────────
+    @Test
+    void دستهٔ_ووکامرس_به_صفحهٔ_دسته_می‌رود() {
+        category("mimosa", null);
+        assertEquals("/shop/category/mimosa", fallback.resolve(notFound("/product-category/mimosa/")));
+        assertEquals("/shop/category/mimosa", fallback.resolve(notFound("/product-category/mimosa")));
+    }
+
+    /** ووکامرس دستهٔ تودرتو را با کلِ مسیرِ والد می‌نوشت؛ دستهٔ ما تخت است. */
+    @Test
+    void دستهٔ_تودرتو_از_آخرین_بخش_خوانده_می‌شود() {
+        category("mikrotik-switch", null);
+        assertEquals("/shop/category/mikrotik-switch",
+                fallback.resolve(notFound("/product-category/mikrotik-products/mikrotik-switch/")));
+    }
+
+    /** 🔴 مهم‌ترین گاردِ این قاعده: ۴۰۴ِ واقعی نباید به فروشگاه پرت شود. */
+    @Test
+    void دستهٔ_ناموجود_۴۰۴ِ_واقعی_می‌ماند() {
+        assertNull(fallback.resolve(notFound("/product-category/in-daste-vojud-nadarad/")));
+        assertNull(fallback.resolve(notFound("/product-category/")));
+    }
+
+    /**
+     * دستهٔ انبار عمداً بیرون است — خودِ sitemap.xml هم بیرونش می‌گذارد، پس فرستادنِ
+     * ترافیکِ گوگل به آن دو تصمیمِ ناسازگار می‌شد.
+     */
+    @Test
+    void دستهٔ_انبار_مقصدِ_ریدایرکت_نمی‌شود() {
+        category("anbar-dakheli", "WAREHOUSE");
+        assertNull(fallback.resolve(notFound("/product-category/anbar-dakheli/")));
+    }
+
+    // ── قاعدهٔ ۵ — ریشهٔ فروشگاهِ ووکامرس ─────────────────────────────────
+    @Test
+    void ریشهٔ_فروشگاهِ_ووکامرس_به_فروشگاه_می‌رود() {
+        assertEquals("/shop", fallback.resolve(notFound("/product/")));
+        assertEquals("/shop", fallback.resolve(notFound("/product")));
+    }
+
+    /** قاعدهٔ ۵ نباید قاعدهٔ ۳ را ببلعد: /product/{x} همچنان کارِ محصول است. */
+    @Test
+    void قاعدهٔ_ریشه_مسیرِ_محصول_را_نمی‌بلعد() {
+        Product p = new Product();
+        p.setId("p1");
+        p.setSlug("qrt-5");
+        p.setName("QRT 5");
+        when(productRepo.findBySlug("qrt-5")).thenReturn(Optional.of(p));
+
+        String target = fallback.resolve(notFound("/product/qrt-5/"));
+        assertNotNull(target);
+        assertTrue(target.startsWith("/shop/product/qrt-5"), target);
+        assertNotEquals("/shop", target);
+    }
+
+    /** محصولی که وجود ندارد هم نباید به ریشهٔ فروشگاه پرت شود. */
+    @Test
+    void محصولِ_ناموجود_به_ریشهٔ_فروشگاه_پرت_نمی‌شود() {
+        assertNull(fallback.resolve(notFound("/product/nabashad-xyz/")));
     }
 }

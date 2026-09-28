@@ -3,6 +3,7 @@ package org.example.shop1.model.service;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.shop1.model.entity.Product;
+import org.example.shop1.model.reposritory.CategoryRepository;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.example.shop1.model.service.util.ProductUrlUtil;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ import java.util.Optional;
  * مقالهٔ امروز است، فقط بدونِ پیشوندِ {@code /blog/}</b>. یک قاعده صدها آدرس را
  * برمی‌گرداند، بی‌آنکه ردیفی به دیتابیس اضافه شود.
  * <p>
- * <b>سه قاعده</b>، به همین ترتیب امتحان می‌شوند و اولین مقصدِ معتبر برنده است:
+ * <b>قاعده‌ها</b>، به همین ترتیب امتحان می‌شوند و اولین مقصدِ معتبر برنده است:
  * <ol>
  *   <li><b>اسلشِ پایانی</b> — تطبیقِ اسلشِ پایانی در اسپرینگ‌بوت ۳ پیش‌فرض خاموش شد،
  *       ولی سایتِ وردپرسی همه‌جا اسلش داشت. اگر نسخهٔ بی‌اسلش هندلر دارد، همان.</li>
@@ -37,8 +38,15 @@ import java.util.Optional;
  *   <li><b>پرمالینکِ تاریخ‌دار</b> — {@code /{YYYY}/{MM}/{DD}/{x}} یا
  *       {@code /{YYYY}/{MM}/{x}}، خواهرِ قاعدهٔ قبلی: همان اسلاگ، با پیشوندِ تاریخِ
  *       وردپرس. این لینک‌ها هنوز داخلِ متنِ بعضی مقالات مانده‌اند.</li>
+ *   <li><b>ریشهٔ فروشگاهِ ووکامرس</b> — دقیقاً {@code /product} به خودِ فروشگاه.</li>
  *   <li><b>{@code /product/{x}}</b> — اگر محصولی با آن اسلاگ باشد.</li>
+ *   <li><b>{@code /product-category/{…}}</b> — اگر آخرین بخشْ اسلاگِ یک دسته باشد.</li>
  * </ol>
+ * <p>
+ * ⚠️ <b>ردیفِ صریحِ جدول همیشه بر این قاعده‌ها مقدم است</b>، و این نیازی به کدِ
+ * ترتیب‌دهنده ندارد: {@code LegacyRedirectFilter} پیش از مسیریابیِ اسپرینگ اجرا
+ * می‌شود، پس آدرسی که ردیف دارد اصلاً به ۴۰۴ و به این کلاس نمی‌رسد. تنها استثنا
+ * مسیرهای «دیرحل‌شونده»اند که خودِ فیلتر عمداً ردشان می‌کند.
  * <p>
  * ⚠️ <b>چرا در nginx حل نشد:</b> یک {@code rewrite} کلیِ اسلش، هر ۴۹ ریدایرکتِ موجود
  * را دوپرشی می‌کرد — چون {@code normalize()} خودش اسلشِ پایانی را برمی‌دارد و آن ۴۹
@@ -66,17 +74,23 @@ public class LegacyPathFallback {
     /** سقفِ دنبال‌کردنِ زنجیرهٔ ریدایرکت. زنجیره در زمانِ نوشتن صاف می‌شود، این فقط بیمه است. */
     private static final int MAX_HOPS = 5;
 
+    /** ریشهٔ فروشگاه — مقصدِ قاعدهٔ ۵. وجودش پیش از استفاده از جدولِ مسیریابی پرسیده می‌شود. */
+    private static final String SHOP_ROOT = "/shop";
+
     private final ArticleService articleService;
     private final ProductRepository productRepo;
+    private final CategoryRepository categoryRepo;
     private final LegacyRedirectService legacyRedirects;
     /** با ObjectProvider تا وابستگیِ حلقوی با خودِ مسیریابی درست نشود. */
     private final ObjectProvider<RequestMappingHandlerMapping> mappings;
 
     public LegacyPathFallback(ArticleService articleService, ProductRepository productRepo,
+                              CategoryRepository categoryRepo,
                               LegacyRedirectService legacyRedirects,
                               ObjectProvider<RequestMappingHandlerMapping> mappings) {
         this.articleService = articleService;
         this.productRepo = productRepo;
+        this.categoryRepo = categoryRepo;
         this.legacyRedirects = legacyRedirects;
         this.mappings = mappings;
     }
@@ -191,6 +205,19 @@ public class LegacyPathFallback {
             if (target != null) return target;
         }
 
+        // قاعدهٔ ۵ — ریشهٔ فروشگاهِ ووکامرس: /product/ (و /product) به خودِ فروشگاه.
+        //
+        // ⚠️ عمداً «دقیقاً یک بخش» است و نه پیشوند: /product/{x} کارِ قاعدهٔ ۳ است و
+        // نباید اینجا بلعیده شود. چون اینجا طولِ ۱ لازم است و آنجا طولِ ۲، تداخلی
+        // ممکن نیست و ترتیبشان هم اهمیتی ندارد.
+        //
+        // ⚠️ بعد از قاعدهٔ ۲ می‌آید: اگر روزی مقاله‌ای واقعاً اسلاگِ «product» داشته
+        // باشد، صفحهٔ زندهٔ خودش مقدم است — همان قاعدهٔ همیشگیِ این فالبک.
+        if (segments.length == 1 && "product".equalsIgnoreCase(segments[0]) && hasGetHandler(SHOP_ROOT)) {
+            log.info("فالبکِ ۴۰۴ [ریشهٔ فروشگاهِ ووکامرس]: {} → {}", path, SHOP_ROOT);
+            return SHOP_ROOT;
+        }
+
         // قاعدهٔ ۳ — /product/{x}
         if (segments.length == 2 && "product".equalsIgnoreCase(segments[0])) {
             Optional<Product> p = productRepo.findBySlug(segments[1]);
@@ -200,7 +227,37 @@ public class LegacyPathFallback {
                 return hybrid;
             }
         }
+
+        // قاعدهٔ ۴ — /product-category/{…}
+        //
+        // آخرین بخش برداشته می‌شود چون ووکامرس دستهٔ تودرتو را با کلِ مسیرِ والد
+        // می‌نوشت ({@code /product-category/mikrotik-products/mikrotik-switch/})
+        // ولی دستهٔ ما تخت است و فقط اسلاگِ خودش را دارد.
+        //
+        // ⚠️ این قاعده فقط آن‌هایی را می‌گیرد که اسلاگشان اتفاقاً یکی است. بیشترِ
+        // اسلاگ‌های وردپرسی فرق دارند («انجنیوس-engenius» در برابرِ «engenius»)، و
+        // آن‌ها ردیفِ صریح لازم دارند — که چون فیلتر پیش از مسیریابی اجرا می‌شود،
+        // خودبه‌خود بر این قاعده مقدم است.
+        if (segments.length >= 2 && "product-category".equalsIgnoreCase(segments[0])) {
+            String slug = segments[segments.length - 1];
+            if (!slug.isEmpty() && categoryRepo.findBySlug(slug).filter(c -> !isWarehouse(c)).isPresent()) {
+                String target = "/shop/category/" + slug;
+                log.info("فالبکِ ۴۰۴ [دستهٔ ووکامرس]: {} → {}", path, target);
+                return target;
+            }
+        }
         return null;
+    }
+
+    /**
+     * دستهٔ انبار عمداً از قاعدهٔ ۴ بیرون است.
+     * <p>
+     * این‌ها تاکسونومیِ داخلیِ انبارند، نه ویترین — و به همین دلیل خودِ
+     * {@code sitemap.xml} هم بیرونشان می‌گذارد. فرستادنِ ترافیکِ گوگل با یک ۳۰۱ به
+     * صفحه‌ای که عمداً در نقشهٔ سایت نیست، دو تصمیمِ ناسازگار می‌شد.
+     */
+    private static boolean isWarehouse(org.example.shop1.model.entity.Category c) {
+        return c.getType() != null && "WAREHOUSE".equalsIgnoreCase(c.getType());
     }
 
     /**
