@@ -55,6 +55,23 @@ public class HolooController {
         return ResponseEntity.ok(codeService.openReservations());
     }
 
+    /**
+     * صدورِ کد برایِ محصولی که هنوز کد ندارد.
+     * <p>
+     * 🔴 عمداً اندپوینتِ جداست و فیلدی در {@code PUT /api/v1/products/{id}} نشد.
+     * اگر در مسیرِ ذخیره می‌نشست، هر ویرایشِ محصول یک شماره می‌سوزاند — همان قاعده‌ای
+     * که تسکِ {@code updateproduct-fix} سابقه‌اش را دارد. صدور باید عملِ صریح باشد.
+     */
+    @PostMapping("/codes/assign")
+    public ResponseEntity<Map<String, Object>> assign(@RequestBody Map<String, String> body) {
+        String productId = body == null ? null : body.get("productId");
+        if (productId == null || productId.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "شناسهٔ محصول نیامده است");
+        }
+        String code = codeService.assignToExistingProduct(productId, body.get("code"));
+        return ResponseEntity.ok(Map.of("productId", productId, "holooCode", code));
+    }
+
     /** وضعیتِ شمارنده و قالبِ کد — برایِ گزارش و ممیزی. */
     @GetMapping("/codes/status")
     public ResponseEntity<Map<String, Object>> status() {

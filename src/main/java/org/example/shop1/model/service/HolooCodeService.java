@@ -3,11 +3,14 @@ package org.example.shop1.model.service;
 import org.example.shop1.exeption.ApiException;
 import org.example.shop1.model.entity.ActivityLog;
 import org.example.shop1.model.entity.Counter;
+import com.mongodb.client.result.UpdateResult;
 import org.example.shop1.model.entity.HolooCode;
+import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.reposritory.HolooCodeRepository;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -169,24 +172,27 @@ public class HolooCodeService {
      * (مثلاً مهاجرت کدی را نشانده ولی شمارنده هنوز جلو نرفته)، شمارهٔ بعدی گرفته
      * می‌شود به‌جایِ اینکه ایندکسِ یکتا با خطای خام بترکد.
      */
-    private HolooCode issue(HolooCode.Status status, String note, String productId) {
+    private String nextFreeCode() {
         for (int attempt = 0; attempt < 50; attempt++) {
-            long seq = nextSequence();
-            String code = format(seq);
+            String code = format(nextSequence());
             if (codeRepo.existsByCode(code) || productRepo.existsByHolooCode(code)) {
                 log.warn("کدِ {} از قبل استفاده شده — شمارهٔ بعدی گرفته می‌شود", code);
                 continue;
             }
-            HolooCode entry = new HolooCode(code, status, note, activityLog.currentUsername());
-            if (status == HolooCode.Status.ASSIGNED) {
-                entry.setProductId(productId);
-                entry.setAssignedBy(activityLog.currentUsername());
-                entry.setAssignedAt(Instant.now());
-            }
-            return codeRepo.save(entry);
+            return code;
         }
         throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR,
                 "صدورِ کدِ تازه ناموفق بود — شمارنده را بررسی کنید");
+    }
+
+    private HolooCode issue(HolooCode.Status status, String note, String productId) {
+        HolooCode entry = new HolooCode(nextFreeCode(), status, note, activityLog.currentUsername());
+        if (status == HolooCode.Status.ASSIGNED) {
+            entry.setProductId(productId);
+            entry.setAssignedBy(activityLog.currentUsername());
+            entry.setAssignedAt(Instant.now());
+        }
+        return codeRepo.save(entry);
     }
 
     /**
@@ -245,12 +251,107 @@ public class HolooCodeService {
         return reserved.getCode();
     }
 
+    /**
+     * صدورِ کد برایِ محصولی که <b>هنوز کد ندارد</b> — عملِ صریحِ جدا، نه بخشی از ذخیره.
+     * <p>
+     * 🔴 قاعدهٔ «ذخیره کد صادر نمی‌کند» دو چیزِ متفاوت را با هم بسته بود: عوض‌کردنِ کدِ
+     * موجود (که باید ممنوع بماند، چون شرکت همان را در هلو تایپ کرده) و پرکردنِ کدِ
+     * خالی (که باید ممکن باشد، وگرنه کالا در هیچ همگام‌سازی‌ای پیدا نمی‌شود). این متد
+     * فقط دومی را باز می‌کند، و چون مسیرِ جداست، ویرایشِ محصول همچنان هیچ کدی نمی‌سوزاند.
+     *
+     * @param requestedCode کدِ رزروشدهٔ انتخاب‌شده، یا نال/خالی برایِ کدِ تازه
+     */
+    public String assignToExistingProduct(String productId, String requestedCode) {
+        Product product = productRepo.findById(productId).orElseThrow(() -> new ApiException(
+                HttpStatus.NOT_FOUND, "محصول پیدا نشد: " + productId));
+
+        if (product.getHolooCode() != null && !product.getHolooCode().isBlank()) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "این محصول از قبل کدِ «" + product.getHolooCode() + "» را دارد و کد عوض نمی‌شود.");
+        }
+
+        String wanted = requestedCode == null ? "" : requestedCode.trim();
+        HolooCode reservation = null;
+        String code;
+
+        if (wanted.isEmpty()) {
+            code = nextFreeCode();
+        } else {
+            reservation = codeRepo.findByCode(wanted).orElseThrow(() -> new ApiException(
+                    HttpStatus.BAD_REQUEST, "کدِ «" + wanted + "» صادر نشده است"));
+            if (reservation.getStatus() != HolooCode.Status.RESERVED) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "کدِ «" + wanted + "» رزروِ مصرف‌نشده نیست — قبلاً روی محصولی نشسته است");
+            }
+            code = reservation.getCode();
+        }
+
+        claimCodeSlot(productId, code);
+
+        // دفتر بعد از قفل‌شدنِ جایِ محصول نوشته می‌شود: اگر مسابقه را ببازیم،
+        // دفتر آلوده نمی‌ماند.
+        if (reservation != null) {
+            reservation.setStatus(HolooCode.Status.ASSIGNED);
+            reservation.setProductId(productId);
+            reservation.setAssignedBy(activityLog.currentUsername());
+            reservation.setAssignedAt(Instant.now());
+            codeRepo.save(reservation);
+        } else {
+            HolooCode entry = new HolooCode(code, HolooCode.Status.ASSIGNED, null,
+                    activityLog.currentUsername());
+            entry.setProductId(productId);
+            entry.setAssignedBy(activityLog.currentUsername());
+            entry.setAssignedAt(Instant.now());
+            codeRepo.save(entry);
+        }
+
+        activityLog.record(ActivityLog.Action.HOLOO_CODE_ISSUE, ActivityLog.Source.MANUAL,
+                ActivityLogService.ENTITY_PRODUCT, productId, product.getName(),
+                "holooCode", null, code);
+        return code;
+    }
+
+    /**
+     * نشاندنِ کد روی محصول با یک نوشتنِ شرطی — «فقط اگر هنوز کد ندارد».
+     * <p>
+     * 🔴 <b>چرا ایندکسِ یکتا اینجا کافی نیست:</b> ایندکس جلویِ «دو محصول، یک کد» را
+     * می‌گیرد، ولی مسابقهٔ واقعیِ این مسیر «یک محصول، دو کد» است — دو درخواستِ هم‌زمان
+     * از شمارندهٔ اتمیک دو شمارهٔ <i>متفاوت</i> می‌گیرند، پس هیچ کلیدِ تکراری‌ای رخ
+     * نمی‌دهد و دومی بی‌صدا اولی را بازمی‌نویسد. شرطِ {@code holooCode == null} داخلِ
+     * خودِ کوئری این را اتمیک می‌بندد: بازنده {@code modifiedCount == 0} می‌گیرد.
+     * <p>
+     * ایندکسِ یکتا همچنان لازم است و {@code DuplicateKeyException}ش اینجا به پیامِ
+     * روشن ترجمه می‌شود — آن حالتِ دیگر (دو محصول، یک کدِ رزروشده) را می‌بندد.
+     */
+    private void claimCodeSlot(String productId, String code) {
+        UpdateResult result;
+        try {
+            result = mongoTemplate.updateFirst(
+                    Query.query(Criteria.where("_id").is(productId).and("holooCode").is(null)),
+                    new Update().set("holooCode", code),
+                    Product.class);
+        } catch (DuplicateKeyException e) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "کدِ «" + code + "» همین حالا روی محصولِ دیگری نشست — دوباره تلاش کنید");
+        }
+        if (result.getModifiedCount() == 0) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "کدِ این محصول همین حالا به‌دستِ درخواستِ دیگری ست شد — فرم را ببندید و دوباره باز کنید");
+        }
+    }
+
     // ==========================================================
     // مهاجرتِ یک‌باره
     // ==========================================================
 
+    /**
+     * @param reservedConsumed چند ردیف کدی را نشاندند که تا آن لحظه {@code RESERVED} بود.
+     *                         بدونِ این عدد، مصرفِ رزروِ کسِ دیگر در مهاجرت بی‌صدا بود.
+     * @param reservedDetail   شرحِ همان‌ها، به‌علاوهٔ کدهایی که از محصولی به محصولِ دیگر رفتند.
+     */
     public record MigrationResult(int rows, int assigned, int alreadyCorrect, int missingProduct,
                                   int conflicts, List<String> conflictDetail, List<String> missingDetail,
+                                  int reservedConsumed, List<String> reservedDetail,
                                   long counterBefore, long counterAfter, String prefix) {}
 
     /**
@@ -275,6 +376,8 @@ public class HolooCodeService {
         String seenPrefix = null;
         List<String> conflictDetail = new java.util.ArrayList<>();
         List<String> missingDetail = new java.util.ArrayList<>();
+        List<String> reservedDetail = new java.util.ArrayList<>();
+        int reservedConsumed = 0;
 
         for (String rawLine : csv.split("\\r?\\n")) {
             String line = rawLine.replace("\uFEFF", "").trim();
@@ -299,7 +402,11 @@ public class HolooCodeService {
             String current = product.getHolooCode();
             if (code.equals(current)) {
                 already++;
-                recordExternal(code, product.getId());   // دفتر هم بی‌اثر‌پذیر پر می‌شود
+                String notice = recordExternal(code, product.getId());   // دفتر هم بی‌اثر‌پذیر پر می‌شود
+                if (notice != null) {
+                    reservedConsumed++;
+                    reservedDetail.add(notice);
+                }
                 continue;
             }
             if (current != null && !current.isBlank()) {
@@ -309,7 +416,11 @@ public class HolooCodeService {
             }
             product.setHolooCode(code);
             productRepo.save(product);
-            recordExternal(code, product.getId());
+            String notice = recordExternal(code, product.getId());
+            if (notice != null) {
+                reservedConsumed++;
+                reservedDetail.add(notice);
+            }
             assigned++;
         }
 
@@ -329,7 +440,8 @@ public class HolooCodeService {
                         + " · شمارنده " + after);
 
         return new MigrationResult(rows, assigned, already, missing, conflicts,
-                conflictDetail, missingDetail, before, after, prefix());
+                conflictDetail, missingDetail, reservedConsumed, reservedDetail,
+                before, after, prefix());
     }
 
     /**
@@ -338,12 +450,30 @@ public class HolooCodeService {
      * شمارنده را جلو <b>نمی‌برد</b>؛ آن کارِ فراخوانِ مهاجرت است که بعد از تمامِ
      * ردیف‌ها یک‌بار {@link #raiseSequenceTo(long)} می‌زند.
      */
-    public void recordExternal(String code, String productId) {
-        HolooCode entry = codeRepo.findByCode(code).orElseGet(() -> new HolooCode(
-                code, HolooCode.Status.ASSIGNED, "مهاجرتِ یک‌باره", activityLog.currentUsername()));
-        entry.setStatus(HolooCode.Status.ASSIGNED);
-        entry.setProductId(productId);
-        if (entry.getAssignedAt() == null) entry.setAssignedAt(Instant.now());
-        codeRepo.save(entry);
+    public String recordExternal(String code, String productId) {
+        HolooCode existing = codeRepo.findByCode(code).orElse(null);
+        String notice = null;
+
+        if (existing == null) {
+            existing = new HolooCode(code, HolooCode.Status.ASSIGNED, "مهاجرتِ یک‌باره",
+                    activityLog.currentUsername());
+        } else if (existing.getStatus() == HolooCode.Status.RESERVED) {
+            // 🔴 رزروی که مهاجرت مصرفش می‌کند. ممنوع نیست — همین مسیر امروز تنها راهِ
+            // نشاندنِ کد روی محصولِ موجود است — ولی نباید بی‌صدا باشد: کسی این کد را
+            // گرفته و شاید همین حالا در هلو روی کالایی تایپش کرده.
+            notice = "رزروِ «" + code + "» مصرف شد"
+                    + (existing.getNote() == null || existing.getNote().isBlank()
+                    ? "" : " (یادداشت: " + existing.getNote() + ")");
+        } else if (existing.getProductId() != null && !existing.getProductId().equals(productId)) {
+            // کدی که از قبل روی محصولِ دیگری نشسته بود و حالا جابه‌جا می‌شود
+            notice = "کدِ «" + code + "» از محصولِ " + existing.getProductId()
+                    + " به " + productId + " منتقل شد";
+        }
+
+        existing.setStatus(HolooCode.Status.ASSIGNED);
+        existing.setProductId(productId);
+        if (existing.getAssignedAt() == null) existing.setAssignedAt(Instant.now());
+        codeRepo.save(existing);
+        return notice;
     }
 }

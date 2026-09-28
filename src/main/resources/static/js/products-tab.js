@@ -295,7 +295,7 @@
         document.getElementById('p-replacement-search').value = '';
         renderReplacementProducts(p.replacementProductId || null, p.id);
         toggleDiscontinuedFields();
-        showHolooForExistingProduct(p.holooCode);
+        showHolooForExistingProduct(p.holooCode, p.id);
         document.getElementById('p-seo-title').value = p.seoTitle || '';
         document.getElementById('p-seo-desc').value = p.seoDescription || '';
         document.getElementById('p-weight').value = p.weight || '';
@@ -895,22 +895,42 @@
      * شود، وگرنه اولین همگام‌سازی آن کالا را پیدا نمی‌کند. سرور هم همین را اعمال
      * می‌کند؛ این فقط نیمهٔ کاربریِ همان قاعده است.
      */
-    function showHolooForExistingProduct(code) {
+    function showHolooForExistingProduct(code, productId) {
         const box = document.getElementById('p-holoo-existing');
+        const issueBtn = document.getElementById('p-holoo-issue');
+        if (!box) return;
+
+        // محصولِ بی‌کد: همان جعبهٔ حالتِ ساخت بازاستفاده می‌شود (نه کپیِ دوم از آن)،
+        // به‌علاوهٔ دکمهٔ صدور. بدونِ این، کالای بی‌کد هیچ راهی برای گرفتنِ کد نداشت
+        // و در هیچ همگام‌سازیِ موجودی‌ای پیدا نمی‌شد.
+        if (!code) {
+            showHolooForNewProduct();
+            if (issueBtn) {
+                issueBtn.classList.remove('hidden');
+                issueBtn.dataset.productId = productId || '';
+                issueBtn.disabled = false;
+                issueBtn.textContent = 'صدورِ کدِ هلو';
+            }
+            return;
+        }
+
         const fresh = document.getElementById('p-holoo-new');
-        if (!box || !fresh) return;
-        fresh.classList.add('hidden');
+        if (fresh) fresh.classList.add('hidden');
+        if (issueBtn) issueBtn.classList.add('hidden');
         box.classList.remove('hidden');
-        document.getElementById('p-holoo-code-text').textContent = code || '— هنوز کد ندارد —';
+        document.getElementById('p-holoo-code-text').textContent = code;
     }
 
     /** ساخت: یا کدِ تازه، یا یکی از رزروهایِ مصرف‌نشده. */
     async function showHolooForNewProduct() {
         const box = document.getElementById('p-holoo-existing');
         const fresh = document.getElementById('p-holoo-new');
+        const issueBtn = document.getElementById('p-holoo-issue');
         if (!box || !fresh) return;
         box.classList.add('hidden');
         fresh.classList.remove('hidden');
+        // پیش‌فرض پنهان است؛ شاخهٔ «محصولِ بی‌کد» خودش نشانش می‌دهد
+        if (issueBtn) issueBtn.classList.add('hidden');
 
         const select = document.getElementById('p-holoo-select');
         select.innerHTML = '';
@@ -939,8 +959,43 @@
         navigator.clipboard.writeText(text.trim()).catch(() => {});
     }
 
+    /**
+     * صدورِ کد برای محصولِ باز در فرم.
+     * ⚠️ بعد از موفقیت، هم جعبه به حالتِ نمایش می‌رود و هم نسخهٔ درون‌حافظه‌ای محصول
+     * به‌روز می‌شود — وگرنه بازکردنِ دوبارهٔ همان فرم باز «کد ندارد» نشان می‌داد.
+     */
+    async function issueHolooCode() {
+        const btn = document.getElementById('p-holoo-issue');
+        if (!btn) return;
+        const productId = btn.dataset.productId;
+        if (!productId) return;
+
+        const select = document.getElementById('p-holoo-select');
+        const picked = select ? select.value : '';
+
+        btn.disabled = true;
+        btn.textContent = 'در حال صدور…';
+        try {
+            const res = await axios.post(`${getApi()}/v1/holoo/codes/assign`,
+                    {productId, code: picked || null});
+            const code = res.data && res.data.holooCode;
+            const local = products.find(x => x.id === productId);
+            if (local) local.holooCode = code;
+            showHolooForExistingProduct(code, productId);
+        } catch (err) {
+            btn.disabled = false;
+            btn.textContent = 'صدورِ کدِ هلو';
+            // ⚠️ عمداً serverError صدا زده نمی‌شود: آن تابع فقط در Admin.html تعریف شده
+            // و همین فایل در پنلِ فروش هم بار می‌شود. همان الگویِ saveProduct.
+            Swal.fire('خطا', (err.response && err.response.data
+                    && (err.response.data.message || err.response.data)) || 'صدورِ کد ناموفق بود', 'error');
+        }
+    }
+
     document.addEventListener('click', e => {
-        if (e.target && e.target.id === 'p-holoo-copy') copyHolooCode();
+        if (!e.target) return;
+        if (e.target.id === 'p-holoo-copy') copyHolooCode();
+        if (e.target.id === 'p-holoo-issue') issueHolooCode();
     });
 
     window.ProductsTab = { mount, refresh, getProducts: () => products };

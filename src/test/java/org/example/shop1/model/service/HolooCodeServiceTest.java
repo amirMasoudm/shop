@@ -10,7 +10,11 @@ import org.example.shop1.model.reposritory.HolooCodeRepository;
 import org.example.shop1.model.reposritory.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.mongodb.client.result.UpdateResult;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
@@ -50,7 +54,8 @@ class HolooCodeServiceTest {
     private ProductRepository productRepo;
     private StoreSettings settings;
 
-    private final Map<String, Product> products = new LinkedHashMap<>();
+    // ConcurrentHashMap و نه LinkedHashMap: تستِ صدورِ هم‌زمان واقعاً چند نخ می‌سازد
+    private final Map<String, Product> products = new ConcurrentHashMap<>();
     private final Map<String, HolooCode> ledger = new ConcurrentHashMap<>();
     private final AtomicLong counter = new AtomicLong(0);
 
@@ -93,6 +98,28 @@ class HolooCodeServiceTest {
             for (HolooCode c : ledger.values()) if (c.getStatus() == wanted) out.add(c);
             return out;
         });
+
+        // شبیه‌سازیِ نوشتنِ شرطیِ مونگو: «فقط اگر holooCode هنوز خالی است».
+        // synchronized نقشِ اتمیک‌بودنِ خودِ updateFirst را بازی می‌کند، و پرتابِ
+        // DuplicateKeyException نقشِ ایندکسِ یکتا روی products.holooCode را.
+        when(mongoTemplate.updateFirst(any(Query.class), any(Update.class), eq(Product.class)))
+                .thenAnswer(inv -> {
+                    Query q = inv.getArgument(0);
+                    Update u = inv.getArgument(1);
+                    String id = String.valueOf(q.getQueryObject().get("_id"));
+                    Document set = (Document) u.getUpdateObject().get("$set");
+                    String code = String.valueOf(set.get("holooCode"));
+                    synchronized (products) {
+                        Product p = products.get(id);
+                        if (p == null) return UpdateResult.acknowledged(0, 0L, null);
+                        if (p.getHolooCode() != null) return UpdateResult.acknowledged(1, 0L, null);
+                        boolean taken = products.values().stream()
+                                .anyMatch(x -> code.equals(x.getHolooCode()));
+                        if (taken) throw new DuplicateKeyException("uk_products_holooCode");
+                        p.setHolooCode(code);
+                        return UpdateResult.acknowledged(1, 1L, null);
+                    }
+                });
 
         when(productRepo.existsByHolooCode(anyString())).thenAnswer(inv -> {
             String code = inv.getArgument(0);
@@ -235,6 +262,116 @@ class HolooCodeServiceTest {
     }
 
     // ==========================================================
+    // صدور برایِ محصولی که کد ندارد
+    // ==========================================================
+
+    @Test
+    void محصولِ_بی‌کد_کدِ_تازه_می‌گیرد() {
+        service.raiseSequenceTo(228);
+        product("p1");
+
+        String code = service.assignToExistingProduct("p1", null);
+
+        assertEquals("DN-0229", code);
+        assertEquals("DN-0229", products.get("p1").getHolooCode());
+        assertEquals(HolooCode.Status.ASSIGNED, ledger.get(code).getStatus());
+        assertEquals("p1", ledger.get(code).getProductId());
+    }
+
+    @Test
+    void محصولی_که_کد_دارد_بارِ_دوم_تعارض_می‌گیرد_و_کدش_عوض_نمی‌شود() {
+        product("p1");
+        String first = service.assignToExistingProduct("p1", null);
+
+        ApiException ex = assertThrows(ApiException.class,
+                () -> service.assignToExistingProduct("p1", null));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
+        assertTrue(ex.getMessage().contains(first), ex.getMessage());
+        assertEquals(first, products.get("p1").getHolooCode(), "کدِ فعلی نباید بازنویسی شود");
+    }
+
+    @Test
+    void محصولِ_نبود_۴۰۴_می‌گیرد() {
+        ApiException ex = assertThrows(ApiException.class,
+                () -> service.assignToExistingProduct("نیست", null));
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+    }
+
+    @Test
+    void صدور_با_کدِ_رزروشده_رزرو_را_مصرف_می‌کند() {
+        HolooCode reserved = service.reserve("سوئیچ سیسکو");
+        product("p1");
+
+        String code = service.assignToExistingProduct("p1", reserved.getCode());
+
+        assertEquals(reserved.getCode(), code);
+        assertEquals(code, products.get("p1").getHolooCode());
+        assertTrue(service.openReservations().isEmpty(), "رزرو باید مصرف‌شده شود");
+    }
+
+    @Test
+    void صدور_با_کدی_که_رزرو_نیست_رد_می‌شود() {
+        product("p1");
+        product("p2");
+        String taken = service.assignToExistingProduct("p1", null);
+
+        ApiException unknown = assertThrows(ApiException.class,
+                () -> service.assignToExistingProduct("p2", "DN-7777"));
+        assertTrue(unknown.getMessage().contains("صادر نشده"), unknown.getMessage());
+
+        ApiException consumed = assertThrows(ApiException.class,
+                () -> service.assignToExistingProduct("p2", taken));
+        assertTrue(consumed.getMessage().contains("رزروِ مصرف‌نشده نیست"), consumed.getMessage());
+        assertNull(products.get("p2").getHolooCode());
+    }
+
+    /**
+     * 🔴 مسابقه‌ای که ایندکسِ یکتا نمی‌گیرد.
+     * <p>
+     * دو درخواستِ هم‌زمان روی یک محصولِ بی‌کد، دو شمارهٔ <b>متفاوت</b> از شمارنده
+     * می‌گیرند، پس هیچ کلیدِ تکراری‌ای رخ نمی‌دهد و بدونِ نوشتنِ شرطی دومی بی‌صدا
+     * اولی را بازمی‌نویسد — یعنی یک کدِ سوخته که در دفتر به محصولی اشاره می‌کند که
+     * دیگر آن را ندارد. شرطِ {@code holooCode == null} داخلِ خودِ کوئری این را می‌بندد.
+     */
+    @Test
+    void دو_صدورِ_هم‌زمان_روی_یک_محصول_یکی_موفق_یکی_خطای_روشن() throws Exception {
+        product("p1");
+        int threads = 8;
+        java.util.concurrent.atomic.AtomicInteger ok = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger conflict = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger other = new java.util.concurrent.atomic.AtomicInteger();
+
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(threads);
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        for (int i = 0; i < threads; i++) {
+            pool.submit(() -> {
+                try {
+                    start.await();
+                    service.assignToExistingProduct("p1", null);
+                    ok.incrementAndGet();
+                } catch (ApiException e) {
+                    if (e.getStatus() == HttpStatus.CONFLICT) conflict.incrementAndGet();
+                    else other.incrementAndGet();
+                } catch (Exception e) {
+                    other.incrementAndGet();
+                } finally {
+                    done.countDown();
+                }
+            });
+        }
+        start.countDown();
+        assertTrue(done.await(10, TimeUnit.SECONDS));
+        pool.shutdownNow();
+
+        assertEquals(1, ok.get(), "فقط یکی باید موفق شود");
+        assertEquals(threads - 1, conflict.get(), "بقیه باید تعارضِ روشن بگیرند، نه ۵۰۰");
+        assertEquals(0, other.get(), "هیچ خطای ناشناخته‌ای نباید رخ دهد");
+        assertNotNull(products.get("p1").getHolooCode());
+    }
+
+    // ==========================================================
     // مهاجرت
     // ==========================================================
 
@@ -309,6 +446,21 @@ class HolooCodeServiceTest {
         assertEquals(2, result.missingProduct());
         assertEquals(1, result.assigned());
         assertEquals(2, result.missingDetail().size());
+    }
+
+    @Test
+    void مهاجرت_مصرفِ_رزرو_را_گزارش_می‌کند() {
+        HolooCode reserved = service.reserve("برای کالای الف");
+        assertEquals("DN-0001", reserved.getCode());   // همان کدی که CSV هم دارد
+        product("p1");
+        product("p2");
+        product("p3");
+
+        var result = service.migrateFromCsv(CSV);
+
+        assertEquals(1, result.reservedConsumed(), "مصرفِ رزرو در مهاجرت نباید بی‌صدا باشد");
+        assertTrue(result.reservedDetail().get(0).contains("برای کالای الف"),
+                "یادداشتِ رزرو باید در شرح بیاید: " + result.reservedDetail());
     }
 
     @Test

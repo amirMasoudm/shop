@@ -78,7 +78,7 @@
         <details class="bg-white border rounded-xl p-4">
           <summary class="font-bold text-sm cursor-pointer">نشاندنِ کدهایِ توافق‌شده (یک‌باره)</summary>
           <p class="text-[11px] text-gray-500 leading-6 mt-2 mb-3">
-            فایلِ CSVِ نگاشتِ کد به محصول — همانی که به شرکت هم داده شده. اجرای دوباره
+            فایلِ CSVِ نگاشتِ کد به محصول. اجرای دوباره
             بی‌اثر است: کدی که از قبل درست نشسته دست نمی‌خورد و کدِ متفاوت فقط گزارش
             می‌شود، نه بازنویسی. در پایان شمارنده تا بزرگ‌ترین کدِ واردشده جلو می‌رود.
           </p>
@@ -384,6 +384,7 @@
                 'از قبل درست بود: ' + faNum(r.alreadyCorrect),
                 'محصولش پیدا نشد: ' + faNum(r.missingProduct),
                 'تعارض (کدِ متفاوت داشت): ' + faNum(r.conflicts),
+                'رزروِ مصرف‌شده: ' + faNum(r.reservedConsumed),
                 'شمارنده: ' + faNum(r.counterBefore) + ' ← ' + faNum(r.counterAfter),
                 'پیشوند: ' + (r.prefix || '—')
             ];
@@ -394,7 +395,8 @@
                 d.textContent = t;
                 el.appendChild(d);
             });
-            (r.conflictDetail || []).concat(r.missingDetail || []).slice(0, 20).forEach(t => {
+            (r.reservedDetail || []).concat(r.conflictDetail || [], r.missingDetail || [])
+                    .slice(0, 20).forEach(t => {
                 const d = document.createElement('div');
                 d.className = 'text-amber-800';
                 d.textContent = '• ' + t;
