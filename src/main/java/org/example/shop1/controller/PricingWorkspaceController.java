@@ -31,16 +31,19 @@ public class PricingWorkspaceController {
 
     private final PricingWorkspaceService service;
     private final ActivityLogService activityLog;
+    private final org.example.shop1.model.service.StoreSettingsService settingsService;
     private final org.example.shop1.model.service.marketplace.FloorPriceService floorPriceService;
     private final org.example.shop1.model.service.marketplace.MikrotikCatalogService mikrotikCatalog;
     private final org.example.shop1.model.service.marketplace.MikrotikPriceSyncService mikrotikSync;
 
     public PricingWorkspaceController(PricingWorkspaceService service, ActivityLogService activityLog,
+                                      org.example.shop1.model.service.StoreSettingsService settingsService,
                                       org.example.shop1.model.service.marketplace.FloorPriceService floorPriceService,
                                       org.example.shop1.model.service.marketplace.MikrotikCatalogService mikrotikCatalog,
                                       org.example.shop1.model.service.marketplace.MikrotikPriceSyncService mikrotikSync) {
         this.service = service;
         this.activityLog = activityLog;
+        this.settingsService = settingsService;
         this.floorPriceService = floorPriceService;
         this.mikrotikCatalog = mikrotikCatalog;
         this.mikrotikSync = mikrotikSync;
@@ -93,6 +96,30 @@ public class PricingWorkspaceController {
         return ResponseEntity.ok(floorPriceService.refreshAllLinked(
                 String.valueOf(b.getOrDefault("market", "digikala")),
                 Boolean.TRUE.equals(b.get("force"))));
+    }
+
+    /**
+     * ضریبِ «همکار تک» — خواندن و نوشتن از خودِ میزِ کار.
+     * <p>
+     * 🔴 عمداً زیرِ {@code /api/v1/pricing/**} است نه {@code /settings/admin/**}:
+     * خواستهٔ مالک این است که کارشناسِ ارشد (PRICER) هم بتواند عوضش کند، نه فقط
+     * ادمین. ضریبِ قیمتِ سایت همچنان فقط ADMIN است و این تفاوت عمدی است.
+     * تغییرش مثلِ آن یکی لاگ می‌شود.
+     */
+    @GetMapping("/partner-unit-factor")
+    public ResponseEntity<Map<String, Object>> partnerUnitFactor() {
+        return ResponseEntity.ok(Map.of("factor", settingsService.getPartnerUnitFactor()));
+    }
+
+    @PostMapping("/partner-unit-factor")
+    public ResponseEntity<Map<String, Object>> setPartnerUnitFactor(@RequestBody Map<String, Object> body) {
+        java.math.BigDecimal old = settingsService.getPartnerUnitFactor();
+        java.math.BigDecimal next = new java.math.BigDecimal(String.valueOf(body.get("factor")));
+        settingsService.updatePartnerUnitFactor(next);
+        activityLog.record(ActivityLog.Action.PRICE_CHANGE, ActivityLog.Source.MANUAL,
+                "SETTINGS", "store_settings", "تنظیماتِ فروشگاه",
+                "partnerUnitFactor", old, next);
+        return ResponseEntity.ok(Map.of("factor", settingsService.getPartnerUnitFactor()));
     }
 
     @GetMapping("/rows")

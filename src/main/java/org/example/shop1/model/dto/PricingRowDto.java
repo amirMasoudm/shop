@@ -58,6 +58,10 @@ public class PricingRowDto {
     /** مقدارِ پیشنهادیِ فرمول — تا کارشناس ببیند قیمتِ دستی چقدر از فرمول عقب افتاده. */
     private final BigDecimal suggestedOnlinePrice;
 
+    /** «همکار تک»ی که فرمول پیشنهاد می‌دهد — برایِ نشانِ «≈» و «بازگشت به فرمول». */
+    private final BigDecimal suggestedPartnerUnitPrice;
+    private final Boolean partnerUnitOverride;
+
     /** آدرسِ اختصاصیِ محصول در فروشگاه؛ خالی یعنی فقط با شناسه باز می‌شود. */
     private final String slug;
 
@@ -72,11 +76,14 @@ public class PricingRowDto {
     private final List<String> cardMissing;
 
     public PricingRowDto(Product p) {
-        this(p, null);
+        this(p, null, null);
     }
 
-    public PricingRowDto(Product p, BigDecimal suggestedOnlinePrice) {
+    public PricingRowDto(Product p, BigDecimal suggestedOnlinePrice,
+                        BigDecimal suggestedPartnerUnitPrice) {
         this.suggestedOnlinePrice = suggestedOnlinePrice;
+        this.suggestedPartnerUnitPrice = suggestedPartnerUnitPrice;
+        this.partnerUnitOverride = p.getPartnerUnitOverride();
         this.priceOverride = p.getPriceOverride();
         this.pricePercentAdjusted = p.getPricePercentAdjusted();
         this.id = p.getId();
@@ -119,8 +126,9 @@ public class PricingRowDto {
 
     public static PricingRowDto of(Product p) { return new PricingRowDto(p); }
 
-    public static PricingRowDto of(Product p, BigDecimal suggestedOnlinePrice) {
-        return new PricingRowDto(p, suggestedOnlinePrice);
+    public static PricingRowDto of(Product p, BigDecimal suggestedOnlinePrice,
+                                   BigDecimal suggestedPartnerUnitPrice) {
+        return new PricingRowDto(p, suggestedOnlinePrice, suggestedPartnerUnitPrice);
     }
 
     public String getId() { return id; }
@@ -151,6 +159,8 @@ public class PricingRowDto {
     public Boolean getPriceOverride() { return priceOverride; }
     public Boolean getPricePercentAdjusted() { return pricePercentAdjusted; }
     public BigDecimal getSuggestedOnlinePrice() { return suggestedOnlinePrice; }
+    public BigDecimal getSuggestedPartnerUnitPrice() { return suggestedPartnerUnitPrice; }
+    public Boolean getPartnerUnitOverride() { return partnerUnitOverride; }
     public String getSlug() { return slug; }
     public List<String> getCardMissing() { return cardMissing; }
 }

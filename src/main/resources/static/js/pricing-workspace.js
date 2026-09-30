@@ -21,6 +21,9 @@
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
             <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 shrink-0">میز کار قیمت‌گذاری</h2>
             <div class="flex flex-wrap items-center gap-1.5">
+                <button id="pricing-unit-factor-btn" onclick="editUnitFactor()"
+                        class="hidden px-2.5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-xs font-bold shrink-0"
+                        title="ضریبِ «همکار تک» نسبت به «فروش تعدادی»">×<span data-unit-factor>1.05</span></button>
                 <button onclick="openPricingHelp()"
                         class="px-2.5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-xs font-bold shrink-0"
                         title="راهنمای کار با میزِ کار">؟ <span class="hidden sm:inline">راهنمای پنل</span></button>
@@ -304,6 +307,8 @@
     // ضریبِ قیمتِ سایت برای پیش‌نمایشِ لحظه‌ای. محاسبهٔ معتبر همچنان سمتِ سرور است؛
     // این فقط برای این است که کارشناس قبل از «ذخیره» هم نتیجه را ببیند.
     let pricingFactor = 1.08;
+    /** ضریبِ «همکار تک» نسبت به «فروش تعدادی». خواهرِ pricingFactor. */
+    let pricingUnitFactor = 1.05;
     const pricingDirty = new Map(); // key: `${id}|${field}` → {id, field, value}
 
     // برایِ نقشِ کارشناسِ قیمت‌گذاری/فروش: فقط تبِ میزِ کار نشان داده شود، نه کلِ داشبورد
@@ -340,6 +345,11 @@
                 axios.get(`${API}/v1/pricing/capabilities`).catch(() => null)
             ]);
             if (fRes && fRes.data && fRes.data.factor) pricingFactor = Number(fRes.data.factor);
+            try {
+                const uRes = await axios.get(`${API}/v1/pricing/partner-unit-factor`);
+                if (uRes && uRes.data && uRes.data.factor) pricingUnitFactor = Number(uRes.data.factor);
+            } catch (e) { /* ضریبِ پیش‌فرض می‌ماند */ }
+            syncUnitFactorLabel();
             if (capRes && capRes.data) canEditBulkPrice = !!capRes.data.canEditBulkPrice;
             pricingRows = res.data || [];
             pricingDirty.clear();
@@ -408,6 +418,11 @@
                 const b = Number(pricingDirty.get(`${r.id}|partnerBulkPrice`).value);
                 if (b > 0) { rawShown = String(Math.round(b * pricingFactor)); derived = true; pending = false; }
             }
+            // همان رفتار برایِ «همکار تک»: تا وقتی دستی نشده، عددِ تازه همین‌جا دیده شود
+            if (field === 'partnerUnitPrice' && !r.partnerUnitOverride && pricingDirty.has(`${r.id}|partnerBulkPrice`)) {
+                const b = Number(pricingDirty.get(`${r.id}|partnerBulkPrice`).value);
+                if (b > 0) { rawShown = String(Math.round(b * pricingUnitFactor)); derived = true; pending = false; }
+            }
             // ⚠️ فقط ستون‌هایِ تومانی کاما می‌گیرند. «مرجع $» اعشار دارد (۷۹.۰۰)
             // و کامازدن به آن عدد را خراب می‌کند.
             const shown = TOMAN_FIELDS.has(field) ? fmtMoney(rawShown) : rawShown;
@@ -452,7 +467,15 @@
                             ${pricingCanEdit ? `<button onclick="revertToFormula('${r.id}')" class="text-indigo-600 hover:underline" title="پرچم دستی برداشته و قیمت دوباره از فرمول محاسبه شود">بازگشت به فرمول</button>` : ''}
                         </div>` : ''}
                 </td>
-                <td class="p-2">${priceInput(r, 'partnerUnitPrice', r.partnerUnitPrice)}</td>
+                <td class="p-2">
+                    ${priceInput(r, 'partnerUnitPrice', r.partnerUnitPrice)}
+                    ${r.partnerUnitOverride ? `
+                        <div class="pricing-note" title="این عدد دستی ثبت شده و با تغییر «فروش تعدادی» بازنویسی نمی‌شود">
+                            <span class="text-amber-700">✋ دستی</span>
+                            <span class="text-gray-400" dir="ltr" data-unit-suggested-for="${r.id}" title="مقدار پیشنهادی فرمول">${r.suggestedPartnerUnitPrice ? '≈' + fmtMoney(r.suggestedPartnerUnitPrice) : ''}</span>
+                            ${pricingCanEdit ? `<button onclick="revertUnitToFormula('${r.id}')" class="text-indigo-600 hover:underline" title="پرچم دستی برداشته و «همکار تک» دوباره از فرمول محاسبه شود">بازگشت به فرمول</button>` : ''}
+                        </div>` : ''}
+                </td>
                 <td class="p-2">${priceInput(r, 'partnerBulkPrice', r.partnerBulkPrice)}</td>
                 <td class="p-2 text-center">${isMikrotikRow(r)
                     ? priceInput(r, 'dollarPrice', r.dollarPrice, 'w-16')
@@ -622,6 +645,83 @@
             confirmButtonText: 'بستم',
             confirmButtonColor: '#1b4f8a'
         });
+    }
+
+    /** برچسبِ ضریب روی دکمه را با مقدارِ واقعی هم‌گام می‌کند. */
+    function syncUnitFactorLabel() {
+        document.querySelectorAll('[data-unit-factor]').forEach(el => {
+            el.textContent = pricingUnitFactor;
+        });
+        const btn = document.getElementById('pricing-unit-factor-btn');
+        if (btn) btn.classList.toggle('hidden', !pricingCanEdit);
+    }
+
+    /**
+     * ویرایشِ ضریبِ «همکار تک» از خودِ میزِ کار.
+     * <p>
+     * 🔴 برخلافِ ضریبِ قیمتِ سایت که فقط ADMIN است، این را کارشناسِ ارشد هم می‌تواند
+     * عوض کند — خواستهٔ صریحِ مالک. برای همین مسیرش زیرِ /pricing/ است نه
+     * /settings/admin/. تغییرش مثلِ آن یکی لاگ می‌شود.
+     */
+    async function editUnitFactor() {
+        if (!pricingCanEdit) return;
+        const {value} = await Swal.fire({
+            title: 'ضریبِ «همکار تک»',
+            input: 'number',
+            inputValue: pricingUnitFactor,
+            inputAttributes: {step: '0.01', min: '0.01', dir: 'ltr'},
+            html: '<div style="font-size:12px;text-align:right;color:#6b7280">'
+                + '«همکار تک» = «فروش تعدادی» × این ضریب.<br>'
+                + 'پیش‌فرض ۱.۰۵ یعنی ۵٪ بیشتر از فروش تعدادی.<br>'
+                + '⚠️ عددی که دستی زده شده با این ضریب بازنویسی نمی‌شود.</div>',
+            showCancelButton: true, confirmButtonText: 'ذخیره', cancelButtonText: 'انصراف',
+            preConfirm: v => {
+                const n = Number(v);
+                if (!isFinite(n) || n <= 0) { Swal.showValidationMessage('عددی بزرگ‌تر از صفر بده'); return false; }
+                if (n > 3 || n < 0.5) { Swal.showValidationMessage('ضریبِ غیرعادی — مقدارِ معمول حدودِ ۱.۰۵ است'); return false; }
+                return n;
+            }
+        });
+        if (!value) return;
+
+        toggleLoader(true);
+        try {
+            const res = await axios.post(`${API}/v1/pricing/partner-unit-factor`, {factor: value});
+            pricingUnitFactor = Number(res.data.factor);
+            syncUnitFactorLabel();
+            await fetchPricingRows();
+            Swal.fire({icon: 'success', title: 'ضریب ذخیره شد', timer: 1200, showConfirmButton: false});
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'ذخیرهٔ ضریب ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    /** «بازگشت به فرمول» برایِ همکار تک — خواهرِ revertToFormula. */
+    async function revertUnitToFormula(id) {
+        const row = pricingRows.find(r => r.id === id);
+        const ok = await Swal.fire({
+            icon: 'question',
+            title: 'بازگشت به فرمول؟',
+            html: `<div style="font-size:13px;text-align:right">عددِ دستیِ «همکار تک» برایِ
+                   <b>${escapeHTML(row ? row.name : '')}</b> برداشته می‌شود و دوباره از
+                   «فروش تعدادی × ضریب» محاسبه خواهد شد.
+                   ${row && row.suggestedPartnerUnitPrice ? `<br><br>مقدار جدید: <b>${fmtMoney(row.suggestedPartnerUnitPrice)}</b> تومان` : ''}</div>`,
+            showCancelButton: true, confirmButtonText: 'بله', cancelButtonText: 'انصراف'
+        });
+        if (!ok.isConfirmed) return;
+
+        toggleLoader(true);
+        try {
+            await axios.post(`${API}/v1/pricing/batch`, [{id, field: 'partnerUnitOverride', value: false}]);
+            await fetchPricingRows();
+            Swal.fire({icon: 'success', title: 'به فرمول برگشت', timer: 1200, showConfirmButton: false});
+        } catch (err) {
+            Swal.fire('خطا', serverError(err, 'بازگشت به فرمول ناموفق بود'), 'error');
+        } finally {
+            toggleLoader(false);
+        }
     }
 
     function addProductFromPricing() {
@@ -1033,6 +1133,11 @@
             input.classList.add('bg-yellow-50', 'border-yellow-400');
         }
 
+        if (field === 'partnerUnitPrice') {
+            // تایپِ دستی یعنی از این به بعد فرمول رویش نمی‌نشیند (سرور هم همین را می‌کند)
+            input.classList.remove('bg-green-50', 'border-green-400');
+        }
+
         // پیش‌نمایشِ لحظه‌ایِ قیمتِ سایت وقتی «فروش تعدادی» عوض می‌شود —
         // بدونِ این، کارشناس تا نزدنِ «ذخیره» نتیجه‌ی فرمول را نمی‌دید.
         // فقط وقتی قیمت دستی ست نشده باشد (همان قاعده‌ی سمتِ سرور).
@@ -1059,6 +1164,27 @@
             const sug = document.querySelector(`#pricing-body [data-suggested-for="${id}"]`);
             const bulk = Number(raw);
             if (sug) sug.textContent = bulk > 0 ? `≈${fmtMoney(Math.round(bulk * pricingFactor))}` : '';
+        }
+
+        // 🔴 همان دو حالت برایِ «همکار تک»، تا کارشناس هم‌زمان با تایپِ «فروش تعدادی»
+        // ببیند چه عددی برایِ همکار تک می‌نشیند — نه بعد از ذخیره.
+        if (field === 'partnerBulkPrice' && row) {
+            const bulk = Number(raw);
+            const unitInput = document.querySelector(
+                `#pricing-body input[data-id="${id}"][data-field="partnerUnitPrice"]`);
+            if (!row.partnerUnitOverride && unitInput) {
+                if (bulk > 0) {
+                    unitInput.value = fmtMoney(Math.round(bulk * pricingUnitFactor));
+                    unitInput.classList.add('bg-green-50', 'border-green-400');
+                    unitInput.title = `محاسبه‌شده از فروش تعدادی × ${pricingUnitFactor} — با ذخیره ثبت می‌شود`;
+                } else if (!raw) {
+                    unitInput.value = row.partnerUnitPrice == null ? '' : fmtMoney(row.partnerUnitPrice);
+                    unitInput.classList.remove('bg-green-50', 'border-green-400');
+                    unitInput.title = '';
+                }
+            }
+            const usug = document.querySelector(`#pricing-body [data-unit-suggested-for="${id}"]`);
+            if (usug) usug.textContent = bulk > 0 ? `≈${fmtMoney(Math.round(bulk * pricingUnitFactor))}` : '';
         }
 
         updatePricingDirtyUi();
@@ -1427,6 +1553,7 @@
     function syncAddProductButton() {
         const btn = document.getElementById('pricing-add-product');
         if (btn) btn.classList.toggle('hidden', !pricingCanEdit);
+        syncUnitFactorLabel();
     }
 
     function updatePricingDirtyUi() {
@@ -1594,7 +1721,8 @@
     findDigikala, refreshDigikala, openTorobSearch, refreshAllDigikala,
     daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace,
     addProductFromPricing, completeProductCard, applyPricingPercent,
-    syncMikrotikPrices, onPricePaste, editTorobLink, openPricingHelp
+    syncMikrotikPrices, onPricePaste, editTorobLink, openPricingHelp,
+    editUnitFactor, revertUnitToFormula
   });
   // میزبان (Admin.html) بعد از تشخیصِ نقش این را ست می‌کند
   Object.defineProperty(window, 'pricingCanEdit', {

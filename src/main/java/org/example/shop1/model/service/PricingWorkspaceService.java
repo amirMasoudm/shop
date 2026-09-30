@@ -36,7 +36,7 @@ public class PricingWorkspaceService {
             // ⚠️ منبعِ اصلی‌شان همچنان ورودِ دسته‌ای است؛ دستْ‌ویرایش اینجا یعنی
             // اصلاحِ انسانی روی همان عدد، و در لاگِ فعالیت ثبت می‌شود.
             "stockIsfahan", "stockTehran", "incomingStock",
-            "priceOverride"); // فقط برایِ «بازگشت به فرمول» (false کردن)
+            "priceOverride", "partnerUnitOverride"); // فقط برایِ «بازگشت به فرمول» (false کردن)
 
     /** ضریبِ «تلهٔ هزاربرابری» — بیش از این نسبت، تأییدِ دوم لازم دارد. */
     private static final BigDecimal SPIKE_FACTOR = BigDecimal.valueOf(10);
@@ -141,6 +141,7 @@ public class PricingWorkspaceService {
         List<Product> all = productRepo.findAll();
         String q = query == null ? "" : query.trim().toLowerCase();
         BigDecimal factor = settingsService.getSitePriceFactor();
+        BigDecimal unitFactor = settingsService.getPartnerUnitFactor();
 
         List<PricingRowDto> out = new ArrayList<>();
         for (Product p : all) {
@@ -148,7 +149,8 @@ public class PricingWorkspaceService {
                 String name = p.getName() == null ? "" : p.getName().toLowerCase();
                 if (!name.contains(q)) continue;
             }
-            out.add(PricingRowDto.of(p, derivedOnlinePrice(p, factor)));
+            out.add(PricingRowDto.of(p, derivedOnlinePrice(p, factor),
+                    derivedPartnerUnitPrice(p, unitFactor)));
         }
         // ترتیبِ دستیِ درگ‌دراپ مقدم است؛ هر چه ترتیب نخورده (position == null)
         // بعد از آن‌ها و الفبایی می‌آید. پس تا کسی چیزی را جابه‌جا نکند، جدول
@@ -364,16 +366,22 @@ public class PricingWorkspaceService {
                     }
                     // «بازگشت به فرمول»: پرچمِ دستی برداشته و قیمت دوباره مشتق می‌شود.
                     // فقط برداشتنِ پرچم پذیرفته است؛ روشن‌کردنش با ویرایشِ مستقیمِ قیمت انجام می‌شود.
-                    case "priceOverride" -> {
+                    case "priceOverride", "partnerUnitOverride" -> {
                         boolean requested = Boolean.TRUE.equals(rawValue)
                                 || "true".equalsIgnoreCase(String.valueOf(rawValue));
                         if (requested) {
-                            errors.add("روشن‌کردنِ «قیمتِ دستی» مستقیم ممکن نیست؛ کافیست قیمتِ سایت را ویرایش کنی");
+                            errors.add("روشن‌کردنِ «قیمتِ دستی» مستقیم ممکن نیست؛ کافیست همان خانه را ویرایش کنی");
                             continue;
                         }
-                        Boolean oldVal = p.getPriceOverride();
-                        p.setPriceOverride(false);
-                        recalcOnlinePriceIfDerived(p, factor);
+                        boolean isUnit = "partnerUnitOverride".equals(field);
+                        Boolean oldVal = isUnit ? p.getPartnerUnitOverride() : p.getPriceOverride();
+                        if (isUnit) {
+                            p.setPartnerUnitOverride(false);
+                            recalcPartnerUnitIfDerived(p, settingsService.getPartnerUnitFactor());
+                        } else {
+                            p.setPriceOverride(false);
+                            recalcOnlinePriceIfDerived(p, factor);
+                        }
                         p.setUpdatedAt(Instant.now());
                         productRepo.save(p);
                         activityLog.recordProduct(ActivityLog.Action.FLAG_CHANGE, ActivityLog.Source.MANUAL,
