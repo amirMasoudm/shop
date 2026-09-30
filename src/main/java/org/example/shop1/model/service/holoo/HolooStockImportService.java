@@ -294,10 +294,23 @@ public class HolooStockImportService {
         Integer newTehran = covered.contains(Branch.TEHRAN)
                 ? fromFile.getOrDefault(Branch.TEHRAN, 0) : oldTehran;
 
-        if (eq(oldIsfahan, newIsfahan) && eq(oldTehran, newTehran)) return null;
-
         int oldStock = p.getStock() == null ? 0 : p.getStock();
         int newStock = n(newIsfahan) + n(newTehran);
+
+        // 🔴 شرطِ دوم — ناسازگاریِ stock با مجموعِ انبارها.
+        //
+        // اولین ایمپورتِ واقعی نشان داد ۵۷ کالا از تور رد شدند: فیلدِ انبارشان null
+        // بود و در فایل هم نبودند، پس newIsfahan/newTehran صفر می‌شد و
+        // eq(null, 0) → true. هیچ Changeای ساخته نمی‌شد، و چون stock فقط داخلِ
+        // apply بازمحاسبه می‌شود، روی مقدارِ میراثیِ ۹۹۹ می‌ماند — یعنی قاعدهٔ
+        // «نبودن در فایل یعنی صفر» دقیقاً روی کالاهایی که بیشترین نیاز را داشتند
+        // بی‌اثر بود و آن‌ها روی سایت «موجود» می‌ماندند.
+        //
+        // ⚠️ برابریِ null با ۰ عمداً دست‌نخورده ماند: «انبار خالی» و «انبار صفر»
+        // واقعاً یک معنا دارند. چیزی که اضافه شد این است که برابریِ انبارها به‌تنهایی
+        // دیگر کافی نیست — stock هم باید با مجموعشان بخواند.
+        boolean branchesUnchanged = eq(oldIsfahan, newIsfahan) && eq(oldTehran, newTehran);
+        if (branchesUnchanged && oldStock == newStock) return null;
 
         boolean sms = oldStock <= 0 && newStock > 0;
         boolean torob = p.isTorobVisible() && !p.isProductionStopped() && (oldStock > 0) != (newStock > 0);
@@ -362,8 +375,12 @@ public class HolooStockImportService {
             changed++;
             if (c.zeroing()) zeroed++;
 
-            activityLog.recordProduct(ActivityLog.Action.STOCK_CHANGE, ActivityLog.Source.HOLOO,
-                    p.getId(), p.getName(), "stock", c.oldStock(), c.newStock());
+            // 🔴 عمداً هیچ رکوردِ تک‌محصولی ثبت نمی‌شود. یک ایمپورتِ معمولی ۸۷ تغییر
+            // دارد و ۸۷ رکورد، تاریخچهٔ تغییرات را می‌پوشاند — همان جایی که باید
+            // دید «چه کسی دستی چه کرد». خلاصهٔ پایینِ همین متد جای آن را می‌گیرد.
+            //
+            // ⚠️ این فقط دربارهٔ Source.HOLOO است. ویرایشِ دستیِ موجودی در میزِ کار
+            // (PricingWorkspaceService) همچنان تک‌تک لاگ می‌شود و نباید دست بخورد.
 
             // 🔴 پیامک فقط با تیکِ صریح. بدونِ آن، اولین ایمپورت صدها پیامک می‌فرستد.
             if (sendSms && c.wouldSms()) {

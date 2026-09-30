@@ -1,6 +1,7 @@
 package org.example.shop1.model.service.holoo;
 
 import org.example.shop1.exeption.ApiException;
+import org.example.shop1.model.entity.ActivityLog;
 import org.example.shop1.model.entity.Product;
 import org.example.shop1.model.entity.StoreSettings;
 import org.example.shop1.model.reposritory.ProductRepository;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -158,6 +160,86 @@ class HolooStockImportTest {
         assertEquals(0, missing.newIsfahan(), "انبارِ پوشش‌داده‌شده صفر می‌شود");
         assertEquals(3, missing.newTehran(), "انبارِ پوشش‌نداده‌شده دست نمی‌خورد");
         assertEquals(3, missing.newStock(), "stock = جمعِ دو انبار");
+    }
+
+    /**
+     * 🔴 کالایی که فیلدِ انبارش خالی است ولی {@code stock}ِ میراثی دارد.
+     * <p>
+     * در اولین ایمپورتِ واقعی ۵۷ کالا دقیقاً همین شکل بودند و از تور رد شدند:
+     * {@code eq(null, 0)} درست است، پس هیچ تغییری ساخته نمی‌شد و {@code stock} روی
+     * ۹۹۹ می‌ماند — یعنی روی سایت «موجود» می‌ماندند در حالی که در فایلِ انبار نبودند.
+     */
+    @Test
+    void انبارِ_خالی_با_stockِ_میراثی_از_تور_رد_نمی‌شود() throws Exception {
+        Product ghost = product("p-ghost", "DN-0002", null, null);
+        ghost.setStock(999);                       // میراثِ وارداتِ قدیمی
+        product("p1", "DN-0001", 0, 0);
+
+        List<List<Object>> rows = List.of(
+                header(),
+                row(1, "کالای واقعی", "انبار اصفهان", "شبکه", 4, "DN-0001"));
+
+        var preview = service.preview(List.of(file("اصفهان.xlsx", rows)));
+
+        var change = preview.changes().stream()
+                .filter(c -> "p-ghost".equals(c.productId())).findFirst()
+                .orElseThrow(() -> new AssertionError("کالای بی‌انبار باید در پیش‌نمایش دیده شود"));
+        assertEquals(999, change.oldStock());
+        assertEquals(0, change.newStock());
+        assertTrue(change.zeroing(), "باید در شمارشِ «صفر می‌شود» بیاید");
+        assertFalse(change.wouldSms(), "گذارِ مثبت→صفر است، پس نباید پیامک بسازد");
+
+        // تیکِ پیامک عمداً روشن است تا اثبات شود سکوتِ این ردیف از خودِ گذارش می‌آید،
+        // نه از خاموش‌بودنِ تیک. (کالای دیگرِ صحنه واقعاً صفر→مثبت می‌شود و پیامکش درست است.)
+        service.apply(preview.token(), true, true);
+        assertEquals(0, db.get("p-ghost").getStock(), "stock باید واقعاً صفر شود");
+        verify(notifications, never()).notifyBackInStock(eq("p-ghost"), anyString());
+    }
+
+    /**
+     * یک ایمپورت فقط <b>یک</b> رکوردِ خلاصه می‌سازد.
+     * <p>
+     * پیش از این هر محصولِ عوض‌شده یک {@code STOCK_CHANGE} هم می‌گرفت؛ یک ایمپورتِ
+     * ۸۷تایی تاریخچه را می‌پوشاند و ویرایش‌های دستی — که واقعاً باید دیده شوند —
+     * زیرش گم می‌شدند.
+     */
+    @Test
+    void ایمپورت_فقط_یک_رکوردِ_خلاصه_می‌سازد() throws Exception {
+        ActivityLogService log = mock(ActivityLogService.class);
+        StoreSettingsService settingsService = mock(StoreSettingsService.class);
+        when(settingsService.getSettings()).thenReturn(settings);
+        HolooStockImportService svc = new HolooStockImportService(
+                productRepo, settingsService, notifications, log);
+
+        List<List<Object>> rows = new ArrayList<>();
+        rows.add(header());
+        for (int i = 1; i <= 4; i++) {
+            String code = String.format("DN-%04d", i);
+            product("p" + i, code, 0, 0);
+            rows.add(row(i, "کالا " + i, "انبار اصفهان", "شبکه", i, code));
+        }
+
+        var preview = svc.preview(List.of(file("اصفهان.xlsx", rows)));
+        var result = svc.apply(preview.token(), false, false);
+
+        assertEquals(4, result.changed());
+        verify(log, never()).recordProduct(eq(ActivityLog.Action.STOCK_CHANGE),
+                eq(ActivityLog.Source.HOLOO), anyString(), anyString(), anyString(), any(), any());
+        verify(log, times(1)).record(eq(ActivityLog.Action.HOLOO_STOCK_IMPORT),
+                eq(ActivityLog.Source.HOLOO), anyString(), any(), anyString(), anyString(), any(), any());
+    }
+
+    /** رگرسیونِ بی‌اثر‌پذیری: کالایی که عددش با فایل می‌خواند نباید تغییر بگیرد. */
+    @Test
+    void کالایی_که_عددش_با_فایل_می‌خواند_تغییر_نمی‌گیرد() throws Exception {
+        product("p1", "DN-0001", 4, 0);
+
+        List<List<Object>> rows = List.of(
+                header(),
+                row(1, "کالا", "انبار اصفهان", "شبکه", 4, "DN-0001"));
+
+        var preview = service.preview(List.of(file("اصفهان.xlsx", rows)));
+        assertTrue(preview.changes().isEmpty(), "عددِ یکسان نباید تغییری بسازد");
     }
 
     @Test

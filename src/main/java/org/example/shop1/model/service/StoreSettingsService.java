@@ -118,6 +118,22 @@ public class StoreSettingsService {
         return settingsRepo.save(current);
     }
 
+    public java.math.BigDecimal getPartnerUnitFactor() {
+        return getSettings().effectivePartnerUnitFactor();
+    }
+
+    /** خواهرِ updateSitePriceFactor — همان اعتبارسنجی و همان محدودیتِ نقش. */
+    public StoreSettings updatePartnerUnitFactor(java.math.BigDecimal factor) {
+        if (factor == null || factor.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new org.example.shop1.exeption.ApiException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "ضریب باید عددی بزرگ‌تر از صفر باشد");
+        }
+        StoreSettings current = getSettings();
+        current.setId(SETTINGS_ID);
+        current.setPartnerUnitFactor(factor);
+        return settingsRepo.save(current);
+    }
+
     // تنظیم فقط آستانه‌ی RFQ (بدون دست‌زدن به بقیه‌ی فیلدها)
     public StoreSettings updateRfqThreshold(java.math.BigDecimal threshold) {
         StoreSettings current = getSettings();

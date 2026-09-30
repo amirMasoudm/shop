@@ -14,31 +14,30 @@
 (function () {
 
   const WORKSPACE_HTML = String.raw`
-        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
-            <div>
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800">میز کار قیمت‌گذاری</h2>
-                <p class="text-xs text-gray-500 mt-1">
-                    همه مبالغ به <b>تومان</b> است. برای ویرایش روی خانه کلیک کنید؛ تغییرات با «ذخیره تغییرات» یکجا ثبت می‌شود.
-                </p>
-                <p class="text-[11px] text-gray-500 mt-1 leading-5">
-                    <b>کفِ ترب چیست:</b> دکمهٔ «ترب» در گوگل «خرید + نامِ محصول» را جست‌وجو می‌کند؛
-                    نتیجهٔ ترب را باز کنید و با «✎» آدرسِ همان صفحه را ذخیره کنید تا دفعهٔ بعد
-                    یک‌راست برود.
-                    آن عددِ بزرگِ بالایِ صفحه (کنارِ مشخصاتِ محصول) کفِ ما نیست.
-                    کفِ ترب <b>اولین ردیف از فهرستِ فروشگاه‌هاست که پایینِ همان مشخصات می‌آید</b>.
-                    همان ردیف را کپی کنید و در خانهٔ «کف ترب» <b>Ctrl+V</b> بزنید؛ لازم نیست عدد را
-                    تایپ کنید — نامِ فروشگاه و «تومان» و بقیه خودشان کنار می‌روند.
-                </p>
-            </div>
-            <div class="flex flex-wrap gap-2">
+        <!-- 🔴 دو پاراگرافِ توضیح از اینجا به مودالِ «راهنمای پنل» رفتند. متنشان
+             عیناً همان است — از تجربهٔ واقعیِ کارشناس‌ها درآمده و بازنویسی نشد.
+             ⚠️ چیدمان برایِ عرضِ ۳۷۵ ساخته شده: دکمه‌ها wrap می‌شوند و «ذخیره
+             تغییرات» با w-full در موبایل همیشه یک ردیفِ کاملِ دیدنی می‌گیرد. -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 shrink-0">میز کار قیمت‌گذاری</h2>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button onclick="openPricingHelp()"
+                        class="px-2.5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-xs font-bold shrink-0"
+                        title="راهنمای کار با میزِ کار">؟ <span class="hidden sm:inline">راهنمای پنل</span></button>
                 <button id="pricing-add-product" onclick="addProductFromPricing()"
-                        class="hidden px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold shadow"
-                        title="محصولِ تازه با همین مودالِ محصولات ساخته می‌شود">＋ افزودن محصول</button>
-                <button onclick="refreshAllDigikala()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold" title="فقط محصولاتی که قبلاً به دیجی‌کالا وصل شده‌اند">↻ به‌روزرسانی کف دیجی‌کالا</button>
-                <button id="pricing-mikrotik-btn" onclick="syncMikrotikPrices()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold" title="قیمتِ پیشنهادیِ خودِ میکروتیک (MSRP) را از mikrotik.com می‌گیرد و پیش از نوشتن به تأیید می‌دهد">$ مرجعِ دلاریِ میکروتیک</button>
-                <button onclick="exportPricingExcel()" class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-bold">⬇ خروجی اکسل</button>
+                        class="hidden px-2.5 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold shadow shrink-0"
+                        title="محصولِ تازه با همین مودالِ محصولات ساخته می‌شود">＋ <span class="hidden sm:inline">افزودن محصول</span></button>
+                <button onclick="refreshAllDigikala()"
+                        class="px-2.5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-xs font-bold shrink-0"
+                        title="به‌روزرسانی کف دیجی‌کالا — فقط محصولاتی که قبلاً به دیجی‌کالا وصل شده‌اند">↻ <span class="hidden sm:inline">کف دیجی‌کالا</span></button>
+                <button id="pricing-mikrotik-btn" onclick="syncMikrotikPrices()"
+                        class="px-2.5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-xs font-bold shrink-0"
+                        title="قیمتِ پیشنهادیِ خودِ میکروتیک (MSRP) را از mikrotik.com می‌گیرد و پیش از نوشتن به تأیید می‌دهد">$ <span class="hidden sm:inline">مرجعِ میکروتیک</span></button>
+                <button onclick="exportPricingExcel()"
+                        class="px-2.5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-xs font-bold shrink-0"
+                        title="خروجی اکسل">⬇ <span class="hidden sm:inline">خروجی اکسل</span></button>
                 <button id="pricing-save-btn" onclick="savePricingChanges()" disabled
-                        class="px-5 py-2 rounded-lg bg-green-600 text-white font-bold text-sm shadow disabled:opacity-40 disabled:cursor-not-allowed">
+                        class="w-full sm:w-auto px-4 py-2 rounded-lg bg-green-600 text-white font-bold text-xs shadow disabled:opacity-40 disabled:cursor-not-allowed">
                     💾 ذخیره تغییرات (<span id="pricing-dirty-count">0</span>)
                 </button>
             </div>
@@ -126,7 +125,6 @@
             .pw-stock { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; color: #334155; }
             #pricing-body input.pw-stock-zero,
             .pw-stock-zero { font-size: 13px; font-weight: 700; color: #cbd5e1; }
-            .pw-excluded { opacity: .55; }
 
             /* ⚠️ کفِ بازار وقتی باکسِ خریدِ دیجی‌کالا دستِ خودمان است، رقیب نیست:
                خودِ ماییم. آبی یعنی «برای جلوزدن از خودت قیمت پایین نیاور». */
@@ -141,7 +139,6 @@
                 <tr>
                     <th class="p-2 w-10 text-center" title="شمارهٔ ردیف در همین نما">#</th>
                     <th class="p-2 w-8" title="برایِ جابه‌جایی، ردیف را از این دستگیره بکشید"></th>
-                    <th class="p-2 w-10 text-center" title="تیک‌خورده = «درصد تغییرات» این ردیف را رد می‌کند">استثنا</th>
                     <th class="p-2">نام محصول</th>
                     <th class="p-2" title="کارتِ همین محصول در فروشگاه">کارت</th>
                     <th class="p-2">قیمت سایت (تومان)</th>
@@ -432,19 +429,11 @@
         const body = document.getElementById('pricing-body');
         body.classList.toggle('pw-locked', !canDrag);
         body.innerHTML = rows.length ? rows.map((r, i) => `
-            <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''} ${pricingExcluded.has(r.id) ? 'pw-excluded' : ''}" data-id="${r.id}">
+            <tr class="hover:bg-gray-50 ${r.pushSaleFlag ? 'bg-orange-50' : ''}" data-id="${r.id}">
                 <td class="p-2 text-center pw-num">${i + 1}</td>
                 <td class="p-2 text-center">${canDrag
                     ? `<span class="pw-handle" title="بکشید و جابه‌جا کنید">⠿</span>`
                     : `<span class="pw-handle" title="${filtered ? 'برایِ جابه‌جایی اول جست‌وجو/فیلتر را پاک کنید' : 'شما دسترسیِ ویرایش ندارید'}">⠿</span>`}</td>
-                <!-- ⚠️ ترتیبِ این خانه باید دقیقاً همان ترتیبِ سرستون‌ها باشد؛
-                     قبلاً یک ستون جلوتر بود و تیترِ «استثنا» بالایِ چک‌باکسِ
-                     خودش نمی‌افتاد. -->
-                <td class="p-2 text-center">
-                    <input type="checkbox" ${pricingExcluded.has(r.id) ? 'checked' : ''}
-                           data-id="${r.id}" onchange="togglePricingExclude(this)" class="w-4 h-4"
-                           title="تیک بزن تا «درصد تغییرات» این ردیف را رد کند">
-                </td>
                 <td class="p-2">
                     <span class="inline-flex items-center gap-2">
                         ${catColorCell(r)}
@@ -471,16 +460,18 @@
                 <td class="p-2 text-center">${stockCell(r, 'stockIsfahan')}</td>
                 <td class="p-2 text-center">${stockCell(r, 'stockTehran')}</td>
                 <td class="p-2 text-center">${stockCell(r, 'incomingStock')}</td>
-                <td class="p-2 ${r.weOwnBuyBox ? 'pw-ours' : ''}">
+                <!-- ⚠️ ستونِ ترب عمداً هیچ نشانه‌ای از دیجی‌کالا ندارد: weOwnBuyBox و
+                     digikalaSellerTitle هر دو واقعیتِ دیجی‌کالایند و تا امروز اشتباهاً
+                     اینجا نشان داده می‌شدند. -->
+                <td class="p-2">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'torobFloorPrice', r.torobFloorPrice, 'w-24')}
                         ${pricingCanEdit ? `
                             <button onclick="openTorobSearch('${r.id}')" class="text-[10px] ${r.torobUrl ? 'bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white' : 'bg-gray-100 hover:bg-indigo-600 hover:text-white'} border rounded px-1.5 py-1 shrink-0" title="${r.torobUrl ? TOROB_LINKED : TOROB_RULE}">🔍 ترب</button>
                             <button onclick="editTorobLink('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1 py-1 shrink-0" title="${r.torobUrl ? TOROB_EDIT : TOROB_SETLINK}">${r.torobUrl ? '✎' : '🔗'}</button>` : ''}
                     </div>
-                    ${r.weOwnBuyBox ? `<div class="pw-ours-tag mt-0.5" title="فروشندهٔ باکسِ خرید در دیجی‌کالا: ${escapeHTML(r.digikalaSellerTitle || '')}">★ باکسِ خرید دستِ خودمان است</div>` : ''}
                 </td>
-                <td class="p-2">
+                <td class="p-2 ${r.weOwnBuyBox ? 'pw-ours' : ''}">
                     <div class="flex items-center gap-1">
                         ${priceInput(r, 'digikalaFloorPrice', r.digikalaFloorPrice, 'w-24')}
                         ${r.digikalaUrl ? `<a href="${escapeHTML(r.digikalaUrl)}" target="_blank" rel="noopener" class="text-indigo-600 shrink-0" title="باز کردن صفحه دیجی‌کالا">↗</a>` : ''}
@@ -488,6 +479,7 @@
                             ? `<button onclick="refreshDigikala('${r.id}')" class="text-[10px] bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-300 rounded px-1.5 py-1 shrink-0" title="محصول متناظر قبلاً تأیید شده (DKP ${escapeHTML(r.digikalaDkp)}) — قیمت را به‌روز کن">↻ به‌روز</button>`
                             : `<button onclick="findDigikala('${r.id}')" class="text-[10px] bg-gray-100 hover:bg-indigo-600 hover:text-white border rounded px-1.5 py-1 shrink-0" title="جست‌وجو و انتخاب محصول متناظر در دیجی‌کالا">🔗 پیداکردن</button>`) : ''}
                     </div>
+                    ${r.weOwnBuyBox ? `<div class="pw-ours-tag mt-0.5" title="فروشندهٔ باکسِ خرید در دیجی‌کالا: ${escapeHTML(r.digikalaSellerTitle || '')}">★ باکسِ خرید دستِ خودمان است</div>` : ''}
                     ${r.floorPriceCheckedAt ? `<div class="text-[9px] text-gray-400 mt-0.5">${daysAgoLabel(r.floorPriceCheckedAt)}</div>` : ''}
                 </td>
                 <td class="p-2 text-center">
@@ -496,7 +488,7 @@
                            onchange="onPricingFlag(this)" class="w-4 h-4">
                 </td>
             </tr>
-        `).join('') : '<tr><td colspan="15" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
+        `).join('') : '<tr><td colspan="14" class="p-8 text-center text-gray-400">موردی یافت نشد</td></tr>';
 
         initRowSortable(canDrag);
     }
@@ -563,14 +555,25 @@
         const href = '/shop/product/' + encodeURIComponent(r.slug || r.id);
         const view = `<a href="${href}" target="_blank" rel="noopener"
                          class="text-indigo-600 hover:underline shrink-0" title="بازکردنِ کارتِ محصول در فروشگاه">↗ کارت</a>`;
-        if (!missing.length) return view;
+        // 🔴 دکمهٔ ویرایش همیشه هست، نه فقط وقتی کارت ناقص است: کارشناسِ ارشد باید
+        // بتواند بدونِ رفتن به تبِ محصولات هر محصولی را اصلاح کند. رنگِ کهربایی و
+        // متنِ «تکمیل» فقط وقتی می‌آید که واقعاً چیزی کم است، تا فوریتش گم نشود.
+        if (!pricingCanEdit) {
+            if (!missing.length) return view;
+            const note = 'این محصول ' + missing.join(' و ') + ' ندارد؛ کارتش در فروشگاه ناقص دیده می‌شود.';
+            return `<div class="flex items-center gap-1">${view}`
+                + `<span class="text-[10px] text-amber-700" title="${escapeHTML(note)}">ناقص</span></div>`;
+        }
 
-        const why = 'این محصول ' + missing.join(' و ') + ' ندارد؛ کارتش در فروشگاه ناقص دیده می‌شود.';
-        const fix = pricingCanEdit
-            ? `<button onclick="completeProductCard('${r.id}')"
-                       class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 rounded px-1.5 py-1 shrink-0 hover:bg-amber-500 hover:text-white"
-                       title="${escapeHTML(why)}">✎ تکمیل کارت</button>`
-            : `<span class="text-[10px] text-amber-700" title="${escapeHTML(why)}">ناقص</span>`;
+        const why = missing.length
+            ? 'این محصول ' + missing.join(' و ') + ' ندارد؛ کارتش در فروشگاه ناقص دیده می‌شود.'
+            : 'ویرایشِ کارتِ همین محصول — همان مودالِ تبِ محصولات باز می‌شود.';
+        const style = missing.length
+            ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-500 hover:text-white'
+            : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-indigo-600 hover:text-white';
+        const fix = `<button onclick="completeProductCard('${r.id}')"
+                       class="text-[10px] border rounded px-1.5 py-1 shrink-0 ${style}"
+                       title="${escapeHTML(why)}">✎ ${missing.length ? 'تکمیل کارت' : 'اصلاح کارت'}</button>`;
         return `<div class="flex items-center gap-1">${view}${fix}</div>`;
     }
 
@@ -582,6 +585,45 @@
      * زده می‌شود. بعد از ذخیره، ردیف‌های میز دوباره خوانده می‌شوند تا ستونِ کارت
      * همان لحظه به‌روز شود.
      */
+    /**
+     * راهنمای پنل — همان دو توضیحی که تا امروز بالای صفحه می‌نشستند.
+     * <p>
+     * 🔴 متن عیناً منتقل شد و بازنویسی یا خلاصه <b>نشد</b>: از تجربهٔ واقعیِ
+     * کارشناس‌ها درآمده. ساختارش بخش‌بخش است تا بندِ بعدی فقط یک بلوکِ تازه بخواهد.
+     */
+    const PRICING_HELP_SECTIONS = [
+        {
+            title: 'ویرایش و ذخیره',
+            html: 'همه مبالغ به <b>تومان</b> است. برای ویرایش روی خانه کلیک کنید؛ '
+                + 'تغییرات با «ذخیره تغییرات» یکجا ثبت می‌شود.'
+        },
+        {
+            title: 'کفِ ترب چیست',
+            html: 'دکمهٔ «ترب» در گوگل «خرید + نامِ محصول» را جست‌وجو می‌کند؛ '
+                + 'نتیجهٔ ترب را باز کنید و با «✎» آدرسِ همان صفحه را ذخیره کنید تا دفعهٔ بعد '
+                + 'یک‌راست برود. '
+                + 'آن عددِ بزرگِ بالایِ صفحه (کنارِ مشخصاتِ محصول) کفِ ما نیست. '
+                + 'کفِ ترب <b>اولین ردیف از فهرستِ فروشگاه‌هاست که پایینِ همان مشخصات می‌آید</b>. '
+                + 'همان ردیف را کپی کنید و در خانهٔ «کف ترب» <b>Ctrl+V</b> بزنید؛ لازم نیست عدد را '
+                + 'تایپ کنید — نامِ فروشگاه و «تومان» و بقیه خودشان کنار می‌روند.'
+        }
+    ];
+
+    function openPricingHelp() {
+        const body = PRICING_HELP_SECTIONS.map(sec =>
+            `<div style="margin-bottom:14px">
+               <div style="font-weight:800;font-size:.9rem;margin-bottom:4px">${sec.title}</div>
+               <div style="font-size:.82rem;line-height:2;color:#4b5563">${sec.html}</div>
+             </div>`).join('');
+        Swal.fire({
+            title: 'راهنمای پنل',
+            html: `<div style="text-align:right;max-height:60vh;overflow:auto">${body}</div>`,
+            width: 640,
+            confirmButtonText: 'بستم',
+            confirmButtonColor: '#1b4f8a'
+        });
+    }
+
     function addProductFromPricing() {
         if (typeof openProductModal !== 'function') {
             return alert('تبِ محصولات هنوز آماده نیست؛ یک بار تبِ «محصولات» را باز کنید.');
@@ -621,16 +663,6 @@
             || document.getElementById('pricing-only-flagged').checked
             || !!((document.getElementById('pricing-cat') || {}).value)
             || !!((document.getElementById('pricing-hide-oos') || {}).checked);
-    }
-
-    /** ردیف‌هایی که «درصد تغییرات» عمداً رد می‌کند (فقط همین نشست، ذخیره نمی‌شود). */
-    const pricingExcluded = new Set();
-
-    function togglePricingExclude(box) {
-        if (box.checked) pricingExcluded.add(box.dataset.id);
-        else pricingExcluded.delete(box.dataset.id);
-        const tr = box.closest('tr');
-        if (tr) tr.classList.toggle('pw-excluded', box.checked);
     }
 
     /**
@@ -727,23 +759,21 @@
             return;
         }
 
-        const all = visiblePricingRows();
-        const rows = all.filter(r => !pricingExcluded.has(r.id));
-        const skipped = all.length - rows.length;
+        // ستونِ «استثنا» حذف شد؛ دامنهٔ درصد حالا دقیقاً «همین نما»ست و ابزارِ
+        // محدودکردنش همان فیلترِ دسته و جست‌وجوست.
+        const rows = visiblePricingRows();
         if (!rows.length) {
-            Swal.fire('ردیفی نیست', all.length ? 'همهٔ ردیف‌هایِ این نما استثنا شده‌اند' : 'این نما خالی است', 'info');
+            Swal.fire('ردیفی نیست', 'این نما خالی است', 'info');
             return;
         }
 
         const catSel = document.getElementById('pricing-cat');
         const catName = catSel && catSel.value ? catSel.options[catSel.selectedIndex].text : '';
         const scope = catName ? `دستهٔ «${catName}»` : (isPricingFiltered() ? 'ردیف‌هایِ همین نما' : 'همهٔ ردیف‌هایِ میز');
-        const skipNote = skipped ? `<br><b>${skipped} ردیفِ استثناشده</b> دست نمی‌خورد.` : '';
-
         Swal.fire({
             icon: 'question',
             title: `${pct > 0 ? '+' : ''}${pct}٪ روی ${rows.length} ردیف`,
-            html: `دامنه: <b>${scope}</b>.${skipNote}`
+            html: `دامنه: <b>${scope}</b>.`
                 + '<br>ستون‌ها: قیمت سایت، همکار تک، فروش تعدادی.'
                 + '<br>نتیجه زرد می‌شود و تا زدنِ «ذخیره تغییرات» قطعی نیست.',
             showCancelButton: true, confirmButtonText: 'اعمال کن', cancelButtonText: 'انصراف'
@@ -1213,21 +1243,34 @@
                         <a href="${escapeHTML(c.url)}" target="_blank" rel="noopener" style="font-size:10px;margin-right:6px">مشاهده ↗</a>
                     </span>
                 </label>`).join('')}
+                <!-- 🔴 راهِ فرار وقتی هیچ نتیجه‌ای درست نیست. تا امروز کارشناس مجبور
+                     بود یکی از نتایجِ سیستم را بپذیرد یا بی‌خیال شود. -->
+                <label style="display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px dashed #cbd5e1;border-radius:8px;cursor:pointer">
+                    <input type="radio" name="dkcand" value="manual" style="margin-top:4px">
+                    <span style="flex:1;font-size:12px;font-weight:700">هیچ‌کدام — خودم لینک می‌دهم</span>
+                </label>
             </div>`;
 
         const pick = await Swal.fire({
             title: 'کدام محصول درست است؟',
             html, width: 620, showCancelButton: true,
-            confirmButtonText: 'همین است، ذخیره کن', cancelButtonText: 'هیچ‌کدام',
+            confirmButtonText: 'همین است، ذخیره کن', cancelButtonText: 'انصراف',
             preConfirm: () => {
                 const sel = document.querySelector('input[name="dkcand"]:checked');
                 if (!sel) { Swal.showValidationMessage('یکی را انتخاب کن'); return false; }
-                return Number(sel.value);
+                return sel.value;
             }
         });
         if (!pick.isConfirmed) return;
 
-        const chosen = candidates[pick.value];
+        let chosen;
+        if (pick.value === 'manual') {
+            chosen = await askDigikalaLink();
+            if (!chosen) return;
+        } else {
+            chosen = candidates[Number(pick.value)];
+        }
+
         toggleLoader(true);
         try {
             await axios.post(`${API}/v1/pricing/marketplace/link`,
@@ -1238,6 +1281,37 @@
         } finally {
             toggleLoader(false);
         }
+    }
+
+    /**
+     * آدرسِ دستیِ دیجی‌کالا → {externalId, url}، یا {@code null} اگر منصرف شد.
+     * <p>
+     * 🔴 بدونِ DKP ثبت نمی‌شود. لینکی که DKP ندارد فقط یک رشتهٔ تزئینی است: دکمهٔ
+     * «↻ به‌روز» به {@code digikalaDkp} نگاه می‌کند، پس ردیف دوباره «🔗 پیداکردن»
+     * نشان می‌داد و کارشناس فکر می‌کرد ذخیره نشده.
+     */
+    async function askDigikalaLink() {
+        const {value: raw} = await Swal.fire({
+            title: 'آدرسِ صفحهٔ دیجی‌کالا',
+            input: 'url',
+            inputPlaceholder: 'https://www.digikala.com/product/dkp-1234567/...',
+            inputLabel: 'آدرسِ دقیقِ همان محصول در دیجی‌کالا را بچسبانید',
+            showCancelButton: true, confirmButtonText: 'ثبت', cancelButtonText: 'انصراف',
+            preConfirm: value => {
+                const url = (value || '').trim();
+                if (!/^https?:\/\/([a-z0-9-]+\.)*digikala\.com\//i.test(url)) {
+                    Swal.showValidationMessage('این آدرس مالِ دیجی‌کالا نیست');
+                    return false;
+                }
+                const m = /dkp-(\d+)/i.exec(url);
+                if (!m) {
+                    Swal.showValidationMessage('شناسهٔ DKP در آدرس پیدا نشد — آدرسِ خودِ صفحهٔ محصول را بچسبانید');
+                    return false;
+                }
+                return {externalId: m[1], url};
+            }
+        });
+        return raw || null;
     }
 
     /** دیجی‌کالا مرحلهٔ B — به‌روزرسانیِ یک‌کلیکی برایِ محصولِ تأییدشده. */
@@ -1281,16 +1355,29 @@
             Swal.fire('محصول متصلی نیست', 'اول با دکمه «پیداکردن» چند محصول را به دیجی‌کالا وصل کن.', 'info');
             return;
         }
+        // 🔴 باگِ «۰ به‌روز شد»: این مسیر force نمی‌فرستاد.
+        //
+        // سرور کشِ ۲۰ ساعته دارد و بدونِ force هر محصولی که تازه بررسی شده
+        // status=skipped می‌گیرد — و skipped جدا از ok شمرده می‌شود. دکمهٔ تکی از
+        // اول force:true می‌فرستاد، پس درست کار می‌کرد؛ یعنی هر ردیفی که کاربر تازه
+        // با دکمهٔ تکی زده بود، در اجرای گروهی حتماً رد می‌شد. دقیقاً همان چیزی که
+        // دیده شد: تکی کار می‌کند، گروهی صفر می‌دهد.
         const ok = await Swal.fire({
             icon: 'question', title: `به‌روزرسانی ${linked} محصول؟`,
-            html: '<div style="font-size:13px;text-align:right">فقط محصولاتی که قبلاً تأیید شده‌اند به‌روز می‌شوند.<br>بین درخواست‌ها فاصله گذاشته می‌شود، پس ممکن است طول بکشد.</div>',
+            html: '<div style="font-size:13px;text-align:right">فقط محصولاتی که قبلاً تأیید شده‌اند به‌روز می‌شوند.<br>'
+                + 'بین درخواست‌ها فاصله گذاشته می‌شود، پس ممکن است طول بکشد.</div>',
+            input: 'checkbox',
+            inputValue: 1,
+            inputPlaceholder: 'حتی مواردی که کمتر از ۲۰ ساعت پیش بررسی شده‌اند',
             showCancelButton: true, confirmButtonText: 'شروع', cancelButtonText: 'انصراف'
         });
         if (!ok.isConfirmed) return;
+        const force = !!ok.value;
 
         toggleLoader(true);
         try {
-            const res = await axios.post(`${API}/v1/pricing/marketplace/refresh-all`, {market: 'digikala'});
+            const res = await axios.post(`${API}/v1/pricing/marketplace/refresh-all`,
+                    {market: 'digikala', force});
             const d = res.data;
             await fetchPricingRows();
             const problems = (d.problems || []).slice(0, 8)
@@ -1299,7 +1386,8 @@
                 icon: d.failed ? 'warning' : 'success',
                 title: `${d.ok} به‌روز شد`,
                 html: `<div style="font-size:12px;text-align:right">
-                        کل: ${d.total} | موفق: ${d.ok} | ردشده: ${d.skipped} | مشکل‌دار: ${d.failed}
+                        کل: ${d.total} | موفق: ${d.ok} | مشکل‌دار: ${d.failed}
+                        ${d.skipped ? `<br><span style="color:#6b7280">${d.skipped} مورد چون کمتر از ۲۰ ساعت پیش بررسی شده بودند رد شدند.</span>` : ''}
                         ${problems ? '<hr style="margin:8px 0">' + problems : ''}</div>`
             });
         } catch (err) {
@@ -1506,7 +1594,7 @@
     findDigikala, refreshDigikala, openTorobSearch, refreshAllDigikala,
     daysAgoLabel, fetchActivityLogs, restrictPanelToPricingWorkspace,
     addProductFromPricing, completeProductCard, applyPricingPercent,
-    togglePricingExclude, syncMikrotikPrices, onPricePaste, editTorobLink
+    syncMikrotikPrices, onPricePaste, editTorobLink, openPricingHelp
   });
   // میزبان (Admin.html) بعد از تشخیصِ نقش این را ست می‌کند
   Object.defineProperty(window, 'pricingCanEdit', {

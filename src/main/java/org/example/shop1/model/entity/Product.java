@@ -289,6 +289,17 @@ public class Product {
     public Boolean getPricePercentAdjusted() { return pricePercentAdjusted; }
     public void setPricePercentAdjusted(Boolean v) { this.pricePercentAdjusted = v; }
 
+    /**
+     * «همکار تک» دستی ست شده — خواهرِ {@code priceOverride}.
+     * <p>
+     * بدونِ این، ضریبِ تازه هر بار عددی را که کارشناس آگاهانه گذاشته بازمی‌نوشت.
+     * همان قاعده‌ای که قیمتِ سایت از اول داشت.
+     */
+    private Boolean partnerUnitOverride;
+
+    public Boolean getPartnerUnitOverride() { return partnerUnitOverride; }
+    public void setPartnerUnitOverride(Boolean v) { this.partnerUnitOverride = v; }
+
     public Boolean getPriceOverride() { return priceOverride; }
     public void setPriceOverride(Boolean priceOverride) { this.priceOverride = priceOverride; }
 

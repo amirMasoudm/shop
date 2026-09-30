@@ -881,6 +881,28 @@
                 ⚠️ تغییر این ضریب قیمت سایت محصولات را در ویرایش بعدی «فروش تعدادی» تحت تأثیر قرار می‌دهد.
                 محصولاتی که قیمت دستی دارند (نشان «✋ دستی») دست‌نخورده می‌مانند.
             </p>
+
+            <!-- ضریبِ دوم: همکار تک. خواهرِ ضریبِ سایت و با همان قواعد. -->
+            <div class="mt-5 pt-4 border-t">
+                <label class="block text-sm font-bold text-gray-700 mb-1">ضریب «همکار تک» نسبت به «فروش تعدادی»</label>
+                <p class="text-xs text-gray-500 leading-6 mb-2">
+                    <b>پیش‌فرض ۱.۰۵ = ۵٪ بیشتر از فروش تعدادی.</b>
+                    مثلِ ضریبِ سایت فقط ادمین تغییرش می‌دهد و هر تغییرش لاگ می‌شود.
+                </p>
+                <div class="flex gap-3 items-end">
+                    <div class="flex-1">
+                        <input type="number" id="partner-unit-factor" step="0.01" min="0.01" placeholder="1.05" dir="ltr"
+                               class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-indigo-500 text-left">
+                    </div>
+                    <button onclick="savePartnerUnitFactor()"
+                            class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                        ذخیره ضریب
+                    </button>
+                </div>
+                <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mt-3">
+                    ⚠️ عددی که کارشناس دستی در «همکار تک» زده باشد با این ضریب بازنویسی نمی‌شود.
+                </p>
+            </div>
         </div>
 
         <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -2193,6 +2215,7 @@
             fetchRfqThreshold();
             fetchBannerRotationSeconds();
             fetchSitePriceFactor();
+            fetchPartnerUnitFactor();
             fetchChatHours();
             setTimeout(() => {
                 if (!adminMap) initAdminMap();
@@ -2265,7 +2288,20 @@
             state.imageRowBanners = imageRows.data;
 
             // فایلِ مشترک با SalesPanel.html — نگاه کن به /js/products-tab.js
-            await ProductsTab.mount(document.getElementById('tab-products'), document.getElementById('productModalMount'));
+            // بارِ اول رد می‌شود: خودِ mount یک refresh می‌زند
+            let firstAdminProductsRefresh = true;
+            // ⚠️ همان opts پنلِ فروش: بدونِ onRefreshed، ذخیرهٔ محصول از میزِ کار
+            // ردیف را به‌روز نمی‌کرد و کارشناس فکر می‌کرد ذخیره نشده.
+            await ProductsTab.mount(document.getElementById('tab-products'),
+                    document.getElementById('productModalMount'), {
+                        onRefreshed: () => {
+                            if (firstAdminProductsRefresh) { firstAdminProductsRefresh = false; return; }
+                            if (typeof fetchPricingRows === 'function'
+                                    && !document.getElementById('tab-pricing').classList.contains('hidden-section')) {
+                                fetchPricingRows();
+                            }
+                        }
+                    });
 
             try {
                 const ordersRes = await axios.get(`${API}/orders/admin/all`);
@@ -5004,6 +5040,39 @@
             const res = await axios.get(`${API}/v1/settings/site-price-factor`);
             document.getElementById('site-price-factor').value = Number(res.data.factor || 1.08);
         } catch (e) { }
+    }
+
+    async function fetchPartnerUnitFactor() {
+        try {
+            const res = await axios.get(`${API}/v1/settings/partner-unit-factor`);
+            document.getElementById('partner-unit-factor').value = Number(res.data.factor || 1.05);
+        } catch (e) { }
+    }
+
+    async function savePartnerUnitFactor() {
+        const factor = Number(document.getElementById('partner-unit-factor').value);
+        if (!factor || factor <= 0) {
+            Swal.fire('خطا', 'ضریب باید عددی بزرگ‌تر از صفر باشد.', 'error');
+            return;
+        }
+        if (factor > 3 || factor < 0.5) {
+            const ok = await Swal.fire({
+                icon: 'warning', title: 'ضریب غیرعادی',
+                html: `<div style="font-size:13px">ضریب <b>${factor}</b> یعنی «همکار تک» ${factor} برابرِ «فروش تعدادی» می‌شود.<br>مطمئنی؟ (مقدار معمول حدود ۱.۰۵ است)</div>`,
+                showCancelButton: true, confirmButtonText: 'بله، ذخیره کن', cancelButtonText: 'انصراف'
+            });
+            if (!ok.isConfirmed) return;
+        }
+        try {
+            await axios.post(`${API}/v1/settings/admin/partner-unit-factor`, {factor});
+            Swal.fire('موفق', 'ضریب «همکار تک» ذخیره شد.', 'success');
+        } catch (err) {
+            if (err.response && err.response.status === 403) {
+                Swal.fire('دسترسی ندارید', 'فقط ادمین می‌تواند ضریب را تغییر دهد.', 'error');
+            } else {
+                Swal.fire('خطا', serverError(err, 'مشکل در ذخیره ضریب.'), 'error');
+            }
+        }
     }
 
     async function saveSitePriceFactor() {

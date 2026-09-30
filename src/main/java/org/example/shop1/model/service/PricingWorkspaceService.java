@@ -109,6 +109,34 @@ public class PricingWorkspaceService {
                 p.getId(), p.getName(), "onlinePrice", before, derived);
     }
 
+    /** «همکار تک» مشتق از «فروش تعدادی» — خواهرِ derivedOnlinePrice. */
+    public BigDecimal derivedPartnerUnitPrice(Product p, BigDecimal factor) {
+        BigDecimal bulk = p.getPartnerBulkPrice();
+        if (bulk == null || bulk.compareTo(BigDecimal.ZERO) <= 0) return null;
+        return bulk.multiply(factor).setScale(0, java.math.RoundingMode.HALF_UP);
+    }
+
+    /**
+     * بعد از تغییرِ «فروش تعدادی»، «همکار تک» را هم بازمحاسبه می‌کند.
+     * <p>
+     * ⚠️ دقیقاً همان قاعدهٔ قیمتِ سایت: عددِ دستی دست نمی‌خورد، ولی خانهٔ خالی تصمیم
+     * نیست و از فرمول پر می‌شود.
+     */
+    private void recalcPartnerUnitIfDerived(Product p, BigDecimal factor) {
+        BigDecimal current = p.getPartnerUnitPrice();
+        boolean empty = current == null || current.compareTo(BigDecimal.ZERO) <= 0;
+        if (Boolean.TRUE.equals(p.getPartnerUnitOverride()) && !empty) return;
+
+        BigDecimal derived = derivedPartnerUnitPrice(p, factor);
+        if (derived == null) return;
+        if (empty) p.setPartnerUnitOverride(false);
+        if (current != null && current.compareTo(derived) == 0) return;
+
+        p.setPartnerUnitPrice(derived);
+        activityLog.recordProduct(ActivityLog.Action.PRICE_CHANGE, ActivityLog.Source.DERIVED,
+                p.getId(), p.getName(), "partnerUnitPrice", current, derived);
+    }
+
     public List<PricingRowDto> rows(String query) {
         List<Product> all = productRepo.findAll();
         String q = query == null ? "" : query.trim().toLowerCase();
@@ -245,10 +273,15 @@ public class PricingWorkspaceService {
                                 // تایپِ دستی برچسبِ «درصدی» را پاک می‌کند، اعمالِ درصد می‌گذارد
                                 p.setPricePercentAdjusted(viaPercent);
                             }
-                            case "partnerUnitPrice" -> p.setPartnerUnitPrice(newVal);
+                            case "partnerUnitPrice" -> {
+                                p.setPartnerUnitPrice(newVal);
+                                // تایپِ دستی = تصمیمِ آگاهانه؛ ضریب دیگر رویش نمی‌نشیند
+                                p.setPartnerUnitOverride(true);
+                            }
                             case "partnerBulkPrice" -> {
                                 p.setPartnerBulkPrice(newVal);
                                 recalcOnlinePriceIfDerived(p, factor);
+                                recalcPartnerUnitIfDerived(p, settingsService.getPartnerUnitFactor());
                             }
                             case "dollarPrice" -> p.setDollarPrice(newVal);
                             case "torobFloorPrice" -> {

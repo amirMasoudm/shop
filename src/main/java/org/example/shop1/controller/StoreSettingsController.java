@@ -120,4 +120,24 @@ public class StoreSettingsController {
 
         return ResponseEntity.ok(saved);
     }
+
+    /** ضریبِ «همکار تک» — خواندنی برای میزِ کار، مثلِ ضریبِ سایت. */
+    @GetMapping("/partner-unit-factor")
+    public ResponseEntity<Map<String, BigDecimal>> getPartnerUnitFactor() {
+        return ResponseEntity.ok(Collections.singletonMap("factor", settingsService.getPartnerUnitFactor()));
+    }
+
+    @PostMapping("/admin/partner-unit-factor")
+    public ResponseEntity<StoreSettings> setPartnerUnitFactor(@RequestBody Map<String, BigDecimal> body) {
+        BigDecimal oldFactor = settingsService.getPartnerUnitFactor();
+        StoreSettings saved = settingsService.updatePartnerUnitFactor(body.get("factor"));
+
+        activityLog.record(
+                org.example.shop1.model.entity.ActivityLog.Action.PRICE_CHANGE,
+                org.example.shop1.model.entity.ActivityLog.Source.MANUAL,
+                "SETTINGS", "store_settings", "تنظیماتِ فروشگاه",
+                "partnerUnitFactor", oldFactor, saved.getPartnerUnitFactor());
+
+        return ResponseEntity.ok(saved);
+    }
 }

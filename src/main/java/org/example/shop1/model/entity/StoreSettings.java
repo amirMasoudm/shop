@@ -35,6 +35,27 @@ public class StoreSettings {
     /** ضریبِ پیش‌فرض وقتی هنوز در تنظیمات ست نشده است. */
     public static final BigDecimal DEFAULT_SITE_PRICE_FACTOR = new BigDecimal("1.08");
 
+    /**
+     * ضریبِ «همکار تک» نسبت به «فروش تعدادی»:
+     * {@code partnerUnitPrice = partnerBulkPrice × partnerUnitFactor}.
+     * <p>
+     * خواهرِ {@code sitePriceFactor} و به همان دلیل اینجاست نه در کد: یک قراردادِ
+     * تجاری است، پس فقط ADMIN تغییرش می‌دهد و دو منبعِ حقیقت نمی‌سازیم.
+     */
+    @Field(targetType = FieldType.DECIMAL128)
+    private BigDecimal partnerUnitFactor;
+
+    /** پیش‌فرض: ۵٪ بیشتر از فروش تعدادی. */
+    public static final BigDecimal DEFAULT_PARTNER_UNIT_FACTOR = new BigDecimal("1.05");
+
+    public BigDecimal getPartnerUnitFactor() { return partnerUnitFactor; }
+    public void setPartnerUnitFactor(BigDecimal partnerUnitFactor) { this.partnerUnitFactor = partnerUnitFactor; }
+
+    public BigDecimal effectivePartnerUnitFactor() {
+        return (partnerUnitFactor != null && partnerUnitFactor.compareTo(BigDecimal.ZERO) > 0)
+                ? partnerUnitFactor : DEFAULT_PARTNER_UNIT_FACTOR;
+    }
+
     // ===============================
     // ساعتِ کاریِ چتِ پشتیبانی
     // ===============================
