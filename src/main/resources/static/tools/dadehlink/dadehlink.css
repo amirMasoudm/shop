@@ -503,6 +503,10 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .weatherControl input{width:20px;height:20px}
 .dl .app .bottom .weatherControl button{font-size:14px}
 
+/* فونت: روی دسکتاپ همان Vazirmatnِ بقیهٔ سایت (خواستهٔ مالک). اپ با Tahoma و Arial
+   برای صفحهٔ گوشی تنظیم شده و روی موبایل همان می‌ماند. !important لازم است چون
+   قاعده‌های اپ فونت را با shorthandِ font: روی تک‌تکِ اجزا می‌نشانند. */
+.dl,.dl *:not(svg):not(svg *){font-family:Vazirmatn,Tahoma,sans-serif!important}
 /* پنجرهٔ تنظیمِ آنتن روی دسکتاپ پهن‌تر، تا نقشه به کار بیاید */
 .dl .modal .alignSheet{max-width:980px;height:min(88vh,860px);padding:18px 22px}
 .dl .alignCanvas>svg{max-height:440px}
