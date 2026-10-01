@@ -438,3 +438,72 @@
 .dl .toast{z-index:1300}
 /* حبابِ چتِ سایت (z-index ۹۹۹۸) روی دکمهٔ «انصراف» پنجره‌ها می‌نشست؛ تا پنجره باز است کنار می‌رود. */
 body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-panel{display:none!important}
+
+/* ── چیدمانِ دسکتاپ (خواستهٔ مالک: «برای بروزر مثل موبایل نباشه») ─────────
+   زیرِ ۹۰۰ پیکسل دو گروهِ dl-in و dl-out ناپدیدند (display:contents) و چیدمان
+   عیناً همان اپ است. بالای آن: ورودی‌ها در ستونِ راست، نتیجه چسبان در ستونِ چپ،
+   و اندازه‌ها برای ماوس و صفحهٔ بزرگ. رفتار و عددها دست نمی‌خورند. */
+.dl .dl-in,.dl .dl-out{display:contents}
+@media(min-width:900px){
+.dl .app{max-width:1120px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+  grid-template-areas:"head head" "in nav" "in out";grid-template-rows:auto auto 1fr;
+  column-gap:28px;row-gap:12px;padding:22px 28px 26px;margin:6px auto 0}
+.dl .app header{grid-area:head;height:44px;margin:0 0 4px}
+.dl .app .brand{height:44px}.dl .app .brand img{width:52px;height:40px}.dl .app .brand b{font-size:26px}
+.dl .brandDish{width:26px;height:30px}
+.dl .app .version{font-size:11px;padding:5px 9px;top:12px}.dl .app .tools{top:4px}
+.dl .app .icon{width:40px;height:40px}.dl .icon svg{width:20px;height:20px}
+.dl .app .quicknav{grid-area:nav;margin:0;gap:10px}
+.dl .app .quicknav>*{min-height:42px;font-size:14px;padding:10px 8px}
+.dl .dl-in{display:block;grid-area:in;min-width:0}
+.dl .dl-out{display:flex;flex-direction:column;gap:12px;grid-area:out;align-self:start;position:sticky;top:76px;min-width:0}
+
+/* ورودی‌ها */
+.dl .app #fields{padding:6px 20px}
+.dl .app #fields .field{padding:8px 0 14px}
+.dl .app #fields .fieldtop{height:44px}
+.dl .app #fields label{font-size:15px}
+.dl .app #fields .eng{font-size:11px;margin-right:8px}
+.dl .app #fields .numeric input{width:96px;height:40px;font-size:19px}
+.dl .app #fields .numeric span{font-size:12px;width:34px}
+.dl .app #fields input[type=range]{height:28px}
+.dl .app .antennaTitle{margin:16px 2px 8px}.dl .app .antennaTitle strong{font-size:14px}.dl .app .antennaTitle span{font-size:12px}
+.dl .app .antennas{gap:70px}
+.dl .app .antenna{padding:12px 14px}
+.dl .app .site{font-size:13px}.dl .app .modebtn{font-size:11px;padding:6px 8px}
+.dl .app .antgain{margin-top:6px}.dl .app .antgain input{height:40px;font-size:34px;width:90px}.dl .antgain span{font-size:12px}
+.dl .app .antmeta{height:18px;font-size:11px}
+.dl .app .losses{margin-top:8px;padding-top:8px;font-size:12px}
+.dl .app .losses label{font-size:12px!important}
+.dl .app .losses .numeric input{height:32px;width:52px;font-size:14px}.dl .app .losses .numeric span{font-size:11px;width:18px}
+.dl .app .calculator{top:44px;width:58px;padding:8px 2px;border-radius:13px}.dl .calculator svg{width:28px;height:32px}.dl .calculator span{font-size:9px}
+.dl .app .error{font-size:13px;padding:8px 12px}
+
+/* نتیجه */
+.dl .app .result{margin-top:0;padding:16px 20px}
+.dl .app .rhead strong{font-size:16px}.dl .app .rhead small{font-size:12px}
+.dl .app .signals,.dl .app .signals.dual{height:112px;margin-top:8px}
+.dl .app .signalLabel,.dl .app .signalLabel:empty{height:22px;line-height:22px;font-size:13px}
+.dl .app .signalLabel svg{width:18px;height:18px}
+.dl .app .rx{height:60px;margin:2px 0}
+.dl .app .rx strong{font-size:54px;line-height:60px}
+.dl .app .dual .rx strong{font-size:44px;line-height:60px}
+.dl .app .dual .drySignal .rx strong{font-size:38px;line-height:60px}
+.dl .app .rx span{font-size:14px}
+.dl .app .weakSignal,.dl .app .weakSignal:empty{height:20px;line-height:20px;font-size:12px}
+.dl .app .linkWarning,.dl .app .linkWarning:empty{position:static;height:18px;line-height:18px;font-size:12px;margin:2px 0}
+.dl .app .margin{height:34px;font-size:14px}.dl .app .margin b{font-size:22px}
+.dl .app .bar{height:6px;margin:6px 0 12px}
+.dl .app .metrics{padding-top:12px;font-size:12px;min-height:70px}
+.dl .app .metrics small{font-size:10px;margin-top:3px}
+.dl .app .metrics b{font-size:20px;margin-top:6px}
+.dl .app .atmos{margin-top:12px;font-size:12px}
+.dl .app .bottom{margin-top:0;gap:10px}
+.dl .app .bottom button{height:46px;font-size:13px;white-space:nowrap;padding:0 6px}
+.dl .weatherControl input{width:20px;height:20px}
+.dl .app .bottom .weatherControl button{font-size:14px}
+
+/* پنجرهٔ تنظیمِ آنتن روی دسکتاپ پهن‌تر، تا نقشه به کار بیاید */
+.dl .modal .alignSheet{max-width:980px;height:min(88vh,860px);padding:18px 22px}
+.dl .alignCanvas>svg{max-height:440px}
+}
