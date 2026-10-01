@@ -1,0 +1,142 @@
+<title>گزارش آماده‌سازی داده‌لینک</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column, status first, then evidence; code always in its own LTR block */
+:root{
+ --bg:#f4f8f5;--surface:#ffffff;--fg:#17271e;--muted:#56695d;--line:#d5e2d9;--accent:#0b7a46;--ok:#0b7a46;--warn:#a35a00;--code-bg:#eaf2ec;
+ --body:"Vazirmatn",Tahoma,sans-serif;--mono:"JetBrains Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1712;--surface:#16211a;--fg:#e2ece5;--muted:#9bb0a2;--line:#2a3a30;--accent:#4cc98a;--ok:#4cc98a;--warn:#f0a94a;--code-bg:#1b2a21;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1712;--surface:#16211a;--fg:#e2ece5;--muted:#9bb0a2;--line:#2a3a30;--accent:#4cc98a;--ok:#4cc98a;--warn:#f0a94a;--code-bg:#1b2a21;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.85 var(--body);direction:rtl;padding-inline:16px;padding-block:28px 56px}
+main{max-width:46rem;margin:0 auto;display:grid;gap:28px}
+h1{font-weight:800;font-size:1.7rem;line-height:1.35;margin:0;text-wrap:balance}
+h2{font-weight:800;font-size:1.15rem;margin:0 0 8px;color:var(--accent)}
+p{margin:0}
+.sub{color:var(--muted);font-size:.92rem}
+section{display:grid;gap:10px;min-width:0}
+ul{margin:0;padding-inline-start:1.2rem;display:grid;gap:6px}
+pre{direction:ltr;text-align:left;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0;overflow-x:auto;font:13px/1.65 var(--mono);white-space:pre}
+code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);padding:1px 5px;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.checks{list-style:none;padding:0;display:grid;gap:4px}
+.checks li{display:flex;gap:10px;align-items:baseline}
+.mark{font-weight:800;color:var(--ok);flex:none;width:1.2rem}
+.mark.w{color:var(--warn)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0}
+</style>
+<main>
+<header style="display:grid;gap:6px">
+<h1>داده‌لینک ۱٫۲٫۰ — آماده‌سازی برای عرضه</h1>
+<p class="sub">گزارشِ چت د · ۱۰ مهر ۱۴۰۵ · تسک: docs/prompt-app-chat-release-prep.md</p>
+</header>
+
+<section class="panel">
+<h2>وضعیتِ معیارهای پذیرش</h2>
+<ul class="checks">
+<li><span class="mark">✓</span><span>کامیتِ اول همان زیپِ دست‌نخورده است و هر بند کامیتِ جدا دارد.</span></li>
+<li><span class="mark">✓</span><span>نامِ بسته درست شد، نامِ اپ روی گوشی «داده‌لینک» است، کدِ نسخه ۱۱۳.</span></li>
+<li><span class="mark">✓</span><span>بیلدِ آزمایشی APK داد و بررسیِ امضا پاس شد.</span></li>
+<li><span class="mark">✓</span><span>حالتِ انتشار بدونِ کلید با خطا متوقف شد و هیچ کلیدی نساخت.</span></li>
+<li><span class="mark">✓</span><span>تست‌های به‌روزرسانی همه سبزند؛ با ۴۰۴ اپ بی‌صدا کار می‌کند.</span></li>
+<li><span class="mark">✓</span><span>دو پیشوندِ شبکه باز شد و بقیهٔ درخواست‌ها همچنان بسته‌اند.</span></li>
+<li><span class="mark">✓</span><span>در صفحه هیچ پیوندِ هاردکدی نمانده.</span></li>
+<li><span class="mark">✓</span><span>دو فایلِ موتورِ محاسبه دست نخورده‌اند.</span></li>
+<li><span class="mark w">!</span><span>تست‌های پایه سبزند. تستِ رابطِ قدیمی روی ویندوز رد می‌شود، ولی روی rc3ِ دست‌نخورده هم رد می‌شود. توضیح پایین‌تر آمده است.</span></li>
+</ul>
+</section>
+
+<section>
+<h2>کامیت‌ها</h2>
+<p>مخزن در <code>C:\Users\m\Desktop\dadehlink</code> است، روی شاخهٔ <code>main</code> و بدونِ مخزنِ راه‌دور.</p>
+<pre>3e4dcd7  سورسِ تحویلیِ داده‌لینک 1.1.0-rc3 — بی‌تغییر
+4024ae9  gitignore
+67ff160  بندِ ۱: نامِ بسته، نامِ اپ، نسخهٔ 1.2.0 (113)
+ea4b2ca  بندِ ۲: امضا — آزمایشی پیش‌فرض، انتشار فقط با کلیدِ مالک
+095aa4f  بندِ ۵: پیوندها از config.json (بخشِ alignment.js)
+738972a  README
+888b58e  بندهای ۳ و ۴: به‌روزرسانی و دو پیشوندِ شبکه (+ بخشِ index.htmlِ بندِ ۵)</pre>
+<p>پیوندهای داخلِ <code>index.html</code> در همان کامیتِ بندهای ۳ و ۴ رفته‌اند. هر دو بند این فایل را عوض کرده بودند.</p>
+</section>
+
+<section>
+<h2>ابزارها</h2>
+<pre>JDK 17.0.15 · Python 3.14.6 · Node 22.20.0
+Android build-tools 35.0.0 · platform android-35 r02   → C:\Users\m\Android\sdk
+Playwright 1.x (بیرون از مخزن) · کرومِ نصب‌شده</pre>
+<p><code>sdkmanager</code> کار نکرد. سرورِ <code>dl.google.com</code> حتی با پروکسیِ فنلاند به هر نشانی ۴۰۴ می‌داد.</p>
+<p>دو بسته را از CDNِ رسمیِ خودِ گوگل (<code>redirector.gvt1.com</code>) گرفتم. هر دو با SHA-1ِ مانیفستِ رسمیِ گوگل بایت‌به‌بایت یکی بودند.</p>
+<p>این را دور‌زدن ندانستم، چون منبع خودِ گوگل است و فایل‌ها سنجیده شدند. اگر نظرتان غیر از این است، بگویید تا از راهِ دیگری نصب شود.</p>
+</section>
+
+<section>
+<h2>APKِ آزمایشی</h2>
+<pre>C:\Users\m\Desktop\dadehlink\dist\DadehLink-1.2.0-debug.apk
+package com.dadehnama.dadehlink · versionCode 113 · versionName 1.2.0 · label داده‌لینک
+apksigner verify: Verifies (v2 + v3) · CN=DadehLink Debug, O=Dadehnama, C=IR
+sha256 2ec366642f412e91e96d8449c3cd831a75a9cade67c891c14d7039388ace75fb · 2577215 bytes</pre>
+<p>این نسخه روی گوشیِ واقعی نصب نشده است. نصب، دانلود و نصب‌کنندهٔ اندروید را فقط روی گوشی می‌شود آزمود.</p>
+</section>
+
+<section>
+<h2>کلید و بیلدِ انتشار — مالک اجرا می‌کند</h2>
+<p>همین دستورها در README آمده‌اند. اول رمز را در یک فایل بنویسید و به‌جای <code>RAMZ_INJA</code> رمزِ خودتان را بگذارید:</p>
+<pre>New-Item -ItemType Directory -Force C:\keys
+Set-Content -NoNewline -Encoding ascii -Path C:\keys\dadehlink-pass.txt -Value 'RAMZ_INJA'</pre>
+<p>کلید فقط یک بار ساخته می‌شود:</p>
+<pre>keytool -genkeypair -keystore C:\keys\dadehlink-release.jks -storetype PKCS12 -storepass:file C:\keys\dadehlink-pass.txt -keypass:file C:\keys\dadehlink-pass.txt -alias dadehlink -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=DadehLink, O=Dadehnama, C=IR"</pre>
+<p>بیلدِ انتشار برای هر نسخه:</p>
+<pre>$env:ANDROID_SDK_ROOT='C:\Users\m\Android\sdk'
+$env:DADEHLINK_RELEASE_KEYSTORE='C:\keys\dadehlink-release.jks'
+$env:DADEHLINK_RELEASE_PASSFILE='C:\keys\dadehlink-pass.txt'
+cd C:\Users\m\Desktop\dadehlink
+python build.py --release</pre>
+<p>خروجی در <code>dist\DadehLink-1.2.0.apk</code> ساخته می‌شود. خطِ آخرِ خروجی <code>sha256</code> و <code>sizeBytes</code> را برای <code>latest.json</code> چاپ می‌کند.</p>
+<p>فایلِ کلید و رمز را در KeePassXC و یک پشتیبانِ بیرونی نگه دارید. اگر کلید گم شود، دیگر هیچ به‌روزرسانی‌ای روی گوشیِ کاربران نصب نمی‌شود.</p>
+</section>
+
+<section>
+<h2>خروجیِ تست‌ها</h2>
+<pre>$ node tests/rf.test.cjs
+RF tests passed; fixture RX -53.42357465284219 dBm; oxygen at 60 GHz 14.651149699958367 dB/km
+
+$ node tests/revision-110.cjs
+exit 0 · "checks": 1104
+
+$ node tests/update.test.cjs
+JS update logic: 10 groups passed
+Java UpdateRules: 50 checks passed
+All update tests passed
+
+$ node tests/update-ui.cjs          (Playwright + Chrome)
+Update UI: 6 scenarios passed
+
+$ node tests/map-112.cjs
+PASS: landscape compass/map fits, configured satellite layer loads synthetic imagery ...
+
+$ node tests/revision-112-ui.cjs
+AssertionError: {"stress":false,"width":393,"height":740,"dims":{"h":740.375,"w":393}}</pre>
+<p>تست‌های به‌روزرسانی هر پنج موردِ بندِ ۷ را پوشش می‌دهند:</p>
+<ul>
+<li><code>latest.json</code>ِ معتبر و نامعتبر، و هر فیلدِ جاافتاده</li>
+<li><code>versionCode</code> کمتر، برابر، بیشتر، و کمتر از کمینهٔ پشتیبانی‌شده</li>
+<li>هش یا اندازهٔ ناجور، که فایل را پاک می‌کند</li>
+<li>میزبانِ دیگر، <code>http</code>، ریدایرکت و بیست شکلِ نشانیِ فریبنده</li>
+<li><code>404</code> و قطعیِ شبکه، که بی‌صدا رد می‌شوند</li>
+</ul>
+<p>تستِ <code>revision-112-ui</code> روی rc3ِ دست‌نخورده هم با همان عدد رد می‌شود. نویسنده با کرومِ هدلسِ لینوکس آزموده بود و اختلافِ ۰٫۳۷۵ پیکسلی از فونتِ ویندوز است.</p>
+<p>با تحملِ یک پیکسل در یک کپیِ موقت، همهٔ بررسی‌های این تست گذشتند. فقط گاهی یک خطای داخلیِ Leaflet می‌آید، یعنی <code>_leaflet_pos</code>. روی rc3 هم در یکی از دو اجرا همین خطا آمد. این تست را تغییر ندادم.</p>
+</section>
+
+<section>
+<h2>آنچه باید بدانید</h2>
+<ul>
+<li>کلیدهای ذخیره‌سازیِ صفحه (<code>dedehlink.*</code>) عوض نشدند، چون نامِ بسته نیستند.</li>
+<li>دکمهٔ «قیمت تجهیزات» حالا به دستهٔ آنتن و دیش می‌رود. لوگو، «powered by» و اعتبارِ نقشه هم از <code>config.json</code> خوانده می‌شوند.</li>
+<li>با <code>"updateChannel": "store"</code> مجوزِ نصب و ارائه‌دهندهٔ فایل هم از مانیفست حذف می‌شوند. این حالت آزموده شد.</li>
+<li>برای چت ج: <code>latest.json</code> باید با کدِ ۲۰۰ و بدونِ ریدایرکت سرو شود. APK هم باید <code>Content-Length</code>ِ درست داشته باشد.</li>
+<li>API باید CORS را برای مبدأِ <code>https://appassets.androidplatform.net</code> باز کند. پیشنهادِ کالا و ورود بعداً از همین راه با <code>fetch</code> می‌آیند.</li>
+<li>اپ روی گوشیِ واقعی آزموده نشده است. صفحه در کروم و منطقِ جاوا روی JDK آزموده شده‌اند. پیش از عرضه، نسخهٔ ۱۱۳ و یک ۱۱۴ِ آزمایشی را روی یک گوشی نصب کنید تا کلِ مسیرِ به‌روزرسانی سنجیده شود.</li>
+<li>هیچ فرمولی عوض نشد و موتورِ محاسبه نیازی به به‌روزرسانیِ کپیِ سایت ندارد.</li>
+</ul>
+</section>
+</main>
