@@ -1,0 +1,172 @@
+<title>عرضهٔ داده‌لینک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column like a field engineer's spec sheet; side notes and meters sit inside it, never beside it. */
+:root{
+  --bg:#f3f6f4; --surface:#ffffff; --fg:#17211d; --muted:#56635d; --line:#d3ddd7;
+  --accent:#0d6b5a; --accent-soft:#e1f0eb;
+  --warn:#9a5a06; --warn-soft:#fbf0dc; --bad:#a42a20; --bad-soft:#f9e3e0; --good:#2c7a3f; --good-soft:#e2f2e5;
+  --track:#e3e9e5;
+  --font-body:"Vazirmatn",Tahoma,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111815; --surface:#18211d; --fg:#e2ebe6; --muted:#9fb0a8; --line:#2b3833;
+  --accent:#5ccdb1; --accent-soft:#173a32;
+  --warn:#e2a54a; --warn-soft:#3a2c14; --bad:#f08a7f; --bad-soft:#3d1d1a; --good:#7fd08f; --good-soft:#1b3322;
+  --track:#26322d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111815; --surface:#18211d; --fg:#e2ebe6; --muted:#9fb0a8; --line:#2b3833;
+  --accent:#5ccdb1; --accent-soft:#173a32;
+  --warn:#e2a54a; --warn-soft:#3a2c14; --bad:#f08a7f; --bad-soft:#3d1d1a; --good:#7fd08f; --good-soft:#1b3322;
+  --track:#26322d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.9}
+.page{max-width:46rem;margin:0 auto;padding-inline:16px;padding-block:2.5rem 4rem;display:flex;flex-direction:column;gap:2.75rem}
+h1,h2,h3{text-wrap:balance;line-height:1.4;margin:0}
+h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.3rem;font-weight:800;padding-bottom:.5rem;border-bottom:2px solid var(--fg)}
+h3{font-size:1.02rem;font-weight:700;color:var(--accent)}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:1rem;min-width:0}
+ul,ol{margin:0;padding-inline-start:1.3rem;display:flex;flex-direction:column;gap:.45rem}
+code,.mono{font-family:var(--font-mono);font-size:.84em;direction:ltr;unicode-bidi:isolate;background:var(--accent-soft);padding:.05em .35em;border-radius:3px}
+pre{font-family:var(--font-mono);font-size:.82rem;line-height:1.7;direction:ltr;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.9rem 1rem;margin:0;overflow-x:auto}
+.lede{font-size:1.08rem;color:var(--fg)}
+.meta{color:var(--muted);font-size:.9rem}
+.defaults{display:flex;flex-wrap:wrap;gap:.5rem}
+.defaults span{font-family:var(--font-mono);font-size:.82rem;direction:ltr;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:.15rem .7rem;font-variant-numeric:tabular-nums}
+.verdict{background:var(--surface);border:1px solid var(--line);border-inline-start:4px solid var(--accent);border-radius:6px;padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.7rem}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem}
+.fact{border-top:1px solid var(--line);padding-top:.6rem;display:flex;flex-direction:column;gap:.2rem;min-width:0}
+.fact b{font-weight:700}
+.fact span{color:var(--muted);font-size:.92rem}
+.pill{display:inline-block;font-size:.78rem;font-weight:700;border-radius:999px;padding:.05rem .6rem;white-space:nowrap}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.checks{list-style:none;padding:0;gap:.75rem}
+.checks li{display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:baseline}
+.checks li>div{min-width:0}
+.meters{display:flex;flex-direction:column;gap:.55rem;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1rem 1.1rem}
+.meter{display:grid;grid-template-columns:minmax(7.5rem,10rem) 1fr 4.2rem;gap:.75rem;align-items:center;font-size:.92rem}
+.meter .bar{height:.6rem;background:var(--track);border-radius:999px;overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.meter .bar i.low{background:var(--warn)}
+.meter .bar i.none{background:var(--bad)}
+.meter .n{font-variant-numeric:tabular-nums;color:var(--muted);text-align:left;direction:ltr;font-family:var(--font-mono);font-size:.8rem}
+.group-label{font-weight:700;font-size:.85rem;color:var(--muted);letter-spacing:.02em;margin-top:.3rem}
+.note{font-size:.88rem;color:var(--muted)}
+.callout{background:var(--warn-soft);border-radius:6px;padding:.9rem 1.1rem;display:flex;flex-direction:column;gap:.4rem}
+.callout b{color:var(--warn)}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.split>div{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.5rem;min-width:0}
+.split h3{color:var(--fg)}
+.steps{list-style:none;padding:0;counter-reset:s;gap:1rem}
+.steps>li{counter-increment:s;display:grid;grid-template-columns:2.2rem 1fr;gap:.8rem;align-items:start}
+.steps>li::before{content:counter(s,persian);font-weight:800;font-size:1.05rem;color:var(--accent);border:2px solid var(--accent);border-radius:50%;width:2rem;height:2rem;display:grid;place-items:center;line-height:1}
+.steps>li>div{min-width:0;display:flex;flex-direction:column;gap:.25rem}
+.steps .who{font-size:.85rem;color:var(--muted)}
+.decisions{list-style:none;padding:0;gap:.9rem}
+.decisions>li{border-bottom:1px dashed var(--line);padding-bottom:.8rem;display:flex;flex-direction:column;gap:.25rem}
+.decisions>li:last-child{border-bottom:0}
+.decisions .rec{font-size:.9rem;color:var(--muted)}
+.decisions .rec b{color:var(--accent)}
+footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:1rem}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:480px){h1{font-size:1.55rem}.meter{grid-template-columns:1fr 3.6rem}.meter .label{grid-column:1/-1}}
+</style>
+
+<div class="page" dir="rtl" lang="fa">
+
+<header style="display:flex;flex-direction:column;gap:.9rem">
+  <p class="meta">برنامهٔ عرضه · ۹ مهر ۱۴۰۵ · مبنا: <bdi class="mono">DadehLink 1.1.0-rc3</bdi></p>
+  <h1>عرضهٔ داده‌لینک</h1>
+  <p class="lede">فرض: نسخهٔ فعلی دستِ هیچ کاربری نرسیده و از این به بعد همهٔ کار با تیمِ خودمان است. به نویسندهٔ قبلی هیچ تسکی داده نمی‌شود. دو محصول عرضه می‌شود: ماشین‌حساب روی سایت، و اپ اندرویدی که مستقیم از سایت دانلود می‌شود.</p>
+</header>
+
+<div class="verdict">
+  <h2 style="border:0;padding:0">این فرض دو گره را باز می‌کند</h2>
+  <p><b>کلیدِ امضا دیگر مشکل نیست.</b> چون کسی نسخهٔ قبلی را نصب نکرده، کلیدِ خودمان را می‌سازیم و از روزِ اول مالکش هستیم. کلیدِ نویسنده کنار می‌رود.</p>
+  <p><b>نامِ بسته را می‌شود درست کرد.</b> غلطِ تایپیِ <bdi class="mono">dedehlink</bdi> فقط تا پیش از اولین نصبِ واقعی اصلاح‌شدنی است، و الان همان لحظه است.</p>
+  <p>بقیهٔ کارهایی که قبلاً از نویسنده خواسته بودم (به‌روزرسانی از سرور، اجازهٔ شبکه، گیت) حالا کارِ خودمان است.</p>
+</div>
+
+<section>
+  <h2>معماریِ چت‌ها</h2>
+  <p>پیشنهادم یک <b>چتِ پنجم</b> است: «چت د — اپ». دلیلش ساده است: مخزنِ جدا، ابزارِ ساختِ جدا (SDKِ اندروید، پایتون، نود) و پوشهٔ کاریِ جدا. اگر به چت الف اضافه شود، زمینهٔ ذهنی‌اش روی فروشگاه شلوغ می‌شود و دو مخزن را با هم قاطی می‌کند.</p>
+  <ul class="decisions">
+    <li><b>مدیر</b><span class="rec">مثلِ همیشه. تسک‌های اپ هم در همان پوشهٔ <bdi class="mono">docs</bdi>ِ فروشگاه نوشته می‌شوند، با نامِ <bdi class="mono">prompt-app-chat-*.md</bdi>، تا همهٔ برنامه یک‌جا بماند.</span></li>
+    <li><b>چت د — اپ (تازه)</b><span class="rec">صاحبِ مخزنِ داده‌لینک: کدِ اندروید، ماشین‌حساب، بیلد، تست، و خروجیِ وب برای سایت. با یک <b>کلیدِ آزمایشی</b> امضا می‌کند، هرگز با کلیدِ اصلی.</span></li>
+    <li><b>چت الف — فنی</b><span class="rec">سمتِ فروشگاه: صفحهٔ ابزار روی سایت، و هر نشانی‌ای که اپ از سایت می‌خواهد.</span></li>
+    <li><b>چت ب — محتوا</b><span class="rec">متنِ دورِ ابزار روی سایت، صفحهٔ حریمِ خصوصی، و متنِ صفحهٔ دانلود.</span></li>
+    <li><b>چت ج — دواپس</b><span class="rec">میزبانیِ فایلِ APK و فایلِ نسخه روی سرور، و صفحهٔ دانلود.</span></li>
+    <li><b>مالک</b><span class="rec">تنها نگه‌دارندهٔ <b>کلیدِ اصلیِ امضا</b>. دستورِ امضای نسخهٔ انتشار را خودش اجرا می‌کند. کلید در KeePassXC با یک پشتیبانِ بیرون از لپ‌تاپ.</span></li>
+  </ul>
+  <div class="callout">
+    <p><b>چرا کلیدِ اصلی فقط دستِ مالک است</b></p>
+    <p>هر به‌روزرسانیِ آینده باید با همین کلید امضا شود. اگر گم شود، همهٔ کاربران باید اپ را حذف و دوباره نصب کنند و لینک‌های ذخیره‌شده‌شان می‌پرد. اگر لو برود، هر کسی می‌تواند نسخهٔ جعلی به‌جای اپِ ما بفرستد.</p>
+  </div>
+</section>
+
+<section>
+  <h2>تصمیم‌هایی که با شماست</h2>
+  <ul class="decisions">
+    <li><b>نامِ بسته اصلاح شود؟</b><span class="rec">پیشنهاد: <b>بله</b>، به <bdi class="mono">com.dadehnama.dadehlink</bdi>. فقط همین الان ممکن است.</span></li>
+    <li><b>نامِ اپ روی گوشی چه باشد؟</b> امروز لاتین است: <bdi class="mono">DadehLink</bdi>.<span class="rec">پیشنهاد: <b>«داده‌لینک»</b>، چون کاربر فارسی‌زبان است.</span></li>
+    <li><b>کانالِ انتشارِ اول</b><span class="rec">پیشنهاد: <b>دانلودِ مستقیم از سایت</b>. کافه‌بازار و مایکت بعداً، با به‌روزرسانیِ داخلیِ خاموش، چون معمولاً اجازه‌اش را نمی‌دهند.</span></li>
+    <li><b>ورودِ کاربر در نسخهٔ اول؟</b><span class="rec">پیشنهاد: <b>نه</b>. بدونِ ثبت‌نام عرضه شود؛ ورود با کدِ پیامکی در نسخهٔ بعد.</span></li>
+    <li><b>کارهای نیمه‌کارهٔ قبلی</b> (ضریبِ همکار تک، API ترب) متوقف می‌مانند.<span class="rec">⚠️ بازنویسیِ «همکار تک» روی سرور فعال است. تا اصلاح نشده، کارشناس‌ها «فروش تعدادی» را ویرایش نکنند.</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>ترتیبِ اجرا</h2>
+  <p class="note">قدم‌های ۲ و ۳ موازی‌اند و به هم بند نیستند. بقیه به ترتیب.</p>
+  <ol class="steps">
+    <li><div><b>تصمیم‌های بالا، و ساختنِ چت د.</b><span class="who">مالک</span></div></li>
+    <li><div><b>ماشین‌حساب روی سایت.</b> روی همان نشانیِ قدیمیِ <bdi class="mono">/support/link-cal</bdi>، با متن و متا. تسکش آماده است. متنِ کامل‌ترِ دورِ ابزار بعداً با چت ب.<span class="who">چت الف · تسک: <bdi class="mono">prompt-tech-chat-link-cal-web-v1.md</bdi></span></div></li>
+    <li><div><b>راه‌اندازیِ مخزن و ابزارِ ساخت.</b> مخزنِ تازه با نسخهٔ <bdi class="mono">rc3</bdi> به‌عنوانِ اولین کامیت، نصبِ SDKِ اندروید، اجرای تست‌های فعلی، و بازسازیِ همان APK با کلیدِ آزمایشی. هیچ تغییرِ قابلیتی در این قدم نیست؛ فقط ثابت می‌شود که خودمان می‌توانیم بسازیم.<span class="who">چت د · تسک: <bdi class="mono">prompt-app-chat-bootstrap.md</bdi></span></div></li>
+    <li><div><b>تغییرهای پیش از عرضه.</b><span class="who">چت د</span>
+      <ul style="margin-top:.4rem">
+        <li>نامِ بسته و نامِ اپ، طبقِ تصمیم</li>
+        <li>اسکریپتِ بیلد بدونِ کلیدِ اصلی، نسخهٔ انتشار نسازد</li>
+        <li>دکمه و بررسیِ خودکارِ به‌روزرسانی از سایت</li>
+        <li>اجازهٔ شبکه برای مسیرِ آیندهٔ API</li>
+        <li>دکمهٔ «قیمت تجهیزات» به دستهٔ آنتن، و همهٔ پیوندها با برچسبِ کارزار تا فروشِ اپ سنجیده شود</li>
+        <li>شمارشِ استفاده در آمارِ سایت، با کانالِ «اپ»</li>
+        <li>خروجیِ وبِ تکه‌تکه، تا صفحهٔ سایت سبک شود</li>
+      </ul></div></li>
+    <li><div><b>سمتِ سرور.</b> میزبانیِ فایلِ APK و فایلِ نسخه، صفحهٔ دانلود با نسخه و اثرِ انگشتِ فایل، صفحهٔ حریمِ خصوصی، و پذیرشِ رویدادهای آمارِ اپ.<span class="who">چت ج و الف، متن با چت ب</span></div></li>
+    <li><div><b>آزمونِ میدانی.</b> روی چند گوشیِ واقعی با اندرویدهای مختلف: اجازهٔ موقعیت، جی‌پی‌اس، قطب‌نما نزدیکِ دکل، نقشه روی اینترنتِ موبایلِ ایران، نصب و به‌روزرسانی از سایت.<span class="who">مالک و چند مهندسِ شرکت</span></div></li>
+    <li><div><b>انتشار.</b> مالک نسخهٔ نهایی را امضا می‌کند، چت ج بالا می‌برد، و معرفی با <b>لینکِ مستقیم</b> شروع می‌شود. همان روز درخواستِ ایندکسِ صفحهٔ ابزار در سرچ کنسول.<span class="who">مالک و چت ج</span></div></li>
+  </ol>
+</section>
+
+<section>
+  <h2>در نسخهٔ اول نیست — عمداً</h2>
+  <ul>
+    <li>پیشنهادِ کالا داخلِ اپ. اول دادهٔ عددیِ آنتن‌ها لازم است.</li>
+    <li>ورودِ کاربر</li>
+    <li>نقشهٔ ماهواره‌ای و نقشهٔ آفلاین</li>
+    <li>پستی‌وبلندیِ زمین در محاسبه</li>
+  </ul>
+</section>
+
+<section>
+  <h2>ریسک‌ها</h2>
+  <ul>
+    <li><b>دانلودِ SDKِ اندروید از ایران.</b> سرورهای گوگل معمولاً به ایران جواب نمی‌دهند. نصبِ ابزارِ ساخت احتمالاً پروکسی می‌خواهد. روی این دستگاه جاوا ۱۷، پایتون و نود هست؛ خودِ SDK نیست.</li>
+    <li><b>هشدارِ Play Protect.</b> اپی که بیرون از گوگل‌پلی نصب شود، ممکن است روی بعضی گوشی‌ها هشدار بگیرد. در آزمونِ میدانی با Play Protectِ روشن بسنجید و متنِ صفحهٔ دانلود برای کاربر توضیحش بدهد.</li>
+    <li><b>نقشه.</b> کاشی‌ها از سرورِ عمومیِ OpenStreetMap می‌آیند. برای شروع کافی است، ولی اگر استفاده زیاد شد، ارائه‌دهندهٔ جدا لازم می‌شود.</li>
+    <li><b>کدِ تحویلی را ما ننوشته‌ایم.</b> تحلیلِ قبلی فقط خواندنِ کد بود. تست‌هایش در قدمِ ۳ برای اولین بار روی دستگاهِ خودمان اجرا می‌شوند.</li>
+  </ul>
+</section>
+
+<footer>
+  تحلیلِ کاملِ اپ: <a href="https://claude.ai/artifact/ShMC4s5QmA98Kc22xyifqx">اتصالِ داده‌لینک به فروشگاه</a>. فایلِ «کارهای نویسنده» با این تصمیم منسوخ شد و محتوایش به تسک‌های چت د می‌رود.
+</footer>
+
+</div>
