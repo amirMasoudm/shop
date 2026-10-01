@@ -63,7 +63,7 @@ public class LegacyPathFallback {
     /** مسیرهایی که این فالبک هرگز نباید به آن‌ها دست بزند. */
     private static final List<String> BLOCKED_PREFIXES = List.of(
             "/api", "/l", "/error", "/actuator",
-            "/uploads", "/css", "/js", "/img", "/images", "/fonts", "/fragments");
+            "/uploads", "/css", "/js", "/img", "/images", "/fonts", "/fragments", "/tools");
 
     /** پسوندهایی که یعنی «فایل»، نه صفحه. {@code .xml} و {@code .txt} هم نقشهٔ سایت و robots را می‌پوشانند. */
     private static final List<String> BLOCKED_SUFFIXES = List.of(

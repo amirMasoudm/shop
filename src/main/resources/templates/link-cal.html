@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#f3faf5">
+    <title th:text="${seoTitle}">محاسبه لینک وایرلس</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta property="og:site_name" content="داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+    <!-- اسکیما سروری ساخته می‌شود (الگوی aboutJsonLd) — نه درون‌قالبی -->
+    <script type="application/ld+json" th:if="${linkCalJsonLd != null}" th:utext="${linkCalJsonLd}"></script>
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <link href="/tools/dadehlink/dadehlink.css" rel="stylesheet">
+    <style>
+        body { margin:0; font-family:Vazirmatn, Tahoma, sans-serif; color:#1f2937;
+               background:radial-gradient(ellipse at top left,#c2efd380,transparent 60%),#f3faf5; }
+        .lc-page { max-width:980px; margin:0 auto; padding:14px 16px 8px; }
+        .lc-page .crumb { font-size:.8rem; color:#6b7280; margin:0 0 4px; }
+        .lc-page .crumb a { color:#17406f; text-decoration:none; }
+        .lc-page h1 { font-size:1.35rem; line-height:1.6; margin:0 0 8px; color:#145632; text-align:center; }
+        .lc-text { max-width:720px; margin:22px auto 0; background:#fff; border:1px solid #d6e9dc;
+                   border-radius:16px; padding:18px 22px; line-height:2.05; font-size:.95rem; }
+        .lc-text p { margin:0 0 10px; }
+        .lc-text p:last-child { margin-bottom:0; }
+
+        footer.site-footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
+        footer.site-footer .in { max-width:980px; margin:0 auto; }
+        footer.site-footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer.site-footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+
+        @media (max-width:599px) {
+            .lc-page { padding:10px 0 8px; }
+            .lc-page .crumb, .lc-page h1 { padding:0 16px; }
+            .lc-page h1 { font-size:1.15rem; margin-bottom:4px; }
+            .lc-text { margin:18px 16px 0; padding:14px 16px; font-size:.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/learn">آموزش</a>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<main class="lc-page">
+    <nav class="crumb">
+        <a th:href="${baseUrl + '/'}">خانه</a> <span>/ محاسبه لینک وایرلس</span>
+    </nav>
+    <h1>محاسبه لینک وایرلس</h1>
+
+    <!-- رابطِ داده‌لینک — نشانه‌گذاریِ web/index.html اپ. استایل در dadehlink.css زیرِ .dl -->
+    <div class="dl"><div class="app" id="dlApp">
+<header><div class="tools"><button class="icon" id="helpBtn" aria-label="راهنما"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 2-2.5 2-2.5 4M12 16v1"/></svg></button></div><span class="version">v1.1.0-rc3</span><a class="brand" href="/" aria-label="سایت داده‌نما"><img src="/tools/dadehlink/logo.png" width="96" height="72" alt="داده‌نما"><b dir="ltr">DadehLink</b><svg class="brandDish" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 5a12 12 0 0014 14L5 5zM12 12l6-6M17 4l3 3M10 17l-2 5h10M16 17l2 5"/></svg></a></header>
+<div class="caption"><strong>محاسبهٔ لینک نقطه‌به‌نقطه<span class="subtitle" dir="ltr">PTP Link Budget</span></strong></div>
+<nav class="quicknav"><button id="alignBtn">تنظیم آنتن</button><a href="/shop/category/antenna-dish" id="pricesBtn">قیمت تجهیزات ↗</a></nav><section class="panel" aria-label="پارامترهای لینک" id="fields"></section>
+<div class="antennaTitle"><strong>آنتن‌ها <span dir="ltr">Antenna Gain</span></strong><span>گین دستی یا محاسبه از روی قطر</span></div>
+<section class="antennas" id="antennas"></section>
+<div id="error" class="error" role="alert"></div>
+<section class="result" aria-live="polite"><div class="rhead"><strong>سیگنال دریافتی</strong><small>RX Signal Level (RSL)</small></div><div class="signals" id="signals"><div class="drySignal" id="drySignal"><div class="signalLabel">☀ هوای خشک</div><div class="rx"><strong id="dryRx">—</strong><span>dBm</span></div></div><div class="activeSignal"><div class="signalLabel" id="activeLabel"></div><div class="rx"><strong id="rx">—</strong><span>dBm</span></div><div id="weakSignal" class="weakSignal"></div></div></div><div class="margin"><span id="marginLabel">حاشیه تضعیف - Fade Margin</span><b id="margin">—</b></div><div id="linkWarning" class="linkWarning"></div><div class="bar" dir="ltr"><i id="marginBar"></i></div><div class="metrics"><div>شعاع ناحیهٔ فرنل<small>وسط مسیر · ناحیهٔ اول</small><b id="fresnel">—</b></div><div>افت فضای آزاد (FSPL)<b id="fspl">—</b></div><div><span id="gasTitle">افت گازی</span><small id="gasSubtitle">Oxygen / Dry Air</small><b id="gas">—</b></div></div><div class="atmos"><span id="weather"></span><span id="weatherStatus"></span></div></section>
+<div class="bottom"><button class="primary" id="saveBtn">☆ ذخیرهٔ لینک</button><button id="favoritesBtn">لینک‌های ذخیره‌شده</button><div class="weatherControl"><input type="checkbox" id="weatherEnabled" aria-label="اعمال اثر آب‌وهوا"><button id="atmosBtn" aria-label="تنظیمات آب‌وهوا">آب‌وهوا ⚙</button></div></div>
+    </div></div>
+
+    <!-- متنِ اولیه — عیناً از تسک. متنِ کامل‌تر را بعداً چت ب می‌نویسد، در این بخش‌ها:
+         «بودجهٔ لینک چیست»، «ناحیهٔ فرنل»، «افتِ باران»، «پرسش‌های رایج». -->
+    <article class="lc-text">
+        <p>فرکانس، فاصله، توانِ رادیو و بهرهٔ آنتن‌ها را وارد کنید تا سیگنالِ دریافتی و حاشیهٔ تضعیفِ لینک را ببینید. اگر قطرِ دیش را می‌دانید، بهره از روی آن حساب می‌شود.</p>
+        <p>افتِ باران و گازهای جو طبقِ توصیه‌نامه‌های ITU و با دادهٔ بارشِ ۱۷ شهرِ ایران محاسبه می‌شود.</p>
+        <p>نتیجه برآوردِ اولیه است. ابزار پستی‌وبلندیِ زمین، ساختمان و درختِ مسیر را نمی‌بیند؛ دیدِ مستقیم را در محل بررسی کنید.</p>
+    </article>
+</main>
+
+<!-- پنجره‌ها بیرونِ <main>اند: اپ هنگامِ بازبودنِ پنجره main را inert می‌کند -->
+<div class="dl"><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="sheet" id="sheet"></div></div><div class="toast" id="toast" role="status"></div></div>
+
+<footer class="site-footer" th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; font-weight:700;">سابقه و اعتبار</a>
+            <a th:href="${baseUrl + '/support/link-cal'}" style="color:#f5b06a; font-weight:700;">محاسبه لینک وایرلس</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© داده نما</div>
+    </div>
+</footer>
+
+<script>
+window.DADEHLINK_CONFIG = {
+    pricesUrl: '/shop/category/antenna-dish',
+    streetUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    satelliteUrl: '', satelliteAttribution: '', satelliteMaxZoom: 18,
+    citiesUrl: '/tools/dadehlink/engine/cities.json',
+    vendor: {
+        geodesic: '/tools/dadehlink/vendor/geographiclib-geodesic.min.js',
+        leafletJs: '/tools/dadehlink/vendor/leaflet.js',
+        leafletCss: '/tools/dadehlink/vendor/leaflet.css'
+    }
+};
+</script>
+<script src="/tools/dadehlink/engine/rf.js"></script>
+<script src="/tools/dadehlink/app.js"></script>
+<script src="/tools/dadehlink/alignment.js"></script>
+
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-chat-widget.js"></script>
+<script src="/js/dn-track.js"></script>
+</body>
+</html>

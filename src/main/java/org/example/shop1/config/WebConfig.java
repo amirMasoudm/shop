@@ -71,6 +71,9 @@ public class WebConfig implements WebMvcConfigurer {
         // پوشهٔ /fonts/ فعلاً وجود ندارد؛ برایِ روزی که بیاید
         registry.addResourceHandler("/fonts/**").addResourceLocations("classpath:/static/fonts/")
                 .setCacheControl(STATIC_ASSETS);
+        // ابزارهای ایستا (داده‌لینک): موتور، کتابخانه‌ها و رابط
+        registry.addResourceHandler("/tools/**").addResourceLocations("classpath:/static/tools/")
+                .setCacheControl(STATIC_ASSETS);
         registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/")
                 .setCacheControl(STATIC_ASSETS);
 

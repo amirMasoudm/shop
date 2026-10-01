@@ -890,6 +890,43 @@ public class StoreWebController {
         return "learn";
     }
 
+    // ابزارِ «محاسبه لینک وایرلس» — اپِ داده‌لینک، کامل در خودِ سایت.
+    // 🔴 نشانی عمداً همان نشانیِ ابزارِ سایتِ قدیمی است (۳۴۲ کلیک و جایگاهِ ۵ در ۱۶ ماه).
+    // موتورِ محاسبه در static/tools/dadehlink/engine/ بایت‌به‌بایت از اپ کپی شده و این‌جا
+    // ویرایش نمی‌شود — شرحش در VERSION همان پوشه و docs/prompt-tech-chat-dadehlink-in-shop.md.
+    @GetMapping("/support/link-cal")
+    public String linkCalPage(Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+        String baseUrl = buildBaseUrl(request);
+        String canonical = baseUrl + "/support/link-cal";
+        String title = "محاسبه لینک وایرلس — ابزار رایگان بودجه لینک رادیویی | داده نما";
+        String description = "محاسبهٔ رایگانِ بودجهٔ لینکِ رادیویی: سیگنالِ دریافتی، حاشیهٔ تضعیف، ناحیهٔ فرنل و افتِ باران برای شهرهای ایران. بدونِ ثبت‌نام، روی موبایل و دسکتاپ.";
+        model.addAttribute("seoTitle", title);
+        model.addAttribute("seoDescription", description);
+        model.addAttribute("canonicalUrl", canonical);
+        model.addAttribute("linkCalJsonLd", buildLinkCalJsonLd(baseUrl, canonical, description));
+        return "link-cal";
+    }
+
+    private String buildLinkCalJsonLd(String baseUrl, String canonical, String description) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[");
+        sb.append("{\"@type\":\"WebApplication\",\"name\":\"محاسبه لینک وایرلس\"")
+                .append(",\"url\":\"").append(esc(canonical)).append("\"")
+                .append(",\"description\":\"").append(esc(description)).append("\"")
+                .append(",\"applicationCategory\":\"UtilitiesApplication\"")
+                .append(",\"operatingSystem\":\"Any\"")
+                .append(",\"inLanguage\":\"fa\"")
+                .append(",\"offers\":{\"@type\":\"Offer\",\"price\":0,\"priceCurrency\":\"IRR\"}}");
+        sb.append(",{\"@type\":\"BreadcrumbList\",\"itemListElement\":[")
+                .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"خانه\",\"item\":\"")
+                .append(esc(baseUrl)).append("/\"},")
+                .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"محاسبه لینک وایرلس\",\"item\":\"")
+                .append(esc(canonical)).append("\"}]}");
+        sb.append("]}");
+        return sb.toString();
+    }
+
     @GetMapping("/about")
     public String aboutPage(Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
@@ -1058,6 +1095,9 @@ public class StoreWebController {
 
         // صفحه‌ی آموزش
         xml.append("<url><loc>").append(baseUrl).append("/learn</loc><priority>0.6</priority></url>");
+
+        // ابزارِ محاسبهٔ لینک
+        xml.append("<url><loc>").append(baseUrl).append("/support/link-cal</loc><priority>0.7</priority></url>");
 
         // بلاگ و مقالات منتشرشده
         xml.append("<url><loc>").append(baseUrl).append("/blog</loc><priority>0.7</priority></url>");

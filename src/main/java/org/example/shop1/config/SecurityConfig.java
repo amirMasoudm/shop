@@ -89,13 +89,13 @@ public class SecurityConfig {
                         // دیتابیس خوانده می‌شود و هیچ پارامترِ کوئری‌ای در آن نقش ندارد.
                         .requestMatchers(HttpMethod.GET, "/l/*").permitAll()
 
-                        .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/shop/product/**", "/shop/category/**", "/shop/course/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
+                        .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/support/link-cal", "/shop/product/**", "/shop/category/**", "/shop/course/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         // پوشهٔ واقعیِ تصاویرِ ثابت `/img/` است؛ `/images/**` هرگز وجود نداشت و
                         // به همین دلیل لوگو در کلِ سایت ۴۰۱ می‌گرفت.
                         // ⚠️ /fragments/** هم باید همینجا باشد: مارک‌آپِ خامِ تبِ محصولات
                         // (products-tab-fragment.html) را products-tab.js با fetch می‌گیرد؛
                         // بدونِ این خط، ۴۰۱ می‌گرفت چون به anyRequest().authenticated() پایین می‌افتاد.
-                        .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**", "/fragments/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/fonts/**", "/img/**", "/images/**", "/uploads/**", "/fragments/**", "/tools/**").permitAll()
 
                         // ⛔ مسیرهای ادمینِ API باید «قبل از» permitAll عمومی بیایند (اولین match برنده است)
                         .requestMatchers("/api/v1/product-redirects/**").hasRole("ADMIN")

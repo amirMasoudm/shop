@@ -1,0 +1,440 @@
+/* رابطِ داده‌لینک ۱.۱.۰-rc3 — استایلِ خودِ اپ (web/index.html)، بی‌تغییر در مقدار.
+   تنها تفاوت: هر قاعده زیرِ .dl نشسته تا به هدر و فوترِ سایت نشت نکند
+   (اپ :root و body و header و footer را مستقیم استایل می‌داد).
+   اختصاصیتِ همهٔ قاعده‌ها یکسان یک کلاس بالا رفته، پس ترتیبِ برنده‌شدن همان است. */
+.dl,.dl *{box-sizing:border-box}
+.dl{font-family:Tahoma,Arial,sans-serif;color:#163e30;background:#f3faf5;font-size:13px;--blue:#09834e;--line:#cfe4d7}
+.dl{margin:0;background:radial-gradient(ellipse at top left,#c2efd380,transparent 60%),#f3faf5}
+.dl button,.dl input,.dl select{font:inherit}
+.dl button,.dl a,.dl input,.dl select{-webkit-tap-highlight-color:transparent}
+.dl button{cursor:pointer}
+.dl button:focus-visible,.dl a:focus-visible,.dl input:focus-visible,.dl select:focus-visible{outline:2px solid #0a8150;outline-offset:2px}
+.dl a{color:inherit;text-decoration:none}
+.dl .app{max-width:450px;margin:auto;padding:10px 14px 8px}
+.dl header{position:relative;text-align:center;margin-bottom:8px}
+.dl .brand{display:inline-flex;flex-direction:column;align-items:center;gap:1px}
+.dl .brand img{width:47px;height:36px;object-fit:contain}
+.dl .brand b{font-family:Arial,sans-serif;font-size:22px;letter-spacing:-.7px;color:#104c31;line-height:25px}
+.dl .credit{font-size:9px;color:#577262;margin-top:2px}
+.dl .version{position:absolute;left:0;top:8px;font:10px Arial;color:#577262;border:1px solid var(--line);border-radius:20px;padding:5px 8px}
+.dl .tools{position:absolute;right:0;top:2px;display:flex;gap:3px}
+.dl .icon{border:1px solid var(--line);background:#fff;border-radius:12px;width:34px;height:34px;display:grid;place-items:center;color:#3d6951}
+.dl .icon svg{width:17px;height:17px}
+.dl .caption{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#52715d;margin-bottom:8px}
+.dl .caption strong{font-size:12px;color:#155c3c}
+.dl .pill{background:#d9f3e3;color:#0c7244;padding:4px 7px;border-radius:20px;font-size:9px}
+.dl .panel{background:#fff;border:1px solid var(--line);border-radius:17px;padding:4px 13px;box-shadow:0 5px 20px #24533508}
+.dl .field{padding:6px 0 2px;border-bottom:1px solid #e6f0e9}
+.dl .field:last-child{border:0}
+.dl .fieldtop{display:flex;align-items:center;justify-content:space-between;height:29px}
+.dl label{font-weight:bold;font-size:11px}
+.dl .eng{display:inline-block;font:9px Arial;color:#546f60;margin-right:5px}
+.dl .numeric{direction:ltr;display:flex;gap:6px;align-items:center}
+.dl .numeric input{width:67px;text-align:center;color:#096e40;border:1px solid #c9e4d3;background:#f1faf4;border-radius:8px;height:29px;font:600 15px Arial;padding:2px}
+.dl .numeric span{font:10px Arial;color:#577766;width:28px}
+.dl input[type=range]{width:100%;height:22px;margin:0;accent-color:var(--blue);direction:ltr;cursor:pointer}
+.dl input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(90deg,#0e9456 var(--fill,30%),#d9eade var(--fill,30%))}
+.dl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;background:#fff;border:4px solid #087d47;border-radius:50%;margin-top:-5.5px;box-shadow:0 0 0 3px #0b875222}
+.dl input[type=range]{-webkit-appearance:none;background:transparent}
+.dl .antennaTitle{display:flex;justify-content:space-between;align-items:center;margin:10px 1px 6px}
+.dl .antennaTitle strong{font-size:11px}
+.dl .antennaTitle span{font-size:9px;color:#8296a3}
+.dl .antennas{display:grid;grid-template-columns:1fr 1fr;gap:8px;direction:ltr}
+.dl .antenna{direction:rtl;background:white;border:1px solid var(--line);border-radius:15px;padding:8px 10px}
+.dl .anttop{display:flex;justify-content:space-between;align-items:center;font-size:10px}
+.dl .site{color:#3b7150;font:11px Arial}
+.dl .modebtn{border:0;border-radius:6px;padding:4px 6px;color:#097648;background:#e0f4e8;font-size:9px}
+.dl .antgain{display:flex;direction:ltr;align-items:baseline;justify-content:center;gap:4px;margin-top:3px}
+.dl .antgain input{font:bold 23px Arial;color:#155537;width:65px;min-width:0;text-align:center;border:0;background:transparent;padding:0;height:31px}
+.dl .antgain span{font:10px Arial;color:#597565}
+.dl .antmeta{text-align:center;font-size:9px;color:#55725f;height:15px}
+.dl .losses{display:flex;justify-content:space-between;align-items:center;margin-top:4px;padding-top:5px;border-top:1px solid #e6f0e9;font-size:9px;color:#4c735a}
+.dl .losses .numeric input{width:43px;height:24px;font-size:12px}
+.dl .losses .numeric span{width:14px;font-size:9px}
+.dl .result{margin-top:10px;background:linear-gradient(125deg,#e6f8eb,#d6f1df);border:1px solid #95d1ae;border-radius:17px;padding:10px 13px}
+.dl .rhead{display:flex;align-items:center;justify-content:space-between;font-size:11px}
+.dl .rhead small{font:9px Arial;color:#3b6b50}
+.dl .rx{direction:ltr;display:flex;align-items:baseline;justify-content:center;gap:6px;margin:3px 0}
+.dl .rx strong{font:600 39px Arial;letter-spacing:-1px;color:#086237}
+.dl .rx span{font:12px Arial;color:#417655}
+.dl .margin{display:flex;justify-content:space-between;align-items:center;font-size:10px;padding:3px 0 6px}
+.dl .margin b{font:bold 14px Arial;direction:ltr}
+.dl .bar{height:4px;background:#bddfc9;border-radius:5px;overflow:hidden;margin-bottom:8px}
+.dl .bar i{height:100%;display:block;transition:width .15s;background:#15904f;direction:ltr}
+.dl .metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #aed5bc;padding-top:7px;text-align:center;font-size:8px;color:#3f6e50}
+.dl .metrics b{display:block;margin-top:4px;font:600 12px Arial;color:#165b36;direction:ltr}
+.dl .metrics>div+div{border-right:1px solid #aed5bc}
+.dl .atmos{display:flex;align-items:center;justify-content:space-between;margin-top:7px;font-size:9px;color:#4e745b}
+.dl .linkbtn{border:0;background:none;padding:3px;color:#097747;font-size:9px}
+.dl .bottom{display:flex;gap:7px;margin-top:9px}
+.dl .bottom button{flex:1;border:1px solid var(--line);background:white;border-radius:11px;height:34px;color:#326a49;font-size:10px}
+.dl .bottom .primary{background:#087b43;color:white;border-color:#087b43}
+.dl footer{text-align:center;font-size:8px;color:#5a7665;margin-top:7px;line-height:1.5}
+.dl .error{display:none;color:#ad3131;background:#fff1ee;border-radius:8px;font-size:10px;padding:5px 8px;margin-top:5px}
+.dl .error.visible{display:block}
+.dl input:invalid{border-color:#d78378!important}
+.dl .modal{position:fixed;inset:0;z-index:10;background:#123b2866;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.dl .modal.open{display:flex}
+.dl .sheet{background:white;border-radius:22px;padding:20px;width:100%;max-width:390px;max-height:90dvh;overflow:auto;box-shadow:0 20px 80px #183d2830}
+.dl .sheet h2{font-size:17px;margin:0 0 6px}
+.dl .sheet p{font-size:11px;line-height:1.9;color:#4e715b}
+.dl .sheet .row{display:flex;align-items:center;justify-content:space-between;margin:12px 0;font-size:12px;gap:8px}
+.dl .sheet input[type=number],.dl .sheet input[type=text],.dl .sheet select{border:1px solid #c6dfce;border-radius:9px;padding:9px;max-width:150px;direction:ltr;color:#245e3c;background:#f7fcf8}
+.dl .sheet button.action{width:100%;border:0;background:#0c8048;color:white;border-radius:11px;padding:12px;margin-top:7px}
+.dl .sheet button.cancel{background:#e8f3eb;color:#3f7450}
+.dl .preview{text-align:center;background:#e7f6ec;padding:15px;border-radius:12px;font-size:12px;line-height:2}
+.dl .preview b{font:600 27px Arial;color:#097246}
+.dl .savedrow{display:flex;gap:5px;margin:8px 0}
+.dl .savedrow button{border:1px solid #cfe5d7;border-radius:8px;padding:10px;background:#eff8f2;color:#286440}
+.dl .savedrow .load{flex:1;text-align:right}
+.dl .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#17492e;color:white;padding:10px 18px;border-radius:12px;font-size:12px;display:none;z-index:30;white-space:nowrap}
+.dl .toast.on{display:block}
+@media(min-width:600px){.dl .app{margin:20px auto;border:1px solid #cce3d4;border-radius:26px;background:#f3faf5;box-shadow:0 20px 60px #28583a12;padding:17px 20px}
+.dl .field{padding-top:8px;padding-bottom:5px}}
+@media(max-height:860px) and (max-width:599px){.dl .app{padding-top:5px}
+.dl .brand img{height:27px;width:37px}
+.dl .brand b{font-size:20px;line-height:22px}
+.dl header{margin-bottom:5px}
+.dl .caption{margin-bottom:5px}
+.dl .field{padding-top:2px}
+.dl .fieldtop{height:27px}
+.dl input[type=range]{height:19px}
+.dl .antennaTitle{margin-top:7px}
+.dl .antenna{padding:6px 9px}
+.dl .result{margin-top:7px;padding:7px 12px}
+.dl .rx strong{font-size:34px}
+.dl .bottom{margin-top:6px}
+.dl .bottom button{height:32px}
+.dl footer{margin-top:4px}}
+@media(max-height:700px) and (max-width:599px){.dl .field{padding:0}
+.dl .fieldtop{height:26px}
+.dl input[type=range]{height:16px;display:block}
+.dl .numeric input{height:25px}
+.dl .panel{padding-top:2px;padding-bottom:2px}
+.dl .antenna{padding:5px 9px}
+.dl .antgain input{height:27px;font-size:22px}
+.dl .losses{padding-top:3px;margin-top:2px}
+.dl .result{padding:6px 11px}
+.dl .margin{padding-bottom:4px}
+.dl .metrics{padding-top:5px}
+.dl .bar{margin-bottom:5px}
+.dl .atmos{margin-top:4px}
+.dl .rx strong{font-size:32px}
+.dl .bottom button{height:30px}}
+@media(max-height:620px) and (max-width:599px){.dl header{margin-bottom:3px}
+.dl .brand img{height:22px;width:30px}
+.dl .brand b{font-size:17px;line-height:19px}
+.dl .credit{font-size:8px}
+.dl .caption{margin-bottom:3px}
+.dl .fieldtop{height:24px}
+.dl input[type=range]{height:13px}
+.dl .antennaTitle{margin-top:5px;margin-bottom:4px}
+.dl .antenna{padding:4px 7px}
+.dl .antmeta{font-size:8px;height:12px}
+.dl .losses .numeric input{height:21px}
+.dl .result{margin-top:5px;padding:5px 10px}
+.dl .rx{margin:0}
+.dl .rx strong{font-size:29px}
+.dl .metrics b{margin-top:2px}
+.dl .metrics{font-size:7px}
+.dl .bottom{margin-top:5px}
+.dl footer{font-size:7px;margin-top:3px}
+.dl .eng{font-size:8px}
+.dl .app{padding-left:10px;padding-right:10px}}
+.dl{--blue:#087b43;--line:#c8e0d0;color:#193e29}
+.dl label{font-size:12px}
+.dl .eng{font-size:10px;font-weight:600;color:#456954}
+.dl .brand b{color:#145632}
+.dl .caption strong{font-size:12px}
+.dl .subtitle{display:block;font:bold 11px Arial;color:#35764d;margin-top:2px}
+.dl .website{display:block;margin:5px auto 0;color:#076c3c;font:600 11px Arial;text-underline-offset:3px}
+.dl .antennas{position:relative;gap:48px}
+.dl .antenna{padding-left:7px;padding-right:7px}
+.dl .calculator{position:absolute;left:50%;top:28px;transform:translateX(-50%);width:45px;padding:5px 1px;background:#0a8047;border:1px solid #086139;border-radius:11px;color:#fff;box-shadow:0 3px 9px #0a80472b;display:flex;align-items:center;flex-direction:column;gap:4px}
+.dl .calculator svg{width:23px;height:27px}
+.dl .calculator span{font-size:7px;white-space:nowrap}
+.dl .modebtn{font-size:9px}
+.dl .site{font-weight:bold}
+.dl .antmeta{font-size:8px}
+.dl .antgain input{font-size:25px;color:#145632}
+.dl .losseng{display:block;font:9px Arial;margin-top:2px}
+.dl .losses{gap:1px}
+.dl .losses .numeric{gap:2px}
+.dl .losses .numeric input{width:33px}
+.dl .metrics{font-size:9px;color:#244f35;align-items:end}
+.dl .metrics small{display:block;font-size:8px;font-weight:normal;margin-top:2px}
+.dl .metrics b{font-size:14px;font-weight:bold}
+.dl .rhead strong{font-size:12px}
+.dl .margin{font-size:10px;font-weight:bold}
+.dl .margin b{font-size:15px}
+.dl .rx strong{font-weight:700}
+.dl .panel{border-color:#b9d9c4}
+.dl .result{border:1px solid #8acaa1}
+.dl .bottom button{font-weight:bold;color:#1b6240}
+.dl .bottom .primary{color:white}
+.dl .dialogEnglish{font:12px Arial;color:#35734d;margin-bottom:17px}
+.dl .sheet .field{padding-top:8px;padding-bottom:7px}
+.dl .sheet .fieldtop{height:40px}
+.dl .sheet .numeric input{max-width:85px;width:85px}
+.dl .sheet .fieldtop label{font-size:11px}
+.dl .sheet .fieldtop .eng{display:block;font-size:10px;margin-top:3px}
+.dl .sheet input[type=range]{height:28px}
+.dl .sheet .preview{margin-top:15px}
+.dl .sheet p{color:#385d45}
+.dl .sheet button:disabled{opacity:.4;cursor:default}
+.dl .applySites label{direction:ltr}
+.dl .applySites input{accent-color:#0b8047;width:18px;height:18px;vertical-align:middle}
+.dl .syncNote{font-size:10px!important}
+.dl .error{font-size:10px}
+.dl .sheet input[data-numeric]{border:1px solid #c6dfce;border-radius:9px;padding:8px;max-width:150px;direction:ltr;color:#245e3c;background:#f7fcf8}
+@media(max-width:350px){.dl .eng{font-size:9px}
+.dl .fieldtop label{font-size:11px}
+.dl .antennas{gap:44px}
+.dl .losses label{font-size:8px!important}
+.dl .antennaTitle span{font-size:8px}
+.dl .antmeta{font-size:7px}
+.dl .metrics{font-size:8px}
+.dl .metrics b{font-size:12px}
+.dl .anttop{flex-wrap:wrap;gap:3px;justify-content:center}
+.dl .modebtn{font-size:8px}
+.dl .calculator{top:31px}}
+@media(max-height:700px) and (max-width:599px){.dl .subtitle{font-size:10px}
+.dl .website{font-size:10px;margin-top:3px}
+.dl .metrics small{font-size:7px}
+.dl .antmeta{height:13px}
+.dl .losseng{font-size:8px}
+.dl .antgain input{font-size:22px}
+.dl .metrics b{font-size:12px}
+.dl .fieldtop label{font-size:11px}
+.dl .eng{font-size:9px}
+.dl .calculator{top:24px}}
+@media(max-height:620px) and (max-width:599px){.dl .brand img{height:20px}
+.dl .caption strong{font-size:11px}
+.dl .subtitle{font-size:9px}
+.dl .fieldtop{height:23px}
+.dl .metrics{font-size:8px}
+.dl .metrics small{font-size:7px}
+.dl .antennas{gap:44px}
+.dl .antgain input{height:24px}
+.dl .antmeta{height:11px}
+.dl .losses{padding-top:2px}
+.dl .bottom button{height:28px}
+.dl .website{font-size:9px}
+.dl .rhead strong{font-size:11px}
+.dl .rx strong{font-size:28px}
+.dl .result{padding-top:4px;padding-bottom:4px}
+.dl .atmos{margin-top:2px}
+.dl .anttop{flex-wrap:nowrap}
+.dl .site{font-size:9px}
+.dl .modebtn{font-size:7px}
+.dl .losseng{font-size:7px}
+.dl .antmeta{font-size:7px}}
+@media(max-height:700px) and (max-width:599px){.dl .panel input[type=range]{height:13px}}
+.dl .antennaTitle span{color:#496f57}
+.dl .brand{flex-direction:row;gap:7px;height:37px;direction:rtl}
+.dl .brand img{width:42px;height:32px}
+.dl .brand b{font-size:22px;line-height:28px}
+.dl .caption{justify-content:center;margin-bottom:5px}
+.dl .caption strong{display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;font-size:11px}
+.dl .subtitle{display:inline;margin:0;font-size:10px}
+.dl header{margin-bottom:3px}
+.dl .rhead small{direction:ltr;font-size:10px;color:#285d40}
+.dl .margin{gap:6px}
+.dl .margin span{line-height:1.5}
+.dl .margin b{flex-shrink:0}
+@media(max-width:350px){.dl .caption strong{font-size:10px;gap:4px}
+.dl .subtitle{font-size:9px}
+.dl .brand b{font-size:19px}
+.dl .brand img{width:33px;height:26px}
+.dl .version{padding:4px}
+.dl .rhead small{font-size:9px}}
+@media(max-height:530px) and (max-width:599px){.dl .brand{height:29px}
+.dl .brand img{height:24px}
+.dl .brand b{font-size:18px}
+.dl .antennaTitle{margin-top:3px}
+.dl .fieldtop{height:22px}
+.dl .result{margin-top:3px}
+.dl .atmos{margin-top:0}
+.dl .bottom{margin-top:3px}
+.dl .caption{margin-bottom:2px}
+.dl footer{line-height:1.2}
+.dl .metrics{padding-top:3px}
+.dl .website{margin-top:2px}
+.dl .bar{margin-bottom:3px}}
+@media(max-height:530px) and (max-width:599px){.dl .panel input[type=range]{height:9px}
+.dl .panel .fieldtop{height:21px}}
+.dl .brandDish{width:21px;height:25px;color:#15764a}
+.dl .brand{gap:5px}
+.dl .brand b{font-size:21px}
+.dl .signals{display:block}
+.dl .drySignal{display:none}
+.dl .signals.dual{display:grid;grid-template-columns:1fr 1fr;direction:ltr;margin-top:6px}
+.dl .dual .drySignal{display:block;border-right:1px solid #abd3b8}
+.dl .signalLabel{direction:rtl;text-align:center;font-size:10px;color:#376749}
+.dl .signalLabel:empty{display:none}
+.dl .dual .rx strong{font-size:29px}
+.dl .dual .drySignal .rx strong{font-size:25px}
+.dl .weakSignal,.dl .linkWarning{color:#b53c35;text-align:center;font-size:9px}
+.dl .weakSignal:empty,.dl .linkWarning:empty{display:none}
+.dl .linkWarning{margin-bottom:4px;text-align:right}
+.dl .weatherControl{flex:1;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:11px;background:#fff;min-width:0}
+.dl .bottom .weatherControl button{border:0;flex:initial;background:none;padding:0 3px;font-size:10px}
+.dl .weatherControl input{accent-color:#087b43;width:17px;height:17px;margin:0 3px;cursor:pointer}
+.dl .weatherSheet{background:#f3faf5;max-width:450px;padding:18px}
+.dl .weatherHeader{display:flex;justify-content:space-between;align-items:center}
+.dl .weatherHeader h2{margin:0}
+.dl .weatherContext{font:bold 13px Arial;color:#35764d}
+.dl .weatherSheet p{margin:7px 0;font-size:10px}
+.dl .weatherSheet .field{padding:6px 0}
+.dl .weatherSheet .fieldtop{height:34px}
+.dl .weatherSheet .numeric input{width:74px;height:32px;padding:5px}
+.dl .weatherSheet .fieldtop .eng{display:inline;font-size:9px}
+.dl .weatherSheet .numeric span{width:33px}
+.dl .weatherSheet input[type=range]{height:23px}
+.dl .effect{font-size:10px;color:#437054;min-height:15px}
+.dl .weatherOptions{margin:9px 0!important}
+.dl .weatherOptions input{accent-color:#087b43}
+.dl .weatherOptions select{padding:5px;max-width:95px}
+.dl .weatherSummary{border:1px solid #95caaa;border-radius:14px;background:#dff3e6;padding:8px 12px}
+.dl .weatherSummary>div{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:11px}
+.dl .weatherSummary b{font:600 13px Arial}
+.dl .weatherSummary .totalLoss{border-top:1px solid #b3d7bf;margin-top:3px;padding-top:9px}
+.dl .weatherSheet .modelNote{font-size:9px;line-height:1.8}
+.dl .weatherSheet button.action{padding:11px}
+.dl .weatherSheet .panel{box-shadow:none}
+.dl .modal:has(.weatherSheet){padding:10px}
+.dl .weatherSheet{max-height:96dvh}
+@media(max-width:350px){.dl .brand b{font-size:18px}
+.dl .brandDish{width:17px}
+.dl .brand{gap:3px}
+.dl .dual .rx strong{font-size:25px}
+.dl .weatherSheet{padding:12px}
+.dl .weatherSheet .fieldtop .eng{display:block}}
+.dl .signalLabel svg{width:15px;height:15px;vertical-align:middle}
+.dl .weatherSheet .numeric input{width:85px;max-width:85px;font-size:14px;padding:4px}
+.dl .weatherActions{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.dl .weatherActions button{font-size:11px}
+.dl .quicknav{display:flex;gap:8px;margin:6px 0}
+.dl .quicknav>*{flex:1;border:1px solid #cfe4d7;background:#fff;border-radius:10px;padding:8px;text-align:center;color:#176342;font-size:11px}
+.dl .website{font-size:10px!important;color:#708779!important;font-weight:normal!important}
+.dl .gainSheet{padding:14px}
+.dl .gainSheet h2{font-size:15px}
+.dl .gainSheet .dialogEnglish{font-size:10px;margin:0 0 6px}
+.dl .gainSheet .field{padding:3px 0}
+.dl .gainSheet .preview{padding:5px;margin-top:6px;line-height:1.4}
+.dl .gainSheet .preview b{font-size:25px}
+.dl .gainSheet p{margin:5px 0;font-size:9px;line-height:1.4}
+.dl .gainSheet .row{margin:6px 0}
+.dl .gainActions{display:flex;gap:8px}
+.dl .gainActions button.action{padding:9px;margin-top:3px}
+.dl .gainSheet .numeric input{height:29px;padding:3px;width:74px}
+.dl .cityrow{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:10px}
+.dl .cityrow select{flex:1;padding:5px;direction:rtl}
+.dl .cityrow span{font-size:9px}
+.dl .smallNotice{font-size:9px;color:#a45822}
+.dl .weatherSheet{padding:12px}
+.dl .weatherSheet .field{padding:3px 0}
+.dl .weatherSheet .fieldtop{height:29px}
+.dl .weatherSheet input[type=range]{height:19px}
+.dl .weatherSummary>div{padding:4px 0}
+.dl .weatherOptions{margin:5px 0!important}
+.dl .weatherSheet footer{margin-top:5px}
+.dl .modal{height:var(--visible-height,100dvh);bottom:auto}
+.dl .sheet{max-height:calc(var(--visible-height,100dvh) - 20px)}
+@media(max-height:650px){.dl .weatherSheet .fieldtop{height:26px}
+.dl .weatherSheet .numeric input{height:25px}
+.dl .weatherSheet input[type=range]{height:14px}
+.dl .weatherSheet .effect{font-size:9px;min-height:12px}
+.dl .weatherSummary>div{padding:3px 0}
+.dl .weatherSheet h2{font-size:15px}
+.dl .weatherSheet .weatherContext{font-size:11px}
+.dl .weatherSheet button.action{padding:8px}
+.dl .quicknav>*{padding:5px}}
+@media(max-height:700px) and (max-width:599px){.dl .app{padding-top:3px;padding-bottom:3px}
+.dl .brand{height:30px}
+.dl .quicknav{margin:4px 0}
+.dl .fieldtop{height:24px}
+.dl .numeric input{height:25px}
+.dl .antennaTitle{margin:5px 0 3px}
+.dl .result .metrics{padding-top:5px}
+.dl .dual .rx strong{font-size:26px}
+.dl .dual .drySignal .rx strong{font-size:23px}}
+.dl{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.dl .app{padding:6px 12px 6px;line-height:1.35}
+.dl .app header{height:32px;margin:0 0 2px}
+.dl .app .brand{height:32px}
+.dl .app .brand b{font-size:21px}
+.dl .app .brand img{height:30px;width:39px}
+.dl .app .caption{display:none}
+.dl .app .version{font-size:8px;padding:4px 5px;top:10px}
+.dl .app .tools{top:1px}
+.dl .app .icon{width:34px;height:34px}
+.dl .app .quicknav{margin:0 0 4px;gap:8px}
+.dl .app .quicknav>*{padding:7px 4px;min-height:34px;font-size:11px}
+.dl .app #fields{padding:2px 12px}
+.dl .app #fields .field{padding:2px 0 8px}
+.dl .app #fields .fieldtop{height:32px}
+.dl .app #fields .numeric input{height:32px;width:68px;font-size:16px}
+.dl .app #fields label{font-size:11px}
+.dl .app #fields .eng{font-size:9px}
+.dl .app #fields input[type=range]{display:block;height:24px;margin:0;width:100%;touch-action:pan-y}
+.dl .app #fields .field:last-child{padding-bottom:4px}
+.dl .app .antennaTitle{margin:3px 0 2px}
+.dl .app .antennaTitle strong{font-size:10px}
+.dl .app .antennaTitle span{font-size:8px}
+.dl .app .antennas{gap:46px}
+.dl .app .antenna{padding:6px 7px}
+.dl .app .anttop{flex-wrap:nowrap}
+.dl .app .site{font-size:10px}
+.dl .app .modebtn{font-size:8px;padding:4px}
+.dl .app .antgain{margin-top:2px}
+.dl .app .antgain input{height:28px;font-size:25px}
+.dl .app .antmeta{height:13px;font-size:8px}
+.dl .app .losses{margin-top:3px;padding-top:4px}
+.dl .app .losses .numeric input{height:26px}
+.dl .app .losseng{display:none}
+.dl .app .calculator{top:23px}
+.dl .app .result{position:relative;margin-top:5px;padding:5px 11px}
+.dl .app .signals,.dl .app .signals.dual{height:67px;margin:3px 0 0;align-items:start}
+.dl .app .signals.dual{display:grid;grid-template-columns:1fr 1fr}
+.dl .app .signalLabel,.dl .app .signalLabel:empty{display:block;height:17px;line-height:17px;font-size:10px}
+.dl .app .rx{margin:1px 0;height:34px;line-height:1}
+.dl .app .rx strong,.dl .app .dual .rx strong,.dl .app .dual .drySignal .rx strong{font-size:29px;line-height:34px}
+.dl .app .rx span{font-size:11px}
+.dl .app .weakSignal,.dl .app .weakSignal:empty{display:block;height:14px;line-height:14px;font-size:9px}
+.dl .app .linkWarning,.dl .app .linkWarning:empty{display:block;position:absolute;top:77px;left:11px;right:11px;height:13px;line-height:13px;margin:0;font-size:9px;text-align:center}
+.dl .app .margin{padding:0;height:23px;font-size:10px}
+.dl .app .margin b{font-size:15px}
+.dl .app .bar{margin:3px 0 5px}
+.dl .app .metrics{padding-top:5px;font-size:8px;min-height:42px}
+.dl .app .metrics small{display:block;font-size:7px;line-height:1.3}
+.dl .app .metrics b{font-size:13px;margin-top:2px}
+.dl .app .atmos{margin-top:4px;font-size:8px;min-height:13px;white-space:nowrap}
+.dl .app .bottom{margin-top:6px;gap:6px}
+.dl .app .bottom button{height:34px;font-size:9px}
+.dl .app footer{margin-top:5px;line-height:1.4}
+.dl .app .website{margin:0;font-size:9px!important}
+@media(max-width:380px){.dl .app .antmeta{display:none}
+.dl .app .antennaTitle span{display:none}
+.dl .app .result .metrics small{display:none}
+.dl .app .metrics{min-height:35px}}
+.dl .presetNote{font-size:9px;color:#607b69;margin-bottom:5px}
+.dl .weatherSheet .field{padding:2px 0}
+.dl .weatherSheet .effect{min-height:13px;font-size:9px;line-height:13px}
+.dl .weatherSheet input[type=range]{display:block;height:20px}
+.dl .weatherSummary>div{padding:3px 0}
+.dl .weatherSheet .cityrow{margin:4px 0}
+.dl #totalLoss{color:#c62828}
+.dl .lossHigh{color:#c62828!important}
+@media(min-height:820px) and (min-width:351px){.dl .app #fields .field{padding-top:6px;padding-bottom:12px}
+.dl .app .result{padding-top:9px;padding-bottom:9px}
+.dl .app .antenna{padding-top:8px;padding-bottom:8px}}
+
+/* ── فقط در سایت ─────────────────────────────────────────────── */
+/* نوارِ بالای سایت چسبان است با z-index ۱۱۰۰؛ پنجره‌ها باید رویش بیایند. */
+.dl .modal{z-index:1200}
+/* پس‌زمینهٔ اپ روی body بود؛ این‌جا روی body صفحه می‌نشیند تا دورِ ابزار قاب نیندازد. */
+.dl{background:none}
+.dl .toast{z-index:1300}
+/* حبابِ چتِ سایت (z-index ۹۹۹۸) روی دکمهٔ «انصراف» پنجره‌ها می‌نشست؛ تا پنجره باز است کنار می‌رود. */
+body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-panel{display:none!important}
