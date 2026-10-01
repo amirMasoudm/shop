@@ -58,10 +58,19 @@ cat docs/CHANGELOG.md        # وضعیت و لاگ
 شرکت ساخته **کامل در فروشگاه پیاده می‌شود** (فرمول‌ها بی‌تغییر از اپ) و اپ هم‌زمان برای
 عرضه آماده می‌شود. به نویسندهٔ قبلی تسکی داده نمی‌شود.
 
+**دامنه و اختیار (۱۰ مهر):** از نقشهٔ راهِ نویسنده (`DadehLink_Roadmap_v0.2`، در پوشهٔ دانلودِ
+ایتا) فقط **مراحلِ ۱ و ۶** کارِ ماست، بعد اپ به نویسنده برمی‌گردد. حرفِ مالک مقدم بر نقشهٔ
+راه. اپِ منتشرشده با نامِ بسته و کلیدِ ما. کدِ پیامکی همان پنج‌رقمیِ سایت. نسخه‌های تازهٔ
+نویسنده در مخزنِ اپ روی شاخهٔ `upstream` وارد و ادغام می‌شوند؛ فهرستِ تغییرهای ما در
+`HANDBACK.md` همان مخزن. نسخهٔ ۱٫۱٫۰ او در اپ کامل ادغام می‌شود؛ در سایت فقط «اعمالِ فاصله»
+و حذفِ ماهواره. مرجع: `docs/reports/dadehlink-1.1.0-apply-distance.md`.
+قراردادِ ورودِ مشترکِ اپ و سایت: `docs/dadehlink-api-contract.md`.
+
 - برنامه: `docs/reports/dadehlink-launch-plan-1405-07-09.html`
 - تحلیل: `docs/reports/dadehlink-analysis-1405-07-09.html`
-- چت الف: `docs/prompt-tech-chat-dadehlink-in-shop.md` — صفحهٔ `/support/link-cal`
-- چت د: `docs/prompt-app-chat-release-prep.md`
+- چت الف: `docs/prompt-tech-chat-dadehlink-login.md` (ورود، امنیت، نقشه زیرِ کادر، اعمالِ فاصله، حذفِ ماهواره) — پیش از آن `prompt-tech-chat-dadehlink-in-shop.md` ✅
+- چت د: `docs/prompt-app-chat-login.md` (ادغامِ ۱٫۱٫۰، ورود، امنیت) — پیش از آن `prompt-app-chat-release-prep.md` ✅
+- چت ب: `docs/prompt-data-chat-rf-specs-research.md` (دادهٔ فنیِ آنتن و رادیو، مرحلهٔ ۶)
 - متوقف به خواستِ مالک: `prompt-tech-chat-partner-unit-fixes-1405-07-08.md` و
   `prompt-tech-chat-torob-api-hardening.md`. ⚠️ بازنویسیِ «همکار تک» روی سرور فعال است؛
   تا اصلاح، «فروش تعدادی» ویرایش نشود.
