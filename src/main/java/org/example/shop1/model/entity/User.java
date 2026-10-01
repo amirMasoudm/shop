@@ -31,6 +31,9 @@ public class User {
     private String firstName;
     private String lastName;
     private String email;
+
+    /** نامِ شرکت یا سازمانِ کاربر — اختیاری. اولین بار از ثبت‌نامِ کلاینت‌های اپ پر شد. */
+    private String organization;
     private Role role = Role.USER;
 
     /**
@@ -90,6 +93,8 @@ public class User {
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
 
+    public String getOrganization() { return organization; }
+    public void setOrganization(String organization) { this.organization = organization; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 

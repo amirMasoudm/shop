@@ -244,7 +244,9 @@ public class SecurityConfig {
                                 // یکی فقط ADMIN — نه PRICER، نه SALES، نه SUPPORT.
                                 "/api/v1/analytics/**",
                                 // دفترِ کارزارها و لینک‌ساز — هزینه و برنامهٔ بازاریابی است.
-                                "/api/v1/campaigns/**"
+                                "/api/v1/campaigns/**",
+                                // ثبت‌نام‌های اپ و ابزارِ سایت: نام و شمارهٔ کاملِ مشتری.
+                                "/api/v1/app-registrations/**"
                         ).hasRole("ADMIN")
 
                         .anyRequest().authenticated()

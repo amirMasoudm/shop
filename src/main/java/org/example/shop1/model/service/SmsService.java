@@ -40,7 +40,14 @@ public class SmsService {
     private final RestTemplate restTemplate;
 
     public SmsService() {
-        this.restTemplate = new RestTemplate();
+        // 🔴 بدونِ سقفِ زمانی، وقتی سرویسِ پیامک در دسترس نبود درخواست تا ابد می‌ماند:
+        // یک نخِ تامکت گیر می‌کرد و کاربر به‌جای «پیامک در دسترس نیست» ۵۰۴ِ nginx می‌دید.
+        // (در تستِ لوکالِ ۱۰ مهر دیده شد.) با سقف، ApiException(503) پایین پرتاب می‌شود.
+        org.springframework.http.client.SimpleClientHttpRequestFactory f =
+                new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        f.setConnectTimeout(5_000);
+        f.setReadTimeout(10_000);
+        this.restTemplate = new RestTemplate(f);
     }
 
     public void sendOtp(String mobile, String code) {

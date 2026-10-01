@@ -8,7 +8,7 @@ import java.time.ZoneId;
  * ({@code YYYYMMDD} / {@code HHmmss}). عمداً بدونِ کتابخانهٔ جدید (طبقِ روحِ پرامپت: سبک و
  * کم‌ریسک) — الگوریتمِ تبدیل، الگوریتمِ استانداردِ عمومیِ میلادی↔جلالی است.
  */
-final class JalaliDateUtil {
+public final class JalaliDateUtil {
 
     private JalaliDateUtil() {}
 
@@ -26,7 +26,7 @@ final class JalaliDateUtil {
     }
 
     /** الگوریتمِ استانداردِ تبدیلِ میلادی به جلالی. خروجی: {year, month, day}. */
-    static int[] toJalali(int gy, int gm, int gd) {
+    public static int[] toJalali(int gy, int gm, int gd) {
         int[] g_d_m = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
         int gy2 = (gm > 2) ? (gy + 1) : gy;
         int days = 355666 + (365 * gy) + ((gy2 + 3) / 4) - ((gy2 + 99) / 100)

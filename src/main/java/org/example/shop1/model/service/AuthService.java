@@ -73,27 +73,41 @@ public class AuthService {
        مخصوص Admin
     */
     public boolean verifyOnlyCode(String phoneNumber, String code) {
+        return checkCode(phoneNumber, code).status() == CodeStatus.OK;
+    }
+
+    /** نتیجهٔ سنجشِ کد، با تفکیکی که کلاینت‌های اپ لازم دارند (کدِ غلط در برابرِ باطل‌شده). */
+    public enum CodeStatus { OK, WRONG, EXPIRED }
+
+    public record CodeCheck(CodeStatus status, int attemptsLeft) {}
+
+    /**
+     * همان قاعدهٔ {@link #verifyOnlyCode}: کدِ درست مصرف می‌شود، کدِ منقضی پاک می‌شود، و
+     * پنجمین تلاشِ غلط خودِ کد را باطل می‌کند (پاسخِ آن تلاش {@code EXPIRED} است، نه
+     * «یک فرصتِ دیگر داری» که دیگر راست نیست).
+     */
+    public CodeCheck checkCode(String phoneNumber, String code) {
 
         OtpData otp = otpRepository.findById(phoneNumber).orElse(null);
 
         if (otp == null) {
-            return false;
+            return new CodeCheck(CodeStatus.EXPIRED, 0);
         }
 
-        if (otp.isExpired()) {
+        if (otp.isExpired() || otp.getAttempts() >= MAX_ATTEMPTS) {
             otpRepository.deleteById(phoneNumber);
-            return false;
+            return new CodeCheck(CodeStatus.EXPIRED, 0);
         }
 
-        if (otp.getAttempts() >= MAX_ATTEMPTS) {
-            otpRepository.deleteById(phoneNumber);
-            return false;
-        }
-
-        if (!otp.getCode().equals(code)) {
+        if (code == null || !otp.getCode().equals(code)) {
             otp.increaseAttempts();
+            int left = MAX_ATTEMPTS - otp.getAttempts();
+            if (left <= 0) {
+                otpRepository.deleteById(phoneNumber);
+                return new CodeCheck(CodeStatus.EXPIRED, 0);
+            }
             otpRepository.save(otp);
-            return false;
+            return new CodeCheck(CodeStatus.WRONG, left);
         }
 
         /*
@@ -101,7 +115,7 @@ public class AuthService {
         */
         otpRepository.deleteById(phoneNumber);
 
-        return true;
+        return new CodeCheck(CodeStatus.OK, MAX_ATTEMPTS - otp.getAttempts());
     }
 
 
