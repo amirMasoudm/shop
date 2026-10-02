@@ -439,6 +439,37 @@
 /* حبابِ چتِ سایت (z-index ۹۹۹۸) روی دکمهٔ «انصراف» پنجره‌ها می‌نشست؛ تا پنجره باز است کنار می‌رود. */
 body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-panel{display:none!important}
 
+/* ── تنظیمِ آنتن: بخشِ ثابتِ زیرِ ماشین‌حساب ─────────────────────
+   پیش از این، استایلش را alignment.js در پنجره تزریق می‌کرد. حالا بخشی از صفحه است. */
+.dl .dl-align{scroll-margin-top:68px;margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:17px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.dl .alHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.dl .alHead h2{font-size:13px;margin:0;color:#145632}
+.dl .alignLine{font-size:11px;color:#3b6b50}.dl .alignLine b{font:600 12px Arial;color:#145632}
+.dl .alignCanvas{position:relative;width:100%;aspect-ratio:1/1;max-height:420px;border:1px solid #cfe4d7;border-radius:14px;background:#eef5f0;overflow:hidden}
+.dl .alignWait{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#63836d}
+.dl .alignActions{display:flex;gap:6px}
+.dl .alignActions button{flex:1;border:1px solid #cfe4d7;background:#fff;border-radius:10px;min-height:36px;color:#176342;font-size:11px}
+.dl .manualCoords{font-size:11px;color:#3b6b50}.dl .manualCoords summary{cursor:pointer;padding:2px 0}
+.dl .coordGrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;direction:ltr;margin-top:6px}
+.dl .coordGrid label{font:10px Arial;display:flex;gap:3px;align-items:center}
+.dl .coordGrid input{width:100%;min-width:0;padding:5px;font:12px Arial;border:1px solid #c6dfce;border-radius:7px;background:#f7fcf8;color:#245e3c}
+.dl .alignMore{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.dl .alignMore input{accent-color:#087b43}
+.dl .alignMore button{border:1px solid #cfe4d7;background:#fff;color:#176342;border-radius:8px;padding:6px 8px;font-size:10px}
+.dl .alignStatus{font-size:10px;color:#876227;line-height:1.5;min-height:0}.dl .alignStatus:empty{display:none}
+.dl .mapSurface{position:absolute;inset:0;direction:ltr;z-index:0}
+.dl .mapPick{position:absolute;bottom:22px;left:8px;right:8px;z-index:500;background:#fff;border-radius:9px;padding:7px;display:flex;gap:5px;align-items:center;box-shadow:0 2px 10px #0003;font-size:10px}
+.dl .mapPick[hidden]{display:none}
+.dl .mapPick span{flex:1}
+.dl .mapPick button{border:0;background:#087b43;color:#fff;border-radius:6px;padding:8px;font-size:10px}
+.dl .mapPick button:disabled{opacity:.4}.dl .mapPick button.cancelPick{background:#edf5ef;color:#275e3a}
+.dl .mapPin{color:#fff;background:#087b43;border:2px solid #fff;border-radius:50%;display:grid;place-items:center;font:bold 14px Arial;box-shadow:0 1px 5px #0008}
+.dl .mapPinB{background:#c62828}
+.dl .mapArrow{background:none;border:0}.dl .mapArrow svg{width:26px;height:26px;filter:drop-shadow(0 1px 1px white)}
+.dl .leaflet-control-attribution{font-size:9px!important}
+.dl .mapNotice{position:absolute;top:8px;left:48px;right:8px;z-index:500;color:#8c3c24;background:#fffdf3e8;padding:5px;border-radius:6px;font-size:10px;pointer-events:none}
+.dl .mapNotice:empty{display:none}
+
 /* ── چیدمانِ دسکتاپ (خواستهٔ مالک: «برای بروزر مثل موبایل نباشه») ─────────
    زیرِ ۹۰۰ پیکسل دو گروهِ dl-in و dl-out ناپدیدند (display:contents) و چیدمان
    عیناً همان اپ است. بالای آن: ورودی‌ها در ستونِ راست، نتیجه چسبان در ستونِ چپ،
@@ -446,7 +477,7 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .dl-in,.dl .dl-out{display:contents}
 @media(min-width:900px){
 .dl .app{max-width:1120px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
-  grid-template-areas:"head head" "in nav" "in out";grid-template-rows:auto auto 1fr;
+  grid-template-areas:"head head" "in nav" "in out" "in align";grid-template-rows:auto auto auto 1fr;
   column-gap:28px;row-gap:12px;padding:22px 28px 26px;margin:6px auto 0}
 .dl .app header{grid-area:head;height:44px;margin:0 0 4px}
 .dl .app .brand{height:44px}.dl .app .brand img{width:52px;height:40px}.dl .app .brand b{font-size:26px}
@@ -456,7 +487,9 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .app .quicknav{grid-area:nav;margin:0;gap:10px}
 .dl .app .quicknav>*{min-height:42px;font-size:14px;padding:10px 8px}
 .dl .dl-in{display:block;grid-area:in;min-width:0}
-.dl .dl-out{display:flex;flex-direction:column;gap:12px;grid-area:out;align-self:start;position:sticky;top:76px;min-width:0}
+.dl .dl-out{display:flex;flex-direction:column;gap:12px;grid-area:out;align-self:start;min-width:0}
+.dl .app .dl-align{grid-area:align;align-self:start;margin-top:0}
+.dl .alignCanvas{aspect-ratio:auto;height:280px}
 
 /* ورودی‌ها */
 .dl .app #fields{padding:6px 20px}
