@@ -260,6 +260,16 @@ public class Product {
     /** آخرین ویرایشِ دستیِ موجودی (میزِ کار یا پنل). */
     private Instant stockTouchedManuallyAt;
 
+    /**
+     * دادهٔ فنیِ رادیویی (آنتن یا رادیو) — شیءِ {@code rf} قراردادِ داده‌لینک، نسخهٔ ۲.
+     * فقط از پنل (مودالِ ویرایش، {@code /api/v1/rf-specs}) و ابزارِ واردکردن نوشته می‌شود؛
+     * {@code updateProduct} آن را لمس نمی‌کند، پس ذخیرهٔ عادیِ مودال نالش نمی‌کند.
+     */
+    private RfSpec rf;
+
+    /** آخرین تغییرِ {@link #rf} — {@code version}ِ مسیرِ {@code rf/equipment}. */
+    private Instant rfUpdatedAt;
+
     public String getHolooCode() { return holooCode; }
     public void setHolooCode(String holooCode) { this.holooCode = holooCode; }
 
@@ -508,4 +518,9 @@ public class Product {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public RfSpec getRf() { return rf; }
+    public void setRf(RfSpec rf) { this.rf = rf; }
+    public Instant getRfUpdatedAt() { return rfUpdatedAt; }
+    public void setRfUpdatedAt(Instant rfUpdatedAt) { this.rfUpdatedAt = rfUpdatedAt; }
 }

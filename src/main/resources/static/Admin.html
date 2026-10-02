@@ -386,6 +386,10 @@
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>🔢</span> کد کالا و موجودی
         </div>
+        <div onclick="switchTab('rfImport')"
+             class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
+            <span>📶</span> دادهٔ رادیویی
+        </div>
         <div onclick="switchTab('appRegistrations')"
              class="sidebar-link flex items-center gap-3 px-6 py-3 text-gray-600 hover:text-white">
             <span>📡</span> ثبت‌نام‌های اپ
@@ -1024,6 +1028,8 @@
     <div id="tab-legacyRedirects" class="hidden-section fade-in"></div>
     <!-- ثبت‌نام‌های اپ و ابزارِ سایت — /js/app-registrations-tab.js -->
     <div id="tab-appRegistrations" class="hidden-section fade-in"></div>
+    <!-- واردکردنِ دادهٔ رادیوییِ چت ب — /js/rf-import-tab.js -->
+    <div id="tab-rfImport" class="hidden-section fade-in"></div>
 
     <!-- لاگ فعالیت — همان ماژول -->
     <div id="tab-activityLog" class="hidden-section fade-in"></div>
@@ -2006,6 +2012,7 @@
 <!-- موتورِ مودالِ عمومی + تبِ محصولات — همان فایل‌هایی که پنلِ فروشِ حضوری هم
      استفاده می‌کند؛ باید قبل از اسکریپتِ اصلیِ همین صفحه لود شوند -->
 <script src="/js/admin-modal-utils.js"></script>
+<script src="/js/rf-spec-editor.js"></script>
 <script src="/js/products-tab.js"></script>
 <!-- تبِ رفتارِ کاربران — فقط ADMIN؛ مرزِ واقعی در SecurityConfig است -->
 <!-- تبدیلِ شمسی↔میلادی — تبِ رفتار فیلدهای تاریخش را از این می‌گیرد -->
@@ -2013,6 +2020,7 @@
 <script src="/js/user-behavior-tab.js"></script>
 <script src="/js/legacy-redirects-tab.js"></script>
 <script src="/js/app-registrations-tab.js"></script>
+<script src="/js/rf-import-tab.js"></script>
 <script src="/js/holoo-tab.js"></script>
 <!-- میزِ کارِ قیمت‌گذاری — همان فایلی که پنلِ فروشِ حضوری هم استفاده می‌کند -->
 <script src="/js/pricing-workspace.js"></script>
@@ -2213,6 +2221,7 @@
         if (id === 'userBehavior') UserBehaviorTab.mount(document.getElementById('tab-userBehavior'));
         if (id === 'legacyRedirects') LegacyRedirectsTab.mount(document.getElementById('tab-legacyRedirects'));
         if (id === 'appRegistrations') AppRegistrationsTab.mount(document.getElementById('tab-appRegistrations'));
+        if (id === 'rfImport') RfImportTab.mount(document.getElementById('tab-rfImport'));
         if (id === 'holoo') HolooTab.mount(document.getElementById('tab-holoo'));
         if (id === 'articles') fetchArticles();
         if (id === 'banners' && !state.articles) fetchArticles();

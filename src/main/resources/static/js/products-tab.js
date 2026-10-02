@@ -256,6 +256,7 @@
         document.getElementById('p-specs-container').innerHTML = '<p class="text-xs text-gray-400 col-span-full">لطفاً ابتدا دسته‌بندی سایت را انتخاب کنید.</p>';
         renderTechSpecRows([]);
         renderFaqRows([]);
+        if (window.RfSpecEditor) RfSpecEditor.render(document.getElementById('rf-spec-editor'), null);
         renderRelProducts([], null);
         setSlugHint(false);
         // پیش‌فرضِ محصولِ تازه «نمایش در ترب» است — همان چیزی که برایِ محصولاتِ قدیمی
@@ -315,6 +316,7 @@
         renderTechSpecRows(p.techSpecs || []);
         renderFaqRows(p.faqs || []);
         renderRelProducts(p.relatedProductIds || [], p.id);
+        if (window.RfSpecEditor) RfSpecEditor.render(document.getElementById('rf-spec-editor'), p.rf || null);
 
         currentImages = p.images || [];
         currentImageAlts = (p.images || []).map((_, i) => (p.imageAlts && p.imageAlts[i]) ? p.imageAlts[i] : '');
@@ -397,8 +399,18 @@
         const oldResolver = before ? productResolverOf(before) : null;
 
         axios[method](url, data).then(async (res) => {
-            closeModal('productModal');
             const saved = res && res.data;
+            // مشخصاتِ رادیویی جدا ذخیره می‌شود (فقط اگر عوض شده). خطایش محصول را برنمی‌گرداند؛
+            // مودال باز می‌ماند تا ادمین اصلاح کند.
+            if (window.RfSpecEditor && saved && saved.id) {
+                try { await RfSpecEditor.save(saved.id); }
+                catch (e) {
+                    const m = (e.response && e.response.data && e.response.data.message) || e.message || 'ذخیرهٔ مشخصاتِ رادیویی ناموفق بود';
+                    Swal.fire('محصول ذخیره شد، مشخصاتِ رادیویی نه', m, 'warning');
+                    return;
+                }
+            }
+            closeModal('productModal');
             if (oldResolver && saved) {
                 const newResolver = productResolverOf(saved);
                 if (newResolver && newResolver !== oldResolver) {

@@ -246,7 +246,9 @@ public class SecurityConfig {
                                 // دفترِ کارزارها و لینک‌ساز — هزینه و برنامهٔ بازاریابی است.
                                 "/api/v1/campaigns/**",
                                 // ثبت‌نام‌های اپ و ابزارِ سایت: نام و شمارهٔ کاملِ مشتری.
-                                "/api/v1/app-registrations/**"
+                                "/api/v1/app-registrations/**",
+                                // دادهٔ فنیِ رادیویی (ویرایشِ دستی و ابزارِ واردکردن)
+                                "/api/v1/rf-specs/**"
                         ).hasRole("ADMIN")
 
                         .anyRequest().authenticated()
