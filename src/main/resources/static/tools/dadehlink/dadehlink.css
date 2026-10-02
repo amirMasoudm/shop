@@ -449,6 +449,13 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .alignWait{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#63836d}
 .dl .alignActions{display:flex;gap:6px}
 .dl .alignActions button{flex:1;border:1px solid #cfe4d7;background:#fff;border-radius:10px;min-height:36px;color:#176342;font-size:11px}
+/* دکمهٔ «اعمالِ فاصله» — استایلِ همان APKِ ۱٫۱٫۰ */
+.dl .applyLinkDistance{min-height:34px;flex-shrink:0;border:0;border-radius:9px;background:#087b43;color:white;font-size:11px;padding:6px}
+.dl .applyLinkDistance:disabled{background:#e0ebe3;color:#6e8275;cursor:default}
+/* برجسته‌شدنِ لحظه‌ایِ خانهٔ فاصله پس از اعمال */
+@keyframes dlFlash{0%,35%{background:#fff3c4;box-shadow:0 0 0 2px #e8b63a}100%{background:transparent;box-shadow:0 0 0 0 transparent}}
+.dl .field.flash{animation:dlFlash 1.6s ease-out;border-radius:8px}
+@media(prefers-reduced-motion:reduce){.dl .field.flash{animation:none;background:#fff3c4}}
 .dl .manualCoords{font-size:11px;color:#3b6b50}.dl .manualCoords summary{cursor:pointer;padding:2px 0}
 .dl .coordGrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;direction:ltr;margin-top:6px}
 .dl .coordGrid label{font:10px Arial;display:flex;gap:3px;align-items:center}

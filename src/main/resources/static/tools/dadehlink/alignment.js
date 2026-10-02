@@ -29,20 +29,27 @@ try{const v=JSON.parse(localStorage.getItem('dadehlink.alignment'));if(v)for(con
 let map=null,mapLayer=null,routeLayer=null,pinLayer=null,mapResize=null,pickSite=null,pendingPoint=null,pendingMarker=null,geoReady=false;
 function mountAlignment(){
  const host=$('dlAlign');if(!host)return;
- host.innerHTML=`<div class="alHead"><h2>تنظیم آنتن</h2><span class="alignLine" id="alignLine">فاصله <b id="alignDistance" dir="ltr">—</b> · جهت <b id="bearingValue" dir="ltr">—</b></span></div><div class="alignCanvas" id="alignCanvas"><div class="alignWait" id="alignWait">نقشه در حال بارگذاری…</div></div><div class="alignActions"><button id="loca">⌖ موقعیت من (A)</button><button id="pickB">انتخاب B روی نقشه</button></div><details class="manualCoords"><summary>مختصات دستی و قبله</summary><div class="coordGrid">${['a','b'].map(k=>`<label>${k.toUpperCase()} lat<input id="${k}Lat" inputmode="decimal" aria-label="عرض ${k}"></label><label>${k.toUpperCase()} lon<input id="${k}Lon" inputmode="decimal" aria-label="طول ${k}"></label>`).join('')}</div><div class="alignMore"><label><input type="checkbox" id="qibla"> جهت قبله</label><button id="editA">انتخاب A روی نقشه</button></div></details><div class="alignStatus" id="alignStatus" role="status"></div>`;
+ host.innerHTML=`<div class="alHead"><h2>تنظیم آنتن</h2><span class="alignLine" id="alignLine">فاصله <b id="alignDistance" dir="ltr">—</b> · جهت <b id="bearingValue" dir="ltr">—</b></span></div><div class="alignCanvas" id="alignCanvas"><div class="alignWait" id="alignWait">نقشه در حال بارگذاری…</div></div><div class="alignActions"><button id="loca">⌖ موقعیت من (A)</button><button id="pickB">انتخاب B روی نقشه</button></div><button id="applyLinkDistance" class="applyLinkDistance" disabled>اعمال فاصله در صفحه اصلی</button><details class="manualCoords"><summary>مختصات دستی و قبله</summary><div class="coordGrid">${['a','b'].map(k=>`<label>${k.toUpperCase()} lat<input id="${k}Lat" inputmode="decimal" aria-label="عرض ${k}"></label><label>${k.toUpperCase()} lon<input id="${k}Lon" inputmode="decimal" aria-label="طول ${k}"></label>`).join('')}</div><div class="alignMore"><label><input type="checkbox" id="qibla"> جهت قبله</label><button id="editA">انتخاب A روی نقشه</button></div></details><div class="alignStatus" id="alignStatus" role="status"></div>`;
  for(const k of ['a','b'])for(const [id,key]of [['Lat','lat'],['Lon','lon']]){$(k+id).value=align[k][key];$(k+id).oninput=()=>{readAlign();drawAlignment();if(map)fitRoute()}}
  $('loca').onclick=requestLocation;$('pickB').onclick=()=>startPick('b');$('editA').onclick=()=>startPick('a');
- $('qibla').onchange=()=>{drawAlignment();if(map)fitRoute()};
+ $('qibla').onchange=()=>{drawAlignment();if(map)fitRoute()};$('applyLinkDistance').onclick=applyLinkDistance;
  readAlign();
  // نقشه فقط وقتی بخش به دید رسید؛ مرورگرِ بی‌IntersectionObserver همان لحظه بار می‌کند.
  const start=()=>loadMapLibs().then(()=>{geoReady=true;initMap();drawAlignment()},()=>{$('alignWait').textContent='نقشه بارگذاری نشد؛ اتصال را بررسی کنید.'});
  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();start()}});io.observe(host)}else start();
 }
+// «اعمالِ فاصله در صفحهٔ اصلی» — از APKِ داده‌لینک ۱٫۱٫۰ (docs/reports/dadehlink-1.1.0-apply-distance.md).
+// خودکار نیست: فاصلهٔ دستیِ کاربر فقط با همین کلیک بازنویسی می‌شود. فاصله همیشه A تا B است، نه تا قبله.
+function linkDistanceKm(){if(!geoReady)return null;if(!Geo.point(align.a.lat,align.a.lon)||!Geo.point(align.b.lat,align.b.lon))return null;const km=Geo.route(align.a,align.b).distance/1000;return Number.isFinite(km)&&km>=ranges.distance[0]&&km<=ranges.distance[1]?km:null}
+function applyLinkDistance(){const km=linkDistanceKm();if(km===null||$('qibla').checked)return;state.distance=Number(km.toFixed(2));setControls();flashDistance();toast('فاصلهٔ لینک در صفحه اصلی اعمال شد')}
+// در سایت پنجره‌ای بسته نمی‌شود؛ پس خانهٔ فاصله یک لحظه برجسته می‌شود. اگر در دید نیست (موبایل)، اول به آن می‌رود.
+function flashDistance(){const f=$('distance').closest('.field'),b=f.getBoundingClientRect();if(b.top<60||b.bottom>innerHeight)f.scrollIntoView({behavior:'smooth',block:'center'});f.classList.remove('flash');void f.offsetWidth;f.classList.add('flash');setTimeout(()=>f.classList.remove('flash'),1600)}
 function syncCoordinates(){for(const k of ['a','b']){$(k+'Lat').value=align[k].lat;$(k+'Lon').value=align[k].lon}}
 function readAlign(){let ok=true;for(const k of ['a','b']){const lat=normalNumber($(k+'Lat').value),lon=normalNumber($(k+'Lon').value);align[k]={lat:/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(lat)?Number(lat):'',lon:/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(lon)?Number(lon):''};if(!Geo.point(align[k].lat,align[k].lon))ok=false}try{localStorage.setItem('dadehlink.alignment',JSON.stringify(align))}catch(e){}return ok}
 function destination(){return $('qibla').checked?{lat:21.422487,lon:39.826206}:align.b}
 function selectedRoute(){if(!geoReady)return null;const b=destination();return Geo.point(align.a.lat,align.a.lon)&&Geo.point(b.lat,b.lon)?Geo.route(align.a,b):null}
-function drawAlignment(){if(!$('alignCanvas'))return;const r=selectedRoute(),usable=r&&r.distance>1&&r.distance<19900000;
+function drawAlignment(){if(!$('alignCanvas'))return;const q=$('qibla').checked,r=selectedRoute(),usable=r&&r.distance>1&&r.distance<19900000;
+ const km=linkDistanceKm();$('applyLinkDistance').disabled=km===null||q;$('applyLinkDistance').textContent=q?'برای اعمال فاصله، تیک قبله را بردارید':km===null?'اعمال فاصله در صفحه اصلی':'اعمال فاصلهٔ '+km.toFixed(2)+' km در صفحه اصلی';$('applyLinkDistance').title=km===null?'مبدأ و مقصد معتبر با فاصلهٔ ۰٫۰۱ تا ۱۱۰ کیلومتر انتخاب کنید.':'';
  $('bearingValue').textContent=usable?r.bearing.toFixed(1)+'°':'—';$('alignDistance').textContent=usable?(r.distance/1000).toFixed(2)+' km':'—';
  drawMapRoute();
 }
