@@ -66,6 +66,12 @@ cat docs/CHANGELOG.md        # وضعیت و لاگ
 و حذفِ ماهواره. مرجع: `docs/reports/dadehlink-1.1.0-apply-distance.md`.
 قراردادِ ورودِ مشترکِ اپ و سایت: `docs/dadehlink-api-contract.md`.
 
+**استقرار (۱۰ مهر، تصمیمِ مالک):** صفحهٔ ابزار و سامانهٔ ورود **فقط همراهِ محصولاتِ
+پیشنهادی و «محاسبه بر اساسِ تجهیزات»** روی سایت می‌رود. کارِ ورودِ الف و د ممیزی و پذیرفته
+شد؛ بعدی: الف `prompt-tech-chat-dadehlink-equipment.md`، د `prompt-app-chat-equipment.md`،
+و دادهٔ چت ب. پیش از استقرار، خطِ `COOKIE_SECURE=false` در کامپوزِ سرور چک شود (دفترچهٔ
+۱۰ مهر).
+
 - برنامه: `docs/reports/dadehlink-launch-plan-1405-07-09.html`
 - تحلیل: `docs/reports/dadehlink-analysis-1405-07-09.html`
 - چت الف: `docs/prompt-tech-chat-dadehlink-login.md` (ورود، امنیت، نقشه زیرِ کادر، اعمالِ فاصله، حذفِ ماهواره) — پیش از آن `prompt-tech-chat-dadehlink-in-shop.md` ✅
