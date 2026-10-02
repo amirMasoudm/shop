@@ -36,6 +36,8 @@ import java.util.regex.Pattern;
 public class RfSpecService {
 
     static final double FREE_GAIN_TOLERANCE_DB = 0.5;
+    /** قرارداد ۲٫۱: برای لینکِ نقطه‌به‌نقطه فقط آنتنِ جهت‌دار. زبانهٔ دوم همهٔ نوع‌ها را دارد. */
+    static final List<String> SUGGESTED_ANTENNA_TYPES = List.of("DISH", "GRID", "PANEL");
     static final double BAND_60_MHZ = 57000;
     static final String NOTICE_60 = "برای باندِ ۶۰ گیگاهرتز، آب‌وهوا را روشن کنید تا اثرِ باران در حاشیه بیاید.";
     private static final Pattern FAMILY = Pattern.compile("^[A-Z0-9_]{2,40}(;[A-Z0-9_]{2,40})*$");
@@ -225,7 +227,8 @@ public class RfSpecService {
         m.put("url", baseUrl + ProductUrlUtil.hybridPathEncoded(p));
         String img = p.getImages() == null || p.getImages().isEmpty() ? null : p.getImages().get(0);
         m.put("image", img == null || img.isBlank() ? null : (img.startsWith("http") ? img : baseUrl + (img.startsWith("/") ? "" : "/") + img));
-        BigDecimal price = p.getOnlinePrice() != null ? p.getOnlinePrice() : p.getPrice();
+        // 🔴 فقط onlinePrice؛ price میراثِ وردپرس است و قیمتِ زنده نیست. نبودش = «استعلامِ قیمت».
+        BigDecimal price = p.getOnlinePrice();
         m.put("priceToman", price == null || price.signum() <= 0 ? null : price.setScale(0, java.math.RoundingMode.HALF_UP).longValue());
         m.put("inStock", inStock(p));
         m.put("rf", p.getRf());
@@ -305,6 +308,7 @@ public class RfSpecService {
     private static List<Product> antennas(List<Product> catalog, double fMhz, double minGain) {
         return catalog.stream()
                 .filter(p -> "ANTENNA".equals(p.getRf().getKind()))
+                .filter(p -> p.getRf().getAntenna() != null && p.getRf().getAntenna().getType() != null && SUGGESTED_ANTENNA_TYPES.contains(p.getRf().getAntenna().getType()))
                 .filter(p -> p.getRf().coversMhz(fMhz))
                 .filter(p -> p.getRf().getAntenna() != null && p.getRf().getAntenna().getGainDbi() != null
                         && p.getRf().getAntenna().getGainDbi() >= minGain - FREE_GAIN_TOLERANCE_DB)
@@ -316,7 +320,7 @@ public class RfSpecService {
 
     /** بی‌قیمت آخر. */
     private static BigDecimal priceKey(Product p) {
-        BigDecimal v = p.getOnlinePrice() != null ? p.getOnlinePrice() : p.getPrice();
+        BigDecimal v = p.getOnlinePrice();
         return v == null || v.signum() <= 0 ? new BigDecimal("1e18") : v;
     }
 

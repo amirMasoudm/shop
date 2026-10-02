@@ -30,6 +30,7 @@ class RfSpecServiceTest {
         rf.setBands(List.of(new RfSpec.Band(lo, hi)));
         RfSpec.Antenna a = new RfSpec.Antenna();
         a.setGainDbi(gain);
+        a.setType("DISH");
         rf.setAntenna(a);
         p.setRf(rf);
         return p;
@@ -177,5 +178,34 @@ class RfSpecServiceTest {
         assertTrue(e.stream().anyMatch(s -> s.contains("توانِ ارسال")));
         rf.setKind("FOO");
         assertTrue(RfSpecService.validate(rf).stream().anyMatch(s -> s.contains("نوع")));
+    }
+
+    @Test
+    void onlyDirectionalAntennaTypesAreSuggested() {
+        Product omni = antenna("omni", 33, 4900, 6100, 1, 100);
+        omni.getRf().getAntenna().setType("OMNI");
+        Product sector = antenna("sector", 33, 4900, 6100, 1, 100);
+        sector.getRf().getAntenna().setType("SECTOR");
+        Product noType = antenna("noType", 33, 4900, 6100, 1, 100);
+        noType.getRf().getAntenna().setType(null);
+        Product grid = antenna("grid", 33, 4900, 6100, 1, 100);
+        grid.getRf().getAntenna().setType("GRID");
+        Product panel = antenna("panel", 33, 4900, 6100, 1, 100);
+        panel.getRf().getAntenna().setType("PANEL");
+        List<Product> c = List.of(omni, sector, noType, grid, panel, antenna("dish", 33, 4900, 6100, 1, 100));
+        assertEquals(List.of("dish", "grid", "panel"),
+                ids(RfSpecService.suggest(c, q(5500, 25, false), T).antennasA()).stream().sorted().toList());
+    }
+
+    @Test
+    void cardPriceIsOnlyOnlinePriceNeverLegacyPrice() {
+        RfSpecService svc = new RfSpecService(mock(ProductRepository.class), mock(CategoryRepository.class),
+                mock(ActivityLogService.class), new ObjectMapper());
+        Product legacyOnly = base("legacy", 1, null);
+        legacyOnly.setPrice(BigDecimal.valueOf(999));
+        assertNull(svc.card(legacyOnly, "http://x", Map.of()).get("priceToman"));
+        Product live = base("live", 1, 1500);
+        live.setPrice(BigDecimal.valueOf(999));
+        assertEquals(1500L, svc.card(live, "http://x", Map.of()).get("priceToman"));
     }
 }
