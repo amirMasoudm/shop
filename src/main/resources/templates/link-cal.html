@@ -32,7 +32,7 @@
 
     <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
     <link href="/css/site-nav.css" rel="stylesheet">
-    <link href="/tools/dadehlink/dadehlink.css?v=5" rel="stylesheet">
+    <link href="/tools/dadehlink/dadehlink.css?v=6" rel="stylesheet">
     <style>
         body { margin:0; font-family:Vazirmatn, Tahoma, sans-serif; color:#1f2937;
                background:radial-gradient(ellipse at top left,#c2efd380,transparent 60%),#f3faf5; }
@@ -126,6 +126,9 @@ window.DADEHLINK_CONFIG = {
     pricesUrl: '/shop/category/antenna-dish',
     streetUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     citiesUrl: '/tools/dadehlink/engine/cities.json',
+    // دروازهٔ ورود (gate.js) — نسخه‌ای که در فهرستِ ثبت‌نامِ پنل دیده می‌شود، و متنِ رضایتِ قرارداد
+    appVersion: '1.1.0-rc3',
+    consentText: 'اطلاعات شما برای ثبتِ کاربری و پشتیبانی به داده‌نما ارسال می‌شود.',
     vendor: {
         geodesic: '/tools/dadehlink/vendor/geographiclib-geodesic.min.js',
         leafletJs: '/tools/dadehlink/vendor/leaflet.js',
@@ -134,8 +137,9 @@ window.DADEHLINK_CONFIG = {
 };
 </script>
 <script src="/tools/dadehlink/engine/rf.js"></script>
-<script src="/tools/dadehlink/app.js?v=5"></script>
-<script src="/tools/dadehlink/alignment.js?v=5"></script>
+<script src="/tools/dadehlink/app.js?v=6"></script>
+<script src="/tools/dadehlink/alignment.js?v=6"></script>
+<script src="/tools/dadehlink/gate.js?v=8"></script>
 
 <script src="/js/chat-core.js"></script>
 <script src="/js/support-chat-widget.js"></script>

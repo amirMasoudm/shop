@@ -477,6 +477,25 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .mapNotice{position:absolute;top:8px;left:48px;right:8px;z-index:500;color:#8c3c24;background:#fffdf3e8;padding:5px;border-radius:6px;font-size:10px;pointer-events:none}
 .dl .mapNotice:empty{display:none}
 
+/* ── دروازهٔ ورود (gate.js) ─────────────────────────────────────
+   انتخاب‌گرها عمداً از «.dl .sheet input[type=text]» اپ قوی‌ترند: آن قاعده خانه را
+   ۱۵۰ پیکسلی و چپ‌به‌راست می‌کند که برای نام و شرکت غلط است. */
+.dl .sheet.gateSheet h2{margin:0 0 4px}
+.dl .sheet.gateSheet .gateLead{margin:0 0 12px;font-size:12px;line-height:1.8;color:#385d45}
+.dl .sheet.gateSheet .gateForm{display:flex;flex-direction:column;gap:6px}
+.dl .sheet.gateSheet .gateForm label{font-size:12px;font-weight:bold;color:#245e3c;margin-top:4px}
+.dl .sheet.gateSheet .gateForm label span{font-weight:normal;color:#6e8275}
+.dl .sheet.gateSheet .gateForm input{width:100%;max-width:none;direction:rtl;text-align:right;border:1px solid #c6dfce;border-radius:10px;padding:10px;font-size:15px;background:#f7fcf8;color:#163e30}
+.dl .sheet.gateSheet .gateForm input[dir=ltr]{direction:ltr;text-align:left}
+.dl .sheet.gateSheet .gateForm .gateCode{font:600 24px Arial!important;letter-spacing:8px;text-align:center}
+.dl .sheet.gateSheet .gateConsent{font-size:11px;line-height:1.8;color:#4e715b;margin:6px 0 2px}
+.dl .sheet.gateSheet .gateError{display:none;color:#ad3131;background:#fff1ee;border-radius:8px;font-size:12px;line-height:1.7;padding:6px 9px}
+.dl .sheet.gateSheet .gateError.visible{display:block}
+.dl .sheet.gateSheet .gateError.ok{color:#0c7244;background:#e4f6ea}
+.dl .sheet.gateSheet .gateLinks{display:flex;justify-content:space-between;margin-top:4px}
+.dl .sheet.gateSheet .gateLink{border:0;background:none;color:#097747;font-size:12px;padding:6px 2px;text-decoration:underline;text-underline-offset:3px}
+.dl .sheet.gateSheet .gateLink:disabled{color:#8aa394;text-decoration:none;cursor:default}
+
 /* ── چیدمانِ دسکتاپ (خواستهٔ مالک: «برای بروزر مثل موبایل نباشه») ─────────
    زیرِ ۹۰۰ پیکسل دو گروهِ dl-in و dl-out ناپدیدند (display:contents) و چیدمان
    عیناً همان اپ است. بالای آن: ورودی‌ها در ستونِ راست، نتیجه چسبان در ستونِ چپ،
