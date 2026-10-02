@@ -899,8 +899,8 @@ public class StoreWebController {
         addDynamicUrls(model, request);
         String baseUrl = buildBaseUrl(request);
         String canonical = baseUrl + "/support/link-cal";
-        String title = "محاسبه لینک وایرلس — ابزار رایگان بودجه لینک رادیویی | داده نما";
-        String description = "محاسبهٔ رایگانِ بودجهٔ لینکِ رادیویی: سیگنالِ دریافتی، حاشیهٔ تضعیف، ناحیهٔ فرنل و افتِ باران برای شهرهای ایران. بدونِ ثبت‌نام، روی موبایل و دسکتاپ.";
+        String title = "محاسبه لینک وایرلس و مایکروویو | ابزار رایگان داده نما";
+        String description = "سیگنال دریافتی و حاشیهٔ تضعیفِ لینکِ وایرلس و مایکروویو را رایگان حساب کنید، اثرِ باران در ۱۷ شهرِ ایران را ببینید و فاصلهٔ دو نقطه را از روی نقشه بردارید.";
         model.addAttribute("seoTitle", title);
         model.addAttribute("seoDescription", description);
         model.addAttribute("canonicalUrl", canonical);
@@ -911,7 +911,7 @@ public class StoreWebController {
     private String buildLinkCalJsonLd(String baseUrl, String canonical, String description) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[");
-        sb.append("{\"@type\":\"WebApplication\",\"name\":\"محاسبه لینک وایرلس\"")
+        sb.append("{\"@type\":\"WebApplication\",\"name\":\"داده‌لینک — محاسبه لینک وایرلس و مایکروویو\"")
                 .append(",\"url\":\"").append(esc(canonical)).append("\"")
                 .append(",\"description\":\"").append(esc(description)).append("\"")
                 .append(",\"applicationCategory\":\"UtilitiesApplication\"")
