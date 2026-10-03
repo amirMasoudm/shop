@@ -241,10 +241,11 @@ public class SecurityConfig {
                             .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
                         .requestMatchers(HttpMethod.GET, "/api/comments/admin/list")
                             .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
-                        // ⚠️ تأیید/رد/پاسخ محتوا را عمومی می‌کند، پس SUPPORT بیرون است:
-                        // نقشش صریحاً «فقط مشاهده» تعریف شده و همان‌جا هم باید بماند.
+                        // تصمیمِ مالک: SUPPORT هم نظر را تأیید/رد می‌کند و پاسخ می‌دهد.
+                        // ⚠️ فقط همین مسیر؛ «فقط‌مشاهده»بودنِ SUPPORT در بقیهٔ پنل
+                        // (میزِ کار، محصولات) دست‌نخورده می‌ماند.
                         .requestMatchers(HttpMethod.PUT, "/api/comments/admin/**")
-                            .hasAnyRole("ADMIN", "PRICER", "SALES")
+                            .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
 
                         // ۴. مسیرهای ادمین
                         .requestMatchers(

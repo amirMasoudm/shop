@@ -153,9 +153,8 @@
 
         const act = document.createElement('td');
         act.className = 'p-2 whitespace-nowrap';
-        // ⚠️ دکمه‌ها فقط برایِ نقشی که حقِ نوشتن دارد. مرزِ واقعی سمتِ سرور است
-        // (PUT /api/comments/admin/** بدونِ SUPPORT)؛ این فقط برایِ این است که
-        // دکمه‌ای نشان داده نشود که کلیکش حتماً ۴۰۳ می‌گیرد.
+        // مرزِ واقعی سمتِ سرور است (PUT /api/comments/admin/**، هر چهار نقشِ پنل)؛
+        // این فقط برایِ این است که دکمه‌ای نشان داده نشود که کلیکش ۴۰۳ می‌گیرد.
         if (mCanEdit && s !== 'APPROVED') act.appendChild(actionBtn('تأیید', c.id, 'approve', 'green'));
         if (mCanEdit && s !== 'REJECTED') act.appendChild(actionBtn('رد', c.id, 'reject', 'red'));
         tr.appendChild(act);

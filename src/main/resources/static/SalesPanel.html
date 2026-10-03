@@ -218,9 +218,9 @@
             const isSales = roles.includes('ROLE_SALES');
             const isSupport = roles.includes('ROLE_SUPPORT');
             const hasPricing = isAdmin || isPricer || isSales || isSupport;
-            // تأیید/ردِ نظر محتوا را عمومی می‌کند، پس SUPPORT بیرون است — نقشش
-            // صریحاً «فقط مشاهده» است. سرور هم همین را اعمال می‌کند.
-            window.__salesCanEditComments = isAdmin || isPricer || isSales;
+            // تصمیمِ مالک: هر چهار نقشِ پنل نظر را تأیید/رد می‌کنند. سرور هم همین
+            // را اعمال می‌کند؛ «فقط‌مشاهده»بودنِ SUPPORT جای دیگری دست‌نخورده است.
+            window.__salesCanEditComments = isAdmin || isPricer || isSales || isSupport;
             const hasProducts = isAdmin || isPricer;
             let firstProductsRefresh = true;
 
