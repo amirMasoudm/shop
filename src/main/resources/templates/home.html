@@ -335,6 +335,10 @@
         footer.site-footer { background: #1b2a3a; color: #cbd5e1; padding: 26px 16px; margin-top: 10px; }
         footer.site-footer .in { max-width: 1360px; margin: 0 auto; }
         footer.site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
+        /* سرِ فوتر: عنوان سمتِ راست، نماد سمتِ چپ. در موبایل زیرِ هم. */
+        footer.site-footer .foot-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        footer.site-footer .enamad { background: #fff; border-radius: 8px; padding: 4px; line-height: 0; flex: none; }
+        footer.site-footer .enamad img { width: 84px; height: auto; display: block; }
         footer.site-footer a { color: #cbd5e1; text-decoration: none; font-size: .8rem; }
 
         /* ===== ویترینِ مدارک — مینیمال؛ عیناً ظرف و تیترِ .heritage ===== */
@@ -853,7 +857,18 @@
 
 <footer class="site-footer" th:if="${footerCategories != null and !footerCategories.isEmpty()}">
     <div class="in">
-        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <div class="foot-head">
+            <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+            <!-- نمادِ اعتمادِ الکترونیک — همان شناسه و کدِ سایتِ قبلی.
+                 ⚠️ referrerpolicy="origin" لازم است: enamad دامنهٔ ارجاع‌دهنده را
+                 می‌سنجد و بدونِ آن نماد را نشان نمی‌دهد. -->
+            <a class="enamad" referrerpolicy="origin" target="_blank" rel="noopener"
+               href="https://trustseal.enamad.ir/?id=299559&amp;Code=N9ReIKi8aA69ixgOyEzI">
+                <img referrerpolicy="origin" loading="lazy" width="100" height="100"
+                     src="https://trustseal.enamad.ir/logo.aspx?id=299559&amp;Code=N9ReIKi8aA69ixgOyEzI"
+                     alt="نماد اعتماد الکترونیک">
+            </a>
+        </div>
         <nav>
             <a th:each="fc : ${footerCategories}"
                th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
