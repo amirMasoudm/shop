@@ -51,6 +51,7 @@
         .lc-text a { color:#087b43; }
         .lc-lead { max-width:760px; margin:0 auto 12px; text-align:center; color:#374151; font-size:.93rem; line-height:2; }
         .lc-lead p { margin:0 0 4px; }
+        .lc-app { max-width:720px; margin:18px auto 0; font-size:.9rem; color:#374151; text-align:center; } .lc-app a { color:#087b43; font-weight:bold; }
         .lc-text p:last-child { margin-bottom:0; }
 
         footer.site-footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
@@ -113,6 +114,7 @@
     </div></div>
 
     <!-- متنِ صفحه: docs/content-drafts/dadehlink-tool-page.md (بندِ ۱۰)، عیناً. دادهٔ ساختاریافتهٔ پرسش‌ها عمداً ساخته نمی‌شود. -->
+    <p class="lc-app">نسخهٔ اندرویدِ همین ابزار، با قطب‌نما و کارِ بی‌اینترنت: <a href="/dadehlink">دانلود داده‌لینک</a></p>
     <article class="lc-text">
         <h2>داده‌لینک برای چه کسانی کاربرد دارد</h2>
         <ul><li>نصاب‌های وایرلس و دوربینِ مداربسته که پیش از اجرا به برآوردِ ارتباطِ بینِ دو نقطه نیاز دارند.</li><li>کارشناسان و مدیرانِ شبکه در شرکت‌های FCP، ISP و سازمان‌ها که چند انتخابِ فرکانس، آنتن یا فاصله را بررسی می‌کنند.</li><li>تیم‌های فروش و طراحی که می‌خواهند اثرِ انتخابِ تجهیزات را با عدد به مشتری توضیح دهند.</li><li>مدرسان و علاقه‌مندانِ شبکه که به یک ابزارِ عملی برای دیدنِ ارتباطِ ورودی‌ها و نتیجهٔ لینک نیاز دارند.</li></ul>
@@ -162,6 +164,7 @@
             <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
             <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; font-weight:700;">سابقه و اعتبار</a>
             <a th:href="${baseUrl + '/support/link-cal'}" style="color:#f5b06a; font-weight:700;">محاسبه لینک وایرلس</a>
+            <a th:href="${baseUrl + '/privacy'}" style="color:#f5b06a; font-weight:700;">حریم خصوصی</a>
         </nav>
         <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© داده نما</div>
     </div>
@@ -185,7 +188,7 @@ window.DADEHLINK_CONFIG = {
 <script src="/tools/dadehlink/engine/rf.js"></script>
 <script src="/tools/dadehlink/app.js?v=9"></script>
 <script src="/tools/dadehlink/alignment.js?v=9"></script>
-<script src="/tools/dadehlink/gate.js?v=9"></script>
+<script src="/tools/dadehlink/gate.js?v=10"></script>
 <script src="/tools/dadehlink/equipment.js?v=11"></script>
 
 <script src="/js/chat-core.js"></script>

@@ -35,6 +35,7 @@ public class StoreWebController {
     private final org.example.shop1.model.service.ImageRowBannerService imageRowBannerService;
     private final org.example.shop1.model.service.ProductRedirectService productRedirectService;
     private final org.example.shop1.model.service.LegacyRedirectService legacyRedirectService;
+    private final AppReleaseController appRelease;
 
     // فاز ۰ رودمپ: آنالیتیکس — خالی بودن یعنی تگ رندر نمی‌شود
     @org.springframework.beans.factory.annotation.Value("${analytics.ga4.measurement-id:}")
@@ -49,7 +50,9 @@ public class StoreWebController {
                               CourseService courseService,
                               org.example.shop1.model.service.ImageRowBannerService imageRowBannerService,
                               org.example.shop1.model.service.ProductRedirectService productRedirectService,
-                              org.example.shop1.model.service.LegacyRedirectService legacyRedirectService) {
+                              org.example.shop1.model.service.LegacyRedirectService legacyRedirectService,
+                              AppReleaseController appRelease) {
+        this.appRelease = appRelease;
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.categoryService = categoryService;
@@ -927,6 +930,40 @@ public class StoreWebController {
         return sb.toString();
     }
 
+    // صفحهٔ دانلودِ اپِ اندروید — متنِ بستهٔ انتشارِ مدیرِ داده‌لینک. دکمه و نسخه از latest.json؛
+    // بی آن «به‌زودی» و noindex، تا گوگل صفحهٔ دانلودِ بی‌فایل را نبیند.
+    @GetMapping("/dadehlink")
+    public String dadehlinkDownload(Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+        String baseUrl = buildBaseUrl(request);
+        String canonical = baseUrl + "/dadehlink";
+        String description = "دانلود رایگانِ داده‌لینک برای اندروید: محاسبهٔ بودجهٔ لینکِ وایرلس و مایکروویو، اثرِ باران در ۱۷ شهرِ ایران و جهت‌یابیِ آنتن روی گوشی.";
+        java.util.Optional<AppReleaseController.Release> release = appRelease.latest();
+        model.addAttribute("seoTitle", "دانلود داده‌لینک — اپ محاسبه لینک وایرلس برای اندروید");
+        model.addAttribute("seoDescription", description);
+        model.addAttribute("canonicalUrl", canonical);
+        model.addAttribute("release", release.orElse(null));
+        model.addAttribute("appVersion", release.map(AppReleaseController.Release::versionName).orElse("1.1.0"));
+        model.addAttribute("noindex", release.isEmpty());
+        model.addAttribute("jsonLd", release.map(r -> "{\"@context\":\"https://schema.org/\",\"@type\":\"SoftwareApplication\""
+                + ",\"name\":\"داده‌لینک\",\"softwareVersion\":\"" + esc(r.versionName()) + "\""
+                + ",\"operatingSystem\":\"Android\",\"applicationCategory\":\"UtilitiesApplication\""
+                + ",\"url\":\"" + esc(canonical) + "\",\"downloadUrl\":\"" + esc(baseUrl + r.path()) + "\""
+                + ",\"offers\":{\"@type\":\"Offer\",\"price\":0,\"priceCurrency\":\"IRR\"}}").orElse(null));
+        return "dadehlink-download";
+    }
+
+    @GetMapping("/privacy")
+    public String privacyPage(Model model, HttpServletRequest request) {
+        addDynamicUrls(model, request);
+        String baseUrl = buildBaseUrl(request);
+        model.addAttribute("seoTitle", "حریم خصوصی | داده نما");
+        model.addAttribute("seoDescription", "داده‌نما و ابزارِ داده‌لینک، در سایت و اپِ اندروید، چه اطلاعاتی از شما می‌گیرند و با آن چه می‌کنند.");
+        model.addAttribute("canonicalUrl", baseUrl + "/privacy");
+        model.addAttribute("noindex", false);
+        return "privacy";
+    }
+
     @GetMapping("/about")
     public String aboutPage(Model model, HttpServletRequest request) {
         addDynamicUrls(model, request);
@@ -1098,6 +1135,11 @@ public class StoreWebController {
 
         // ابزارِ محاسبهٔ لینک
         xml.append("<url><loc>").append(baseUrl).append("/support/link-cal</loc><priority>0.7</priority></url>");
+        xml.append("<url><loc>").append(baseUrl).append("/privacy</loc><priority>0.3</priority></url>");
+        // صفحهٔ دانلود فقط وقتی فایلی برای دانلود هست
+        if (appRelease.latest().isPresent()) {
+            xml.append("<url><loc>").append(baseUrl).append("/dadehlink</loc><priority>0.7</priority></url>");
+        }
 
         // بلاگ و مقالات منتشرشده
         xml.append("<url><loc>").append(baseUrl).append("/blog</loc><priority>0.7</priority></url>");
