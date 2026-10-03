@@ -560,7 +560,7 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 
 /* ورودی‌ها */
 .dl .app #fields{padding:6px 20px}
-.dl .app #fields .field{padding:8px 0 14px}
+.dl .app #fields .field{padding:5px 0 10px}
 .dl .app #fields .fieldtop{height:44px}
 .dl .app #fields label{font-size:15px}
 .dl .app #fields .eng{font-size:11px;margin-right:8px}
@@ -630,3 +630,6 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .app .dl-align{grid-area:align;align-self:stretch;display:flex;flex-direction:column}
 .dl .app .dl-align .alignCanvas{flex:1;height:auto;min-height:460px;aspect-ratio:auto}
 }
+
+/* هم‌قدیِ دو کادر با syncHeights؛ نتیجه محتوایش را وسط نگه دارد */
+@media(min-width:900px){.dl .app .result{display:flex;flex-direction:column;justify-content:space-between}}

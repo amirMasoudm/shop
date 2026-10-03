@@ -61,7 +61,11 @@ function renderSuggest(s,q){
  sugg.append(group('رادیو',s.radios,'در فروشگاه رادیویی که این توان و حساسیت را بدهد نیست.'));
 }
 const baseUpdate=update;
-update=function(){baseUpdate();if(tab==='calc')querySuggest();else recomputeEquip()};
+update=function(){baseUpdate();if(tab==='calc')querySuggest();else recomputeEquip();syncHeights()};
+// دسکتاپ: کادرِ پارامترها و کادرِ سیگنالِ دریافتی هم‌قد (خواستهٔ مالک). موبایل دست نمی‌خورد.
+function syncHeights(){const f=$('fields'),r=document.querySelector('.dl .result');if(!f||!r)return;f.style.minHeight=r.style.minHeight='';
+ if(innerWidth<900||tab!=='calc')return;const h=Math.max(f.offsetHeight,r.offsetHeight);f.style.minHeight=r.style.minHeight=h+'px'}
+addEventListener('resize',syncHeights);
 document.addEventListener('dadehlink:auth',()=>{lastQuery='';querySuggest()});
 
 // ---------------------------------------------------------------- زبانه‌ها
@@ -182,4 +186,5 @@ function showSelected(list){
 // ---------------------------------------------------------------- شروع
 let startTab='calc';try{startTab=localStorage.getItem(TAB_KEY)==='equip'?'equip':'calc'}catch(e){}
 if(startTab==='equip')setTab('equip',true);else querySuggest();
+syncHeights();document.fonts?.ready.then(syncHeights);
 })();
