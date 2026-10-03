@@ -89,7 +89,7 @@ public class SecurityConfig {
                         // دیتابیس خوانده می‌شود و هیچ پارامترِ کوئری‌ای در آن نقش ندارد.
                         .requestMatchers(HttpMethod.GET, "/l/*").permitAll()
 
-                        .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/support/link-cal", "/shop/product/**", "/shop/category/**", "/shop/course/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
+                        .requestMatchers("/", "/shop", "/about", "/wimaxnear", "/learn", "/support/link-cal", "/dadehlink", "/privacy", "/app/dadehlink/**", "/shop/product/**", "/shop/category/**", "/shop/course/**", "/blog/**", "/CL.html", "/AdminLogin.html", "/customerPanel.html").permitAll()
                         // پوشهٔ واقعیِ تصاویرِ ثابت `/img/` است؛ `/images/**` هرگز وجود نداشت و
                         // به همین دلیل لوگو در کلِ سایت ۴۰۱ می‌گرفت.
                         // ⚠️ /fragments/** هم باید همینجا باشد: مارک‌آپِ خامِ تبِ محصولات

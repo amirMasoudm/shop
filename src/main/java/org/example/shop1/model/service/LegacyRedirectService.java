@@ -129,7 +129,7 @@ public class LegacyRedirectService {
     }
 
     private static final List<String> RESERVED_PREFIXES = List.of(
-            "/api", "/l", "/shop", "/blog", "/learn", "/about", "/wimaxnear", "/profile", "/support/link-cal", "/tools",
+            "/api", "/l", "/shop", "/blog", "/learn", "/about", "/wimaxnear", "/profile", "/support/link-cal", "/tools", "/dadehlink", "/privacy", "/app/dadehlink",
             "/css", "/js", "/img", "/images", "/fonts", "/uploads", "/fragments",
             "/actuator", "/error", "/robots.txt", "/sitemap.xml", "/favicon.ico");
 
