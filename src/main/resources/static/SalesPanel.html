@@ -59,6 +59,11 @@
                  پس کنارِ تبِ محصولات پنهان/آشکار می‌شود. -->
             <button id="tabbtn-holoo" onclick="showSalesTab('holoo')"
                     class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">کد کالا و موجودی</button>
+            <!-- مشتریان و نظرات برایِ هر چهار نقش. شمارهٔ تلفن در پاسخِ سرور نیست. -->
+            <button id="tabbtn-customers" onclick="showSalesTab('customers')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">مدیریت مشتریان</button>
+            <button id="tabbtn-comments" onclick="showSalesTab('comments')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">مدیریت نظرات</button>
             <!-- پشتیبانی عمداً برایِ هر چهار نقش باز است (ADMIN/PRICER/SALES/SUPPORT):
                  صف مشترک است و هر کارشناسی می‌تواند تصاحب کند. -->
             <button id="tabbtn-support" onclick="showSalesTab('support')"
@@ -73,6 +78,8 @@
         <div id="tab-activityLog" class="hidden-section"></div>
         <div id="tab-products" class="hidden-section"></div>
         <div id="tab-holoo" class="hidden-section"></div>
+        <div id="tab-customers" class="hidden-section"></div>
+        <div id="tab-comments" class="hidden-section"></div>
         <div id="tab-support" class="hidden-section"></div>
     </main>
 </div>
@@ -88,6 +95,7 @@
 <script src="/js/admin-modal-utils.js"></script>
 <script src="/js/products-tab.js"></script>
 <script src="/js/holoo-tab.js"></script>
+<script src="/js/sales-extra-tabs.js"></script>
 <!-- چتِ پشتیبانی — chat-core.js همان هسته‌ای است که حبابِ مشتری هم استفاده می‌کند -->
 <script src="/js/chat-core.js"></script>
 <script src="/js/support-tab.js"></script>
@@ -148,15 +156,23 @@
         document.getElementById('tab-products').classList.toggle('hidden-section', id !== 'products');
         document.getElementById('tab-support').classList.toggle('hidden-section', id !== 'support');
         document.getElementById('tab-holoo').classList.toggle('hidden-section', id !== 'holoo');
+        document.getElementById('tab-customers').classList.toggle('hidden-section', id !== 'customers');
+        document.getElementById('tab-comments').classList.toggle('hidden-section', id !== 'comments');
         document.getElementById('tabbtn-workspace').classList.toggle('active', id === 'workspace');
         document.getElementById('tabbtn-log').classList.toggle('active', id === 'log');
         document.getElementById('tabbtn-products').classList.toggle('active', id === 'products');
         document.getElementById('tabbtn-support').classList.toggle('active', id === 'support');
         document.getElementById('tabbtn-holoo').classList.toggle('active', id === 'holoo');
+        document.getElementById('tabbtn-customers').classList.toggle('active', id === 'customers');
+        document.getElementById('tabbtn-comments').classList.toggle('active', id === 'comments');
         if (id === 'log') fetchActivityLogs();
         // mount تنبل است: تا کارشناس تبِ پشتیبانی را باز نکند، وب‌سوکت وصل نمی‌شود.
         if (id === 'support') SupportTab.mount(document.getElementById('tab-support'));
         if (id === 'holoo') HolooTab.mount(document.getElementById('tab-holoo'));
+        // mountِ تنبل: تا کارشناس تب را باز نکند، هیچ کوئریِ مشتری/نظر زده نمی‌شود.
+        if (id === 'customers') SalesCustomersTab.mount(document.getElementById('tab-customers'));
+        if (id === 'comments') SalesCommentsTab.mount(document.getElementById('tab-comments'),
+                {canEdit: window.__salesCanEditComments === true});
     }
 
     async function logoutSales() {
@@ -202,6 +218,9 @@
             const isSales = roles.includes('ROLE_SALES');
             const isSupport = roles.includes('ROLE_SUPPORT');
             const hasPricing = isAdmin || isPricer || isSales || isSupport;
+            // تأیید/ردِ نظر محتوا را عمومی می‌کند، پس SUPPORT بیرون است — نقشش
+            // صریحاً «فقط مشاهده» است. سرور هم همین را اعمال می‌کند.
+            window.__salesCanEditComments = isAdmin || isPricer || isSales;
             const hasProducts = isAdmin || isPricer;
             let firstProductsRefresh = true;
 

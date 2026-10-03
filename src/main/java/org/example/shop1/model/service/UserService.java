@@ -256,6 +256,16 @@ public class UserService {
         return staff;
     }
 
+    /**
+     * فقط مشتریان — ادمین و کارشناس‌ها بیرون‌اند.
+     * <p>
+     * ⚠️ عمداً «هرچه کارمند نیست» نوشته نشده: اگر فردا نقشِ تازه‌ای اضافه شود،
+     * آن حالت بی‌سروصدا در فهرستِ مشتری می‌افتاد. اینجا صریح فقط {@code USER}.
+     */
+    public List<User> getCustomers() {
+        return userRepository.findByRole(Role.USER);
+    }
+
     private User requireUser(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "کاربر یافت نشد"));

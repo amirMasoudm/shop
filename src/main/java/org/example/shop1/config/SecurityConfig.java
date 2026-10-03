@@ -233,6 +233,19 @@ public class SecurityConfig {
                         // به /Admin.html (خطِ ۱۶۹).
                         .requestMatchers("/SalesPanel.html").hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
 
+                        // تب‌های تازهٔ پنلِ فروش: مشتریان و نظرات.
+                        // ⚠️ باید پیش از بلاکِ «مسیرهای ادمین» بیایند، وگرنه
+                        // /api/comments/admin/** اول match می‌شود و کارشناس ۴۰۳ می‌گیرد.
+                        // شمارهٔ تلفن در پاسخِ مشتریان نیست (CustomerSummaryDto).
+                        .requestMatchers("/api/users/panel/customers")
+                            .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
+                        .requestMatchers(HttpMethod.GET, "/api/comments/admin/list")
+                            .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
+                        // ⚠️ تأیید/رد/پاسخ محتوا را عمومی می‌کند، پس SUPPORT بیرون است:
+                        // نقشش صریحاً «فقط مشاهده» تعریف شده و همان‌جا هم باید بماند.
+                        .requestMatchers(HttpMethod.PUT, "/api/comments/admin/**")
+                            .hasAnyRole("ADMIN", "PRICER", "SALES")
+
                         // ۴. مسیرهای ادمین
                         .requestMatchers(
                                 "/api/users/admin/**",
