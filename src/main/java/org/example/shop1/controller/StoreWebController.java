@@ -902,8 +902,12 @@ public class StoreWebController {
         addDynamicUrls(model, request);
         String baseUrl = buildBaseUrl(request);
         String canonical = baseUrl + "/support/link-cal";
-        String title = "محاسبه لینک وایرلس و مایکروویو | ابزار رایگان داده نما";
-        String description = "سیگنال دریافتی و حاشیهٔ تضعیفِ لینکِ وایرلس و مایکروویو را رایگان حساب کنید، اثرِ باران در ۱۷ شهرِ ایران را ببینید و فاصلهٔ دو نقطه را از روی نقشه بردارید.";
+        // 🔴 «محاسبه‌گر» عمداً در عنوان و توضیح آمد: جست‌وجوی «محاسبه‌گر لینک
+        // وایرلس» مقالهٔ آموزشی را می‌آورد نه خودِ ابزار را، چون این واژه یک بار هم در
+        // صفحهٔ ابزار نبود. نیت‌ها جدا شدند: ابزار «محاسبه/محاسبه‌گر»، مقاله «نحوهٔ
+        // محاسبه/فرمول/آموزش».
+        String title = "محاسبه‌گر لینک وایرلس | محاسبه رایگان لینک وایرلس و مایکروویو";
+        String description = "محاسبه‌گرِ رایگانِ لینک‌های وایرلس و مایکروویو: سیگنالِ دریافتی و حاشیهٔ تضعیف را حساب کنید، اثرِ باران در ۱۷ شهرِ ایران را ببینید و آنتن و رادیوی مناسب را از فروشگاه پیدا کنید.";
         model.addAttribute("seoTitle", title);
         model.addAttribute("seoDescription", description);
         model.addAttribute("canonicalUrl", canonical);
@@ -914,7 +918,9 @@ public class StoreWebController {
     private String buildLinkCalJsonLd(String baseUrl, String canonical, String description) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"@context\":\"https://schema.org/\",\"@graph\":[");
-        sb.append("{\"@type\":\"WebApplication\",\"name\":\"داده‌لینک — محاسبه لینک وایرلس و مایکروویو\"")
+        sb.append("{\"@type\":\"WebApplication\",\"name\":\"داده‌لینک — محاسبه‌گر لینک وایرلس و مایکروویو\"")
+                // عبارت‌های هم‌معنیِ هدف، تا گوگل هر سه شکل را به همین صفحه ببندد
+                .append(",\"alternateName\":[\"محاسبه‌گر لینک‌های وایرلس\",\"محاسبه لینک وایرلس\"]")
                 .append(",\"url\":\"").append(esc(canonical)).append("\"")
                 .append(",\"description\":\"").append(esc(description)).append("\"")
                 .append(",\"applicationCategory\":\"UtilitiesApplication\"")
@@ -924,7 +930,7 @@ public class StoreWebController {
         sb.append(",{\"@type\":\"BreadcrumbList\",\"itemListElement\":[")
                 .append("{\"@type\":\"ListItem\",\"position\":1,\"name\":\"خانه\",\"item\":\"")
                 .append(esc(baseUrl)).append("/\"},")
-                .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"محاسبه لینک وایرلس\",\"item\":\"")
+                .append("{\"@type\":\"ListItem\",\"position\":2,\"name\":\"محاسبه‌گر لینک وایرلس\",\"item\":\"")
                 .append(esc(canonical)).append("\"}]}");
         sb.append("]}");
         return sb.toString();
