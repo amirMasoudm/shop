@@ -538,14 +538,14 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .dl-in,.dl .dl-out{display:contents}
 @media(min-width:900px){
 .dl .app{max-width:1120px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
-  grid-template-areas:"head head" "tabs tabs" "in nav" "in out" "in align" "sugg sugg";grid-template-rows:auto auto auto auto 1fr auto;
+  grid-template-areas:"head head" "tabs tabs" "in out" "in align" "sugg sugg";grid-template-rows:auto auto auto 1fr auto;
   column-gap:28px;row-gap:12px;padding:22px 28px 26px;margin:6px auto 0}
 .dl .app header{grid-area:head;height:44px;margin:0 0 4px}
 .dl .app .brand{height:44px}.dl .app .brand img{width:52px;height:40px}.dl .app .brand b{font-size:26px}
 .dl .brandDish{width:26px;height:30px}
 .dl .app .version{font-size:11px;padding:5px 9px;top:12px}.dl .app .tools{top:4px}
 .dl .app .icon{width:40px;height:40px}.dl .icon svg{width:20px;height:20px}
-.dl .app .quicknav{grid-area:nav;margin:0;gap:10px}
+.dl .app .quicknav{display:none}
 .dl .app .quicknav>*{min-height:42px;font-size:14px;padding:10px 8px}
 .dl .dl-in{display:block;grid-area:in;min-width:0}
 .dl .dl-out{display:flex;flex-direction:column;gap:12px;grid-area:out;align-self:start;min-width:0}
@@ -610,4 +610,23 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 /* پنجرهٔ تنظیمِ آنتن روی دسکتاپ پهن‌تر، تا نقشه به کار بیاید */
 .dl .modal .alignSheet{max-width:980px;height:min(88vh,860px);padding:18px 22px}
 .dl .alignCanvas>svg{max-height:440px}
+}
+
+/* ── گینِ دستی باید قابلِ ویرایش دیده شود (خواستهٔ مالک) ─────────────
+   در اپ عددِ بزرگِ بی‌کادر بود و کسی نمی‌فهمید می‌شود عوضش کرد. */
+.dl .app .antgain input{border:1px solid #b9dcc6;background:#f1faf4;border-radius:9px;cursor:text;box-shadow:inset 0 1px 2px #0b47280d}
+.dl .app .antgain input:hover{border-color:#087b43}
+.dl .app .antgain input:focus{outline:2px solid #0a8150;outline-offset:1px;background:#fff}
+.dl .antgain::after{content:"✎";font-size:12px;color:#5f8f72;align-self:center}
+.dl .app.eqMode .antgain input{border-color:transparent;background:transparent;box-shadow:none;cursor:default}
+.dl .app.eqMode .antgain::after{content:none}
+
+/* ── دسکتاپِ پهن (۱۲۰۰ به بالا): سه ستونِ منطقی، مستقل از چیدمانِ اپ ──
+   راست: ورودی‌ها (پارامترها و آنتن‌ها). وسط: نتیجه و کارها. چپ: نقشهٔ بلند هم‌قدِ
+   دو ستونِ دیگر. پیشنهادها تمام‌عرض زیرِ همه. */
+@media(min-width:1200px){
+.dl .app{max-width:1320px;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);
+  grid-template-areas:"head head head" "tabs tabs tabs" "in out align" "sugg sugg sugg";grid-template-rows:auto auto auto auto}
+.dl .app .dl-align{grid-area:align;align-self:stretch;display:flex;flex-direction:column}
+.dl .app .dl-align .alignCanvas{flex:1;height:auto;min-height:460px;aspect-ratio:auto}
 }
