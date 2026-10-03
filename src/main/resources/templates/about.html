@@ -1,0 +1,314 @@
+    <!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${seoTitle}">سابقه و اعتبار | داده نما</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta property="og:site_name" content="فروشگاه داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <!-- اسکیما سروری ساخته می‌شود (الگوی categoryJsonLd) — نه درون‌قالبی -->
+    <script type="application/ld+json" th:if="${aboutJsonLd != null}" th:utext="${aboutJsonLd}"></script>
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <style>
+        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; --border:#e5e7eb; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
+        .topbar { background:var(--primary); color:#fff; padding:14px 16px; }
+        .topbar .in { max-width:1000px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; }
+        .topbar a { color:#fff; text-decoration:none; font-weight:700; }
+        main { max-width:1000px; margin:0 auto; padding:28px 16px 8px; }
+        .crumb { font-size:.8rem; color:var(--mid); margin-bottom:12px; }
+        .crumb a { color:var(--primary); text-decoration:none; }
+        h1 { font-size:1.55rem; line-height:1.7; margin-bottom:10px; }
+        .lead { color:var(--text); font-size:.98rem; line-height:2.1; margin-bottom:8px; }
+        p { line-height:2.1; font-size:.93rem; }
+        section { background:#fff; border:1px solid var(--border); border-radius:16px; padding:22px; margin-top:22px; }
+        section h2 { font-size:1.12rem; margin-bottom:12px; border-right:4px solid var(--accent); padding-right:10px; }
+        section h3 { font-size:.98rem; margin:18px 0 8px; color:var(--primary); }
+
+        .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:20px; }
+        .stat { background:#fff; border:1px solid var(--border); border-radius:16px; padding:18px 14px; text-align:center; }
+        .stat b { display:block; font-size:1.7rem; color:var(--primary); line-height:1.5; }
+        .stat span { font-size:.8rem; color:var(--mid); line-height:1.9; }
+
+        .tbl-wrap { overflow-x:auto; margin-top:6px; }
+        table { width:100%; border-collapse:collapse; font-size:.86rem; min-width:520px; }
+        th, td { padding:11px 10px; text-align:right; border-bottom:1px solid var(--border); }
+        thead th { background:#f3f6fb; color:var(--mid); font-weight:700; font-size:.8rem; white-space:nowrap; }
+        tbody tr:last-child td { border-bottom:none; }
+        td .code { font-weight:800; color:var(--primary); }
+        td .t { color:var(--mid); font-size:.82rem; }
+        td a { color:var(--primary); text-decoration:none; font-weight:700; white-space:nowrap; }
+        td a:hover { text-decoration:underline; }
+
+        .note { background:#fff8ee; border:1px solid #f3ddba; border-radius:12px; padding:13px 15px;
+                font-size:.85rem; line-height:2; color:#7a5316; margin-top:16px; }
+        .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .tags span { background:#eef3fa; color:var(--primary); border-radius:100px; padding:5px 13px; font-size:.8rem; font-weight:700; }
+
+        .cta { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
+        .cta a { padding:12px 22px; border-radius:100px; text-decoration:none; font-weight:700; font-size:.9rem; }
+        .cta .fill { background:var(--primary); color:#fff; }
+        .cta .out { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+
+        .client-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:16px; margin-top:16px; }
+        .client-grid .logo { display:flex; align-items:center; justify-content:center; background:#fff;
+            border:1px solid var(--border); border-radius:12px; padding:12px; height:70px; }
+        .client-grid .logo img { max-width:100%; max-height:100%; object-fit:contain; filter:grayscale(15%); }
+
+        .licenses { display:flex; flex-wrap:wrap; gap:20px; margin-top:16px; align-items:flex-start; }
+        .licenses figure { margin:0; text-align:center; }
+        .licenses img { max-width:220px; border:1px solid var(--border); border-radius:10px; }
+        .licenses figcaption { font-size:.78rem; color:var(--mid); margin-top:6px; }
+        .enamad { display:inline-block; margin-top:6px; }
+        .enamad img { height:90px; }
+
+        footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
+        footer .in { max-width:1000px; margin:0 auto; }
+        footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+        @media (max-width:600px) { h1 { font-size:1.3rem; } .stat b { font-size:1.45rem; } }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/support/link-cal">داده‌لینک</a>
+        <a href="/learn">آموزش</a>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<header class="topbar">
+    <div class="in">
+        <a th:href="${baseUrl + '/shop'}">🛒 فروشگاه داده نما</a>
+        <span style="font-size:.85rem;">سابقه و اعتبار</span>
+    </div>
+</header>
+
+<main>
+    <nav class="crumb">
+        <a th:href="${baseUrl + '/shop'}">خانه</a> <span>/ سابقه و اعتبار</span>
+    </nav>
+
+    <h1>سابقه و اعتبار داده نما</h1>
+
+    <p class="lead">
+        بیش از دو دهه سابقه در صنعت شبکه و ارتباطات بی‌سیم، و
+        <span th:text="${onlineYearsFa}">۲۳</span> سال حضور آنلاین روی دامنه‌ی
+        <span dir="ltr">dadehnama.com</span>. آنچه در این صفحه می‌بینید ادعا نیست —
+        هر موردش روی همین سایت قابل بررسی است.
+    </p>
+
+    <div class="stats">
+        <div class="stat">
+            <b th:text="'از ' + ${onlineSinceFa}">از ۱۳۸۲</b>
+            <span th:text="${onlineYearsFa} + ' سال حضور آنلاین روی دامنه‌ی dadehnama.com'">حضور آنلاین</span>
+        </div>
+        <div class="stat">
+            <b th:text="${courseCountFa}">۴۹</b>
+            <span>دوره و سمینار تخصصی برگزارشده</span>
+        </div>
+        <div class="stat">
+            <b>۷ سال</b>
+            <span>سابقه‌ی مستند آموزشی، از ۱۳۹۴ تا ۱۴۰۱</span>
+        </div>
+    </div>
+
+    <!-- ================= سابقه‌ی آموزشی ================= -->
+    <section>
+        <h2>سابقه‌ی آموزشی</h2>
+        <p>
+            بین سال‌های ۱۳۹۴ تا ۱۴۰۱، داده نما <span th:text="${courseCountFa}">۴۹</span> دوره و سمینار
+            تخصصی برگزار کرد. بخش اصلی این دوره‌ها، دوره‌های رسمی میکروتیک بودند:
+            <b>MTCNA</b> (مقدماتی)، <b>MTCWE</b> (وایرلس)، <b>MTCRE</b> (مسیریابی)،
+            <b>MTCTCE</b> (کنترل ترافیک) و <b>MTCUME</b> (مدیریت کاربران) — دوره‌هایی که برگزاری‌شان
+            مربی دارای مدرک رسمی میکروتیک لازم دارد. در کنار آن‌ها دوره‌های <b>CWNA</b> و آنالیز پیشرفته‌ی
+            وایرلس، ارتباطات پرظرفیت مایکروویو، و مراکز تلفنی تحت شبکه (VoIP زایکو) هم برگزار شد.
+        </p>
+        <p style="margin-top:10px;">
+            پرتکرارترین عنوان، <b>MTCNA</b> با ۱۳ دوره بود — یعنی نقطه‌ی ورود بیشتر کسانی که با
+            میکروتیک کار می‌کنند، از همین‌جا گذشته است.
+        </p>
+
+        <h3>خط‌زمان دوره‌های برگزارشده</h3>
+        <div class="tbl-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>عنوان دوره</th>
+                    <th>تعداد برگزاری</th>
+                    <th>نخستین</th>
+                    <th>آخرین</th>
+                    <th>گزارش آخرین دوره</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${courseTracks}">
+                    <td>
+                        <span class="code" th:text="${t.code}">MTCNA</span><br>
+                        <span class="t" th:text="${t.title}">مقدماتی میکروتیک</span>
+                    </td>
+                    <td th:text="${t.countFa}">۱۳</td>
+                    <td th:text="${t.firstHeld}">شهریور ۱۳۹۴</td>
+                    <td th:text="${t.lastHeld}">مرداد ۱۳۹۷</td>
+                    <td><a th:href="${baseUrl + '/blog/' + t.slug}">مشاهده ❯</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="note">
+            این جدول <b>سابقه‌ی برگزاری</b> است، نه فهرست دوره‌های در حال ثبت‌نام. آخرین دوره‌ی مستند
+            مربوط به سال ۱۴۰۱ است و در حال حاضر دوره‌ای برای ثبت‌نام باز نیست.
+        </div>
+
+        <div class="cta">
+            <a class="out" th:href="${coursesHubUrl}">همه‌ی <span th:text="${courseCountFa}">۴۹</span> دوره‌ی برگزارشده ❯</a>
+        </div>
+    </section>
+
+    <!-- ================= عمق فنی ================= -->
+    <section>
+        <h2>حوزه‌ی تخصصی</h2>
+        <p>
+            تمرکز داده نما روی زیرساخت شبکه و لینک‌های بی‌سیم است: روترها و سوییچ‌های
+            <b>میکروتیک</b>، رادیوهای وایرلس و لینک‌های <b>مایکروویو پرظرفیت</b>، تجهیزات
+            اکسس‌پوینت داخلی، و مراکز تلفنی تحت شبکه — همان حوزه‌هایی که دوره‌های بالا در
+            آن‌ها برگزار شد.
+        </p>
+        <p style="margin-top:10px;">
+            مقالات آموزشی و راهنمای عیب‌یابی این حوزه‌ها در بلاگ سایت منتشر می‌شود.
+        </p>
+        <div class="tags">
+            <span>MikroTik</span><span>MTCNA</span><span>MTCWE</span><span>MTCRE</span>
+            <span>MTCTCE</span><span>MTCUME</span><span>CWNA</span>
+            <span>مایکروویو پرظرفیت</span><span>VoIP</span><span>وایرلس</span>
+        </div>
+    </section>
+
+    <!-- ================= مجوزها و اعتبار رسمی ================= -->
+    <!--
+      متنِ مجوزها عیناً از سایتِ خودِ شرکت است. شماره‌ی مجوز/تاریخِ تایپ‌شده اضافه نشد —
+      خودِ تصویرِ اسکن‌شده مدرک است، تایپِ دوباره‌ی عددش چیزی اضافه نمی‌کند.
+
+      هر دو مجوز اسکنِ اصل هستند — عددِ مجوز/تاریخ در خودِ تصویر است، تایپِ دوباره‌اش
+      روی صفحه (که در گزارشِ قبلی عمداً حذف شده بود چون هیچ مدرکی پشتش نبود) اضافه نشد.
+    -->
+    <section>
+        <h2>مجوزها و اعتبار رسمی</h2>
+        <ul style="line-height:2.2; font-size:.93rem; padding-right:20px;">
+            <li>مجوز فعالیت سازمان نظام صنفی رایانه‌ای کشور</li>
+            <li>پروانه‌ی عرضه‌ی خدمات ورود، خرید و فروش تجهیزات رادیویی</li>
+        </ul>
+
+        <div class="licenses">
+            <figure>
+                <img src="/img/licenses/computer-guild-license.jpg" loading="lazy"
+                     alt="مجوز فعالیت سازمان نظام صنفی رایانه‌ای کشور — شرکت ارتباطات شبکه داده نما">
+                <figcaption>مجوز فعالیت سازمان نظام صنفی رایانه‌ای کشور</figcaption>
+            </figure>
+            <figure>
+                <img src="/img/licenses/radio-equipment-license.jpg" loading="lazy"
+                     alt="پروانه‌ی عرضه‌ی خدمات ورود، خرید و فروش تجهیزات رادیویی — شرکت ارتباطات شبکه داده نما">
+                <figcaption>پروانه‌ی عرضه‌ی خدمات تجهیزات رادیویی</figcaption>
+            </figure>
+        </div>
+
+        <!--
+          بجِ اینماد عمداً لینکِ زنده به trustseal.enamad.ir است، نه عکسِ لوکال‌شده.
+          برخلافِ عکسِ محصولات، این بج باید هر بار از سرورِ خودِ اینماد لود شود تا
+          روی صفحه‌ی enamad.ir قابلِ استعلام بماند؛ نسخه‌ی ذخیره‌شده از اعتبارِ بج
+          چیزی اثبات نمی‌کند و می‌تواند جعلی به‌نظر برسد.
+        -->
+        <a class="enamad" referrerpolicy="origin" target="_blank"
+           href="https://trustseal.enamad.ir/?id=299559&amp;Code=N9ReIKi8aA69ixgOyEzI">
+            <img referrerpolicy="origin"
+                 src="https://trustseal.enamad.ir/logo.aspx?id=299559&amp;Code=N9ReIKi8aA69ixgOyEzI"
+                 alt="نماد اعتماد الکترونیکی">
+        </a>
+    </section>
+
+    <!-- ================= شرکت‌ها و سازمان‌هایی که با آن‌ها همکاری کرده‌ایم ================= -->
+    <section>
+        <h2>شرکت‌ها و سازمان‌هایی که با آن‌ها همکاری کرده‌ایم</h2>
+        <p>گزیده‌ای از سازمان‌ها، دانشگاه‌ها و بانک‌هایی که پروژه‌های شبکه و ارتباطات بی‌سیم‌شان توسط داده نما اجرا شده:</p>
+        <div class="client-grid">
+            <div class="logo"><img src="/img/clients/UI.png" loading="lazy" alt="دانشگاه اصفهان"></div>
+            <div class="logo"><img src="/img/clients/IUT.png" loading="lazy" alt="دانشگاه صنعتی اصفهان"></div>
+            <div class="logo"><img src="/img/clients/IMEDU.png" loading="lazy" alt="دانشگاه علوم پزشکی اصفهان"></div>
+            <div class="logo"><img src="/img/clients/mapna.png" loading="lazy" alt="گروه مپنا"></div>
+            <div class="logo"><img src="/img/clients/foulad-mobarakeh.png" loading="lazy" alt="فولاد مبارکه اصفهان"></div>
+            <div class="logo"><img src="/img/clients/agri-bank-1.png" loading="lazy" alt="بانک کشاورزی"></div>
+            <div class="logo"><img src="/img/clients/bank-sepah.png" loading="lazy" alt="بانک سپه"></div>
+            <div class="logo"><img src="/img/clients/mehre-eghtesad.png" loading="lazy" alt="بانک مهر اقتصاد"></div>
+            <div class="logo"><img src="/img/clients/kowsar.png" loading="lazy" alt="موسسه اعتباری کوثر"></div>
+            <div class="logo"><img src="/img/clients/barname-bodje.png" loading="lazy" alt="سازمان برنامه و بودجه کشور"></div>
+            <div class="logo"><img src="/img/clients/vezarat-keshvar.png" loading="lazy" alt="وزارت کشور"></div>
+            <div class="logo"><img src="/img/clients/ostandari-esf.png" loading="lazy" alt="استانداری اصفهان"></div>
+            <div class="logo"><img src="/img/clients/sabte-asnad.png" loading="lazy" alt="سازمان ثبت اسناد و املاک کشور"></div>
+            <div class="logo"><img src="/img/clients/komite-emdad.png" loading="lazy" alt="کمیته امداد امام خمینی"></div>
+            <div class="logo"><img src="/img/clients/bonyad-meli-nokhbegan.png" loading="lazy" alt="بنیاد ملی نخبگان"></div>
+            <div class="logo"><img src="/img/clients/power-isf.png" loading="lazy" alt="صنعت برق اصفهان"></div>
+            <div class="logo"><img src="/img/clients/sanaie-shimiaei.png" loading="lazy" alt="صنایع شیمیایی ایران"></div>
+            <div class="logo"><img src="/img/clients/respina.png" loading="lazy" alt="رسپینا"></div>
+            <div class="logo"><img src="/img/clients/irisa.png" loading="lazy" alt="ایریسا"></div>
+        </div>
+    </section>
+
+    <!-- تنها یک CTA: لینکِ هابِ دوره‌ها از قبل داخلِ بخشِ «سابقه‌ی آموزشی» هست و
+         تکرارش اینجا فقط شلوغی است. -->
+    <div class="cta">
+        <a class="fill" th:href="${baseUrl + '/blog'}">بلاگ آموزشی ❯</a>
+    </div>
+</main>
+
+<footer th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/support/link-cal'}" style="color:#f5b06a; font-weight:700;">محاسبه لینک وایرلس</a>
+            <a th:href="${baseUrl + '/privacy'}" style="color:#f5b06a; font-weight:700;">حریم خصوصی</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© فروشگاه داده نما</div>
+    </div>
+</footer>
+<!-- حبابِ چتِ پشتیبانی — هستهٔ مشترک با پنلِ کارشناس (/js/chat-core.js) -->
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-chat-widget.js"></script>
+<!-- بیکنِ ردگیریِ رفتار — فقط برایِ چیزی که سرور نمی‌بیند (SPA، فیلتر، عمقِ مطالعه) -->
+<script src="/js/dn-track.js"></script>
+</body>
+</html>

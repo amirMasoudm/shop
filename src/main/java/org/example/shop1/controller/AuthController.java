@@ -1,0 +1,279 @@
+package org.example.shop1.controller;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.example.shop1.config.SecurityUtils;
+import org.example.shop1.exeption.ApiException;
+import org.example.shop1.model.entity.User;
+
+import org.example.shop1.model.enums.Role;
+import org.example.shop1.model.reposritory.UserRepository;
+import org.example.shop1.model.service.AuthService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Collections;
+import java.util.Map;
+import java.util.HashMap;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final AuthService authService;
+    private final UserRepository userRepository; // اینزرت مستقیم برای سادگی
+    private final PasswordEncoder passwordEncoder;
+
+    private final org.example.shop1.model.service.ActivityLogService activityLogService;
+
+    private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    private final org.example.shop1.model.service.analytics.UserEventRecorder analytics;
+
+    public AuthController(AuthService authService, UserRepository userRepository, PasswordEncoder passwordEncoder,
+                          org.example.shop1.model.service.ActivityLogService activityLogService,
+                          org.example.shop1.model.service.analytics.UserEventRecorder analytics) {
+        this.analytics = analytics;
+        this.authService = authService;
+        this.userRepository = userRepository;
+
+        this.passwordEncoder = passwordEncoder;
+        this.activityLogService = activityLogService;
+    }
+
+    @GetMapping("/csrf")
+    public ResponseEntity<String> getCsrfToken() {
+        return ResponseEntity.ok("CSRF Token initialized");
+    }
+    // مرحله اول لاگین ادمین
+    @PostMapping("/admin/login-step1")
+    public ResponseEntity<?> adminLoginStep1(
+            @RequestBody Map<String,String> payload,
+            HttpServletRequest request){
+        String username = payload.get("username");
+        String password = payload.get("password");
+
+        User admin = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "نام کاربری یا رمز عبور اشتباه است"));
+
+        // ورود به پنل: ادمین + هر سه ردهٔ کارکنانِ میزِ کار (PRICER/SALES/SUPPORT).
+        // USER عمداً بلاک می‌ماند (مشتری است، نه کارمند).
+        // ⚠️ همین‌جا قبلاً یک‌بار یک نقشِ تازه فراموش شد و آن نقش اصلاً به مرحله‌ی
+        // دومِ ورود نمی‌رسید (۴۰۳ همینجا) — با اضافه/حذفِ هر نقشِ کارمندی، این
+        // لیست هم باید هم‌زمان به‌روز شود.
+        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.PRICER
+                && admin.getRole() != Role.SALES && admin.getRole() != Role.SUPPORT) {
+            return ResponseEntity.status(403).body("شما اجازه ورود از این بخش را ندارید");
+        }
+
+        if (admin.getPassword() == null || !passwordEncoder.matches(password, admin.getPassword())) {
+            return ResponseEntity.status(401).body("نام کاربری یا رمز عبور اشتباه است");
+        }
+
+        authService.sendOtpCode(admin.getPhoneNumber());
+
+
+        request.getSession()
+                .setAttribute(
+                        "PENDING_ADMIN_LOGIN",
+                        admin.getUsername()
+                );
+
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message",
+                        "کد تایید ارسال شد"
+                )
+        );
+    }
+
+    // مرحله دوم لاگین ادمین
+    @PostMapping("/admin/login-step2")
+    public ResponseEntity<?> adminLoginStep2(@RequestBody Map<String, String> payload,
+                                             HttpServletRequest request,
+                                             HttpServletResponse response) {
+        String username =
+                (String) request.getSession()
+                        .getAttribute("PENDING_ADMIN_LOGIN");
+
+
+        if(username == null){
+
+            return ResponseEntity.status(401)
+                    .body("جلسه ورود منقضی شده");
+
+        }        String code = payload.get("code");
+
+        User admin =
+                userRepository.findByUsername(username)
+                        .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "کاربر یافت نشد"));
+
+        // بررسی صحت کد OTP
+        // (باید یک متد در AuthService بنویسید که فقط کد را چک کند بدون اینکه یوزر جدید بسازد)
+        if (!authService.verifyOnlyCode(admin.getPhoneNumber(), code)) {
+            return ResponseEntity.badRequest().body("کد وارد شده اشتباه است یا منقضی شده");
+        }
+
+        // احراز هویت با موفقیت انجام شد، ثبت در کانتکست
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                admin.getUsername(),
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + admin.getRole().name()))
+        );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(auth);
+        SecurityContextHolder.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
+
+        // لاگِ ورود (بندِ ۵ میزِ کارِ قیمت‌گذاری) — بدونِ این، «چه کسی کِی وارد شد» ثبت نمی‌شود
+        activityLogService.recordLogin(admin.getUsername());
+
+        Map<String,Object> result=new HashMap<>();
+
+        result.put(
+                "message",
+                "ورود ادمین با موفقیت انجام شد"
+        );
+
+        result.put(
+                "username",
+                admin.getUsername()
+        );
+
+        result.put(
+                "role",
+                admin.getRole()
+        );
+
+        // دوختنِ هویت: از این لحظه، شناسهٔ ناشناسِ این دستگاه به این کاربر می‌چسبد و
+        // رفتارِ قبل از ورودش هم زیرِ همین کاربر پیدا می‌شود.
+        analytics.identify(admin.getId());
+        analytics.record(org.example.shop1.model.enums.EventType.LOGIN, "USER", admin.getId(), null);
+
+        return ResponseEntity.ok(result);
+    }
+    // متد sendOtp بدون تغییر باقی می‌ماند...
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> payload) {
+        authService.sendOtpCode(payload.get("phoneNumber"));
+        return ResponseEntity.ok("کد ارسال شد");
+    }
+
+    // تغییر در متد verifyOtp
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> payload,
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) { // ریکوئست و ریسپانس را اضافه کنید
+        String phone = payload.get("phoneNumber");
+        String code = payload.get("code");
+
+        try {
+            org.example.shop1.model.service.AuthService.LoginResult login =
+                    authService.verifyCodeAndLogin(phone, code);
+            User user = login.user();
+
+            // ۱. ایجاد توکن احراز هویت
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    user.getUsername(),
+                    null,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+            );
+
+            // ۲. ثبت در کانتکست اسپرینگ
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(auth);
+            SecurityContextHolder.setContext(context);
+
+            // ۳. ذخیره در سشن (بسیار مهم: این خط باعث می‌شود سکیوریتی شما را بشناسد)
+            securityContextRepository.saveContext(context, request, response);
+
+            boolean isProfileComplete = (user.getFirstName() != null && !user.getFirstName().isEmpty());
+
+            // ⚠️ «تازه ساخته شد» را فقط سرویس می‌داند و نباید از خالی‌بودنِ نام حدس زده
+            // شود: مشتریِ برگشتی‌ای که پروفایلش را پر نکرده هر بار REGISTER می‌گرفت و
+            // قیفِ فازِ ۲ عددِ ثبت‌نامِ باددار و ورودِ صفر نشان می‌داد.
+            analytics.identify(user.getId());
+            analytics.record(login.created()
+                            ? org.example.shop1.model.enums.EventType.REGISTER
+                            : org.example.shop1.model.enums.EventType.LOGIN,
+                    "USER", user.getId(), null);
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("user", user);
+            resp.put("isProfileComplete", isProfileComplete);
+
+            return ResponseEntity.ok(resp);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // متد جدید برای تکمیل اطلاعات
+    @PostMapping("/complete-profile")
+    public ResponseEntity<?> completeProfile(@RequestBody Map<String, String> payload) {
+        // گرفتن نام کاربری (شماره موبایل) از کانتکست امنیتی اسپرینگ
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) return ResponseEntity.status(401).build();
+
+        String phone = auth.getName(); // این شماره قطعا متعلق به فرد درخواست دهنده است
+        String firstName = payload.get("firstName");
+        String lastName = payload.get("lastName");
+
+        User user = userRepository.findByPhoneNumber(phone)
+                .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
+
+        user.setFirstName(SecurityUtils.clean(payload.get("firstName")));
+        user.setLastName(SecurityUtils.clean(payload.get("lastName")));
+        // در متد verify-otp یوزرنیم ست شده، اینجا فقط نام را تکمیل می‌کنیم
+        userRepository.save(user);
+
+        return ResponseEntity.ok("پروفایل با موفقیت تکمیل شد");
+    }
+    // استفاده از RequestMapping تا هم با GET و هم POST کار کند و درگیر CSRF نشود
+    //
+    // 🔴 مسیر اصلاح شد: نگاشتِ کلاس از قبل /api/auth است، پس "/api/auth/logout" اینجا
+    // مسیر را به /api/auth/api/auth/logout تبدیل می‌کرد. Admin.html آن مسیرِ عجیب را
+    // صدا می‌زد و کار می‌کرد، ولی customerPanel و پنلِ فروش ۴۰۴ می‌گرفتند و در عمل
+    // خروجِ سمتِ سرور انجام نمی‌شد (فقط localStorage پاک می‌شد و سشن زنده می‌ماند).
+    @RequestMapping(value = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+
+        // پیش از نابودکردنِ کانتکست ثبت شود، وگرنه شناسهٔ کاربر دیگر در دسترس نیست.
+        analytics.record(org.example.shop1.model.enums.EventType.LOGOUT, "USER", null, null);
+
+        // ۱. نابود کردن Security Context
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+        // ۲. پیدا کردن تمام کوکی‌ها و نابود کردن آن‌ها (خیلی مهم اگر اسم کوکی را نمیدانیم)
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                cookie.setValue("");
+                cookie.setPath("/"); // حتما پث باید / باشد تا همه جا پاک شود
+                cookie.setMaxAge(0);
+                response.addCookie(cookie);
+            }
+        }
+
+        // ۳. نابود کردن سشن سنتی (تیر خلاص)
+        if (request.getSession(false) != null) {
+            request.getSession(false).invalidate();
+        }
+
+        return ResponseEntity.ok("Logged out successfully");
+    }
+}

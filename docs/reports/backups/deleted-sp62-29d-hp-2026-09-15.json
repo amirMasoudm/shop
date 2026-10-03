@@ -1,0 +1,65 @@
+{
+ "schemaVersion": 2,
+ "purpose": "بکاپِ محصولِ حذف‌شده — آمادهٔ بازگردانی با POST /api/v1/products",
+ "deletedAt": "2026-09-15",
+ "deletedFrom": "http://185.239.3.236",
+ "decidedBy": "مالک — دستورِ شفاهیِ ۱۵ سپتامبر ۲۰۲۶: «آنتن دیش وای‌لینک HSPA-29.5x-D — ۲۹dBi حذف بشود»",
+ "identityNote": "نامِ محصول توسطِ کارشناسِ شرکت به «آنتن دیش های پرفورمنس SP62-29D-HP WimaxNear» تغییر کرده بود؛ هویتش با کدِ محصول HSPA-29.5x-D و شناسهٔ Mongo تأیید شد.",
+ "restore": {
+  "endpoint": "POST /api/v1/products",
+  "auth": "ROLE_ADMIN",
+  "howTo": "کلیدِ product را به‌عنوانِ بدنه بفرست. با نگه‌داشتنِ id همان شناسه برمی‌گردد؛ اگر تداخل داد id را حذف کن.",
+  "checkAfter": "اسلاگ باید کاملاً حروفِ کوچک باشد و /shop/product/{slug} جوابِ ۲۰۰ بدهد."
+ },
+ "product": {
+  "id": "6a947405185a9b9e630da5a0",
+  "name": "آنتن دیش های پرفورمنس SP62-29D-HP WimaxNear  ",
+  "description": "آنتن دیش پارابولیکِ سریِSP62-29D-HP  High Performance — نسخهٔ پرقدرتِ همان بهرهٔ ۲۹ دسی‌بل. تفاوتِ سریِhp با سریِ استانداردِ  در طراحیِ کاسه و سیستمِ تغذیه است که سرکوبِ نویزِ کناری را بهتر می‌کند. نتیجه‌اش در سایت‌هایِ شلوغ — جایی که چند لینک در یک دکل یا یک افق کار می‌کنند — به‌صورتِ لینکِ پایدارتر و خطایِ کمتر دیده می‌شود. پلاریزاسیونِ دوگانه امکانِ کارِ MIMO دو‌جریانه را می‌دهد و کاسهٔ آلیاژِ آلومینیوم برایِ نصبِ دائمیِ فضایِ باز ساخته شده است.",
+  "price": 0,
+  "stock": 0,
+  "categoryId": "6a5cbcec89e6bfd0ee96271f",
+  "discountPercent": 0,
+  "images": [
+   "/uploads/2240d861-eaca-4d63-bd3a-3814887ac77b.jpg",
+   "/uploads/da874e5a-183e-4100-847f-fc578c1ac6a7.jpg"
+  ],
+  "imageAlts": ["", ""],
+  "specifications": {"Product code": "HSPA-29.5x-D"},
+  "warehouseCategoryId": "",
+  "basePrice": 0,
+  "warehouseDescription": "",
+  "unit": "عدد",
+  "packQuantity": 0,
+  "sectionIds": [],
+  "onlinePrice": 0,
+  "weight": 0,
+  "length": 0,
+  "width": 0,
+  "height": 0,
+  "slug": "آنتن-دیش-وایلینک-hspa-29-5x-d-29dbi",
+  "persianSlug": "آنتن-دیش-وایلینک-hspa-29-5x-d-29dbi",
+  "seoTitle": "آنتن دیش  Dual Polarity High Performance Dish 4.8 - 6.4 GHz, 29 dBi دوقطبی پرقدرت | قیمت و خرید — داده نما",
+  "seoDescription": "آنتن دیش پارابولیکِ وای‌لینک مدل SP62-29D-HPاز سریِ High Performance — نسخهٔ پرقدرتِ همان بهرهٔ ۲۹ دسی‌بل.",
+  "techSpecs": [
+   {"group": "آنتن", "key": "نوع", "value": "دیش پارابولیک جهت‌دار — سری High Performance"},
+   {"group": "آنتن", "key": "برند", "value": "WimaxNear"},
+   {"group": "آنتن", "key": "مدل", "value": "SP62-29D-HP"},
+   {"group": "آنتن", "key": "سری", "value": "Dual Polarity High Performance Dish 4.8 - 6.4 GHz, 29 dBi"},
+   {"group": "آنتن", "key": "باند فرکانسی", "value": "۴٫۸ تا ۶٫۴ گیگاهرتز"},
+   {"group": "آنتن", "key": "بهره", "value": "۲۹ دسی‌بل"},
+   {"group": "آنتن", "key": "پلاریزاسیون", "value": "دوگانهٔ خطی (عمودی و افقی)"},
+   {"group": "فیزیکی", "key": "جنس بدنه", "value": "آلیاژ آلومینیوم"},
+   {"group": "گارانتی", "key": "اصالت", "value": "کالای اصل با ضمانت اصالت"}
+  ],
+  "faqs": [
+   {"question": "چه زمانی سراغِ نسخهٔ پرقدرتDual Polarity High Performance Dish 29 dBi بروم؟", "answer": "وقتی در محلِ نصب چند لینکِ دیگر فعال است یا تداخل دارید. اگر افقِ تمیزی دارید و لینک بدونِ مشکل بالا می‌آید، نسخهٔ استانداردِ کافی است."},
+   {"question": "پلاریزاسیونِ دوگانه چه فایده‌ای دارد؟", "answer": "دو زنجیرهٔ رادیوییِ مستقل روی یک آنتن، که در حالتِ MIMO ظرفیتِ لینک را تا دو برابر بالا می‌برد."}
+  ],
+  "relatedProductIds": [
+   "6a9473cf185a9b9e630da59c",
+   "6a9473cf185a9b9e630da59d",
+   "6a9473cf185a9b9e630da59e",
+   "6a9473cf185a9b9e630da59f"
+  ]
+ }
+}

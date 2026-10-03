@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${seoTitle}">آموزش | داده نما</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta property="og:site_name" content="داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <style>
+        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; --border:#e5e7eb; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
+        main { max-width:1160px; margin:0 auto; padding:28px 16px 8px; }
+        .crumb { font-size:.8rem; color:var(--mid); margin-bottom:14px; }
+        .crumb a { color:var(--primary); text-decoration:none; }
+        h1 { font-size:1.55rem; line-height:1.7; margin-bottom:8px; }
+        .lead { color:var(--mid); font-size:.92rem; line-height:1.9; margin-bottom:26px; max-width:720px; }
+        .section-title { font-size:1.05rem; font-weight:900; margin:30px 0 14px; }
+        .section-title:first-of-type { margin-top:0; }
+
+        /* ===== دوره‌های زنده ===== */
+        .course-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(270px, 1fr)); gap:16px; margin-bottom:10px; }
+        .course-card { background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden; text-decoration:none; color:inherit; display:block; transition:.15s; }
+        .course-card:hover { box-shadow:0 10px 24px rgba(0,0,0,.08); transform:translateY(-2px); }
+        .course-card img { width:100%; height:150px; object-fit:cover; background:#eef2f7; display:block; }
+        .course-card .b { padding:14px 16px; }
+        .course-card .status { display:inline-block; font-size:.7rem; font-weight:800; color:#fff; border-radius:100px; padding:3px 10px; margin-bottom:8px; }
+        .course-card .n { font-size:.98rem; font-weight:800; line-height:1.6; margin-bottom:6px; }
+        .course-card .meta { font-size:.78rem; color:var(--mid); line-height:1.9; }
+        .course-card .price { margin-top:8px; font-weight:900; color:var(--primary); font-size:.95rem; }
+        .empty { background:#fff; border:1px dashed #cbd5e1; border-radius:14px; padding:32px; text-align:center; color:var(--mid); font-size:.85rem; }
+
+        /* ===== آرشیوِ تصویری — جمع‌شونده، هم‌زبانِ بصریِ کارنامه‌ی صفحه‌ی داده‌نما ===== */
+        .archive-card { background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 4px 14px rgba(27,79,138,.06); }
+        .archive-head {
+            width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+            padding:16px 20px; background:none; border:none; cursor:pointer; text-align:right; font-family:inherit;
+            transition:.15s;
+        }
+        .archive-head:hover { background:#f8fafc; }
+        .archive-head .t { font-size:.98rem; font-weight:900; color:var(--text); }
+        .archive-head .count { font-size:.78rem; color:var(--mid); font-weight:500; margin-right:8px; }
+        .archive-head .chevron { color:var(--accent); font-weight:900; transition:transform .2s ease; }
+        .archive-head.open .chevron { transform:rotate(90deg); }
+        .archive-head.open { box-shadow:inset 0 -3px 0 0 var(--accent); }
+        .archive-body { display:none; padding:0 20px 20px; }
+        .archive-body.open { display:block; }
+        .gallery-group { border-top:1px solid var(--border); padding-top:18px; margin-top:18px; }
+        .gallery-group:first-child { border-top:none; padding-top:0; margin-top:0; }
+        .gallery-group .n { font-size:1.02rem; font-weight:900; line-height:1.6; margin-bottom:4px; }
+        .gallery-group .d { font-size:.85rem; color:var(--mid); line-height:1.8; margin-bottom:8px; }
+        .gallery-group .date { display:inline-block; font-size:.72rem; color:var(--primary); background:#eef3fa; border-radius:100px; padding:3px 10px; font-weight:700; margin-bottom:12px; }
+        .gallery-group .photos { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px; }
+        .gallery-group .photos img { width:100%; height:150px; object-fit:cover; display:block; background:#eef2f7; border-radius:10px; }
+        footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:44px; }
+        footer .in { max-width:1160px; margin:0 auto; }
+        footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/support/link-cal">داده‌لینک</a>
+        <a href="/learn" class="active">آموزش</a>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<main>
+    <nav class="crumb">
+        <a href="/">خانه</a> <span>/ آموزش</span>
+    </nav>
+
+    <h1>آموزش در داده‌نما</h1>
+    <p class="lead">
+        دوره‌های زنده و قابلِ ثبت‌نام پایین آمده‌اند؛ زیرشان هم آرشیوِ تصویریِ کلاس‌ها و دوره‌هایی
+        که تا امروز برگزار کرده‌ایم.
+    </p>
+
+    <div class="section-title">دوره‌های قابلِ ثبت‌نام</div>
+    <div class="course-grid" th:if="${courses != null and !courses.isEmpty()}">
+        <a class="course-card" th:each="c : ${courses}"
+           th:href="${'/shop/course/' + (c.slug != null and !c.slug.isEmpty() ? c.slug : c.id)}">
+            <img th:if="${c.bannerImage != null and !c.bannerImage.isEmpty()}" th:src="${c.bannerImage}" th:alt="${c.title}" loading="lazy">
+            <img th:if="${(c.bannerImage == null or c.bannerImage.isEmpty()) and c.images != null and !c.images.isEmpty()}" th:src="${c.images[0]}" th:alt="${c.title}" loading="lazy">
+            <div class="b">
+                <span class="status" th:if="${!c.active}" style="background:#9ca3af;">غیرفعال</span>
+                <span class="status" th:if="${c.active and c.enrolledCount >= c.capacity}" style="background:#dc2626;">ظرفیت تکمیل</span>
+                <span class="status" th:if="${c.active and c.enrolledCount lt c.capacity}" style="background:#059669;">ثبت‌نام باز</span>
+                <div class="n" th:text="${c.title}">عنوانِ دوره</div>
+                <div class="meta">
+                    <span th:text="${c.mode?.name() == 'ONLINE' ? 'آنلاین' : (c.mode?.name() == 'PHYSICAL_CONTENT' ? 'ارسال محتوای فیزیکی' : 'حضوری')}">حضوری</span>
+                    <span th:if="${c.instructor != null and !c.instructor.isEmpty()}"> · <span th:text="${c.instructor}">استاد</span></span><br>
+                    <span th:if="${c.startDate != null and !c.startDate.isEmpty()}" th:text="${c.startDate}">تاریخ</span>
+                    <span th:if="${c.location != null and !c.location.isEmpty()}"> · <span th:text="${c.location}">مکان</span></span><br>
+                    <span th:if="${c.theoryHours != null or c.practicalHours != null}"
+                          th:text="(${c.theoryHours ?: 0} + ${c.practicalHours ?: 0}) + ' ساعت (تئوری+عملی)'">ساعت</span>
+                </div>
+                <div class="price" th:text="${#numbers.formatInteger(c.price != null ? c.price : 0, 1, 'COMMA')} + ' تومان'">۰ تومان</div>
+            </div>
+        </a>
+    </div>
+    <div class="empty" th:if="${courses == null or courses.isEmpty()}">فعلاً دوره‌ی زنده‌ای برایِ ثبت‌نام نیست.</div>
+
+    <div class="section-title">آرشیوِ تصویریِ کلاس‌ها</div>
+    <div class="archive-card" th:if="${educationArchiveItems != null and !educationArchiveItems.isEmpty()}">
+        <button type="button" class="archive-head" id="archiveHead" onclick="toggleArchive()">
+            <span><span class="t">آرشیو تصویری کلاس‌ها</span><span class="count" th:text="'(' + ${educationArchiveItems.size()} + ' مجموعه)'">(۱۲۲)</span></span>
+            <span class="chevron">❯</span>
+        </button>
+        <div class="archive-body" id="archiveBody">
+            <div class="gallery-group" th:each="grp : ${educationArchiveItems}">
+                <div class="n" th:text="${grp.title}">عنوانِ گروه</div>
+                <div class="d" th:if="${grp.caption != null and !grp.caption.isEmpty()}" th:text="${grp.caption}">توضیح</div>
+                <div th:if="${grp.eventDate != null and !grp.eventDate.isEmpty()}">
+                    <span class="date" th:text="${grp.eventDate}">تیر ۱۳۹۵</span>
+                </div>
+                <div class="photos">
+                    <img th:each="url : ${grp.imageUrls}" th:src="${url}" th:alt="${grp.title}" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="empty" th:if="${educationArchiveItems == null or educationArchiveItems.isEmpty()}">
+        آرشیوِ تصویری هنوز خالی است.
+    </div>
+</main>
+
+<script>
+    function toggleArchive() {
+        document.getElementById('archiveHead').classList.toggle('open');
+        document.getElementById('archiveBody').classList.toggle('open');
+    }
+</script>
+
+<footer th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; font-weight:700;">سابقه و اعتبار</a>
+            <a th:href="${baseUrl + '/support/link-cal'}" style="color:#f5b06a; font-weight:700;">محاسبه لینک وایرلس</a>
+            <a th:href="${baseUrl + '/privacy'}" style="color:#f5b06a; font-weight:700;">حریم خصوصی</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© داده نما</div>
+    </div>
+</footer>
+<!-- حبابِ چتِ پشتیبانی — هستهٔ مشترک با پنلِ کارشناس (/js/chat-core.js) -->
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-chat-widget.js"></script>
+<!-- بیکنِ ردگیریِ رفتار — فقط برایِ چیزی که سرور نمی‌بیند (SPA، فیلتر، عمقِ مطالعه) -->
+<script src="/js/dn-track.js"></script>
+</body>
+</html>

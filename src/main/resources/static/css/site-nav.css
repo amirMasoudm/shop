@@ -1,0 +1,132 @@
+/* نوارِ هویتِ سایت — داده‌نما / WimaxNear / فروشگاه / آموزش / بلاگ.
+   مشترک بینِ همه‌ی صفحه‌ها (/, /wimaxnear, /shop, /about, /blog, /blog/{slug}) تا با
+   رفتن به فروشگاه از بین نرود — طبقِ خواسته‌ی صریحِ مالک. عمداً یک فایلِ مشترک است
+   (نه استایلِ درون‌قالبیِ تکرارشده در ۶ فایل) چون دقیقاً همین یک بلاک در همه جا تکرار می‌شود. */
+:root {
+    /* یک پله تیره‌تر به خواستهٔ مالک (۲۰۲۶-۰۹-۱۸). این فایل بینِ هر هشت
+       قالب مشترک است، پس نوارِ هویتِ همهٔ صفحه‌ها با هم عوض می‌شود. */
+    --nav-primary: #17406f;
+    --nav-primary-dark: #143152;
+    --nav-accent: #e8861a;
+    --nav-h: 56px;
+}
+header.topnav {
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    height: var(--nav-h);
+    background: linear-gradient(135deg, var(--nav-primary-dark), var(--nav-primary));
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 26px;
+    font-family: Vazirmatn, Tahoma, sans-serif;
+}
+
+/* ⚠️ هالهٔ لمسِ خودِ مرورگر روی لینک‌های این نوار هم می‌افتاد. خاموشی و
+   بازخوردِ جایگزین با هم می‌آیند — یکی بدونِ دیگری یعنی دکمهٔ بی‌جان. */
+header.topnav a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+header.topnav a:active {
+    color: #fff;
+    opacity: .6;
+}
+header.topnav .brand {
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: #fff;
+    white-space: nowrap;
+    text-decoration: none;
+}
+header.topnav .brand.active {
+    border-bottom: 2px solid var(--nav-accent);
+    padding-bottom: 3px;
+}
+header.topnav nav {
+    display: flex;
+    gap: 20px;
+    font-size: .88rem;
+    font-weight: 500;
+}
+header.topnav nav a,
+header.topnav nav span {
+    color: #c7d8ee;
+    text-decoration: none;
+}
+header.topnav nav a.active {
+    color: #fff;
+    border-bottom: 2px solid var(--nav-accent);
+    padding-bottom: 3px;
+}
+header.topnav nav span.muted {
+    opacity: .55;
+    cursor: default;
+}
+header.topnav .spacer { flex-grow: 1; }
+header.topnav .login {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #c7d8ee;
+    font-size: .82rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+/* ── نوارِ شیشه‌ایِ بینِ نوارِ هویت و نوارِ فروشگاه ──────────────────────────
+   پیش از این بینِ دو نوارِ چسبان یک نوارِ خالی می‌ماند که محتوا از زیرش رد می‌شد و
+   بی‌قصد به‌نظر می‌رسید. حالا همان فاصله عمدی است: شیشه‌ای، کمی بلندتر، و یک جملهٔ
+   ثابت رویش. محتوا همچنان از زیرش می‌گذرد — همان چیزی که مالک خواست. */
+:root { --nav-gap-h: 30px; }
+
+.nav-gap {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 1050;
+    height: var(--nav-gap-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* شیشه: نیمه‌شفاف + تاری، تا اسکرولِ زیرش دیده شود ولی متن خوانا بماند */
+    background: rgba(255, 255, 255, .55);
+    backdrop-filter: blur(9px) saturate(140%);
+    -webkit-backdrop-filter: blur(9px) saturate(140%);
+    border-bottom: 1px solid rgba(20, 49, 82, .16);
+    font-family: Vazirmatn, Tahoma, sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--nav-primary);
+    user-select: none;
+}
+
+/* مرورگرِ بدونِ backdrop-filter نباید متنِ روی محتوای متحرک را ناخوانا کند */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav-gap { background: rgba(255, 255, 255, .92); }
+}
+
+@media (max-width: 780px) {
+    /* روی موبایل نوارِ هویت می‌پیچد و بلندتر می‌شود؛ فاصله هم کمی بازتر تا جمله جا شود */
+    :root { --nav-gap-h: 34px; }
+    .nav-gap { font-size: .68rem; }
+}
+
+@media (max-width: 780px) {
+    /* 🔴 ارتفاع اینجا ثابت می‌شود و --nav-h هم با آن یکی می‌ماند.
+       پیش از این ارتفاع auto بود (۴۸ پیکسل) ولی --nav-h روی ۵۶ مانده بود، پس
+       نوارِ شیشه‌ای ۸ پیکسل پایین‌تر می‌چسبید و همان‌جا یک باریکه می‌ماند که
+       محتوا از تویش رد می‌شد. flex-wrap هم به nowrap رفت تا ارتفاع در هیچ عرضی
+       غافلگیرمان نکند؛ اگر لینک‌ها جا نشدند، خودِ نوار افقی اسکرول می‌شود. */
+    :root { --nav-h: 48px; }
+    header.topnav {
+        gap: 12px; padding: 0 12px;
+        height: var(--nav-h); min-height: var(--nav-h);
+        flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+        scrollbar-width: none;
+    }
+    header.topnav::-webkit-scrollbar { display: none; }
+    header.topnav .brand { font-size: .95rem; }
+    header.topnav nav { gap: 10px; font-size: .74rem; flex-wrap: nowrap; white-space: nowrap; }
+    header.topnav .login span { display: none; }
+}

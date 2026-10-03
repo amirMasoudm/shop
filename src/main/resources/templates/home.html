@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${seoTitle}">داده نما | ارتباطاتِ بی‌سیم و آموزشِ تخصصیِ شبکه</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta property="og:site_name" content="داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <!-- اسکیمای Organization — ریشهٔ سایت جایگاهِ درست‌ترش است (قبلاً فقط روی /about بود) -->
+    <script type="application/ld+json" th:if="${organizationJsonLd != null}" th:utext="${organizationJsonLd}"></script>
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <!-- نوارِ هویتِ سایت — مشترک بینِ همه‌ی صفحه‌ها (فایلِ جدا: css/site-nav.css) -->
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1b4f8a; --primary-lt: #2563ad; --accent: #e8861a;
+            --text: #1a2235; --text-mid: #5a6b83; --text-muted: #8c9cb5;
+            --border: #dbe5f2; --border-lt: #e6ecf6; --surface: #ffffff;
+            --bg-soft: #f2f5fb; --radius: 22px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; font-family: Vazirmatn, Tahoma, sans-serif; color: var(--text); line-height: 1.6;
+            background:
+                radial-gradient(1200px 420px at 78% -80px, rgba(37,99,173,.13), transparent 62%),
+                linear-gradient(180deg, #eef2f9 0%, #f4f7fc 100%);
+        }
+        a { color: var(--primary); }
+        .wrap { max-width: 1360px; margin: 0 auto; padding: 0 20px; }
+
+        /* ===== بالای صفحه ===== */
+        .hero {
+            max-width: 1360px; margin: 0 auto; padding: 40px 20px 0;
+            display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center;
+        }
+        .badge-founded {
+            display: inline-flex; align-items: center; gap: 8px; background: rgba(232,134,26,.1);
+            border: 1px solid rgba(232,134,26,.3); border-radius: 100px; padding: 7px 16px;
+            font-size: .8rem; color: #b8650a; font-weight: 700; margin-bottom: 16px;
+        }
+        .hero h1 { font-size: 2.4rem; font-weight: 900; line-height: 1.35; margin: 0 0 16px; letter-spacing: -.6px; }
+        .hero h1 .grad {
+            background: linear-gradient(105deg, var(--primary), var(--primary-lt));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .hero p { font-size: .96rem; color: var(--text-mid); margin: 0 0 12px; max-width: 560px; }
+        .hero p b { color: var(--text); font-weight: 900; }
+        .trust-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+        .trust-badges span {
+            display: inline-flex; align-items: center; gap: 6px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 100px; padding: 6px 13px;
+            font-size: .78rem; font-weight: 700; color: var(--primary);
+        }
+        .trust-badges span::before { content: '✓'; }
+
+        /* ===== جعبهٔ خرید ===== */
+        .buybox {
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 26px; box-shadow: 0 14px 38px rgba(27,79,138,.1);
+        }
+        .buybox h2 { font-size: 1.06rem; font-weight: 900; margin: 0 0 4px; }
+        .buybox .sub { font-size: .82rem; color: var(--text-muted); margin-bottom: 16px; }
+        .buybox form { display: flex; border: 2px solid var(--primary); border-radius: 13px; overflow: hidden; margin-bottom: 14px; }
+        .buybox input[type=search] { flex-grow: 1; border: none; padding: 13px 16px; font-size: .92rem; font-family: inherit; outline: none; min-width: 0; }
+        .buybox button[type=submit] {
+            background: linear-gradient(135deg, #1a3f6f, var(--primary)); border: none; padding: 0 20px;
+            display: flex; align-items: center; cursor: pointer;
+        }
+        .cat-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 16px; }
+        .cat-shortcuts a {
+            background: var(--bg-soft); border: 1px solid var(--border-lt); border-radius: 11px;
+            padding: 10px 14px; font-size: .83rem; font-weight: 500; color: var(--text); text-decoration: none;
+        }
+        .cat-shortcuts a:hover { border-color: var(--primary); }
+        .buybox .cta {
+            display: block; background: linear-gradient(135deg, #1a3f6f, var(--primary-lt)); color: #fff;
+            border-radius: 13px; padding: 15px; text-align: center; font-weight: 900; font-size: .96rem;
+            text-decoration: none; box-shadow: 0 8px 20px rgba(27,79,138,.28);
+        }
+
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; padding-top: 26px; }
+            .hero h1 { font-size: 1.7rem; }
+        }
+
+        /* ===== اسلایدرِ بنرِ بالایِ صفحه — همان سیستمِ بنرگذاریِ فروشگاه (CL.html)، جایگاهِ
+           جدا (HOME_HERO). بدونِ display:none روی اسلایدِ اول (LCP)؛ نسبتِ ابعادِ ثابت. ===== */
+        .banner-wrap { max-width: 1360px; margin: 26px auto 0; padding: 0 12px; }
+        .banner-title { font-size: 1rem; font-weight: 900; color: var(--text); margin-bottom: 10px; min-height: 1.3em; }
+        .banner-slider { position: relative; width: 100%; aspect-ratio: 16/6; border-radius: 0; overflow: hidden; background: var(--surface); box-shadow: 0 10px 28px rgba(27,79,138,.1); }
+        .banner-track { position: relative; width: 100%; height: 100%; }
+        .banner-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .4s ease; }
+        .banner-slide.active { opacity: 1; visibility: visible; }
+        .banner-slide a, .banner-slide > picture { display: block; width: 100%; height: 100%; cursor: pointer; }
+        .banner-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .banner-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 2; }
+        .banner-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.55); cursor: pointer; transition: .2s; box-shadow: 0 0 3px rgba(0,0,0,.3); }
+        .banner-dot.active { background: #fff; width: 22px; border-radius: 5px; }
+        .banner-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(0,0,0,.35); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .2s; }
+        .banner-nav:hover { background: rgba(0,0,0,.55); }
+        .banner-nav-right { right: 14px; }
+        .banner-nav-left { left: 14px; }
+        @media (max-width: 700px) {
+            .banner-slider { aspect-ratio: 4/3; border-radius: 0; }
+            .banner-nav { width: 32px; height: 32px; font-size: 1.1rem; }
+            .banner-nav-right { right: 8px; }
+            .banner-nav-left { left: 8px; }
+        }
+        @media (prefers-reduced-motion: reduce) { .banner-slide { transition: none; } }
+
+        /* بلاکِ خلاصه‌ی «سابقه و اعتبار» — قبلاً در فروشگاه بود، طبقِ خواسته‌ی مالک به
+           صفحه‌ی خانه‌ی داده‌نما منتقل شد (لینک به /about). */
+        .trust-strip-wrap { max-width: 1360px; margin: 0 auto; padding: 24px 20px 0; }
+        #trustStrip { text-decoration: none; color: inherit; cursor: pointer; display: block; }
+        .trust-strip {
+            background: linear-gradient(135deg, var(--surface), var(--bg-soft));
+            border: 1px solid var(--border); border-radius: var(--radius); border-right: 6px solid var(--accent);
+            padding: 20px 26px; display: flex; flex-wrap: wrap; gap: 14px 24px;
+            align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,.05); transition: .2s ease;
+        }
+        #trustStrip:hover .trust-strip, #trustStrip:focus-visible .trust-strip {
+            border-color: var(--primary); border-right-color: var(--accent);
+            box-shadow: 0 8px 22px rgba(0,0,0,.12); transform: translateY(-2px);
+        }
+        .trust-strip-main { display: flex; flex-direction: column; gap: 10px; }
+        .trust-headline { font-size: 1.15rem; font-weight: 900; color: var(--text); }
+        .trust-facts { display: flex; flex-wrap: wrap; gap: 10px 30px; }
+        .trust-fact b { color: var(--primary); font-size: 1.4rem; font-weight: 900; margin-left: 6px; }
+        .trust-fact span { color: var(--text-mid); font-size: .9rem; }
+        .trust-cta {
+            color: #fff; background: var(--accent); font-weight: 800; font-size: .95rem; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px; padding: 12px 22px; border-radius: 999px;
+            box-shadow: 0 4px 12px rgba(232,134,26,.35); transition: .2s ease;
+        }
+        #trustStrip:hover .trust-cta, #trustStrip:focus-visible .trust-cta {
+            background: var(--primary); box-shadow: 0 6px 16px rgba(27,79,138,.35);
+        }
+        .trust-arrow { display: inline-block; font-size: 1.05em; transition: transform .2s ease; }
+        #trustStrip:hover .trust-arrow, #trustStrip:focus-visible .trust-arrow { transform: translateX(-4px); }
+        @media (max-width: 700px) {
+            .trust-strip { padding: 14px 16px; gap: 12px 14px; }
+            .trust-headline { font-size: 1rem; }
+            .trust-facts { gap: 4px 16px; }
+            .trust-fact { white-space: nowrap; }
+            .trust-fact b { font-size: 1.15rem; margin-left: 4px; }
+            .trust-fact span { font-size: .78rem; }
+            .trust-cta { font-size: .82rem; padding: 10px 16px; width: 100%; justify-content: center; }
+        }
+
+        /* پنجره‌هایِ ردیفیِ بنرِ تصویری — هر عکس اندازه‌ی «کارتِ محصول» است ولی نسبتِ
+           ابعادش دینامیک/طبیعی می‌ماند (بدونِ aspect-ratioِ اجباری). */
+        .irb-wrap { max-width: 1360px; margin: 0 auto; padding: 20px 20px 0; }
+        .irb-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+        .irb-head {
+            position: absolute; top: 0; right: 0; left: 0; z-index: 3;
+            padding: 10px 16px 26px; font-weight: 800; font-size: .95rem; color: #fff;
+            background: linear-gradient(to bottom, rgba(0,0,0,.62), rgba(0,0,0,.22) 65%, transparent);
+            pointer-events: none;
+        }
+        .irb-row { display: flex; gap: 12px; overflow-x: auto; padding: 16px 18px; scrollbar-width: none; }
+        .irb-row::-webkit-scrollbar { display: none; }
+        .irb-item { flex: 0 0 200px; cursor: pointer; }
+        .irb-item img { width: 100%; height: auto; display: block; border-radius: 10px; border: 1px solid var(--border); }
+        .irb-cap { margin-top: 6px; font-size: .82rem; color: var(--text-mid); text-align: center; }
+
+        /* حالتِ متحرک — نوارِ درحالِ‌حرکتِ پیوسته (دو کپیِ پشتِ‌سرِهم برایِ حلقه‌ی بی‌درز:
+           با خروجِ آخرین عکس، اولین عکس بی‌فاصله وارد می‌شود) */
+        .irb-marquee-wrap { overflow: hidden; padding: 16px 18px; }
+        .irb-marquee-track { display: flex; gap: 12px; width: max-content; animation: irb-marquee linear infinite; }
+        .irb-marquee-track:hover { animation-play-state: paused; }
+        @keyframes irb-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        .irb-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
+        .irb-lightbox img { max-width: 90vw; max-height: 75vh; object-fit: contain; border-radius: 8px; }
+        .irb-lb-caption { color: #fff; margin-top: 14px; font-size: .95rem; text-align: center; }
+        .irb-lb-link { margin-top: 10px; color: #fff; background: var(--accent); padding: 8px 20px; border-radius: 100px; text-decoration: none; font-weight: 700; font-size: .85rem; }
+        .irb-lb-close { position: absolute; top: 16px; left: 16px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; line-height: 1; }
+        .irb-lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.15); border: none; color: #fff; font-size: 1.8rem; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; }
+        .irb-lb-prev { right: 16px; }
+        .irb-lb-next { left: 16px; }
+
+        /* ===== کارنامه ===== */
+        .heritage { max-width: 1360px; margin: 0 auto; padding: 40px 20px 46px; }
+        .heritage-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .heritage-head .t { font-size: 1.28rem; font-weight: 900; letter-spacing: -.3px; }
+        .heritage-head .h { font-size: .85rem; color: var(--text-muted); }
+
+        .heritage-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 18px 46px rgba(27,79,138,.11); }
+        .tabbar { display: flex; background: var(--bg-soft); border-bottom: 1px solid var(--border); overflow-x: auto; }
+        .tabbar button {
+            flex: 1 1 0; min-width: 108px; padding: 18px 12px 16px; cursor: pointer; background: transparent; border: none;
+            display: flex; flex-direction: column; align-items: center; gap: 9px; text-align: center;
+            font-family: inherit; transition: background .18s ease; border-left: 1px solid var(--border);
+        }
+        .tabbar button:first-child { border-left: none; }
+        .tabbar button .ic {
+            width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            background: #e8eef7; color: #7e93af; transition: all .18s ease;
+        }
+        .tabbar button .lb { font-size: .84rem; font-weight: 500; color: #6b7f99; line-height: 1.4; }
+        .tabbar button.active { background: var(--surface); box-shadow: inset 0 3px 0 0 var(--accent); }
+        .tabbar button.active .ic { background: linear-gradient(135deg, #1a3f6f, var(--primary-lt)); color: #fff; }
+        .tabbar button.active .lb { font-weight: 900; color: var(--text); }
+
+        .panel { display: none; padding: 26px 28px 30px; min-height: 300px; }
+        .panel.active { display: block; }
+        .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .panel-head .t { font-size: 1.1rem; font-weight: 900; }
+        .panel-head .h { font-size: .84rem; color: var(--text-muted); }
+        .panel-head .full { color: var(--primary); font-weight: 700; font-size: .85rem; text-decoration: none; white-space: nowrap; }
+
+        .cert-ladder { background: linear-gradient(135deg, #1a3f6f, var(--primary-lt)); border-radius: 17px; padding: 20px 22px; margin-bottom: 14px; }
+        .cert-ladder .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 6px; }
+        .cert-ladder .head .t { color: #fff; font-weight: 900; font-size: .94rem; }
+        .cert-ladder .head .n { color: #a9c6e8; font-size: .78rem; }
+        .cert-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
+        .cert-grid .c { background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.2); border-radius: 12px; padding: 12px 8px; text-align: center; }
+        .cert-grid .c b { display: block; color: #fff; font-weight: 900; font-size: 1.35rem; line-height: 1.1; }
+        .cert-grid .c .code { color: #fff; font-weight: 700; font-size: .78rem; margin-top: 2px; }
+        .cert-grid .c .sub { color: #a9c6e8; font-size: .66rem; }
+        @media (max-width: 640px) { .cert-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+
+        .hub-article-list {
+            border: 1px solid var(--border-lt); border-radius: 15px; background: var(--surface);
+            max-height: 260px; overflow-y: auto; margin-bottom: 14px;
+        }
+        .hub-article-list a {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 11px 16px; font-size: .84rem; color: var(--text); text-decoration: none;
+            border-bottom: 1px solid var(--border-lt);
+        }
+        .hub-article-list a:last-child { border-bottom: none; }
+        .hub-article-list a:hover { background: var(--bg-soft); color: var(--primary); }
+        .hub-article-list a .arrow { color: var(--text-muted); flex-shrink: 0; }
+        /* آرشیوِ تصویریِ کلاس‌ها — فیلمِ افقی، چون محتوایش عکس است (نه متن مثلِ فهرستِ بالا) */
+        .edu-gallery {
+            border: 1px solid var(--border-lt); border-radius: 15px; background: var(--surface);
+            padding: 14px; margin-bottom: 14px;
+        }
+        .edu-gallery-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .edu-gallery-head .t { font-size: .88rem; font-weight: 900; color: var(--text); }
+        .edu-gallery-head a { font-size: .78rem; color: var(--primary); font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .edu-gallery-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
+        .edu-gallery-strip a {
+            flex: 0 0 auto; scroll-snap-align: start; width: 148px; text-decoration: none; color: var(--text);
+        }
+        .edu-gallery-strip img {
+            width: 148px; height: 108px; object-fit: cover; border-radius: 11px; display: block;
+            border: 1px solid var(--border-lt); margin-bottom: 6px;
+        }
+        .edu-gallery-strip .n { font-size: .77rem; font-weight: 700; line-height: 1.5; }
+        .card-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+        @media (max-width: 700px) { .card-grid-3 { grid-template-columns: 1fr; } }
+        .info-card { border: 1px solid var(--border-lt); border-radius: 14px; padding: 15px 17px; background: var(--surface); }
+        .info-card .tag { display: inline-block; background: rgba(232,134,26,.12); color: #b8650a; font-size: .66rem; font-weight: 900; border-radius: 6px; padding: 2px 8px; margin-bottom: 6px; }
+        .info-card .tag.brand { background: rgba(27,79,138,.1); color: var(--primary); }
+        .info-card .n { font-weight: 700; font-size: .88rem; }
+        .info-card .d { font-size: .76rem; color: var(--text-muted); margin-top: 2px; }
+
+        .placeholder-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 13px; }
+        @media (max-width: 700px) { .placeholder-grid-3 { grid-template-columns: 1fr; } }
+        .ph-card { border: 1px dashed #c3d3e6; border-radius: 15px; overflow: hidden; }
+        .ph-card .img { height: 110px; background: var(--bg-soft); display: flex; align-items: center; justify-content: center; }
+        .ph-card .body { padding: 13px 15px; }
+        .ph-card .tag { font-size: .7rem; color: var(--accent); font-weight: 900; }
+        .ph-card .d { font-size: .82rem; color: var(--text-muted); }
+
+        .placeholder-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 13px; }
+        @media (max-width: 700px) { .placeholder-grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+        .ph-person { border: 1px dashed #c3d3e6; border-radius: 15px; padding: 18px; text-align: center; }
+        .ph-person .avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--bg-soft); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
+        .ph-person .tag { font-size: .7rem; color: var(--accent); font-weight: 900; }
+        .ph-person .d { font-size: .8rem; color: var(--text-muted); }
+
+        .logo-grid { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 10px; }
+        @media (max-width: 700px) { .logo-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+        .logo-grid .box { height: 64px; background: var(--bg-soft); border: 1px solid var(--border-lt); border-radius: 12px; }
+        .logo-grid .more { height: 64px; border: 1px dashed #c3d3e6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: .78rem; color: var(--text-muted); font-weight: 700; }
+        .soon-note { font-size: .76rem; color: var(--accent); font-weight: 900; margin-top: 13px; }
+
+        .permit-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 15px; }
+        @media (max-width: 700px) { .permit-grid { grid-template-columns: 1fr; } }
+        .permit-card { border: 1px solid var(--border-lt); border-radius: 15px; padding: 18px; display: flex; gap: 15px; align-items: center; background: linear-gradient(160deg, #fbfcfe, var(--bg-soft)); }
+        .permit-card .scan { width: 74px; height: 96px; background: var(--surface); border: 1px dashed #c3d3e6; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: .58rem; color: #a9bcd4; }
+        .permit-card .n { font-weight: 700; font-size: .9rem; line-height: 1.5; }
+
+        /* ===== حوزه‌های کاری ===== */
+        .work-areas { max-width: 1360px; margin: 0 auto; padding: 0 20px 50px; }
+        .work-areas .t { font-size: 1.02rem; font-weight: 900; margin-bottom: 13px; }
+        .work-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+        @media (max-width: 900px) { .work-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+        .work-grid .c { background: rgba(255,255,255,.7); border: 1px solid var(--border-lt); border-radius: 14px; padding: 15px 17px; }
+        .work-grid .c .n { font-weight: 700; font-size: .87rem; margin-bottom: 3px; }
+        .work-grid .c .d { font-size: .77rem; color: var(--text-muted); }
+
+        footer.site-footer { background: #1b2a3a; color: #cbd5e1; padding: 26px 16px; margin-top: 10px; }
+        footer.site-footer .in { max-width: 1360px; margin: 0 auto; }
+        footer.site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
+        footer.site-footer a { color: #cbd5e1; text-decoration: none; font-size: .8rem; }
+
+        /* ===== ویترینِ مدارک — مینیمال؛ عیناً ظرف و تیترِ .heritage ===== */
+        .creds-wrap { max-width: 1360px; margin: 0 auto; padding: 34px 20px 0; }
+        .creds-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .creds-head .t { font-size: 1.28rem; font-weight: 900; letter-spacing: -.3px; }
+        .creds-head .h { font-size: .85rem; color: var(--text-muted); }
+        .creds { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+                 box-shadow: 0 18px 46px rgba(27,79,138,.11); padding: 26px 26px 24px; }
+        .creds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 26px 22px; }
+        .cert { cursor: pointer; }
+        .cert .doc { position: relative; aspect-ratio: 3/2; display: flex; align-items: center;
+                     justify-content: center; background: #fff; border: 1px solid var(--border);
+                     border-radius: 8px; padding: 14px; transition: box-shadow .2s ease, transform .2s ease; }
+        .cert:hover .doc { box-shadow: 0 12px 26px rgba(20,40,70,.13); transform: translateY(-3px); }
+        /* contain نه cover — مدرک سند است، بریده‌شدنش بی‌اعتمادی می‌سازد */
+        .cert .doc img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .cert .brand { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.95);
+                       color: var(--primary); font-size: .68rem; font-weight: 800; padding: 3px 10px;
+                       border-radius: 100px; border: 1px solid #dbe5f1; }
+        .cert .tag { position: absolute; top: 8px; left: 8px; font-size: .64rem; font-weight: 800;
+                     padding: 3px 10px; border-radius: 100px; }
+        .cert .tag.co { background: var(--accent); color: #fff; }
+        .cert .tag.pe { background: rgba(255,255,255,.95); color: var(--text-muted); border: 1px solid #dbe5f1; }
+        .cert .n { margin-top: 12px; font-size: .86rem; font-weight: 600; line-height: 1.8; }
+        /* لایت‌باکسِ مدارک — عمداً مستقل از لایت‌باکسِ پنجره‌های ردیفی (تزویجِ کمتر) */
+        .cert-lb { display: none; position: fixed; inset: 0; background: rgba(10,20,34,.92); z-index: 9999;
+                   align-items: center; justify-content: center; padding: 26px; }
+        .cert-lb.open { display: flex; }
+        .cert-lb img { max-width: 92vw; max-height: 82vh; background: #fff; border-radius: 8px; padding: 8px; }
+        .cert-lb .cap { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center;
+                        color: #e6eefb; font-size: .85rem; padding: 0 20px; }
+        .cert-lb .x { position: absolute; top: 16px; left: 18px; background: rgba(255,255,255,.14);
+                      color: #fff; border: 0; width: 38px; height: 38px; border-radius: 50%;
+                      font-size: 1.1rem; cursor: pointer; }
+        .cert-lb .nv { position: absolute; top: 50%; transform: translateY(-50%);
+                       background: rgba(255,255,255,.14); color: #fff; border: 0; width: 42px; height: 42px;
+                       border-radius: 50%; font-size: 1.4rem; cursor: pointer; }
+        .cert-lb .pv { right: 18px } .cert-lb .nx { left: 18px }
+        @media (max-width: 700px) {
+            .creds-wrap { padding: 26px 12px 0; }
+            .creds { padding: 18px; }
+            .creds-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 14px; }
+            .creds-head .t { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand active" href="/">داده نما</a>
+    <nav>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/support/link-cal">داده‌لینک</a>
+        <a href="/learn">آموزش</a>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+    <!-- پنجرهٔ «ورود / ثبت‌نام» داخلِ خودِ فروشگاه است (authOverlay در CL.html)، پس
+         این دکمه با پارامتر صدایش می‌زند؛ وگرنه فقط به فروشگاه می‌رفت و کاربر باید
+         دوباره دنبالِ دکمهٔ ورود می‌گشت. -->
+    <a class="login" href="/shop?auth=1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+        <span>ورود</span>
+    </a>
+</header>
+
+<!-- ===== بالای صفحه ===== -->
+<div class="hero">
+    <div>
+        <div class="badge-founded">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8861a" stroke-width="2.2" stroke-linecap="round"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.6 6.6L12 16.3 6.2 19.8l1.6-6.6L2.6 8.8l6.8-.5z"/></svg>
+            فعال از سال ۱۳۸۰
+        </div>
+
+        <h1>بیش از دو دهه است شبکه‌های بی‌سیم را<br>
+            <span class="grad">می‌سازیم، تأمین می‌کنیم و آموزش می‌دهیم.</span></h1>
+
+        <p>از سال ۱۳۸۰ کارمان ارتباطات بی‌سیم است — از آموزش، تجهیز و اجرای لینک‌های رادیویی پرظرفیت و اتصال شعب و کارخانه‌ها روی بستر بی‌سیم، تا نمایندگی آموزش و فروش محصولات میکروتیک، میموسا و زایکو، و تولید خط رادیو و آنتن‌های <b>WimaxNear</b>.</p>
+        <p>در همین سال‌ها <b th:text="${heroCourseCountFa} + ' دوره و سمینار'">۴۹ دوره و سمینار</b> برگزار کرده‌ایم — کل نردبان گواهی‌نامه‌های میکروتیک، گواهی‌نامهٔ وایرلس CWNA، دوره‌های مایکروویو، و اولین سمینار بین‌المللی زایکو در ایران.</p>
+
+        <div class="trust-badges">
+            <span>نمایندگی میکروتیک</span>
+            <span>دفتر مرکزی اصفهان + دفتر تهران</span>
+        </div>
+    </div>
+
+    <div class="buybox">
+        <h2>دنبال قطعه‌ای هستید؟</h2>
+        <div class="sub"><span th:text="${productCountFa}">۳۰۳</span> محصول موجود — میکروتیک، یوبیکیوتی، میموسا، فنویل</div>
+
+        <form action="/shop" method="get">
+            <input type="search" name="q" placeholder="مثلاً «۲۰۰۴ 16g» یا «hEX S»" aria-label="جست‌وجوی محصول">
+            <button type="submit" aria-label="جست‌وجو">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            </button>
+        </form>
+
+        <div class="cat-shortcuts">
+            <a href="/shop/category/router-mikrotik">روتر میکروتیک</a>
+            <a href="/shop/category/wireless-radio-switch-ap">رادیو آتدور</a>
+            <a href="/shop/category/antenna-dish">آنتن و دیش</a>
+            <a href="/shop/category/voip">ویپ و تلفن شبکه</a>
+        </div>
+
+        <a class="cta" href="/shop">ورود به فروشگاه</a>
+    </div>
+</div>
+
+<!-- ===== اسلایدرِ بنر — همان سیستمِ بنرگذاریِ فروشگاه، مدیریت از پنل (تبِ «مدیریتِ صفحه‌ی
+     اصلی ← بنرگذاری»). بدونِ display:none روی اسلایدِ اول (LCP)؛ صفر بنرِ فعال یعنی th:if
+     کلِ بلاک را حذف می‌کند، نه پنهان. ===== -->
+<div class="banner-wrap" th:if="${banners != null and !banners.isEmpty()}">
+    <!-- عنوانِ داخلیِ بنر (فیلدِ «عنوان» در پنل) — اینجا برخلافِ اسلایدرِ فروشگاه واقعاً
+         رندر می‌شود، بالایِ اسلاید؛ با چرخش، JS متنش را عوض می‌کند. مقدارِ اولیه از
+         اسلایدِ اول، برایِ SSR. -->
+    <div class="banner-title" id="bannerTitleLabel" th:text="${banners[0].title}"></div>
+    <div class="banner-slider" id="bannerSlider">
+        <div class="banner-track" id="bannerTrack">
+            <div class="banner-slide" th:each="b, bstat : ${banners}"
+                 th:classappend="${bstat.index == 0} ? ' active' : ''"
+                 th:attr="data-title=${b.title}">
+                <a th:if="${b.resolvedUrl != null}" th:href="${b.resolvedUrl}"
+                   th:target="${b.external} ? '_blank' : null"
+                   th:rel="${b.external} ? 'noopener nofollow' : null">
+                    <picture>
+                        <source media="(max-width:700px)" th:srcset="${b.imageUrlMobile}">
+                        <img th:src="${b.imageUrl}" th:alt="${b.altText}"
+                             th:attr="fetchpriority=${bstat.index == 0 ? 'high' : null},loading=${bstat.index == 0 ? null : 'lazy'}"
+                             decoding="async">
+                    </picture>
+                </a>
+                <picture th:unless="${b.resolvedUrl != null}">
+                    <source media="(max-width:700px)" th:srcset="${b.imageUrlMobile}">
+                    <img th:src="${b.imageUrl}" th:alt="${b.altText}"
+                         th:attr="fetchpriority=${bstat.index == 0 ? 'high' : null},loading=${bstat.index == 0 ? null : 'lazy'}"
+                         decoding="async">
+                </picture>
+            </div>
+        </div>
+        <button type="button" class="banner-nav banner-nav-right" th:if="${banners.size() > 1}"
+                th:onclick="'manualBannerNav((bannerIndex-1+' + ${banners.size()} + ')%' + ${banners.size()} + ')'"
+                aria-label="بنرِ قبلی">‹</button>
+        <button type="button" class="banner-nav banner-nav-left" th:if="${banners.size() > 1}"
+                th:onclick="'manualBannerNav((bannerIndex+1)%' + ${banners.size()} + ')'"
+                aria-label="بنرِ بعدی">›</button>
+        <div class="banner-dots" th:if="${banners.size() > 1}">
+            <span class="banner-dot" th:each="b, bstat : ${banners}"
+                  th:classappend="${bstat.index == 0} ? ' active' : ''"
+                  th:onclick="'manualBannerNav(' + ${bstat.index} + ')'"></span>
+        </div>
+    </div>
+</div>
+
+<!-- بلاکِ خلاصه‌ی «سابقه و اعتبار» — قبلاً در فروشگاه بود، منتقل شد اینجا -->
+<div class="trust-strip-wrap" th:if="${trustSinceFa != null}">
+    <a id="trustStrip" th:href="${baseUrl + '/about'}">
+        <div class="trust-strip">
+            <div class="trust-strip-main">
+                <div class="trust-headline">چرا به داده‌نما اعتماد کنید؟</div>
+                <div class="trust-facts">
+                    <div class="trust-fact">
+                        <b th:text="'از ' + ${trustSinceFa}">از ۱۳۸۲</b>
+                        <span th:text="${trustYearsFa} + ' سال حضور آنلاین'">سال حضور آنلاین</span>
+                    </div>
+                    <div class="trust-fact">
+                        <b th:text="${heroCourseCountFa}">۴۹</b>
+                        <span>دوره‌ی تخصصی برگزارشده</span>
+                    </div>
+                    <div class="trust-fact">
+                        <b>۷ سال</b>
+                        <span>سابقه‌ی مستند آموزشی</span>
+                    </div>
+                </div>
+            </div>
+            <span class="trust-cta">مشاهده‌ی کاملِ سابقه و اعتبار <b class="trust-arrow">❯</b></span>
+        </div>
+    </a>
+</div>
+
+<!-- پنجره‌هایِ ردیفیِ بنرِ تصویری -->
+<div class="irb-wrap" th:if="${imageRowBanners != null and !imageRowBanners.isEmpty()}">
+    <div class="irb-card" th:each="grp : ${imageRowBanners}">
+        <div class="irb-head" th:text="${grp.title}">عنوان</div>
+
+        <div class="irb-row" th:if="${grp.displayMode == null or grp.displayMode == 'STATIC'}">
+            <div class="irb-item" th:each="img : ${grp.images}"
+                 th:attr="data-img=${img.imageUrl},data-link=${img.link},data-caption=${img.caption}"
+                 onclick="openIrbLightbox(this)">
+                <img th:src="${img.imageUrl}"
+                     th:alt="${img.caption != null and !img.caption.isEmpty() ? img.caption : grp.title}"
+                     loading="lazy" decoding="async">
+                <div class="irb-cap" th:if="${img.caption != null and !img.caption.isEmpty()}" th:text="${img.caption}"></div>
+            </div>
+        </div>
+
+        <div class="irb-marquee-wrap" th:if="${grp.displayMode == 'MARQUEE'}">
+            <div class="irb-marquee-track" th:style="'animation-duration:' + ${grp.rotationSpeedSeconds} + 's'">
+                <div class="irb-item" th:each="img : ${grp.images}"
+                     th:attr="data-img=${img.imageUrl},data-link=${img.link},data-caption=${img.caption}"
+                     onclick="openIrbLightbox(this)">
+                    <img th:src="${img.imageUrl}"
+                         th:alt="${img.caption != null and !img.caption.isEmpty() ? img.caption : grp.title}"
+                         loading="lazy" decoding="async">
+                    <div class="irb-cap" th:if="${img.caption != null and !img.caption.isEmpty()}" th:text="${img.caption}"></div>
+                </div>
+                <div class="irb-item" th:each="img : ${grp.images}" data-dup="1" aria-hidden="true"
+                     th:attr="data-img=${img.imageUrl},data-link=${img.link},data-caption=${img.caption}"
+                     onclick="openIrbLightbox(this)">
+                    <img th:src="${img.imageUrl}"
+                         th:alt="${img.caption != null and !img.caption.isEmpty() ? img.caption : grp.title}"
+                         loading="lazy" decoding="async">
+                    <div class="irb-cap" th:if="${img.caption != null and !img.caption.isEmpty()}" th:text="${img.caption}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- لایت‌باکسِ پنجره‌هایِ ردیفیِ بنرِ تصویری -->
+<div id="irbLightbox" class="irb-lightbox" onclick="if(event.target===this) closeIrbLightbox()">
+    <button type="button" class="irb-lb-close" onclick="closeIrbLightbox()" aria-label="بستن">✕</button>
+    <button type="button" class="irb-lb-nav irb-lb-prev" onclick="irbLbNav(-1)" aria-label="قبلی">‹</button>
+    <img id="irbLbImg" src="" alt="">
+    <div id="irbLbCaption" class="irb-lb-caption"></div>
+    <a id="irbLbLink" href="#" class="irb-lb-link" style="display:none;" target="_blank" rel="noopener">مشاهده ❯</a>
+    <button type="button" class="irb-lb-nav irb-lb-next" onclick="irbLbNav(1)" aria-label="بعدی">›</button>
+</div>
+
+
+<!-- ===== ویترینِ مدارک ===== -->
+<div class="creds-wrap">
+    <div class="creds-head">
+        <div class="t">مدارک و نمایندگی‌های بین‌المللی</div>
+        <div class="h">روی هر مدرک بزنید تا اصلِ آن باز شود</div>
+    </div>
+    <div class="creds">
+    <div class="creds-grid">
+        <div class="cert" onclick="openCertLb(0)">
+            <div class="doc"><span class="brand">ZYCOO</span><span class="tag co">به نام شرکت</span>
+                <img src="/img/certs/zycoo-partner-t.jpg" loading="lazy" alt="نمایندگی Platinum زایکو — داده‌نما"></div>
+            <div class="n">نمایندگی Platinum زایکو</div>
+        </div>
+        <div class="cert" onclick="openCertLb(1)">
+            <div class="doc"><span class="brand">MikroTik</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/mikrotik-mtcwe-t.jpg" loading="lazy" alt="MTCWE — تخصصی وایرلس — داده‌نما"></div>
+            <div class="n">MTCWE — تخصصی وایرلس</div>
+        </div>
+        <div class="cert" onclick="openCertLb(2)">
+            <div class="doc"><span class="brand">MikroTik</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/mikrotik-mtcna-t.jpg" loading="lazy" alt="MTCNA — عمومی شبکه — داده‌نما"></div>
+            <div class="n">MTCNA — عمومی شبکه</div>
+        </div>
+        <div class="cert" onclick="openCertLb(3)">
+            <div class="doc"><span class="brand">ARC</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/arc-wireless-t.jpg" loading="lazy" alt="ARC Wireless — داده‌نما"></div>
+            <div class="n">ARC Wireless</div>
+        </div>
+        <div class="cert" onclick="openCertLb(4)">
+            <div class="doc"><span class="brand">CableFree</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/cablefree-t.jpg" loading="lazy" alt="CableFree — داده‌نما"></div>
+            <div class="n">CableFree</div>
+        </div>
+        <div class="cert" onclick="openCertLb(5)">
+            <div class="doc"><span class="brand">LigoWave</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/ligowave-t.jpg" loading="lazy" alt="LigoWave — داده‌نما"></div>
+            <div class="n">LigoWave</div>
+        </div>
+        <div class="cert" onclick="openCertLb(6)">
+            <div class="doc"><span class="brand">ZYCOO</span><span class="tag pe">مدیرعامل</span>
+                <img src="/img/certs/zycoo-zcpt-t.jpg" loading="lazy" alt="ZCPT — مدرسِ زایکو — داده‌نما"></div>
+            <div class="n">ZCPT — مدرسِ زایکو</div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div class="cert-lb" id="certLb" onclick="if(event.target===this) closeCertLb()">
+    <button type="button" class="x" onclick="closeCertLb()" aria-label="بستن">&#10005;</button>
+    <button type="button" class="nv pv" onclick="certLbNav(-1)" aria-label="قبلی">&#8249;</button>
+    <img id="certLbImg" src="" alt="">
+    <div class="cap" id="certLbCap"></div>
+    <button type="button" class="nv nx" onclick="certLbNav(1)" aria-label="بعدی">&#8250;</button>
+</div>
+
+<!-- ===== کارنامهٔ داده نما ===== -->
+<div class="heritage">
+    <div class="heritage-head">
+        <div class="t">کارنامهٔ داده نما</div>
+        <div class="h">روی هر بخش بزنید تا باز شود</div>
+    </div>
+
+    <div class="heritage-card">
+        <div class="tabbar" role="tablist">
+            <button type="button" class="active" data-tab="courses" onclick="switchHeritageTab('courses')">
+                <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M7 10.5V16c0 1.5 2.2 2.6 5 2.6s5-1.1 5-2.6v-5.5"/><path d="M21 7v6"/></svg></span>
+                <span class="lb">سابقهٔ دوره‌ها و سمینارها</span>
+            </button>
+            <button type="button" data-tab="projects" onclick="switchHeritageTab('projects')">
+                <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10"/><path d="M8 21h8"/><path d="M12 10l-5-6h10z"/><path d="M4.5 6.5a9 9 0 0 0 0 9M19.5 6.5a9 9 0 0 1 0 9"/></svg></span>
+                <span class="lb">پروژه‌های داده نما</span>
+            </button>
+            <button type="button" data-tab="customers" onclick="switchHeritageTab('customers')">
+                <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6l7-3v18"/><path d="M11 21h9V11l-9-3"/><path d="M7 9h.01M7 13h.01M15 13h.01M15 17h.01"/></svg></span>
+                <span class="lb">مشتریان داده نما</span>
+            </button>
+            <button type="button" data-tab="experts" onclick="switchHeritageTab('experts')">
+                <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.4 2.9-5.2 6.5-5.2s6.5 1.8 6.5 5.2"/><circle cx="17.5" cy="9" r="2.4"/><path d="M17.5 14c2.4 0 4 1.4 4 3.6"/></svg></span>
+                <span class="lb">کارشناسان و اساتید</span>
+            </button>
+            <button type="button" data-tab="permits" onclick="switchHeritageTab('permits')">
+                <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13l1.8 1.8L14.5 11"/></svg></span>
+                <span class="lb">مجوزها و مدارک</span>
+            </button>
+        </div>
+
+        <!-- هر پنج پنل کاملاً SSR — فقط یکی با CSS نمایان است؛ برای خزنده هر پنج در HTMLِ خام هست -->
+        <div class="panel active" id="panel-courses">
+            <div class="panel-head">
+                <div>
+                    <div class="t">سابقهٔ برگزاری دوره‌ها، کلاس‌ها و سمینارها</div>
+                    <div class="h" th:text="${heroCourseCountFa} + ' نوبت برگزارشده — آرشیو هر نوبت روی سایت مستند است'">۴۹ نوبت برگزارشده</div>
+                </div>
+                <a class="full" href="/about">صفحهٔ کامل ❯</a>
+            </div>
+
+            <div class="cert-ladder">
+                <div class="head">
+                    <div class="t">کل نردبان گواهی‌نامه‌های میکروتیک</div>
+                    <div class="n" th:text="${certLadderTotalFa} + ' دوره از ۵ گواهی‌نامهٔ رسمی'">۲۸ دوره از ۵ گواهی‌نامهٔ رسمی</div>
+                </div>
+                <div class="cert-grid">
+                    <div class="c" th:each="r : ${certLadder}">
+                        <b th:text="${r.countFa}">۱۲</b>
+                        <div class="code" th:text="${r.code}">MTCNA</div>
+                        <div class="sub" th:text="${r.subtitle}">مقدماتی</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فهرستِ مقالاتِ منتشرشده‌ی همین هاب — قابلِ‌اسکرول، زیرِ نردبان (خواسته‌ی مالک) -->
+            <div class="hub-article-list" th:if="${courseHubArticles != null and !courseHubArticles.isEmpty()}">
+                <a th:each="art : ${courseHubArticles}"
+                   th:href="${baseUrl + '/blog/' + (art.slug != null and !art.slug.isEmpty() ? art.slug : art.id)}">
+                    <span th:text="${art.title}">عنوان مقاله</span>
+                    <span class="arrow">❯</span>
+                </a>
+            </div>
+
+            <!-- آرشیوِ تصویریِ کلاس‌ها — قابلِ‌اسکرولِ افقی، کلیک روی هر عکس به /learn می‌رود -->
+            <div class="edu-gallery" th:if="${educationArchiveItems != null and !educationArchiveItems.isEmpty()}">
+                <div class="edu-gallery-head">
+                    <div class="t">آرشیوِ تصویریِ کلاس‌ها</div>
+                    <a href="/learn">مشاهدهٔ همه ❯</a>
+                </div>
+                <div class="edu-gallery-strip">
+                    <a th:each="ph : ${educationArchiveItems}" href="/learn">
+                        <img th:src="${ph.imageUrls[0]}" th:alt="${ph.title}" loading="lazy">
+                        <div class="n" th:text="${ph.title}">عنوان عکس</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-grid-3">
+                <div class="info-card">
+                    <span class="tag">اولین در ایران</span>
+                    <div class="n">سمینار بین‌المللی زایکو</div>
+                    <div class="d">به‌همراه ۵ دورهٔ مراکز تلفن تحت شبکه</div>
+                </div>
+                <div class="info-card">
+                    <span class="tag">اولین در ایران</span>
+                    <div class="n">دورهٔ جامع مایکروویو</div>
+                    <div class="d">مقدماتی و پیشرفته — اسفند ۹۹ و تیر ۱۴۰۱</div>
+                </div>
+                <div class="info-card">
+                    <span class="tag brand">مستقل از برند</span>
+                    <div class="n">گواهی‌نامهٔ وایرلس CWNA</div>
+                    <div class="d">به‌همراه سمینار میموسا و سمینار تداخل فرکانسی</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-projects">
+            <div class="panel-head">
+                <div>
+                    <div class="t">برخی از پروژه‌های داده نما</div>
+                    <div class="h">نمونهٔ کارهای اجراشده در شبکه‌های بی‌سیم</div>
+                </div>
+            </div>
+            <div class="placeholder-grid-3">
+                <div class="ph-card">
+                    <div class="img"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg></div>
+                    <div class="body"><div class="tag">به‌زودی</div><div class="d">نام پروژه، محل اجرا، تجهیزات به‌کاررفته</div></div>
+                </div>
+                <div class="ph-card">
+                    <div class="img"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg></div>
+                    <div class="body"><div class="tag">به‌زودی</div><div class="d">نام پروژه، محل اجرا، تجهیزات به‌کاررفته</div></div>
+                </div>
+                <div class="ph-card">
+                    <div class="img"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg></div>
+                    <div class="body"><div class="tag">به‌زودی</div><div class="d">نام پروژه، محل اجرا، تجهیزات به‌کاررفته</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-customers">
+            <div class="panel-head">
+                <div>
+                    <div class="t">برخی از مشتریان داده نما</div>
+                    <div class="h">سازمان‌ها و شرکت‌هایی که با آن‌ها کار کرده‌ایم</div>
+                </div>
+                <a class="full" href="/about">صفحهٔ کامل ❯</a>
+            </div>
+            <div class="logo-grid">
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div>
+                <div class="more">+ ۸ سازمان</div>
+            </div>
+            <div class="soon-note">فهرستِ کامل و لوگوهای واقعی رویِ صفحهٔ «سابقه و اعتبار» موجود است.</div>
+        </div>
+
+        <div class="panel" id="panel-experts">
+            <div class="panel-head">
+                <div>
+                    <div class="t">کارشناسان و اساتید داده نما</div>
+                    <div class="h">تیمی که این دوره‌ها و پروژه‌ها را اجرا کرده است</div>
+                </div>
+            </div>
+            <div class="placeholder-grid-4">
+                <div class="ph-person">
+                    <div class="avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></div>
+                    <div class="tag">به‌زودی</div><div class="d">نام، تخصص، گواهی‌نامه</div>
+                </div>
+                <div class="ph-person">
+                    <div class="avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></div>
+                    <div class="tag">به‌زودی</div><div class="d">نام، تخصص، گواهی‌نامه</div>
+                </div>
+                <div class="ph-person">
+                    <div class="avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></div>
+                    <div class="tag">به‌زودی</div><div class="d">نام، تخصص، گواهی‌نامه</div>
+                </div>
+                <div class="ph-person">
+                    <div class="avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></div>
+                    <div class="tag">به‌زودی</div><div class="d">نام، تخصص، گواهی‌نامه</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-permits">
+            <div class="panel-head">
+                <div>
+                    <div class="t">مجوزها و مدارک داده نما</div>
+                    <div class="h">هر سه مورد قابل راستی‌آزمایی‌اند</div>
+                </div>
+                <a class="full" href="/about">صفحهٔ کامل ❯</a>
+            </div>
+            <div class="permit-grid">
+                <div class="permit-card">
+                    <div class="scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg><br>اسکن</div>
+                    <div class="n">مجوز فعالیت<br>نظام صنفی رایانه‌ای کشور</div>
+                </div>
+                <div class="permit-card">
+                    <div class="scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg><br>اسکن</div>
+                    <div class="n">پروانهٔ عرضهٔ خدمات<br>تجهیزات رادیویی</div>
+                </div>
+                <div class="permit-card">
+                    <div class="scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a9bcd4" stroke-width="1.6" stroke-linecap="round"><path d="M12 3l7 3v5.5c0 4.3-2.9 8.2-7 9.5-4.1-1.3-7-5.2-7-9.5V6z"/><path d="M9.5 12.2l1.9 1.9 3.5-3.6"/></svg><br>نماد</div>
+                    <div class="n">نماد اعتماد<br>الکترونیکی</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== حوزه‌های کاری ===== -->
+<div class="work-areas">
+    <div class="t">حوزه‌های کاری</div>
+    <div class="work-grid">
+        <div class="c"><div class="n">لینک رادیویی پرظرفیت</div><div class="d">تا ۱ گیگابیت — داده، صوت و اینترنت</div></div>
+        <div class="c"><div class="n">اتصال شعب و کارخانه‌ها</div><div class="d">روی بستر بی‌سیم، بدون کابل‌کشی</div></div>
+        <div class="c"><div class="n">تلفن تحت شبکه</div><div class="d">مراکز IP-PBX و انتقال خطوط از راه دور</div></div>
+        <div class="c"><div class="n">رادیوی WimaxNear</div><div class="d">خط تولید خودمان</div></div>
+    </div>
+</div>
+
+<footer class="site-footer" th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; font-weight:700;">سابقه و اعتبار</a>
+            <a th:href="${baseUrl + '/support/link-cal'}" style="color:#f5b06a; font-weight:700;">محاسبه لینک وایرلس</a>
+            <a th:href="${baseUrl + '/privacy'}" style="color:#f5b06a; font-weight:700;">حریم خصوصی</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© داده نما</div>
+    </div>
+</footer>
+
+<script>
+    // ── ویترینِ مدارک ──────────────────────────────────────────
+    // ⚠️ اینجا عمداً هیچ آرایه‌ی درون‌خطی نداریم: این اسکریپت th:inline="javascript"
+    //    است و در تایم‌لیف «[[» نشانه‌ی عبارتِ درون‌خطی است. یک آرایه‌ی JS که با
+    //    [[ شروع شود، رندر را از همان نقطه قطع می‌کند و بقیه‌ی صفحه (تا </html>)
+    //    اصلاً فرستاده نمی‌شود — صفحه‌ی سفید. پس داده از خودِ DOM خوانده می‌شود.
+    let certIdx = 0;
+    function certCards(){ return Array.prototype.slice.call(document.querySelectorAll('.creds-grid .cert')); }
+    function openCertLb(i){
+        var cards = certCards(), c = cards[i];
+        if(!c) return;
+        certIdx = i;
+        var thumb = c.querySelector('img').getAttribute('src');
+        var cap = c.querySelector('.n').textContent;
+        var img = document.getElementById('certLbImg');
+        img.src = thumb.replace('-t.jpg', '.jpg');
+        img.alt = cap;
+        document.getElementById('certLbCap').textContent = cap;
+        document.getElementById('certLb').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeCertLb(){
+        document.getElementById('certLb').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    function certLbNav(d){
+        var n = certCards().length;
+        if(n) openCertLb((certIdx + d + n) % n);
+    }
+    document.addEventListener('keydown', function(e){
+        var lb = document.getElementById('certLb');
+        if(!lb || !lb.classList.contains('open')) return;
+        if(e.key === 'Escape') closeCertLb();
+        if(e.key === 'ArrowLeft') certLbNav(1);
+        if(e.key === 'ArrowRight') certLbNav(-1);
+    });
+
+    function switchHeritageTab(id) {
+        document.querySelectorAll('.tabbar button').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.tab === id);
+        });
+        document.querySelectorAll('.panel').forEach(function (p) {
+            p.classList.toggle('active', p.id === 'panel-' + id);
+        });
+    }
+
+    // لایت‌باکسِ پنجره‌هایِ ردیفی — کلیک روی هر عکس، بزرگش می‌کند و قابلِ اسکرول به
+    // عکس‌های بعدی/قبلیِ همان ردیف است. لینک/عنوانِ هر عکس هم از data-* خودِ عنصر خوانده می‌شود.
+    let irbLbItems = [];
+    let irbLbIndex = 0;
+
+    function openIrbLightbox(el) {
+        // مستقل از حالتِ نمایش (ثابت/چرخشی/متحرک) — هر عنصرِ data-img داخلِ همان
+        // کارت، بجز کپیِ تکراریِ حالتِ متحرک (data-dup="1")
+        const group = el.closest('.irb-card');
+        const items = Array.from(group.querySelectorAll('[data-img]:not([data-dup="1"])'));
+        irbLbItems = items.map(e => ({img: e.dataset.img, link: e.dataset.link || '', caption: e.dataset.caption || ''}));
+        irbLbIndex = items.indexOf(el);
+        renderIrbLightbox();
+        document.getElementById('irbLightbox').style.display = 'flex';
+    }
+
+    function renderIrbLightbox() {
+        const it = irbLbItems[irbLbIndex];
+        if (!it) return;
+        document.getElementById('irbLbImg').src = it.img;
+        document.getElementById('irbLbImg').alt = it.caption;
+        document.getElementById('irbLbCaption').innerText = it.caption;
+        const linkEl = document.getElementById('irbLbLink');
+        if (it.link) { linkEl.href = it.link; linkEl.style.display = 'inline-block'; }
+        else { linkEl.style.display = 'none'; }
+    }
+
+    function irbLbNav(dir) {
+        if (!irbLbItems.length) return;
+        irbLbIndex = (irbLbIndex + dir + irbLbItems.length) % irbLbItems.length;
+        renderIrbLightbox();
+    }
+
+    function closeIrbLightbox() {
+        document.getElementById('irbLightbox').style.display = 'none';
+    }
+
+    document.addEventListener('keydown', e => {
+        if (document.getElementById('irbLightbox').style.display !== 'flex') return;
+        if (e.key === 'Escape') closeIrbLightbox();
+        else if (e.key === 'ArrowRight') irbLbNav(-1);
+        else if (e.key === 'ArrowLeft') irbLbNav(1);
+    });
+
+    // حالتِ چرخشیِ پنجره‌هایِ ردیفی — چرخشِ خودکار + ناوبریِ دستی (که تایمر را ریست می‌کند)
+    // اسلایدرِ بنر — همان منطقِ CL.html: چرخشِ خودکار فقط بعدِ window.load (مزاحمِ LCP نشود)،
+    // prefers-reduced-motion رعایت می‌شود، مکث روی هاور/فوکوس، سوایپِ موبایل.
+    let bannerTimer = null;
+    let bannerIndex = 0;
+    let bannerPaused = false;
+    let pageFullyLoaded = false;
+    let bannerRotationMs = 5000; // پیش‌فرض تا جوابِ /settings/banner-rotation-seconds برسد
+
+    fetch('/api/v1/settings/banner-rotation-seconds').then(r => r.json()).then(d => {
+        bannerRotationMs = Number(d.seconds || 5) * 1000;
+    }).catch(() => {});
+
+    function startBannerRotation() {
+        stopBannerRotation();
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const track = document.getElementById('bannerTrack');
+        const count = track ? track.children.length : 0;
+        if (count < 2) return;
+        bannerTimer = setInterval(() => {
+            if (!bannerPaused) goToBannerSlide((bannerIndex + 1) % count);
+        }, bannerRotationMs);
+    }
+
+    function stopBannerRotation() {
+        if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
+    }
+
+    function goToBannerSlide(idx) {
+        const track = document.getElementById('bannerTrack');
+        if (!track) return;
+        const slides = track.querySelectorAll('.banner-slide');
+        const dots = document.querySelectorAll('#bannerSlider .banner-dot');
+        if (isNaN(idx) || idx < 0 || idx >= slides.length) return;
+        slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        bannerIndex = idx;
+        const label = document.getElementById('bannerTitleLabel');
+        if (label) label.textContent = slides[idx].dataset.title || '';
+    }
+
+    function manualBannerNav(idx) {
+        goToBannerSlide(idx);
+        if (pageFullyLoaded) startBannerRotation();
+    }
+
+    (function initBannerInteractions() {
+        const el = document.getElementById('bannerSlider');
+        if (!el) return;
+        el.addEventListener('mouseenter', () => { bannerPaused = true; });
+        el.addEventListener('mouseleave', () => { bannerPaused = false; });
+        el.addEventListener('focusin', () => { bannerPaused = true; });
+        el.addEventListener('focusout', () => { bannerPaused = false; });
+
+        let tx0 = 0, ty0 = 0;
+        el.addEventListener('touchstart', e => {
+            tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
+        }, {passive: true});
+        el.addEventListener('touchend', e => {
+            const track = document.getElementById('bannerTrack');
+            const count = track ? track.children.length : 0;
+            if (!count || e.changedTouches.length !== 1) return;
+            const dx = e.changedTouches[0].clientX - tx0;
+            const dy = e.changedTouches[0].clientY - ty0;
+            if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) {
+                manualBannerNav(dx > 0 ? (bannerIndex - 1 + count) % count : (bannerIndex + 1) % count);
+            }
+        }, {passive: true});
+    })();
+
+    window.addEventListener('load', () => {
+        pageFullyLoaded = true;
+        if (document.getElementById('bannerSlider')) startBannerRotation();
+    });
+</script>
+<!-- حبابِ چتِ پشتیبانی — هستهٔ مشترک با پنلِ کارشناس (/js/chat-core.js) -->
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-chat-widget.js"></script>
+<!-- بیکنِ ردگیریِ رفتار — فقط برایِ چیزی که سرور نمی‌بیند (SPA، فیلتر، عمقِ مطالعه) -->
+<script src="/js/dn-track.js"></script>
+</body>
+</html>

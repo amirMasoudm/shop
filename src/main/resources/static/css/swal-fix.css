@@ -1,0 +1,40 @@
+/* ============================================================
+   رفعِ ناسازگاریِ ریستِ تیلویند با SweetAlert2 نسخهٔ ۱۱
+
+   سوییت‌الرت سلکتورهایش را با :where() می‌نویسد (ویژگی ۰,۰,۲)، ولی ریستِ
+   تیلویند قانونِ [type="button"]{background-color:initial} دارد (ویژگی ۰,۱,۰).
+   چون دکمه‌هایِ سوییت‌الرت type="button" دارند، ریستِ تیلویند برنده می‌شود و
+   پس‌زمینه پاک می‌شود؛ نتیجه: متنِ سفید روی دیالوگِ سفید = دکمهٔ نامرئی
+   (فقط موقعِ hover که گرادیانِ جدا اعمال می‌شود دیده می‌شد).
+
+   ⚠️ این فایل مشترک است: هر صفحه‌ای که هم‌زمان تیلویند و SweetAlert دارد باید
+   لینکش کند، وگرنه همان باگ دوباره ظاهر می‌شود (یک‌بار در پنلِ ادمین دیده شد و
+   بارِ دوم در پنلِ فروش).
+   ============================================================ */
+
+.swal2-popup .swal2-styled {
+    color: #fff !important;
+    border: none !important;
+    font-family: inherit;
+    font-weight: 700;
+}
+
+.swal2-popup .swal2-styled.swal2-confirm { background-color: #4f46e5 !important; }
+.swal2-popup .swal2-styled.swal2-confirm:hover { background-color: #4338ca !important; }
+
+.swal2-popup .swal2-styled.swal2-cancel { background-color: #6b7280 !important; }
+.swal2-popup .swal2-styled.swal2-cancel:hover { background-color: #4b5563 !important; }
+
+.swal2-popup .swal2-styled.swal2-deny { background-color: #dc2626 !important; }
+.swal2-popup .swal2-styled.swal2-deny:hover { background-color: #b91c1c !important; }
+
+.swal2-popup { font-family: 'Vazirmatn', sans-serif; }
+
+/* اینپوتِ داخلِ دیالوگ هم از ریستِ تیلویند آسیب می‌بیند (کادرِ نامرئی) */
+.swal2-popup .swal2-input,
+.swal2-popup .swal2-textarea,
+.swal2-popup .swal2-select {
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px;
+    font-family: inherit;
+}

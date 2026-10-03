@@ -1,2 +1,8 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+*.sh text eol=lf
+# موتورِ داده‌لینک و تست‌هایش باید بایت‌به‌بایت برابرِ اپ بمانند (sha256 در VERSION).
+# بدونِ این، autocrlf در چک‌اوتِ ویندوز پایانِ خط را CRLF می‌کرد و هش می‌شکست.
+src/main/resources/static/tools/dadehlink/engine/** -text
+src/main/resources/static/tools/dadehlink/vendor/** -text
+src/test/dadehlink/tests/** -text

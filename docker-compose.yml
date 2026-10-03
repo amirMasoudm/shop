@@ -1,0 +1,129 @@
+# ============================================================================
+# 🏠 این کامپوز مالِ **داکرِ لوکال** است، نه سرور.
+#
+# ⚠️ کامپوزِ سرور (`/root/shop/docker-compose.yml`) نسخهٔ جداگانه‌ای است و
+# چیزهایی دارد که اینجا عمداً نیست:
+#   · مپِ پورتِ ۴۴۳
+#   · مانتِ `/etc/letsencrypt` و `/var/www/certbot` روی کانتینرِ nginx
+#   · مانتِ `nginx.conf` (کانفیگِ TLS) به‌جای `nginx.local.conf`
+#   · بدونِ مپِ پورتِ ۸۰۸۰ برای بک‌اند
+#
+# ⛔ پس این فایل را روی سرور کپی نکن. اگر بکنی، TLS می‌میرد و پورتِ ۸۰۸۰ هم
+# بی‌دلیل روی اینترنت باز می‌شود. همان تلهٔ نام‌گذاری‌ای که برای nginx.conf
+# بسته شد، یک سطح بالاتر اینجا هم هست — فعلاً فقط مستند شده، نه حل‌شده.
+# پیشنهادِ حلِ ریشه‌ای در گزارشِ ۲۰۲۶-۰۹-۲۳ چت ج آمده است.
+# ============================================================================
+
+services:
+  # 1. دیتابیس MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: shop_mongodb
+    restart: always
+    environment:
+      # یوزر/پسورد از فایل .env خوانده می‌شوند (در گیت کامیت نشود)
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      # ذخیره دائمی دیتای مونگو در یک والیوم داکر (تا با پاک شدن کانتینر، دیتا نپره)
+      - mongo_data:/data/db
+    healthcheck:
+      # تا وقتی مونگو واقعاً آماده نشده، بک‌اند بالا نمی‌آید
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # 2. اپلیکیشن Spring Boot شما
+  backend:
+    build: .  # از روی Dockerfile در همین پوشه ایمیج می‌سازد
+    container_name: shop_backend
+    restart: always
+    ports:
+      # 🩺 دسترسیِ مستقیم به اپ، دور زدنِ nginx.
+      # وقتی nginx بالا نمی‌آید، بدونِ این پورت هیچ راهی به اپ نیست و معلوم
+      # نمی‌شود ایراد از اپ است یا از وب‌سرور. روی سرور این پورت باز نیست و
+      # نباید باز شود — فقط لوکال.
+      - "8080:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      # فعال کردن پروفایل پروداکشن
+      - SPRING_PROFILES_ACTIVE=prod
+      # لوکال روی HTTP است؛ بدونِ این، کوکیِ Secure فرستاده نمی‌شود و ورودِ ادمین می‌شکند.
+      # کامپوزِ سرور این را ندارد، پس آن‌جا کوکی Secure می‌ماند.
+      - SESSION_COOKIE_SECURE=false
+
+      # آدرس اتصال به مونگو بر اساس یوزر/پسورد فایل .env و اسم کانتینر mongodb
+      # نامِ دیتابیس از MONGO_DB_NAME می‌آید (پیش‌فرض shopdb)؛ برای سوییچِ نسخهٔ قدیم/جدید فقط این متغیر در .env عوض شود
+      # و `docker compose up -d` (بدون --build) — چون کد عوض نشده. authSource=admin ثابت است (کاربرِ root به هر DB دسترسی دارد).
+      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME:-shopdb}?authSource=admin
+
+      # مسیر ذخیره عکس‌ها در لینوکس (کانتینر)
+      - UPLOAD_DIR=/opt/shop/uploads
+
+      # کلیدها و توکن‌ها از فایل .env خوانده می‌شوند
+      - OPENAI_KEY=${OPENAI_KEY}
+      - TAPIN_TOKEN=${TAPIN_TOKEN}
+      - SNAPP_TOKEN=${SNAPP_TOKEN}
+      - SMS_API_KEY=${SMS_API_KEY}
+      - SMS_TEMPLATE_ID=${SMS_TEMPLATE_ID}
+      # قالبِ «دوباره موجود شد»؛ اگر در .env نبود پیش‌فرضِ 791445 (نه رشتهٔ خالی)
+      - SMS_STOCK_TEMPLATE_ID=${SMS_STOCK_TEMPLATE_ID:-791445}
+
+      # درگاهِ پرداختِ ملت — مقدارِ واقعی را فقط مالک در .env می‌گذارد
+      - MELLAT_TERMINAL_ID=${MELLAT_TERMINAL_ID}
+      - MELLAT_USERNAME=${MELLAT_USERNAME}
+      - MELLAT_PASSWORD=${MELLAT_PASSWORD}
+
+      # آنالیتیکس (فاز ۰ رودمپ) — خالی = غیرفعال
+      - GA4_ID=${GA4_ID:-}
+      - GSC_VERIFICATION=${GSC_VERIFICATION:-}
+
+      # اطلاعات ادمین اولیه
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PHONE=${ADMIN_PHONE}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+
+      # یک نکته طلایی برای شبیه‌ساز:
+      # چون روی لوکال هستیم و HTTPS نداریم، کوکی‌های سکیور کار نمی‌کنند و ادمین نمی‌تونه لاگین کنه.
+      # با این خط، موقتاً در شبیه‌ساز کوکی سکیور رو خاموش می‌کنیم (در VPS این خط رو پاک می‌کنیم)
+      - SERVER_SERVLET_SESSION_COOKIE_SECURE=false
+
+    volumes:
+      # وصل کردن یک پوشه از ویندوز تو به پوشه آپلود لینوکس، تا عکسا رو به صورت زنده ببینی!
+      - ./uploads_sim:/opt/shop/uploads
+
+      # 🔴 ضمیمه‌هایِ چتِ پشتیبانی — عمداً حجمِ جدا و بیرونِ پوشهٔ آپلودِ عمومی.
+      # اگر داخلِ uploads می‌رفت، ResourceHandlerِ /uploads/** همان لحظه عمومی‌اش
+      # می‌کرد. بدونِ این حجم، فایل‌ها داخلِ کانتینر می‌مانند و با هر ری‌بیلد پاک می‌شوند.
+      - ./chat_files:/opt/shop/chat
+
+      # 🔴 آرشیوِ دادهٔ رفتاری — به همان دلیلِ بالا بیرونِ uploads است، و حجم لازم
+      # دارد چون کلِ طراحیِ «آرشیو-سپس-حذف» بی‌معنی می‌شود اگر آرشیو با ری‌بیلدِ
+      # کانتینر بپرد: رویدادها حذف شده‌اند و نسخهٔ آرشیوشان هم دیگر نیست.
+      - ./analytics_archive:/opt/shop/analytics-archive
+
+  # 3. وب‌سرور Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: shop_nginx
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      # مپ کردن پورت 80 سیستم شما به پورت 80 کانتینر
+      - "80:80"
+    volumes:
+      # جایگذاری کانفیگ اختصاصی ما به جای کانفیگ پیش‌فرض انجینکس
+      # ⛔ عمداً `nginx.local.conf` است نه `nginx.conf`.
+      # `nginx.conf` کانفیگِ پراد است و بلاکِ ۴۴۳ با گواهیِ Let's Encrypt دارد؛
+      # روی لوکال آن گواهی وجود ندارد و nginx **اصلاً بالا نمی‌آید**. چون
+      # `backend` هم از بیرون فقط از راهِ nginx دیده می‌شد، نتیجه‌اش این بود که
+      # هیچ راهی به اپ نمی‌ماند و کارِ همهٔ چت‌ها می‌خوابید. یک‌بار افتاد.
+      - ./nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf
+
+volumes:
+  mongo_data:

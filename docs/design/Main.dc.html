@@ -1,0 +1,270 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #1B4DD1; text-decoration: none; }
+    .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-feature-settings: "tnum"; }
+    .kufi { font-family: "Noto Kufi Arabic", sans-serif; }
+    .row { display: grid; grid-template-columns: 30px 84px 1fr 128px 104px 164px; align-items: center; gap: 18px; padding: 16px 18px; border-bottom: 1px solid #E6E8EB; }
+    .colhead { font-size: 11px; color: #767C83; font-weight: 500; letter-spacing: .01em; }
+    .box { width: 14px; height: 14px; border: 1px solid #C2C8CE; }
+    .box.on { background: #16181A; border-color: #16181A; }
+    .fgroup { border-bottom: 1px solid #E6E8EB; padding: 18px 0; }
+    .fttl { font-size: 12.5px; font-weight: 700; }
+    .fopt { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: #4B5158; margin-top: 11px; }
+    .cta { font-family: inherit; font-size: 12.5px; font-weight: 600; color: #FFFFFF; background: #16181A; border: 1px solid #16181A; padding: 8px 0; width: 100%; cursor: pointer; }
+    .cta.ghost { color: #767C83; background: #FFFFFF; border-color: #D5D9DE; }
+  </style>
+</helmet>
+
+<div dir="rtl" style="background: #FFFFFF; color: #16181A;">
+
+  <!-- نوارِ چسبانِ واحد -->
+  <div style="border-bottom: 1px solid #16181A; background: #FFFFFF;">
+    <div style="max-width: 1216px; margin: 0 auto; padding: 0 32px; height: 64px; display: flex; align-items: center; gap: 16px;">
+      <span class="kufi" style="font-size: 17px; font-weight: 700;">داده نما</span>
+      <span style="font-size: 12.5px; border: 1px solid #D5D9DE; padding: 8px 12px; cursor: pointer;">همهٔ دسته‌ها ▾</span>
+      <span style="flex-grow: 1; display: flex; align-items: center; gap: 9px; font-size: 13px; color: #9AA0A6; border: 1px solid #D5D9DE; padding: 9px 12px; max-width: 460px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA0A6" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+        کدِ مدل یا نامِ محصول
+      </span>
+      <span style="display: flex; gap: 20px; font-size: 13px; color: #767C83;">
+        <span>آموزش</span><span>بلاگ</span><span>سابقه</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="1.6"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12h11.2L21 7H6"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+    </div>
+  </div>
+
+  <!-- خطِ زمینه -->
+  <div style="background: #FAFBFB; border-bottom: 1px solid #E6E8EB;">
+    <div style="max-width: 1216px; margin: 0 auto; padding: 0 32px; height: 40px; display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 12px; color: #767C83;">فروشگاه <span style="color: #C2C8CE;">/</span> میکروتیک <span style="color: #C2C8CE;">/</span> <span style="color: #16181A;">روتر</span></span>
+      <span style="display: flex; align-items: center; gap: 14px; font-size: 12px; color: #767C83;">
+        <span>مرتب‌سازی: <span style="color: #16181A;">موجودها اول ▾</span></span>
+        <span style="color: #E6E8EB;">|</span>
+        <span><span style="color: #16181A; font-weight: 600;">فهرست</span> · کاشی</span>
+      </span>
+    </div>
+  </div>
+
+  <div style="max-width: 1216px; margin: 0 auto; padding: 0 32px 56px;">
+
+    <!-- عنوانِ صفحه -->
+    <div style="padding: 36px 0 26px;">
+      <h1 class="kufi" style="margin: 0; font-size: 28px; font-weight: 700; line-height: 1.5;">روتر میکروتیک</h1>
+      <p style="margin: 12px 0 0; font-size: 13.5px; color: #4B5158; line-height: 2.05; max-width: 720px;">
+        از hEX خانگی تا CCR دیتاسنتری. پورت، حافظه و بودجهٔ PoE روی خودِ فهرست آمده تا بدونِ بازکردنِ محصول بشود مقایسه کرد.
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 236px 1fr; gap: 36px; align-items: start;">
+
+      <!-- فیلترها -->
+      <div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #16181A; padding-bottom: 10px;">
+          <span class="kufi" style="font-size: 13.5px; font-weight: 700;">پالایش</span>
+          <span style="font-size: 11.5px; color: #767C83;">پاک‌کردن</span>
+        </div>
+
+        <div class="fgroup">
+          <div class="fttl">وضعیت</div>
+          <div class="fopt"><span class="box on"></span> فقط موجود <span class="mono" style="color: #9AA0A6; font-size: 11px;">۲۴</span></div>
+          <div class="fopt"><span class="box"></span> به‌زودی <span class="mono" style="color: #9AA0A6; font-size: 11px;">۶</span></div>
+        </div>
+
+        <div class="fgroup">
+          <div class="fttl">تعدادِ پورت</div>
+          <div class="fopt"><span class="box"></span> تا ۵ پورت</div>
+          <div class="fopt"><span class="box"></span> ۶ تا ۱۰</div>
+          <div class="fopt"><span class="box"></span> بیش از ۱۰</div>
+        </div>
+
+        <div class="fgroup">
+          <div class="fttl">قابلیت</div>
+          <div class="fopt"><span class="box"></span> پورتِ SFP / SFP+</div>
+          <div class="fopt"><span class="box"></span> خروجیِ PoE</div>
+          <div class="fopt"><span class="box"></span> وای‌فای داخلی</div>
+          <div class="fopt"><span class="box"></span> رک‌مونت</div>
+        </div>
+
+        <div class="fgroup" style="border-bottom: none;">
+          <div class="fttl">قیمت (میلیون تومان)</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+            <span class="mono" style="flex: 1; font-size: 12px; border: 1px solid #D5D9DE; padding: 7px 9px; color: #9AA0A6;">از ۰</span>
+            <span style="color: #C2C8CE;">—</span>
+            <span class="mono" style="flex: 1; font-size: 12px; border: 1px solid #D5D9DE; padding: 7px 9px; color: #9AA0A6;">تا ۲۰۰</span>
+          </div>
+          <div style="height: 1px; background: #E6E8EB; margin-top: 16px; position: relative;">
+            <span style="position: absolute; right: 0; left: 30%; top: 0; height: 1px; background: #16181A;"></span>
+            <span style="position: absolute; right: -4px; top: -4px; width: 9px; height: 9px; background: #16181A;"></span>
+            <span style="position: absolute; left: 30%; top: -4px; width: 9px; height: 9px; background: #16181A;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- فهرست -->
+      <div>
+        <div class="row" style="border-top: 1px solid #16181A; border-bottom: 1px solid #16181A; padding: 11px 18px; background: #FAFBFB;">
+          <div class="colhead"></div>
+          <div class="colhead">تصویر</div>
+          <div class="colhead">محصول</div>
+          <div class="colhead">پورت</div>
+          <div class="colhead">موجودی</div>
+          <div class="colhead" style="text-align: left;">قیمت (تومان)</div>
+        </div>
+
+        <!-- ردیف ۱ -->
+        <div class="row">
+          <div><span class="box on"></span></div>
+          <div style="display: flex; justify-content: center;">
+            <svg width="72" height="44" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="1.4"><rect x="6" y="20" width="108" height="36"/><rect x="14" y="28" width="12" height="9"/><rect x="30" y="28" width="12" height="9"/><rect x="46" y="28" width="12" height="9"/><rect x="62" y="28" width="12" height="9"/><rect x="78" y="28" width="12" height="9"/><rect x="94" y="28" width="12" height="9"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 14.5px; font-weight: 600; line-height: 1.7;">روتر میکروتیک RB5009UPr+S+IN</div>
+            <div class="mono" style="font-size: 11px; color: #767C83; margin-top: 5px;">ARM 4×1.4GHz · 1GB · PoE-out 130W · رک</div>
+          </div>
+          <div class="mono" style="font-size: 12.5px; line-height: 1.75;">8 × 1G<br><span style="color: #767C83;">1 × SFP+</span></div>
+          <div style="font-size: 12.5px; color: #9AA0A6;">ناموجود</div>
+          <div style="text-align: left;">
+            <div class="mono" style="font-size: 16px; font-weight: 500;">64,800,000</div>
+            <button class="cta ghost" style="margin-top: 8px;">اطلاع از موجودی</button>
+          </div>
+        </div>
+
+        <!-- ردیف ۲ -->
+        <div class="row" style="background: #FCFCFD;">
+          <div><span class="box on"></span></div>
+          <div style="display: flex; justify-content: center;">
+            <svg width="72" height="44" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="1.4"><rect x="8" y="22" width="104" height="32"/><line x1="16" y1="30" x2="16" y2="46"/><line x1="24" y1="30" x2="24" y2="46"/><line x1="32" y1="30" x2="32" y2="46"/><line x1="40" y1="30" x2="40" y2="46"/><line x1="48" y1="30" x2="48" y2="46"/><rect x="88" y="32" width="16" height="12"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 14.5px; font-weight: 600; line-height: 1.7;">سوییچ میکروتیک CRS125-24G-1S-2HnD-IN</div>
+            <div class="mono" style="font-size: 11px; color: #767C83; margin-top: 5px;">L5 · وای‌فای داخلی · SwOS/RouterOS</div>
+          </div>
+          <div class="mono" style="font-size: 12.5px; line-height: 1.75;">24 × 1G<br><span style="color: #767C83;">1 × SFP</span></div>
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px;">
+            <span style="width: 5px; height: 5px; border-radius: 50%; background: #1F8A4C;"></span> ۴ عدد
+          </div>
+          <div style="text-align: left;">
+            <div class="mono" style="font-size: 16px; font-weight: 500;">21,600,000</div>
+            <button class="cta" style="margin-top: 8px;">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <!-- ردیف ۳ -->
+        <div class="row">
+          <div><span class="box"></span></div>
+          <div style="display: flex; justify-content: center;">
+            <svg width="72" height="44" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="1.4"><rect x="22" y="26" width="76" height="30"/><line x1="34" y1="18" x2="34" y2="26"/><line x1="86" y1="18" x2="86" y2="26"/><rect x="32" y="36" width="10" height="8"/><rect x="46" y="36" width="10" height="8"/><rect x="60" y="36" width="10" height="8"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 14.5px; font-weight: 600; line-height: 1.7;">روتر میکروتیک hAP ax lite</div>
+            <div class="mono" style="font-size: 11px; color: #767C83; margin-top: 5px;">L41G-2axD · Wi-Fi 6 · 256MB · PoE-in</div>
+          </div>
+          <div class="mono" style="font-size: 12.5px;">4 × 1G</div>
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px;">
+            <span style="width: 5px; height: 5px; border-radius: 50%; background: #1F8A4C;"></span> ۱۷ عدد
+          </div>
+          <div style="text-align: left;">
+            <div class="mono" style="font-size: 16px; font-weight: 500;">14,580,000</div>
+            <button class="cta" style="margin-top: 8px;">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <!-- ردیف ۴ -->
+        <div class="row" style="background: #FCFCFD;">
+          <div><span class="box"></span></div>
+          <div style="display: flex; justify-content: center;">
+            <svg width="72" height="44" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="1.4"><rect x="18" y="24" width="84" height="28"/><rect x="26" y="32" width="11" height="8"/><rect x="41" y="32" width="11" height="8"/><rect x="56" y="32" width="11" height="8"/><rect x="71" y="32" width="11" height="8"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 14.5px; font-weight: 600; line-height: 1.7;">روتر میکروتیک hEX refresh</div>
+            <div class="mono" style="font-size: 11px; color: #767C83; margin-top: 5px;">E50UG · RouterOS v7 · لایسنس L4</div>
+          </div>
+          <div class="mono" style="font-size: 12.5px;">5 × 1G</div>
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px;">
+            <span style="width: 5px; height: 5px; border-radius: 50%; background: #1F8A4C;"></span> ۹ عدد
+          </div>
+          <div style="text-align: left;">
+            <div class="mono" style="font-size: 16px; font-weight: 500;">13,500,000</div>
+            <button class="cta" style="margin-top: 8px;">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <!-- ردیف ۵ -->
+        <div class="row" style="border-bottom: 1px solid #16181A;">
+          <div><span class="box"></span></div>
+          <div style="display: flex; justify-content: center;">
+            <svg width="72" height="44" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="1.4"><rect x="6" y="18" width="108" height="40"/><rect x="14" y="26" width="10" height="8"/><rect x="28" y="26" width="10" height="8"/><rect x="42" y="26" width="10" height="8"/><rect x="56" y="26" width="10" height="8"/><rect x="14" y="42" width="10" height="8"/><rect x="28" y="42" width="10" height="8"/><rect x="84" y="28" width="22" height="20"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 14.5px; font-weight: 600; line-height: 1.7;">روتر میکروتیک CCR2116-12G-4S+</div>
+            <div class="mono" style="font-size: 11px; color: #767C83; margin-top: 5px;">ARM64 16×2GHz · 16GB · دو منبعِ تغذیه · رک</div>
+          </div>
+          <div class="mono" style="font-size: 12.5px; line-height: 1.75;">12 × 1G<br><span style="color: #767C83;">4 × SFP+</span></div>
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px;">
+            <span style="width: 5px; height: 5px; border-radius: 50%; background: #1F8A4C;"></span> ۲ عدد
+          </div>
+          <div style="text-align: left;">
+            <div class="mono" style="font-size: 16px; font-weight: 500;">168,400,000</div>
+            <button class="cta" style="margin-top: 8px;">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <!-- صفحه‌بندی -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 22px;">
+          <span class="mono" style="font-size: 12px; color: #767C83;">۵ از ۳۸</span>
+          <div style="display: flex; gap: 6px; font-size: 12.5px;">
+            <span class="mono" style="border: 1px solid #16181A; background: #16181A; color: #FFFFFF; padding: 7px 12px;">۱</span>
+            <span class="mono" style="border: 1px solid #D5D9DE; padding: 7px 12px;">۲</span>
+            <span class="mono" style="border: 1px solid #D5D9DE; padding: 7px 12px;">۳</span>
+            <span style="border: 1px solid #D5D9DE; padding: 7px 12px;">بعدی</span>
+          </div>
+        </div>
+
+        <!-- سینیِ مقایسه -->
+        <div style="margin-top: 26px; border: 1px solid #16181A; background: #16181A; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px;">
+          <span style="font-size: 12.5px;">۲ محصول برای مقایسه انتخاب شده</span>
+          <span style="display: flex; align-items: center; gap: 14px;">
+            <span style="font-size: 12px; color: #A8AFB6;">پاک‌کردن</span>
+            <span style="font-size: 12.5px; font-weight: 600; background: #FFFFFF; color: #16181A; padding: 8px 16px;">مقایسه کن</span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- یادداشتِ جهت -->
+    <div style="margin-top: 46px; padding-top: 22px; border-top: 1px solid #E6E8EB; display: flex; gap: 36px;">
+      <div style="width: 210px;">
+        <div class="kufi" style="font-size: 13px; font-weight: 700;">ج — توسعه‌یافته</div>
+        <div style="font-size: 12.5px; color: #767C83; margin-top: 8px; line-height: 1.95;">نوارِ واحد، پالایشِ کنارِ فهرست، و مقایسهٔ چندتایی روی خودِ ردیف‌ها.</div>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: flex-start; padding-top: 2px;">
+        <span style="width: 32px; height: 32px; background: #16181A;"></span>
+        <span style="width: 32px; height: 32px; background: #767C83;"></span>
+        <span style="width: 32px; height: 32px; background: #D5D9DE;"></span>
+        <span style="width: 32px; height: 32px; background: #FAFBFB; border: 1px solid #E6E8EB;"></span>
+        <span style="width: 32px; height: 32px; background: #1B4DD1;"></span>
+        <span style="width: 32px; height: 32px; background: #1F8A4C;"></span>
+      </div>
+      <div style="flex-grow: 1; font-size: 12.5px; color: #767C83; line-height: 1.95;">
+        <b style="color: #16181A;">فونت:</b> تیترها و عنوان‌های بخش با <span class="kufi">Noto Kufi Arabic</span>؛ متن و رابط با IBM Plex Sans Arabic؛ عدد و کدِ مدل با <span class="mono">IBM Plex Mono</span>.<br>
+        <b style="color: #16181A;">نکته:</b> نامِ محصول عمداً کوفی نیست — کدِ لاتینِ داخلِ نام در کوفی بد می‌نشیند و ردیف‌ها شلوغ می‌شوند.
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

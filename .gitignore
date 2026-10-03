@@ -31,3 +31,20 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Project specific (security & runtime artifacts) ###
+.env
+*.env
+!.env.example
+uploads/
+uploads_sim/
+# ضمیمه‌هایِ چتِ لوکال — فایلِ خصوصیِ مشتری است و هرگز نباید در گیت بنشیند
+chat_files/
+javacore.*.txt
+*.hprof
+heapdump.*
+data-import/
+content-dump/
+
+# آرشیوِ دادهٔ رفتاری — دادهٔ شخصیِ مشتریانِ واقعی، هرگز در مخزن
+analytics_archive/

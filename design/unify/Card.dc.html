@@ -1,0 +1,237 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    .k { --primary:#1b4f8a; --accent:#e8861a; --danger:#e74c3c;
+         --ink:#0b1119; --ink-2:#46536b; --ink-3:#94a2b8;
+         --dark:#101826; --on-dark:#8fa3c0;
+         --surface:#fff; --line:#e9edf2; --line-2:#f2f5f8;
+         --ok:#16a34a;
+         --ease:cubic-bezier(.2,.8,.3,1); --dur:140ms; }
+    .k * { box-sizing:border-box; margin:0; }
+    .k { font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif; background:var(--surface);
+         color:var(--ink); direction:rtl; padding:28px; -webkit-font-smoothing:antialiased; }
+    .kufi { font-family:"Noto Kufi Arabic",sans-serif; }
+    .mono { font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+
+    h2.sec { font-family:"Noto Kufi Arabic",sans-serif; font-size:.95rem; font-weight:700;
+             line-height:1.6; padding-bottom:9px; border-bottom:1px solid var(--ink); }
+    .lead { font-size:.74rem; color:var(--ink-2); line-height:2; margin-top:9px; max-width:660px; }
+
+    /* ── شبکهٔ هم‌مرز: کارت‌ها فاصله ندارند، مرزشان یکی است ── */
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+            gap:1px; background:var(--line); border:1px solid var(--line); }
+
+    .card { background:var(--surface); position:relative; cursor:pointer;
+            display:flex; flex-direction:column;
+            transition:background var(--dur) var(--ease); }
+    .card:hover { background:#fbfcfe; }
+    .card:active { background:#f4f7fa; }
+
+    .img { aspect-ratio:1; background:#fff; border-bottom:1px solid var(--line-2);
+           display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .img svg { width:68%; height:68%; }
+
+    .body { padding:11px 13px 0; flex:1; }
+    .spec { font-size:.58rem; color:var(--ink-3); letter-spacing:.6px; line-height:1.5;
+            height:1.5em; overflow:hidden; }
+    .nm { font-size:.78rem; font-weight:600; line-height:1.68; margin-top:5px;
+          height:3.36em; overflow:hidden; }
+
+    .foot { padding:9px 13px 0; }
+    .old { font-size:.6rem; color:var(--ink-3); text-decoration:line-through; display:block; }
+    .pr { font-size:.92rem; font-weight:600; letter-spacing:-.3px; }
+    .pr i { font-style:normal; font-size:.58rem; color:var(--ink-3); font-weight:400; margin-right:3px; }
+    .st { font-size:.58rem; color:var(--ink-3); margin-top:6px; display:flex; align-items:center; gap:5px; }
+    .dot { width:5px; height:5px; flex-shrink:0; }
+
+    .btn { margin:10px 0 0; height:34px; width:100%; border:0; cursor:pointer;
+           font-family:inherit; font-size:.7rem; font-weight:600;
+           background:var(--dark); color:#fff;
+           transition:background var(--dur) var(--ease); }
+    .btn:hover { background:#1c2942; }
+    .btn:active { background:#0a0f18; }
+    .btn.ghost { background:#fff; color:var(--primary); box-shadow:inset 0 0 0 1px var(--line); }
+    .btn.ghost:hover { background:var(--line-2); }
+
+    .badges { position:absolute; top:0; right:0; display:flex; flex-direction:column; z-index:2; }
+    .bdg { font-size:.56rem; font-weight:600; color:#fff; padding:4px 7px; letter-spacing:.2px; }
+
+    .cap { font-size:.63rem; color:var(--ink-3); line-height:1.9; margin-top:10px; }
+    .cap b { color:var(--ink); font-weight:600; }
+
+    .anat { display:grid; grid-template-columns:230px 1fr; gap:26px; align-items:start; }
+    .rows .r { display:grid; grid-template-columns:104px 1fr; border-bottom:1px solid var(--line-2); }
+    .rows .r span { padding:7px 0; font-size:.6rem; color:var(--ink-3); letter-spacing:.4px; }
+    .rows .r b { padding:7px 0; font-size:.68rem; font-weight:500; line-height:1.75; }
+  </style>
+</helmet>
+
+<div class="k">
+
+  <h2 class="sec">کارتِ محصول</h2>
+  <p class="lead">
+    زبانِ الف۲ دست‌نخورده: شبکه با مرزِ مشترک، شعاعِ صفر، بدونِ سایه، پالتِ خودِ سایت.
+    آنچه اضافه شده عکس است و وضعیتِ واقعیِ موجودی. هر فیلدی که می‌بینی در مدلِ محصول وجود دارد — هیچ‌چیز ساختگی نیست.
+  </p>
+
+  <div style="margin-top:22px;" class="anat">
+
+    <!-- کارتِ مرجع -->
+    <div>
+      <div class="grid" style="grid-template-columns:1fr;">
+        <div class="card">
+          <div class="badges"><span class="bdg" style="background:var(--danger);">۱۵٪ تخفیف</span></div>
+          <div class="img">
+            <svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="6" y="20" width="108" height="36"/><rect x="14" y="28" width="12" height="9"/><rect x="30" y="28" width="12" height="9"/><rect x="46" y="28" width="12" height="9"/><rect x="62" y="28" width="12" height="9"/><rect x="78" y="28" width="12" height="9"/><rect x="94" y="28" width="12" height="9"/></svg>
+          </div>
+          <div class="body">
+            <div class="spec mono">۸ پورت گیگابیت · SFP+ · PoE-out</div>
+            <div class="nm">روتر میکروتیک RB5009UPr+S+IN</div>
+          </div>
+          <div class="foot">
+            <span class="old mono">۶۴٬۸۰۰٬۰۰۰ ت</span>
+            <div class="pr mono">۵۵٬۰۸۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · اصفهان</div>
+            <button class="btn">افزودن به سبد</button>
+          </div>
+        </div>
+      </div>
+      <div class="cap">عرضِ مرجع ۲۱۰px — همان نقطهٔ شکستِ فعلیِ <b>minmax(210px, 1fr)</b>.</div>
+    </div>
+
+    <!-- تشریح -->
+    <div class="rows">
+      <div class="r"><span>عکس</span><b>نسبتِ ۱:۱، چسبیده به لبهٔ سلول بدونِ حاشیه. زیرش یک خطِ مویی <span class="mono">--line-2</span>. عکس هیچ‌وقت بریده نمی‌شود، جا می‌افتد.</b></div>
+      <div class="r"><span>خطِ مشخصات</span><b>۱۰px مونو با فاصلهٔ حروف. از <span class="mono">specifications</span> و محدود به <span class="mono">filterKeys</span>ی که ادمین برای همان دسته تعریف کرده. اگر خالی بود، خطش حذف می‌شود و کارت کوتاه‌تر نمی‌شود.</b></div>
+      <div class="r"><span>نام</span><b>دو خطِ ثابت. قلمِ IBM Plex نه کوفی — چون کدِ لاتینِ داخلِ نام در کوفی بد می‌نشیند.</b></div>
+      <div class="r"><span>قیمت</span><b>مونو با ارقامِ هم‌عرض تا زیرِ هم قفل شود. «تومان» کوچک و کم‌رنگ، چون تکرارِ بی‌اطلاع است.</b></div>
+      <div class="r"><span>وضعیت</span><b>مربعِ ۵px، نه دایره. سبز موجود · نارنجی در راه · خاکستری ناموجود.</b></div>
+      <div class="r"><span>دکمه</span><b>تمامِ عرض، چسبیده به کفِ کارت. تیرهٔ توپُر برای خرید، توخالی برای اطلاع‌رسانی.</b></div>
+      <div class="r"><span>نشان‌ها</span><b>گوشهٔ بالا-راست، چسبیده به لبه، مربع. رویِ هم می‌چینند.</b></div>
+      <div class="r"><span>کنش</span><b>hover و active فقط پس‌زمینه عوض می‌کنند — نه بالا پریدن، نه سایه. در شبکهٔ هم‌مرز جابه‌جایی بد می‌افتد.</b></div>
+    </div>
+  </div>
+
+  <!-- حالت‌ها -->
+  <h2 class="sec" style="margin-top:34px;">حالت‌های واقعیِ کارت</h2>
+  <p class="lead">هر چهار حالت از دادهٔ موجود در مدل می‌آید.</p>
+
+  <div class="grid" style="margin-top:16px;">
+
+    <div class="card">
+      <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="22" y="26" width="76" height="30"/><line x1="34" y1="18" x2="34" y2="26"/><line x1="86" y1="18" x2="86" y2="26"/><rect x="32" y="36" width="10" height="8"/><rect x="46" y="36" width="10" height="8"/></svg></div>
+      <div class="body">
+        <div class="spec mono">وای‌فای ۶ · ۴ پورت گیگابیت</div>
+        <div class="nm">روتر میکروتیک hAP ax lite</div>
+      </div>
+      <div class="foot">
+        <div class="pr mono" style="margin-top:14px;">۱۴٬۵۸۰٬۰۰۰<i>تومان</i></div>
+        <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۱۷ عدد</div>
+        <button class="btn">افزودن به سبد</button>
+      </div>
+      <div class="cap" style="padding:0 13px 11px;">عادی</div>
+    </div>
+
+    <div class="card">
+      <div class="badges"><span class="bdg" style="background:var(--danger);">۱۵٪ تخفیف</span><span class="bdg" style="background:var(--primary);">پیشنهاد ویژه</span></div>
+      <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="18" y="24" width="84" height="28"/><rect x="26" y="32" width="11" height="8"/><rect x="41" y="32" width="11" height="8"/><rect x="56" y="32" width="11" height="8"/></svg></div>
+      <div class="body">
+        <div class="spec mono">۵ پورت گیگابیت · RouterOS L4</div>
+        <div class="nm">روتر میکروتیک hEX refresh</div>
+      </div>
+      <div class="foot">
+        <span class="old mono">۱۳٬۵۰۰٬۰۰۰ ت</span>
+        <div class="pr mono">۱۱٬۴۷۵٬۰۰۰<i>تومان</i></div>
+        <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۹ عدد</div>
+        <button class="btn">افزودن به سبد</button>
+      </div>
+      <div class="cap" style="padding:0 13px 11px;">تخفیف + نشانِ بخش</div>
+    </div>
+
+    <div class="card">
+      <div class="badges"><span class="bdg" style="background:var(--accent);">در راه</span></div>
+      <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="8" y="22" width="104" height="32"/><line x1="16" y1="30" x2="16" y2="46"/><line x1="24" y1="30" x2="24" y2="46"/><line x1="32" y1="30" x2="32" y2="46"/><rect x="88" y="32" width="16" height="12"/></svg></div>
+      <div class="body">
+        <div class="spec mono">۲۴ پورت گیگابیت · SFP</div>
+        <div class="nm">سوییچ میکروتیک CRS125-24G-1S-2HnD</div>
+      </div>
+      <div class="foot">
+        <div class="pr mono" style="margin-top:14px;">۲۱٬۶۰۰٬۰۰۰<i>تومان</i></div>
+        <div class="st"><span class="dot" style="background:var(--accent);"></span> در راه · <span class="mono">۱۲</span> عدد</div>
+        <button class="btn ghost">اطلاع بده</button>
+      </div>
+      <div class="cap" style="padding:0 13px 11px;">در راه — تنها جای دیگری که نارنجی می‌آید</div>
+    </div>
+
+    <div class="card">
+      <div class="img" style="opacity:.45;"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="6" y="18" width="108" height="40"/><rect x="14" y="26" width="10" height="8"/><rect x="28" y="26" width="10" height="8"/><rect x="84" y="28" width="22" height="20"/></svg></div>
+      <div class="body">
+        <div class="spec mono">۱۲ پورت گیگابیت · ۴×SFP+</div>
+        <div class="nm" style="color:var(--ink-2);">روتر میکروتیک CCR2116-12G-4S+</div>
+      </div>
+      <div class="foot">
+        <div class="pr mono" style="margin-top:14px; color:var(--ink-2);">۱۶۸٬۴۰۰٬۰۰۰<i>تومان</i></div>
+        <div class="st"><span class="dot" style="background:var(--ink-3);"></span> ناموجود</div>
+        <button class="btn ghost">اطلاع بده</button>
+      </div>
+      <div class="cap" style="padding:0 13px 11px;">ناموجود — کم‌رنگ، ولی حذف نمی‌شود</div>
+    </div>
+
+  </div>
+
+  <div class="cap" style="max-width:760px;">
+    <b>چرا کارتِ ناموجود می‌ماند:</b> طبق چارچوبِ سئوی خودمان محصولِ ناموجود هرگز ۴۰۴ نمی‌شود.
+    اینجا هم پاک نمی‌شود، فقط کم‌رنگ می‌شود و دکمه‌اش به «اطلاع بده» عوض می‌شود — همان رفتاری که الان هم دارد.
+  </div>
+
+  <!-- موبایل -->
+  <h2 class="sec" style="margin-top:34px;">موبایل — دو ستون</h2>
+  <p class="lead">همان کارت، فشرده‌تر. ارتفاعِ دکمه ۴۴px می‌شود تا هدفِ لمس درست باشد.</p>
+
+  <div style="width:340px; margin-top:16px;">
+    <div class="grid" style="grid-template-columns:repeat(2,1fr);">
+      <div class="card">
+        <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="22" y="26" width="76" height="30"/><rect x="32" y="36" width="10" height="8"/><rect x="46" y="36" width="10" height="8"/></svg></div>
+        <div class="body">
+          <div class="spec mono">وای‌فای ۶ · ۴ پورت</div>
+          <div class="nm" style="font-size:.73rem;">روتر میکروتیک hAP ax lite</div>
+        </div>
+        <div class="foot">
+          <div class="pr mono" style="margin-top:12px; font-size:.84rem;">۱۴٬۵۸۰٬۰۰۰<i>ت</i></div>
+          <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود</div>
+          <button class="btn" style="height:44px;">افزودن به سبد</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="badges"><span class="bdg" style="background:var(--accent);">در راه</span></div>
+        <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="8" y="22" width="104" height="32"/><line x1="16" y1="30" x2="16" y2="46"/><line x1="24" y1="30" x2="24" y2="46"/></svg></div>
+        <div class="body">
+          <div class="spec mono">۲۴ پورت · SFP</div>
+          <div class="nm" style="font-size:.73rem;">سوییچ میکروتیک CRS125-24G</div>
+        </div>
+        <div class="foot">
+          <div class="pr mono" style="margin-top:12px; font-size:.84rem;">۲۱٬۶۰۰٬۰۰۰<i>ت</i></div>
+          <div class="st"><span class="dot" style="background:var(--accent);"></span> در راه</div>
+          <button class="btn ghost" style="height:44px;">اطلاع بده</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cap" style="max-width:760px;">
+    <b>سه چیزی که کارتِ فعلی دارد و اینجا عمداً حذف شد:</b> شعاعِ ۱۲px، سایهٔ hover، و پرشِ
+    <span class="mono">translateY(-5px)</span>. هر سه با شبکهٔ هم‌مرز ناسازگارند — وقتی کارت‌ها مرزِ مشترک دارند، بالا پریدنِ یکی خطِ همسایه را پاره می‌کند.
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

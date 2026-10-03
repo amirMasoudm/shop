@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <title>ورود به مدیریت فروشگاه</title>
+    <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">
+    <link rel="stylesheet" href="/css/fonts/Vazirmatn-font-face.css">
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
+        #loginContainer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f4f4f4; display: flex; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: white; padding: 30px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px;
+        }
+        .login-box input {
+            width: 100%; margin-bottom: 15px; padding: 12px;
+            border: 1px solid #ddd; border-radius: 8px; outline: none;
+        }
+        .login-box button {
+            width: 100%; padding: 12px; background: #4f46e5;
+            color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
+        .hidden { display: none; }
+        .error { color: #dc2626; font-size: 13px; margin-bottom: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="loginContainer">
+    <div class="login-box">
+        <h3 id="loginTitle" class="text-center font-bold text-xl mb-6">ورود مدیریت</h3>
+        <div id="errorMessage" class="error"></div>
+        <div id="step1">
+            <input type="text" id="adminUser" placeholder="نام کاربری">
+            <input type="password" id="adminPass" placeholder="رمز عبور">
+            <button onclick="handleStep1()">ارسال کد تایید</button>
+        </div>
+        <div id="step2" class="hidden">
+            <p class="text-sm mb-4 text-gray-600">کد ارسال شده به موبایل را وارد کنید:</p>
+            <input type="text" id="otpCode" placeholder="کد ۵ رقمی">
+            <button onclick="handleStep2()" style="background: #007bff;">تایید و ورود</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '/api';
+    // تابع کمکی برای خواندن توکن از کوکی
+    function getCsrfToken() {
+        const match = document.cookie.match(new RegExp('(^| )XSRF-TOKEN=([^;]+)'));
+        if (match) return decodeURIComponent(match[2]);
+        return null;
+    }
+
+    // مقداردهی اولیه توکن به محض لود شدن صفحه
+    window.onload = async function() {
+        try {
+            await fetch(`${API_BASE}/auth/csrf`);
+            console.log("CSRF initialized");
+        } catch (e) {
+            console.error("CSRF initialization failed");
+        }
+    };
+
+    async function handleStep1() {
+        const username = document.getElementById('adminUser').value;
+        const password = document.getElementById('adminPass').value;
+        const errorDiv = document.getElementById('errorMessage');
+        const csrfToken = getCsrfToken(); // خواندن توکن
+
+        try {
+            const response = await fetch(`${API_BASE}/auth/admin/login-step1`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': csrfToken // ارسال دستی توکن در هدر
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.text();
+            if (response.ok) {
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                document.getElementById('loginTitle').innerText = "تایید کد OTP";
+                errorDiv.innerText = "";
+            } else {
+                errorDiv.innerText = data;
+            }
+        } catch (err) {
+            errorDiv.innerText = "خطا در اتصال به سرور";
+        }
+    }
+
+    async function handleStep2() {
+        const username = document.getElementById('adminUser').value;
+        const code = document.getElementById('otpCode').value;
+        const errorDiv = document.getElementById('errorMessage');
+        const csrfToken = getCsrfToken();
+
+        try {
+            const response = await fetch(`${API_BASE}/auth/admin/login-step2`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': csrfToken // ارسال دستی توکن در هدر
+                },
+                body: JSON.stringify({ username, code }),
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                // هدایت بر اساسِ نقش: فقط ادمین به پنلِ کاملِ مدیریت می‌رود؛
+                // کارشناسانِ قیمت‌گذاری/فروش مستقیم به میزِ کارِ خودشان.
+                let role = null;
+                try { role = (await response.json()).role; } catch (e) {}
+                window.location.href = (role === 'ADMIN') ? "/Admin.html" : "/SalesPanel.html";
+            } else {
+                const msg = await response.text();
+                errorDiv.innerText = msg;
+            }
+        } catch (err) {
+            errorDiv.innerText = "خطا در تایید کد";
+        }
+    }
+</script>
+</body>
+</html>

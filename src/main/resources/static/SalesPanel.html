@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل فروش حضوری</title>
+
+    <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">
+    <link rel="stylesheet" href="/css/fonts/Vazirmatn-font-face.css">
+    <!-- بدونِ این، دکمه‌هایِ دیالوگ (جستجو/انصراف) بی‌رنگ و نامرئی می‌شوند -->
+    <link rel="stylesheet" href="/css/swal-fix.css">
+
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
+        .hidden-section { display: none !important; }
+        .tab-btn.active { background: #4338ca; color: #fff; }
+
+        #loading {
+            position: fixed; inset: 0; background: rgba(255,255,255,.6);
+            display: none; align-items: center; justify-content: center; z-index: 3000;
+        }
+        .spinner {
+            width: 42px; height: 42px; border: 4px solid #e0e7ff;
+            border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div></div>
+
+<div id="salesPanel" style="display:none;">
+    <header class="bg-indigo-900 text-white shadow-lg">
+        <div class="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <span class="text-xl">🧾</span>
+                <div>
+                    <div class="font-bold">پنل فروش حضوری</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="sales-username" class="text-xs font-bold"></span>
+                <span id="sales-role" class="text-[11px] bg-white/15 px-2 py-1 rounded-lg"></span>
+                <button onclick="logoutSales()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg">خروج</button>
+            </div>
+        </div>
+
+        <!-- میزِ کار/لاگ برایِ ADMIN/PRICER/SALES/SUPPORT (SUPPORT فقط‌مشاهده)؛
+             تبِ محصولات فقط برایِ ADMIN/PRICER (پنهان به‌صورتِ پیش‌فرض، window.onload بازش می‌کند). -->
+        <nav class="max-w-[1400px] mx-auto px-4 flex gap-2 pb-2">
+            <button id="tabbtn-workspace" onclick="showSalesTab('workspace')"
+                    class="tab-btn active px-4 py-2 rounded-lg text-sm font-bold bg-white/10">میز قیمت‌گذاری و موجودی</button>
+            <button id="tabbtn-log" onclick="showSalesTab('log')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">تاریخچه تغییرات</button>
+            <button id="tabbtn-products" onclick="showSalesTab('products')"
+                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">محصولات</button>
+            <!-- کدِ کالا و موجودی: همان دو نقشی که حقِ نوشتنِ محصول دارند (ADMIN/PRICER)،
+                 پس کنارِ تبِ محصولات پنهان/آشکار می‌شود. -->
+            <button id="tabbtn-holoo" onclick="showSalesTab('holoo')"
+                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">کد کالا و موجودی</button>
+            <!-- پشتیبانی عمداً برایِ هر چهار نقش باز است (ADMIN/PRICER/SALES/SUPPORT):
+                 صف مشترک است و هر کارشناسی می‌تواند تصاحب کند. -->
+            <button id="tabbtn-support" onclick="showSalesTab('support')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">پشتیبانی مشتریان</button>
+        </nav>
+    </header>
+
+    <main class="max-w-[1400px] mx-auto p-4">
+        <!-- tab-pricing/tab-activityLog از /js/pricing-workspace.js تزریق می‌شوند،
+             tab-products از /js/products-tab.js، tab-support از /js/support-tab.js -->
+        <div id="tab-pricing"></div>
+        <div id="tab-activityLog" class="hidden-section"></div>
+        <div id="tab-products" class="hidden-section"></div>
+        <div id="tab-holoo" class="hidden-section"></div>
+        <div id="tab-support" class="hidden-section"></div>
+    </main>
+</div>
+
+<!-- مودالِ افزودن/ویرایشِ محصول — مارک‌آپش از /js/products-tab.js تزریق می‌شود -->
+<div id="productModalMount"></div>
+
+<script src="/js/axios.min.js"></script>
+<script src="/js/sweetalert2.all.min.js"></script>
+<script src="/js/pricing-workspace.js"></script>
+<!-- تبِ محصولات — همان فایل‌هایی که پنلِ ادمین استفاده می‌کند (فقط برایِ ADMIN/PRICER mount می‌شود) -->
+<script src="/js/Sortable.min.js"></script>
+<script src="/js/admin-modal-utils.js"></script>
+<script src="/js/products-tab.js"></script>
+<script src="/js/holoo-tab.js"></script>
+<!-- چتِ پشتیبانی — chat-core.js همان هسته‌ای است که حبابِ مشتری هم استفاده می‌کند -->
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-tab.js"></script>
+<!-- بیرون‌انداختنِ خودکار وقتی دسترسیِ کاربر عوض شده (بدونِ نیاز به رفرشِ دستی) -->
+<script src="/js/session-watch.js"></script>
+
+<script>
+    const API = "/api";
+
+    // ---- CSRF (همان الگویِ بقیه‌ی پنل‌ها) ----
+    function getCsrfToken() {
+        const m = document.cookie.match(new RegExp('(^| )XSRF-TOKEN=([^;]+)'));
+        return m ? decodeURIComponent(m[2]) : null;
+    }
+    if (typeof axios !== 'undefined') {
+        axios.defaults.withCredentials = true;
+        axios.interceptors.request.use(cfg => {
+            const t = getCsrfToken();
+            if (t) cfg.headers['X-XSRF-TOKEN'] = t;
+            return cfg;
+        });
+    }
+
+    // همان رَپرِ fetch که Admin.html و customerPanel دارند.
+    // بدونِ این، هر POSTِ مستقیم با fetch (مثلاً خروج) ۴۰۳ی CSRF می‌گرفت و
+    // در عمل سشن بسته نمی‌شد — فقط localStorage پاک می‌شد.
+    const _origFetch = window.fetch;
+    window.fetch = function (url, options = {}) {
+        options = Object.assign({}, options);
+        options.headers = options.headers ? new Headers(options.headers) : new Headers();
+        const method = (options.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+            const t = getCsrfToken();
+            if (t) options.headers.set('X-XSRF-TOKEN', t);
+        }
+        options.credentials = options.credentials || 'include';
+        return _origFetch(url, options);
+    };
+
+    // ---- کمکی‌هایی که ماژولِ میزِ کار انتظار دارد ----
+    function toggleLoader(show) {
+        document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    }
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+    function serverError(err, fallback) {
+        const msg = err && err.response && err.response.data;
+        return (typeof msg === 'string' && msg.trim()) ? msg : fallback;
+    }
+
+    function showSalesTab(id) {
+        document.getElementById('tab-pricing').classList.toggle('hidden-section', id !== 'workspace');
+        document.getElementById('tab-activityLog').classList.toggle('hidden-section', id !== 'log');
+        document.getElementById('tab-products').classList.toggle('hidden-section', id !== 'products');
+        document.getElementById('tab-support').classList.toggle('hidden-section', id !== 'support');
+        document.getElementById('tab-holoo').classList.toggle('hidden-section', id !== 'holoo');
+        document.getElementById('tabbtn-workspace').classList.toggle('active', id === 'workspace');
+        document.getElementById('tabbtn-log').classList.toggle('active', id === 'log');
+        document.getElementById('tabbtn-products').classList.toggle('active', id === 'products');
+        document.getElementById('tabbtn-support').classList.toggle('active', id === 'support');
+        document.getElementById('tabbtn-holoo').classList.toggle('active', id === 'holoo');
+        if (id === 'log') fetchActivityLogs();
+        // mount تنبل است: تا کارشناس تبِ پشتیبانی را باز نکند، وب‌سوکت وصل نمی‌شود.
+        if (id === 'support') SupportTab.mount(document.getElementById('tab-support'));
+        if (id === 'holoo') HolooTab.mount(document.getElementById('tab-holoo'));
+    }
+
+    async function logoutSales() {
+        try { await fetch('/api/auth/logout', {method: 'POST', credentials: 'include'}); } catch (e) {}
+        localStorage.clear();
+        window.location.href = '/';
+    }
+
+    window.onload = async function () {
+        try {
+            const res = await fetch('/api/users/api/current-user', {credentials: 'include'});
+            if (!res.ok) throw new Error('unauthorized');
+
+            const user = await res.json();
+            const roles = (user && user.roles) || [];
+            const allowed = ['ROLE_ADMIN', 'ROLE_PRICER', 'ROLE_SALES', 'ROLE_SUPPORT'].some(r => roles.includes(r));
+            if (!allowed) throw new Error('forbidden');
+
+            // نام و نقشِ کاربر. برچسبِ نقش همان چیزی است که در پنلِ ادمین هم نوشته
+            // می‌شود؛ اگر نقشی اضافه/حذف شد، این جدول هم باید به‌روز شود.
+            const ROLE_LABELS = {
+                ADMIN: 'ادمین',
+                PRICER: 'کارشناس ارشد',
+                SALES: 'کارشناس فروش و قیمت‌گذاری',
+                SUPPORT: 'کارشناس فروش'
+            };
+            // خطاب پیش از نام — همان چیزی که مشتری هم در چت می‌بیند، تا کارشناس
+            // بداند با چه نامی معرفی می‌شود. جنسیتِ ثبت‌نشده یعنی فقط نام.
+            const GENDER_PREFIX = {MALE: 'آقای ', FEMALE: 'خانم '};
+            const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+            const shownName = fullName ? (GENDER_PREFIX[user.gender] || '') + fullName : (user.username || '');
+            document.getElementById('sales-username').innerText = shownName;
+            const roleKey = (roles.find(r => ROLE_LABELS[r.replace('ROLE_', '')]) || '').replace('ROLE_', '');
+            document.getElementById('sales-role').innerText = ROLE_LABELS[roleKey] || '';
+            document.getElementById('salesPanel').style.display = 'block';
+
+            // دسترسیِ میزِ کار (قیمت‌گذاری) و دسترسیِ محصولات مستقل از هم‌اند —
+            // ADMIN هر دو را دارد، PRICER هم قیمت‌گذاری هم محصول، SALES فقط
+            // قیمت‌گذاریِ کامل (مثلِ PRICER)، SUPPORT (کارشناسِ فروش) فقط
+            // مشاهده‌یِ قیمت‌گذاری — بدونِ هیچ محصولی برایِ SALES/SUPPORT.
+            const isAdmin = roles.includes('ROLE_ADMIN');
+            const isPricer = roles.includes('ROLE_PRICER');
+            const isSales = roles.includes('ROLE_SALES');
+            const isSupport = roles.includes('ROLE_SUPPORT');
+            const hasPricing = isAdmin || isPricer || isSales || isSupport;
+            const hasProducts = isAdmin || isPricer;
+            let firstProductsRefresh = true;
+
+            if (hasPricing) {
+                // 🔒 ADMIN و کارشناسِ ارشد (PRICER) ویرایش دارند؛ SALES و SUPPORT فقط
+                // مشاهده. ماژول با pricingCanEdit=false دکمه‌ی ذخیره را قایم و پیامِ
+                // «فقط مشاهده» را نشان می‌دهد. مرزِ واقعی سمتِ سرور است
+                // (POSTهایِ /v1/pricing برایِ همین دو نقش باز است، نه بیشتر).
+                // ⚠️ SALES هم از ۲۰۲۶-۰۹-۲۰ اجازهٔ نوشتن دارد (خواستهٔ مالک:
+                // «تمامِ کارشناس‌ها»)؛ مرزِ واقعی در SecurityConfig است، این فقط UI.
+                window.pricingCanEdit = isAdmin || isPricer || isSales;
+
+                PricingWorkspace.mountWorkspace(document.getElementById('tab-pricing'));
+                // پنلِ فروش: لاگِ فقط-محصولات (رویدادهایِ مدیریتی دیده نشود)
+                PricingWorkspace.mountLog(document.getElementById('tab-activityLog'), {productsOnly: true});
+
+                fetchPricingRows();
+            } else {
+                document.getElementById('tabbtn-workspace').classList.add('hidden');
+                document.getElementById('tabbtn-log').classList.add('hidden');
+            }
+
+            if (hasProducts) {
+                document.getElementById('tabbtn-products').classList.remove('hidden');
+                // همان حقِ نوشتنِ محصول، همان تب: کدِ کالا بخشی از ساختِ محصول است
+                document.getElementById('tabbtn-holoo').classList.remove('hidden');
+                // ⚠️ mount اینجا و بی‌قیدوشرط انجام می‌شود، نه با بازکردنِ تب: دکمه‌های
+                // «افزودن محصول» و «تکمیل کارت» در میزِ کار همین مودال را صدا می‌زنند،
+                // پس باید از همان اول در صفحه باشد.
+                await ProductsTab.mount(document.getElementById('tab-products'),
+                        document.getElementById('productModalMount'), {
+                            canEdit: isAdmin || isPricer,
+                            // بعد از ذخیرهٔ محصول، ستونِ «کارت» در میزِ کار باید همان
+                            // لحظه به‌روز شود، وگرنه کارشناس فکر می‌کند ذخیره نشده.
+                            // ⚠️ بارِ اول رد می‌شود: خودِ mount یک refresh می‌زند و
+                            // window.onload هم جدا fetchPricingRows را صدا می‌کند.
+                            onRefreshed: () => {
+                                if (firstProductsRefresh) { firstProductsRefresh = false; return; }
+                                if (hasPricing) fetchPricingRows();
+                            }
+                        });
+            }
+
+            if (!hasPricing && hasProducts) {
+                showSalesTab('products');
+            }
+        } catch (e) {
+            window.location.href = '/AdminLogin.html';
+        }
+    };
+</script>
+</body>
+</html>

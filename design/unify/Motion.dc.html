@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap">
+  <style>
+    .m { --primary:#1b4f8a; --primary-lt:#2563ad; --accent:#e8861a; --text:#1a2235;
+         --mid:#5a6b83; --muted:#8c9cb5; --line:#e0e8f2; --bad:#c0392b; }
+    .m * { box-sizing:border-box; margin:0; }
+    .m { font-family:Vazirmatn,Tahoma,sans-serif; background:#fff; color:var(--text);
+         direction:rtl; padding:24px; height:100%; overflow:hidden;
+         display:flex; flex-direction:column; gap:16px; }
+    .m h2 { font-size:1.02rem; font-weight:900; }
+    .m h2 small { font-weight:500; font-size:.74rem; color:var(--mid); margin-right:8px; }
+    .m h3 { font-size:.79rem; font-weight:800; color:var(--primary);
+            border-right:3px solid var(--accent); padding-right:8px; }
+    .m p { font-size:.73rem; color:var(--mid); line-height:1.95; }
+
+    .duo { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .pane { border:1px solid var(--line); border-radius:12px; padding:14px; }
+    .pane .lb { font-size:.65rem; font-weight:800; padding:2px 8px; border-radius:100px;
+                display:inline-block; margin-bottom:11px; }
+    .pane.now .lb { background:#fdecea; color:var(--bad); }
+    .pane.new .lb { background:#e7f3ec; color:#1e8449; }
+
+    /* «الان» — بدونِ منحنی، بدونِ فشردن، بدونِ گاردِ لمس */
+    .b-now { border:0; font-family:inherit; font-weight:700; font-size:.76rem; color:#fff;
+             background:var(--primary); height:38px; padding:0 16px; border-radius:12px;
+             cursor:pointer; width:100%; transition:.2s; }
+    .b-now:hover { background:var(--primary-lt); }
+
+    /* «پیشنهاد» — منحنیِ نرم + بازخوردِ فشردن + هدفِ ۴۴ پیکسلی */
+    .b-new { border:0; font-family:inherit; font-weight:700; font-size:.76rem; color:#fff;
+             background:var(--primary); height:44px; padding:0 16px; border-radius:12px;
+             cursor:pointer; width:100%;
+             transition:background 180ms cubic-bezier(.22,.61,.36,1),
+                        transform 180ms cubic-bezier(.22,.61,.36,1),
+                        box-shadow 180ms cubic-bezier(.22,.61,.36,1); }
+    .b-new:active { transform:scale(.97); box-shadow:none; }
+    .b-new:focus-visible { outline:3px solid rgba(27,79,138,.35); outline-offset:2px; }
+    @media (hover:hover) and (pointer:fine) {
+      .b-new:hover { background:var(--primary-lt); box-shadow:0 4px 14px rgba(27,79,138,.24); }
+    }
+
+    .card-now, .card-new { border:1px solid var(--line); border-radius:12px; padding:11px;
+                           font-size:.72rem; margin-top:9px; background:#fff; }
+    .card-now { transition:.2s; } .card-now:hover { border-color:var(--primary); }
+    .card-new { transition:border-color 180ms cubic-bezier(.22,.61,.36,1),
+                           box-shadow 180ms cubic-bezier(.22,.61,.36,1),
+                           transform 180ms cubic-bezier(.22,.61,.36,1); }
+    .card-new:active { transform:scale(.985); background:#f7fafd; }
+    @media (hover:hover) and (pointer:fine) {
+      .card-new:hover { border-color:#c3d5ea; box-shadow:0 6px 18px rgba(27,79,138,.09);
+                        transform:translateY(-2px); }
+    }
+
+    .rules { display:flex; flex-direction:column; gap:8px; }
+    .rule { display:flex; gap:9px; align-items:flex-start; font-size:.72rem; line-height:1.85; }
+    .rule .n { flex:0 0 20px; height:20px; border-radius:50%; background:var(--primary);
+               color:#fff; font-size:.62rem; font-weight:800; display:flex;
+               align-items:center; justify-content:center; margin-top:2px; }
+    .rule b { color:var(--primary); }
+    .rule code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.68rem;
+                 background:#f2f6fb; padding:1px 5px; border-radius:4px; direction:ltr;
+                 display:inline-block; }
+
+    .foot { margin-top:auto; font-size:.68rem; color:var(--muted); line-height:1.9;
+            border-top:1px solid var(--line); padding-top:11px; }
+  </style>
+</helmet>
+
+<div class="m">
+  <h2>حرکت و کنش <small>دکمه‌ها واقعاً کار می‌کنند — لمس/کلیک کن و فرق را حس کن</small></h2>
+
+  <div class="duo">
+    <div class="pane now">
+      <span class="lb">الان</span>
+      <button class="b-now">افزودن به سبد</button>
+      <div class="card-now">کارتِ محصول</div>
+    </div>
+    <div class="pane new">
+      <span class="lb">پیشنهاد</span>
+      <button class="b-new">افزودن به سبد</button>
+      <div class="card-new">کارتِ محصول</div>
+    </div>
+  </div>
+
+  <h3>چهار قاعده</h3>
+  <div class="rules">
+    <div class="rule"><span class="n">۱</span><div>
+      <b>یک منحنی برای کلِ اپ.</b> امروز ۲۴ ‎<code>transition</code>‎ متمایز داریم و فقط
+      <b>یک</b> ‎<code>cubic-bezier</code>‎ در کلِ پروژه — بقیه ‎<code>ease</code>‎ی خام‌اند.
+      خشکی دقیقاً از همین‌جاست.
+    </div></div>
+    <div class="rule"><span class="n">۲</span><div>
+      <b>بازخوردِ فشردن، نه فقط hover.</b> در کلِ اپ <b>۳۲</b> قاعدهٔ ‎<code>:hover</code>‎ هست و
+      فقط <b>یک</b> ‎<code>:active</code>‎. روی موبایل hover معنا ندارد، پس لمس هیچ بازخوردی نمی‌دهد.
+    </div></div>
+    <div class="rule"><span class="n">۳</span><div>
+      <b>گاردِ لمس.</b> هیچ‌جا ‎<code>@media (hover:hover)</code>‎ نداریم؛ برای همین روی موبایل
+      استایلِ hover بعد از لمس <b>می‌چسبد و نمی‌رود</b> تا جای دیگری بزنی.
+    </div></div>
+    <div class="rule"><span class="n">۴</span><div>
+      <b>هدفِ لمس ۴۴ پیکسل.</b> ارتفاعِ کنترل‌ها الان ۳۴ تا ۴۴ پیکسل نوسان دارد؛
+      روی موبایل کفِ ۴۴ می‌شود. ‎<code>:focus-visible</code>‎ هم فقط در یک صفحه هست.
+    </div></div>
+  </div>
+
+  <div class="foot">
+    این تخته مستقل از سه جهت است — هر جهتی که انتخاب شود، این چهار قاعده یکسان اعمال می‌شوند.
+    فقط عددِ <b>مدت</b> و <b>منحنی</b> از خودِ جهت می‌آید.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

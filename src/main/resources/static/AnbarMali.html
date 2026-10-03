@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل انبار و فروش حضوری</title>
+    <link rel="stylesheet" href="/css/all-tailwind-classes-full-min.css">
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .active-nav { background-color: #e0e7ff; color: #3730a3; border-right: 4px solid #3730a3; }
+        .pos-product-card { cursor: pointer; transition: transform 0.1s; }
+        .pos-product-card:active { transform: scale(0.98); }
+        .dir-ltr { direction: ltr; }
+        /* استایل برای مخفی/نمایان کردن فیلد تعداد در بسته */
+        .hidden-field { display: none; }
+        .visible-field { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+<!-- Sidebar -->
+<aside class="w-64 bg-white shadow-lg z-10 flex flex-col">
+    <div class="p-6 border-b flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">A</div>
+        <div>
+            <h1 class="font-bold text-gray-800">انبارداری</h1>
+            <p class="text-xs text-gray-500">شعبه فیزیکی</p>
+        </div>
+    </div>
+    <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+        <div class="nav-item active-nav p-3 rounded-lg cursor-pointer flex items-center gap-3" onclick="switchSection('pos')">
+            <span>🛒</span> صندوق فروش (POS)
+        </div>
+        <div class="nav-item p-3 rounded-lg cursor-pointer flex items-center gap-3 hover:bg-gray-50" onclick="switchSection('inventory')">
+            <span>📦</span> موجودی و ورود کالا
+        </div>
+        <div class="nav-item p-3 rounded-lg cursor-pointer flex items-center gap-3 hover:bg-gray-50" onclick="switchSection('warehouse-cats')">
+            <span>🏷️</span> دسته‌بندی انبار
+        </div>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 overflow-hidden relative flex flex-col">
+
+    <!-- POS Section -->
+    <div id="section-pos" class="section-content h-full flex flex-col md:flex-row">
+        <div class="flex-1 p-4 bg-gray-100 overflow-y-auto">
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="pos-search" onkeyup="posSearch()" placeholder="🔍 جستجو یا اسکن بارکد..." class="w-full p-3 rounded-lg border shadow-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                <select id="pos-cat-filter" onchange="posSearch()" class="p-3 rounded-lg border shadow-sm outline-none">
+                    <option value="">همه دسته‌ها</option>
+                </select>
+            </div>
+            <div id="pos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+        <div class="w-full md:w-96 bg-white shadow-xl flex flex-col border-r h-full">
+            <div class="p-4 border-b bg-indigo-50">
+                <h2 class="font-bold text-indigo-900 flex justify-between">
+                    <span>🛍️ فاکتور فروش</span>
+                    <span id="invoice-no" class="text-xs font-mono opacity-50">#--------</span>
+                </h2>
+            </div>
+            <div id="cart-items" class="flex-1 overflow-y-auto p-2 space-y-2">
+                <p class="text-center text-gray-400 mt-10">سبد خرید خالی است</p>
+            </div>
+            <div class="p-4 bg-gray-50 border-t space-y-3">
+                <div class="flex justify-between text-sm"><span>تعداد اقلام:</span> <span id="cart-count" class="font-bold">0</span></div>
+                <div class="flex justify-between text-xl font-bold text-indigo-700"><span>جمع کل:</span> <span id="cart-total">0 تومان</span></div>
+                <button onclick="finalizeOrder()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold shadow-lg transition transform active:scale-95">💳 ثبت و پرداخت</button>
+                <button onclick="clearCart()" class="w-full bg-red-100 text-red-600 py-2 rounded-lg text-sm">پاک کردن سبد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Section -->
+    <div id="section-inventory" class="section-content hidden h-full overflow-y-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">مدیریت موجودی انبار</h2>
+            <button onclick="openProductModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-md">
+                <span>➕</span> تعریف/ویرایش کالا
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border">
+            <div class="p-4 border-b bg-gray-50 flex gap-4">
+                <input type="text" id="inv-search" onkeyup="loadInventory()" placeholder="جستجو در انبار (نام، بارکد)..." class="flex-1 p-2 border rounded outline-none focus:ring-2 focus:ring-blue-400">
+                <select id="inv-cat-filter" onchange="loadInventory()" class="p-2 border rounded bg-white outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="">همه قفسه‌ها (دسته‌ها)</option>
+                </select>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right min-w-full">
+                    <thead class="bg-gray-100 text-gray-600 text-sm">
+                    <tr>
+                        <th class="p-4 whitespace-nowrap">کد کالا (ID)</th>
+                        <th class="p-4">نام محصول</th>
+                        <th class="p-4">قفسه انبار</th>
+                        <th class="p-4">موجودی / واحد</th>
+                        <th class="p-4 text-red-700">قیمت پایه (فی)</th>
+                        <th class="p-4 text-green-700">قیمت فروش</th>
+                        <th class="p-4 text-center">آخرین بروزرسانی</th>
+                        <th class="p-4">عملیات</th>
+                    </tr>
+                    </thead>
+                    <tbody id="inv-table-body" class="divide-y"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warehouse Categories Section -->
+    <div id="section-warehouse-cats" class="section-content hidden h-full overflow-y-auto p-6">
+        <div class="mb-6"><h2 class="text-2xl font-bold text-gray-800">مدیریت قفسه‌بندی و دسته‌های انبار</h2></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow h-fit">
+                <h3 class="font-bold mb-4">افزودن قفسه/دسته جدید</h3>
+                <input type="text" id="newCatName" class="w-full p-2 border rounded mb-3" placeholder="نام قفسه (مثلاً: ردیف A)">
+                <select id="newCatParent" class="w-full p-2 border rounded mb-3 bg-white">
+                    <option value="">(ریشه اصلی)</option>
+                </select>
+                <button onclick="addWarehouseCategory()" class="w-full bg-indigo-600 hover:bg-indigo-700 transition text-white py-2 rounded">افزودن</button>
+            </div>
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow min-h-">
+                <div id="treeContainer" class="space-y-2">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- Product Modal (Warehouse Edition) -->
+<div id="productModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-6 relative m-4 max-h-[95vh] overflow-y-auto">
+        <button type="button" onclick="closeProductModal()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 text-2xl outline-none">✕</button>
+        <h3 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2" id="modal-title">📦 <span id="modal-title-text">تعریف کالای جدید</span></h3>
+
+        <form id="productForm" onsubmit="handleProductSubmit(event)">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <!-- سطر 1 -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-medium mb-1">کد کالا / بارکد (ID)</label>
+                    <input type="text" id="p_id" class="w-full p-2.5 border rounded bg-gray-50 font-mono outline-none focus:ring-2 focus:ring-indigo-400" placeholder="مثال: PRD-1001">
+                </div>
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-medium mb-1">نام محصول <span class="text-red-500">*</span></label>
+                    <input type="text" id="p_name" required class="w-full p-2.5 border rounded outline-none focus:ring-2 focus:ring-indigo-400">
+                </div>
+
+                <!-- سطر 2: دسته‌بندی -->
+                <div class="col-span-2 md:col-span-1 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                    <label class="block text-sm font-bold text-yellow-800 mb-1">📍 دسته‌بندی انبار (قفسه)</label>
+                    <select id="p_warehouse_cat" class="w-full p-2 border border-yellow-300 rounded bg-white outline-none focus:ring-2 focus:ring-yellow-400">
+                        <option value="">انتخاب کنید...</option>
+                    </select>
+                </div>
+                <div class="col-span-2 md:col-span-1 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">دسته‌بندی سایت</label>
+                    <input type="text" id="p_online_cat_display" disabled class="w-full p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" value="-">
+                    <input type="hidden" id="p_online_cat_id">
+                </div>
+
+                <!-- سطر 3: واحد و موجودی (تغییر یافته) -->
+                <div class="col-span-2 md:col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+
+                        <!-- انتخاب واحد -->
+                        <div>
+                            <label class="block text-sm font-bold text-blue-800 mb-1">واحد سنجش <span class="text-red-500">*</span></label>
+                            <select id="p_unit" onchange="togglePackInput()" class="w-full p-2.5 border border-blue-300 rounded bg-white outline-none focus:ring-2 focus:ring-blue-400">
+                                <option value="عدد">عدد</option>
+                                <option value="متر">متر</option>
+                                <option value="سانتی متر">سانتی متر</option>
+                                <option value="کیلو">کیلو</option>
+                                <option value="کیلوگرم">کیلوگرم</option>
+                                <option value="لیتر">لیتر</option>
+                                <option value="میلی لیتر">میلی لیتر</option>
+                                <option value="بسته">بسته / کارتن</option>
+                            </select>
+                        </div>
+
+                        <!-- فیلد مخفی: تعداد در بسته -->
+                        <div id="pack-qty-container" class="hidden-field">
+                            <label class="block text-sm font-bold text-purple-800 mb-1">تعداد در بسته <span class="text-red-500">*</span></label>
+                            <input type="number" id="p_pack_qty" min="1" class="w-full p-2.5 border border-purple-300 rounded bg-white outline-none focus:ring-2 focus:ring-purple-400 text-center" placeholder="مثلاً: 6">
+                            <p class="text-[10px] text-purple-600 mt-1">هر بسته شامل چند عدد است؟</p>
+                        </div>
+
+                        <!-- موجودی -->
+                        <div>
+                            <label class="block text-sm font-bold text-blue-800 mb-1">موجودی فعلی <span class="text-red-500">*</span></label>
+                            <input type="number" id="p_stock" required min="0" class="w-full p-2.5 border border-blue-300 rounded font-bold text-xl text-center text-blue-600 outline-none focus:ring-2 focus:ring-blue-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- سطر 4: قیمت‌ها -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-red-800 mb-1">💰 قیمت پایه / فی (تومان) <span class="text-red-500">*</span></label>
+                    <input type="number" id="p_base_price" required min="0" class="w-full p-2 border border-red-300 rounded font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-400 text-left dir-ltr">
+                </div>
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-green-800 mb-1">🏷️ قیمت فروش (تومان) <span class="text-red-500">*</span></label>
+                    <input type="number" id="p_price" required min="0" class="w-full p-2 border border-green-300 rounded font-bold text-green-700 outline-none focus:ring-2 focus:ring-green-400 text-left dir-ltr">
+                </div>
+
+                <!-- تخفیف -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-medium mb-1">درصد تخفیف سایت (%)</label>
+                    <input type="number" id="p_discount" value="0" min="0" max="100" class="w-full p-2 border rounded outline-none focus:ring-2 focus:ring-indigo-400 text-center">
+                </div>
+
+                <!-- توضیحات -->
+                <div class="col-span-2">
+                    <label class="block text-sm font-bold text-blue-800 mb-1">📝 توضیحات داخلی انبار</label>
+                    <textarea id="p_warehouse_desc" rows="2" class="w-full p-3 border rounded outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                </div>
+                <div class="col-span-2 opacity-60">
+                    <label class="block text-xs font-medium text-gray-500">توضیحات سایت (غیرقابل ویرایش)</label>
+                    <textarea id="p_online_desc" disabled rows="1" class="w-full p-2 border rounded bg-gray-100 text-gray-500 text-xs"></textarea>
+                </div>
+
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 pt-4 border-t bg-white">
+                <button type="button" onclick="closeProductModal()" class="px-5 py-2.5 text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg transition font-medium">انصراف</button>
+                <button type="submit" id="modal-submit-btn" class="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold shadow-md">💾 ذخیره کالا</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="toast" class="fixed bottom-6 left-6 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-all z-[60]"></div>
+
+<script>
+    // Config
+    const API_BASE = `http://${window.location.hostname}:8080/api`;
+    let productsCache = [];
+    let warehouseCategories = [];
+    let cart = [];
+
+    // --- Helper for Unit Visibility ---
+    function togglePackInput() {
+        const unit = document.getElementById('p_unit').value;
+        const container = document.getElementById('pack-qty-container');
+        const input = document.getElementById('p_pack_qty');
+
+        if (unit === 'بسته') {
+            container.classList.remove('hidden-field');
+            container.classList.add('visible-field');
+            input.setAttribute('required', 'required');
+        } else {
+            container.classList.remove('visible-field');
+            container.classList.add('hidden-field');
+            input.removeAttribute('required');
+            input.value = ''; // پاک کردن مقدار اگر بسته نیست
+        }
+    }
+
+    function switchSection(id) {
+        document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`section-${id}`).classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
+        event.currentTarget.classList.add('active-nav');
+        if(id === 'pos' || id === 'inventory') refreshProducts();
+        if(id === 'warehouse-cats') loadWarehouseTree();
+    }
+
+    function showToast(msg, isError = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `fixed bottom-6 left-6 px-6 py-3 rounded-lg shadow-lg z-[60] text-white slide-in ${isError ? 'bg-red-600' : 'bg-gray-800'}`;
+        t.classList.remove('hidden');
+        setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    async function refreshProducts() {
+        try {
+            const res = await fetch(`${API_BASE}/v1/products/admin`);
+            productsCache = await res.json();
+            if(!document.getElementById('section-pos').classList.contains('hidden')) { renderPosGrid(productsCache); populateCatSelect('pos-cat-filter'); }
+            if(!document.getElementById('section-inventory').classList.contains('hidden')) { renderInventoryTable(productsCache); populateCatSelect('inv-cat-filter'); }
+        } catch(e) { console.error(e); showToast('خطا در دریافت محصولات', true); }
+    }
+
+    async function loadWarehouseCategories() {
+        try {
+            const res = await fetch(`${API_BASE}/categories/tree?type=WAREHOUSE`);
+            if(res.ok) { warehouseCategories = await res.json(); return warehouseCategories; }
+        } catch(e) { console.error(e); }
+        return [];
+    }
+
+    function flattenCategories(cats, list = []) {
+        cats.forEach(c => { list.push(c); if(c.children) flattenCategories(c.children, list); });
+        return list;
+    }
+
+    async function populateCatSelect(elementId) {
+        const cats = await loadWarehouseCategories();
+        const flat = flattenCategories(cats);
+        const select = document.getElementById(elementId);
+        select.innerHTML = '<option value="">همه دسته‌ها</option>';
+        flat.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+    }
+
+    function renderPosGrid(products) {
+        const container = document.getElementById('pos-grid');
+        container.innerHTML = products.map(p => `
+            <div class="pos-product-card bg-white p-3 rounded-lg shadow border hover:border-indigo-500 flex flex-col items-center text-center h-40 justify-between" onclick="addToCart('${p.id}')">
+                <div class="text-sm font-bold text-gray-800 line-clamp-2">${p.name}</div>
+                <div class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded mt-1">${p.id || '-'}</div>
+                <div class="w-full mt-auto">
+                   ${p.discountPercent > 0 ? `<div class="text-xs text-red-500 line-through">${(p.price || 0).toLocaleString()}</div>` : ''}
+                   <div class="text-indigo-700 font-bold">${(p.discountedPrice || p.price || 0).toLocaleString()} <span class="text-xs">ت</span></div>
+                </div>
+                <div class="text-xs mt-1 ${p.stock > 0 ? 'text-green-600' : 'text-red-600'}">
+                    ${p.stock > 0 ? `${p.stock} ${p.unit || 'عدد'}` : 'ناموجود'}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function addToCart(productId) {
+        const product = productsCache.find(p => p.id === productId);
+        if(!product || product.stock <= 0) { showToast('کالا ناموجود است', true); return; }
+        const existing = cart.find(item => item.product.id === productId);
+        if(existing) { if(existing.qty < product.stock) existing.qty++; else showToast('موجودی کافی نیست', true); }
+        else { cart.push({ product: product, qty: 1 }); }
+        renderCart();
+    }
+
+    function removeFromCart(productId) { cart = cart.filter(item => item.product.id !== productId); renderCart(); }
+
+    function updateQty(productId, change) {
+        const item = cart.find(i => i.product.id === productId);
+        if(item) {
+            const newQty = item.qty + change;
+            if(newQty > 0 && newQty <= item.product.stock) item.qty = newQty;
+            renderCart();
+        }
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items');
+        let total = 0; let count = 0;
+        if(cart.length === 0) { container.innerHTML = '<p class="text-center text-gray-400 mt-10">سبد خرید خالی است</p>'; }
+        else {
+            container.innerHTML = cart.map(item => {
+                const price = item.product.discountedPrice || item.product.price || 0;
+                const itemTotal = price * item.qty;
+                total += itemTotal; count += item.qty;
+                return `
+                <div class="flex justify-between items-center p-2 bg-white rounded border border-gray-100 shadow-sm text-sm">
+                    <div class="flex-1"><div class="font-bold truncate w-32">${item.product.name}</div><div class="text-gray-500 text-xs">${price.toLocaleString()} ت</div></div>
+                    <div class="flex items-center gap-2"><button onclick="updateQty('${item.product.id}', -1)" class="w-6 h-6 bg-gray-200 rounded text-center hover:bg-gray-300">-</button><span class="font-bold w-4 text-center">${item.qty}</span><button onclick="updateQty('${item.product.id}', 1)" class="w-6 h-6 bg-gray-200 rounded text-center hover:bg-gray-300">+</button></div>
+                    <div class="mr-2 font-mono text-indigo-700 w-16 text-left">${itemTotal.toLocaleString()}</div><button onclick="removeFromCart('${item.product.id}')" class="text-red-500 mr-1 hover:text-red-700">✕</button>
+                </div>`;
+            }).join('');
+        }
+        document.getElementById('cart-count').innerText = count;
+        document.getElementById('cart-total').innerText = total.toLocaleString() + ' تومان';
+    }
+
+    function clearCart() { cart = []; renderCart(); }
+
+    function posSearch() {
+        const term = document.getElementById('pos-search').value.toLowerCase();
+        const catId = document.getElementById('pos-cat-filter').value;
+        const filtered = productsCache.filter(p => {
+            const matchName = p.name.toLowerCase().includes(term) || (p.id && p.id.toLowerCase().includes(term));
+            const matchCat = catId ? p.warehouseCategoryId === catId : true;
+            return matchName && matchCat;
+        });
+        renderPosGrid(filtered);
+    }
+
+    async function finalizeOrder() {
+        if(cart.length === 0) return;
+        if(confirm('آیا از ثبت نهایی فاکتور مطمئن هستید؟')) {
+            cart.forEach(item => { const p = productsCache.find(x => x.id === item.product.id); if(p) p.stock -= item.qty; });
+            clearCart(); renderPosGrid(productsCache); renderInventoryTable(productsCache);
+            showToast('✅ فاکتور با موفقیت ثبت شد');
+        }
+    }
+
+    function renderInventoryTable(products) {
+        const tbody = document.getElementById('inv-table-body');
+        const term = document.getElementById('inv-search').value.toLowerCase();
+        const catId = document.getElementById('inv-cat-filter').value;
+        const filtered = products.filter(p => {
+            const matchName = p.name.toLowerCase().includes(term) || (p.id && p.id.toLowerCase().includes(term));
+            const matchCat = catId ? p.warehouseCategoryId === catId : true;
+            return matchName && matchCat;
+        });
+
+        if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4 text-gray-400">موردی یافت نشد</td></tr>'; return; }
+
+        tbody.innerHTML = filtered.map(p => {
+            const updateDate = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+
+            // نمایش هوشمند واحد
+            let stockDisplay = `${p.stock} ${p.unit || 'عدد'}`;
+            if(p.unit === 'بسته' && p.packQuantity) {
+                stockDisplay += ` <span class="text-xs text-purple-600">(${p.packQuantity}تایی)</span>`;
+            }
+
+            return `
+            <tr class="hover:bg-gray-50 border-b transition">
+                <td class="p-4 font-mono text-gray-600 text-xs">${p.id || '---'}</td>
+                <td class="p-4 font-medium text-gray-800">${p.name}</td>
+                <td class="p-4"><span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded border border-yellow-200">${getCatName(p.warehouseCategoryId, warehouseCategories) || 'نامشخص'}</span></td>
+                <td class="p-4 font-bold text-center ${p.stock < 5 ? 'text-red-600 bg-red-50 rounded' : 'text-blue-600'}">${stockDisplay}</td>
+                <td class="p-4 text-red-700 font-medium">${(p.basePrice || 0).toLocaleString()}</td>
+                <td class="p-4 text-green-700 font-bold">${(p.price || 0).toLocaleString()}</td>
+                <td class="p-4 text-xs text-gray-500 dir-ltr text-center">${updateDate}</td>
+                <td class="p-4 text-center">
+                    <button onclick='openProductModal(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded transition text-sm">✏️ ویرایش</button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function getCatName(id, tree) {
+        if(!id) return null;
+        for(let c of tree) {
+            if(c.id === id) return c.name;
+            if(c.children) { const found = getCatName(id, c.children); if(found) return found; }
+        }
+        return null;
+    }
+
+    function loadInventory() { renderInventoryTable(productsCache); }
+
+    async function loadWarehouseTree() {
+        const container = document.getElementById('treeContainer');
+        const select = document.getElementById('newCatParent');
+        container.innerHTML = '<span class="loading-spinner"></span> در حال بارگذاری...';
+        const cats = await loadWarehouseCategories();
+
+        const renderNode = (nodes) => {
+            return `<ul class="mr-4 border-r border-gray-200 pr-3 space-y-2 mt-2">${nodes.map(n => `
+                    <li class="tree-node p-2 rounded bg-gray-50 border hover:bg-white transition">
+                        <div class="flex justify-between items-center"><span class="text-sm font-medium text-gray-700">📂 ${n.name}</span><button onclick="alert('حذف ${n.name}')" class="text-red-400 hover:text-red-600 text-xs px-2">🗑️</button></div>
+                        ${n.children && n.children.length ? renderNode(n.children) : ''}
+                    </li>`).join('')}</ul>`;
+        };
+        container.innerHTML = cats.length ? renderNode(cats) : '<p class="text-gray-400 text-center py-10">هیچ قفسه‌بندی تعریف نشده است.</p>';
+        select.innerHTML = '<option value="">(ریشه اصلی)</option>';
+        const flat = flattenCategories(cats);
+        flat.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+    }
+
+    async function addWarehouseCategory() {
+        const name = document.getElementById('newCatName').value;
+        const parent = document.getElementById('newCatParent').value;
+        if(!name) { showToast('لطفاً نام قفسه/دسته را وارد کنید', true); return; }
+        try {
+            const payload = { name: name, parentId: parent ? parent : null, type: 'WAREHOUSE' };
+            const response = await fetch(`${API_BASE}/categories`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error('خطا در ارتباط با سرور');
+            document.getElementById('newCatName').value = '';
+            loadWarehouseTree(); populateCatSelect('pos-cat-filter'); populateCatSelect('inv-cat-filter');
+            showToast('✅ قفسه جدید با موفقیت اضافه شد');
+        } catch (error) { showToast('خطا در ثبت اطلاعات', true); }
+    }
+
+    // --- Product Modal Logic ---
+    let editingProduct = null;
+
+    async function openProductModal(product = null) {
+        document.getElementById('productModal').classList.remove('hidden');
+        document.getElementById('productForm').reset();
+        const whCats = await loadWarehouseCategories();
+        const flatWh = flattenCategories(whCats);
+        const whSelect = document.getElementById('p_warehouse_cat');
+        whSelect.innerHTML = '<option value="">انتخاب کنید...</option>';
+        flatWh.forEach(c => whSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+
+        if(product) {
+            editingProduct = product;
+            document.getElementById('modal-title-text').textContent = `ویرایش کالا: ${product.name}`;
+            document.getElementById('modal-submit-btn').textContent = '💾 بروزرسانی کالا';
+
+            document.getElementById('p_id').value = product.id;
+            document.getElementById('p_id').disabled = true;
+            document.getElementById('p_id').classList.add('bg-gray-200', 'cursor-not-allowed');
+
+            document.getElementById('p_name').value = product.name;
+            document.getElementById('p_base_price').value = product.basePrice || 0;
+            document.getElementById('p_price').value = product.price;
+            document.getElementById('p_stock').value = product.stock;
+            document.getElementById('p_discount').value = product.discountPercent || 0;
+
+            // تنظیم واحد و تعداد در بسته
+            document.getElementById('p_unit').value = product.unit || 'عدد';
+            togglePackInput(); // نمایش یا عدم نمایش فیلد تعداد در بسته
+            if(product.unit === 'بسته') {
+                document.getElementById('p_pack_qty').value = product.packQuantity || '';
+            }
+
+            document.getElementById('p_warehouse_desc').value = product.warehouseDescription || '';
+            document.getElementById('p_online_desc').value = product.description || '';
+            document.getElementById('p_warehouse_cat').value = product.warehouseCategoryId || '';
+            document.getElementById('p_online_cat_id').value = product.categoryId;
+            document.getElementById('p_online_cat_display').value = product.categoryId || '(بدون دسته آنلاین)';
+        } else {
+            editingProduct = null;
+            document.getElementById('modal-title-text').textContent = 'تعریف کالای جدید';
+            document.getElementById('modal-submit-btn').textContent = '✅ ثبت کالا';
+            document.getElementById('p_id').disabled = false;
+            document.getElementById('p_id').classList.remove('bg-gray-200', 'cursor-not-allowed');
+
+            document.getElementById('p_unit').value = 'عدد';
+            togglePackInput();
+
+            document.getElementById('p_base_price').value = 0;
+            document.getElementById('p_price').value = 0;
+            document.getElementById('p_stock').value = 0;
+        }
+    }
+
+    function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
+
+    async function handleProductSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('modal-submit-btn');
+        const originalText = btn.textContent;
+        btn.disabled = true; btn.textContent = 'در حال ذخیره...';
+
+        const data = {
+            id: document.getElementById('p_id').value,
+            name: document.getElementById('p_name').value,
+            basePrice: Number(document.getElementById('p_base_price').value),
+            price: Number(document.getElementById('p_price').value),
+            stock: Number(document.getElementById('p_stock').value),
+            discountPercent: Number(document.getElementById('p_discount').value),
+
+            // فیلدهای جدید
+            unit: document.getElementById('p_unit').value,
+            packQuantity: document.getElementById('p_unit').value === 'بسته' ? Number(document.getElementById('p_pack_qty').value) : null,
+
+            warehouseDescription: document.getElementById('p_warehouse_desc').value,
+            description: document.getElementById('p_online_desc').value,
+            warehouseCategoryId: document.getElementById('p_warehouse_cat').value,
+            categoryId: document.getElementById('p_online_cat_id').value || null
+        };
+
+        const method = editingProduct ? 'PUT' : 'POST';
+        const url = editingProduct ? `${API_BASE}/v1/products/${data.id}` : `${API_BASE}/v1/products`;
+
+        try {
+            const res = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            if(!res.ok) { const txt = await res.text(); throw new Error(txt || 'خطا در ذخیره سازی'); }
+            showToast(editingProduct ? '✅ تغییرات ذخیره شد' : '✅ کالای جدید ثبت شد');
+            closeProductModal(); refreshProducts();
+        } catch(err) { showToast(`خطا: ${err.message}`, true); } finally { btn.disabled = false; btn.textContent = originalText; }
+    }
+
+    window.onload = function() { refreshProducts(); loadWarehouseCategories(); }
+</script>
+</body>
+</html>

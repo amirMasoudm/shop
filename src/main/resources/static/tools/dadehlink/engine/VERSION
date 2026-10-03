@@ -1,0 +1,5 @@
+DadehLink engine — copied verbatim, do not edit in shop1.
+source: DadehLink 1.1.0-rc3 (web/rf.js, web/cities.json)
+rf.js sha256 8d3cfcd528f5fe175587d232e9ffafd974e2264f614843ce06055e53bf7fab88
+cities.json sha256 0ecdd31459d63fbfeb7feea12991386b403a7556bedb764cb5a1340a5da750f3
+Any formula change is made in the DadehLink app repository first, then copied here again.
