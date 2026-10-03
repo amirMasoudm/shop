@@ -46,7 +46,9 @@ cd /root/shop && docker compose up -d --build backend && sleep 25 && docker comp
 cd /root/shop && docker inspect $(docker compose ps -q backend) --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{println}}{{end}}' | grep uploads
 ```
 
-   با FileZilla داخلِ همان پوشه یک پوشهٔ تازه بساز به نامِ `app-dadehlink`. فایل‌های اپ بعداً همان‌جا می‌روند.
+   روی سرورِ فعلی جواب این است (۱۱ مهر): `/var/lib/docker/volumes/shop_uploads_data/_data`. `/opt/shop/uploads`
+   مسیرِ **داخلِ کانتینر** است و روی خودِ سرور وجود ندارد. با FileZilla داخلِ `_data` یک پوشهٔ تازه بساز به نامِ
+   `app-dadehlink`. به بقیهٔ محتوای `_data` دست نزن؛ عکس‌های محصولات آن‌جاست.
 
 **برگشت، اگر چیزی خراب شد:** با FileZilla جارِ تازه را از `target` بیرون ببر و `shop1-before-1405-07-11.jar.bak`
 را دوباره `shop1-0.0.1-SNAPSHOT.jar` نام بده. بعد:
