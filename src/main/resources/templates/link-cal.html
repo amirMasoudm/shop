@@ -58,6 +58,10 @@
         footer.site-footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
         footer.site-footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
 
+        /* حبابِ چتِ سایت در موبایل: جایش با اندازه‌گیری در ۳۷۵×۸۱۲ انتخاب شد؛ در نمای اول روی
+           هیچ عددی نیست (پیش‌فرضِ ۹۲ پیکسل روی حساسیتِ گیرنده می‌نشست). html:root از :rootِ
+           تزریق‌شدهٔ ویجت قوی‌تر است. */
+        @media (max-width:768px) { html:root { --dn-chat-bottom:56px; } }
         @media (max-width:599px) {
             .lc-page { padding:10px 0 8px; }
             .lc-page .crumb, .lc-page h1 { padding:0 16px; }
