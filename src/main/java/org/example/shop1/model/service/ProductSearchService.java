@@ -36,6 +36,8 @@ public class ProductSearchService {
 
         // ۱. ساخت کوئری پایه بر اساس درخواست
         Query query = new Query();
+        // محصولِ متوقف‌شده از جست‌وجو هم بیرون است، مثلِ فهرست‌ها
+        query.addCriteria(Criteria.where("discontinued").ne(true));
 
         // فیلتر دسته‌بندی (شامل زیرمجموعه‌ها)
         if (request.getCategoryId() != null && !request.getCategoryId().isEmpty()) {

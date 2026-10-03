@@ -316,6 +316,22 @@
         .work-grid .c .n { font-weight: 700; font-size: .87rem; margin-bottom: 3px; }
         .work-grid .c .d { font-size: .77rem; color: var(--text-muted); }
 
+        /* تماس با ما — روی زمینهٔ روشن تا از فوترِ تیره جدا دیده شود */
+        .site-contact { background: #f1f5f9; border-top: 1px solid #e2e8f0; padding: 28px 16px; margin-top: 10px; }
+        .site-contact .in { max-width: 1360px; margin: 0 auto; }
+        .site-contact h2 { font-size: 1.05rem; font-weight: 800; color: #1b2a3a; margin: 0 0 14px; }
+        .site-contact .offices { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+        .site-contact .office { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; }
+        .site-contact .t { font-weight: 800; color: #1b4f8a; font-size: .92rem; margin-bottom: 6px; }
+        .site-contact .addr { margin: 0 0 8px; font-size: .85rem; line-height: 2; color: #374151; }
+        .site-contact .tel { margin: 0; font-size: .85rem; color: #374151; line-height: 2; }
+        .site-contact .tel a { color: #1b4f8a; font-weight: 700; text-decoration: none; unicode-bidi: isolate; }
+        .site-contact .tel a:hover { text-decoration: underline; }
+        .site-contact .ext { color: #6b7280; font-size: .8rem; }
+        @media (max-width: 520px) {
+            .site-contact .ext { display: block; }
+        }
+
         footer.site-footer { background: #1b2a3a; color: #cbd5e1; padding: 26px 16px; margin-top: 10px; }
         footer.site-footer .in { max-width: 1360px; margin: 0 auto; }
         footer.site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
@@ -806,6 +822,34 @@
         <div class="c"><div class="n">رادیوی WimaxNear</div><div class="d">خط تولید خودمان</div></div>
     </div>
 </div>
+
+<!-- تماس با ما — عمداً بیرونِ فوترِ دسته‌بندی‌ها، چون آن بلوک وقتی دسته‌ای نباشد
+     اصلاً رندر نمی‌شود و نشانیِ دفترها نباید به آن گره بخورد. -->
+<section class="site-contact">
+    <div class="in">
+        <h2>تماس با ما</h2>
+        <div class="offices">
+            <div class="office">
+                <div class="t">دفتر اصفهان</div>
+                <p class="addr">اصفهان، خیابان شیخ صدوق شمالی، کوچه پیام (۳۲)، پلاک ۱۴، طبقهٔ اول</p>
+                <!-- ⚠️ عمداً لینکِ tel: ندارد: این شماره هشت رقم است و شمارهٔ ثابتِ
+                     اصفهان یازده رقم می‌شود، پس احتمالاً ناقص فرستاده شده. تا تأییدِ
+                     عددِ کامل، متنِ ساده می‌ماند تا لینکِ شماره‌گیریِ خراب نسازیم. -->
+                <p class="tel">تلفن تماس:
+                    <span dir="ltr">۰۳۱۳۵۰۱۸</span>
+                </p>
+            </div>
+            <div class="office">
+                <div class="t">نمایندگی تهران</div>
+                <p class="addr">تهران، خیابان پاکستان، کوچهٔ ۴، پلاک ۱۸، طبقهٔ اول، واحد ۵</p>
+                <p class="tel">تلفن تماس:
+                    <a href="tel:02188538411" dir="ltr">۰۲۱۸۸۵۳۸۴۱۱</a>
+                    <span class="ext">فروش: داخلی ۱۳ و ۱۴</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
 
 <footer class="site-footer" th:if="${footerCategories != null and !footerCategories.isEmpty()}">
     <div class="in">

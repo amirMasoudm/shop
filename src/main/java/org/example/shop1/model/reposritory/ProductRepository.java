@@ -4,6 +4,7 @@ import org.example.shop1.model.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -33,6 +34,29 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     boolean existsById(String id);
     // پیدا کردن محصول از روی اسلاگ
     Optional<Product> findBySlug(String slug);
+
+    /**
+     * فهرست‌های مشتری‌رو — محصولِ متوقف‌شده در آن‌ها نمی‌آید.
+     * <p>
+     * 🔴 شرط {@code $ne: true} است نه {@code false}: اکثرِ محصولات این فیلد را
+     * اصلاً ندارند و {@code discontinued == false} آن‌ها را هم کنار می‌گذاشت.
+     * همان معنایِ {@code Product.isProductionStopped()} که نال را «متوقف‌نشده»
+     * می‌خواند.
+     * <p>
+     * ⚠️ فقط فهرست‌ها. خودِ صفحهٔ محصول عمداً باز می‌ماند: محصولِ متوقف‌شده یا با
+     * ۳۰۱ به جایگزین می‌رود یا با برچسبِ صریح می‌ماند — هرگز ۴۰۴.
+     */
+    @Query("{ 'discontinued': { $ne: true } }")
+    Page<Product> findVisible(Pageable pageable);
+
+    @Query("{ 'categoryId': { $in: ?0 }, 'discontinued': { $ne: true } }")
+    Page<Product> findVisibleByCategoryIdIn(List<String> categoryIds, Pageable pageable);
+
+    @Query("{ 'categoryId': { $in: ?0 }, 'discontinued': { $ne: true } }")
+    List<Product> findVisibleByCategoryIdIn(List<String> categoryIds);
+
+    @Query("{ 'sectionIds': ?0, 'discontinued': { $ne: true } }")
+    Page<Product> findVisibleBySectionId(String sectionId, Pageable pageable);
 
     // کدِ کالا برایِ همگام‌سازیِ موجودی — کلیدِ تطبیقِ ایمپورت و گاردِ یکتایی
     Optional<Product> findByHolooCode(String holooCode);

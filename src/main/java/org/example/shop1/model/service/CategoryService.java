@@ -379,7 +379,8 @@ public class CategoryService {
     // محصولات یک دسته و همه زیرمجموعه‌هایش (برای بلوک سروری صفحه دسته)
     public List<Product> getProductsInSubtree(String categoryId, int limit) {
         List<String> ids = subtreeCategoryIds(categoryId);
-        List<Product> products = productRepo.findByCategoryIdIn(ids);
+        // صفحهٔ دستهٔ SSR هم مثلِ بقیهٔ فهرست‌ها متوقف‌شده‌ها را نشان نمی‌دهد
+        List<Product> products = productRepo.findVisibleByCategoryIdIn(ids);
         return products.size() > limit ? products.subList(0, limit) : products;
     }
 

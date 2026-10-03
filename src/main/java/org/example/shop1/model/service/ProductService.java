@@ -460,8 +460,10 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // فیلتر جشنواره (لندینگ سکشن) — سمت سرور تا فرانت نیازی به لود همه محصولات نداشته باشد
+        // 🔴 هر سه شاخه محصولِ متوقف‌شده را کنار می‌گذارند — خواستهٔ مالک: کالای
+        // دیسکانتینو دیگر در فروشگاه دیده نشود. صفحهٔ خودِ محصول دست‌نخورده می‌ماند.
         if (sectionId != null && !sectionId.trim().isEmpty()) {
-            return productRepo.findBySectionIdsContaining(sectionId, pageable);
+            return productRepo.findVisibleBySectionId(sectionId, pageable);
         }
 
         if (categoryId != null && !categoryId.trim().isEmpty()) {
@@ -477,10 +479,10 @@ public class ProductService {
                     .collect(Collectors.toList());
 
             // ۳. فراخوانی متد جدید ریپازیتوری
-            return productRepo.findByCategoryIdIn(allCategoryIds, pageable);
+            return productRepo.findVisibleByCategoryIdIn(allCategoryIds, pageable);
         }
 
-        return productRepo.findAll(pageable);
+        return productRepo.findVisible(pageable);
     }
 
     // متد تعریف استاندارد سورتینگ
