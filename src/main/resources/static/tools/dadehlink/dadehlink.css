@@ -526,6 +526,8 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .dlCardImg img{max-width:100%;max-height:100%;object-fit:contain}
 .dl .dlCardName{font-size:11px;line-height:1.6;color:#163e30}
 .dl .dlCardFacts{display:flex;flex-wrap:wrap;gap:3px 8px;font-size:10px;color:#3b6b50;direction:rtl}
+/* «4.7–6.5 GHz» در کارتِ راست‌چین وارونه دیده می‌شد؛ هر واقعیت جهتِ خودش را از اولین حرف می‌گیرد */
+.dl .dlCardFacts span{unicode-bidi:plaintext}
 .dl .dlCardFoot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;font-size:11px}
 .dl .dlPrice{font-weight:bold;color:#087b43}.dl .dlStock.in{color:#0f7a3f}.dl .dlStock.out{color:#a45822}
 
