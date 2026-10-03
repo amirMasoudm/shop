@@ -496,6 +496,39 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .sheet.gateSheet .gateLink{border:0;background:none;color:#097747;font-size:12px;padding:6px 2px;text-decoration:underline;text-underline-offset:3px}
 .dl .sheet.gateSheet .gateLink:disabled{color:#8aa394;text-decoration:none;cursor:default}
 
+/* ── دو زبانه، تجهیزات و پیشنهادها (equipment.js) ───────────────── */
+.dl .dlTabs{display:flex;gap:6px;margin:0 0 8px}
+.dl .dlTabs button{flex:1;min-height:38px;border:1px solid var(--line);background:#fff;border-radius:11px;color:#326a49;font-size:12px;font-weight:bold}
+.dl .dlTabs button.on{background:#087b43;border-color:#087b43;color:#fff}
+.dl .equip{background:#fff;border:1px solid var(--line);border-radius:17px;padding:10px 12px;margin-bottom:8px}
+.dl .equip h2,.dl .dl-sugg h2{font-size:13px;margin:0 0 8px;color:#145632}
+.dl .eqGrid{display:grid;grid-template-columns:1fr;gap:8px}
+.dl .eqPick{display:flex;flex-direction:column;gap:3px;min-width:0}
+.dl .eqPick label{font-size:11px;font-weight:bold;color:#245e3c}
+.dl .eqPick select,.dl .eqPick input{width:100%;min-width:0;border:1px solid #c6dfce;border-radius:9px;padding:7px;background:#f7fcf8;color:#163e30;font-size:12px}
+.dl .eqPick .eqSearch{padding:5px 7px;font-size:11px}
+.dl .eqFacts{list-style:none;margin:10px 0 0;padding:8px 10px;background:#eef8f1;border-radius:10px;font-size:11px;display:grid;gap:4px}
+.dl .eqFacts b{direction:ltr;unicode-bidi:isolate}.dl .eqFacts b.unk{color:#a45822}
+.dl .eqFacts a,.dl .dlEmpty a{color:#087b43;text-decoration:underline}
+.dl .dlNotice{font-size:11px;color:#8c3c24;background:#fff6e5;border-radius:8px;padding:7px 9px;margin:8px 0 0}
+.dl .dlWhy{font-size:11px;color:#245e3c;background:#e4f6ea;border-radius:8px;padding:7px 9px;margin:0 0 8px}
+.dl .dlEmpty{font-size:11px;color:#5a7665;margin:4px 0}
+/* زبانهٔ دوم: فرکانس، توان و حساسیت از دادهٔ فنی می‌آیند؛ فاصله و افتِ کابل دستی می‌مانند */
+.dl .app.eqMode #fields .field:has(#f),.dl .app.eqMode #fields .field:has(#tx),.dl .app.eqMode #fields .field:has(#sensitivity){display:none}
+.dl .app.eqMode .modebtn,.dl .app.eqMode #calcBtn{visibility:hidden}
+.dl .app.eqMode .antgain input{pointer-events:none}
+.dl .dl-sugg{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:17px;padding:10px 12px}
+.dl .dl-sugg[hidden]{display:none}
+.dl .dlGroup{margin-top:8px}.dl .dlGroup h3{font-size:12px;margin:0 0 6px;color:#1f4d33}
+.dl .dlCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dl .dlCard{display:flex;flex-direction:column;gap:4px;border:1px solid #d6e9dc;border-radius:12px;padding:8px;background:#fbfefc;min-width:0}
+.dl .dlCardImg{aspect-ratio:4/3;background:#fff;border-radius:8px;display:grid;place-items:center;overflow:hidden}
+.dl .dlCardImg img{max-width:100%;max-height:100%;object-fit:contain}
+.dl .dlCardName{font-size:11px;line-height:1.6;color:#163e30}
+.dl .dlCardFacts{display:flex;flex-wrap:wrap;gap:3px 8px;font-size:10px;color:#3b6b50;direction:rtl}
+.dl .dlCardFoot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;font-size:11px}
+.dl .dlPrice{font-weight:bold;color:#087b43}.dl .dlStock.in{color:#0f7a3f}.dl .dlStock.out{color:#a45822}
+
 /* ── چیدمانِ دسکتاپ (خواستهٔ مالک: «برای بروزر مثل موبایل نباشه») ─────────
    زیرِ ۹۰۰ پیکسل دو گروهِ dl-in و dl-out ناپدیدند (display:contents) و چیدمان
    عیناً همان اپ است. بالای آن: ورودی‌ها در ستونِ راست، نتیجه چسبان در ستونِ چپ،
@@ -503,7 +536,7 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .dl-in,.dl .dl-out{display:contents}
 @media(min-width:900px){
 .dl .app{max-width:1120px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
-  grid-template-areas:"head head" "in nav" "in out" "in align";grid-template-rows:auto auto auto 1fr;
+  grid-template-areas:"head head" "tabs tabs" "in nav" "in out" "in align" "sugg sugg";grid-template-rows:auto auto auto auto 1fr auto;
   column-gap:28px;row-gap:12px;padding:22px 28px 26px;margin:6px auto 0}
 .dl .app header{grid-area:head;height:44px;margin:0 0 4px}
 .dl .app .brand{height:44px}.dl .app .brand img{width:52px;height:40px}.dl .app .brand b{font-size:26px}
@@ -515,6 +548,12 @@ body:has(.dl .modal.open) .dn-chat-bubble,body:has(.dl .modal.open) .dn-chat-pan
 .dl .dl-in{display:block;grid-area:in;min-width:0}
 .dl .dl-out{display:flex;flex-direction:column;gap:12px;grid-area:out;align-self:start;min-width:0}
 .dl .app .dl-align{grid-area:align;align-self:start;margin-top:0}
+.dl .app .dlTabs{grid-area:tabs;margin:0;max-width:560px;justify-self:center;width:100%}
+.dl .app .dlTabs button{font-size:14px;min-height:42px}
+.dl .app .dl-sugg{grid-area:sugg;margin-top:0}
+.dl .dlCards{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.dl .eqGrid{grid-template-columns:1fr 1fr}
+.dl .equip h2,.dl .dl-sugg h2{font-size:15px}
 .dl .alignCanvas{aspect-ratio:auto;height:280px}
 
 /* ورودی‌ها */

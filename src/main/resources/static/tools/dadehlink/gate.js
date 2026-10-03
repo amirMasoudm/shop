@@ -128,6 +128,7 @@ function complete(body,silent){
  clearInterval(resendTimer);disarm();
  if($('modal').classList.contains('open')&&$('sheet').classList.contains('gateSheet'))closeDialog();
  if(!silent)toast(body.user?.name?'خوش آمدید، '+body.user.name:'ثبت شد؛ از ابزار استفاده کنید');
+ document.dispatchEvent(new Event('dadehlink:auth'));
 }
 function showError(text,focus,ok){const el=$('gateError');if(!el)return;el.textContent=text;el.classList.add('visible');el.classList.toggle('ok',!!ok);focus?.focus()}
 function errorText(r){
@@ -146,4 +147,6 @@ if(saved){
  // فقط ۴۰۱ یعنی ثبت از دست رفته. خطای شبکه و هر پاسخِ دیگر نادیده؛ ابزار آفلاین هم باز است.
  if(navigator.onLine)fetch(API+'/me',{headers:{Authorization:'Bearer '+saved.token}}).then(r=>{if(r.status===401){clearAuth();arm()}}).catch(()=>{});
 }else arm();
+// برای equipment.js: پیشنهادِ کالا فقط پس از ورود
+window.dadehlinkAuthed=()=>!!readAuth();
 })();
