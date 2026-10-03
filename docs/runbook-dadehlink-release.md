@@ -28,11 +28,11 @@ grep -n -i cookie /root/shop/docker-compose.yml
 cp /root/shop/docker-compose.yml /root/docker-compose.yml.before-1405-07-11 && sed -i '/COOKIE_SECURE=false/d' /root/shop/docker-compose.yml
 ```
 
-2. جارِ قبلی کنار، جارِ تازه سرِ جا. خروجیِ آخر فقط یک فایل:
-
-```bash
-mkdir -p /root/jar-backup && mv /root/shop/target/shop1-0.0.1-SNAPSHOT.jar /root/jar-backup/shop1-before-1405-07-11.jar && mv /root/shop1-0.0.1-SNAPSHOT.jar /root/shop/target/ && ls -la /root/shop/target/
-```
+2. **جابه‌جاییِ جار — با FileZilla:**
+   - در پوشهٔ `/root/shop/target/` جارِ قبلی را **تغییرِ نام** بده به `shop1-before-1405-07-11.jar.bak`.
+     پسوند باید از `.jar` بیفتد، چون Dockerfile همهٔ `target/*.jar` را کپی می‌کند.
+   - جارِ تازه را از `/root/` به `/root/shop/target/` بکش (یا مستقیم از لپ‌تاپ همان‌جا آپلود کن).
+   - در `target` باید **فقط یک** فایل با پسوندِ `.jar` باشد.
 
 3. بالاآوردن و لاگ:
 
@@ -40,18 +40,19 @@ mkdir -p /root/jar-backup && mv /root/shop/target/shop1-0.0.1-SNAPSHOT.jar /root
 cd /root/shop && docker compose up -d --build backend && sleep 25 && docker compose logs --since 3m backend | grep -iE 'error|exception|started' | tail -20
 ```
 
-4. پوشهٔ فایل‌های اپ، و نشانیِ واقعی‌اش روی دیسکِ سرور برای FileZilla:
+4. **پوشهٔ فایل‌های اپ.** این دستور نشان می‌دهد پوشهٔ `uploads` روی سرور کجاست:
 
 ```bash
-cd /root/shop && docker compose exec backend mkdir -p /opt/shop/uploads/app-dadehlink && docker inspect $(docker compose ps -q backend) --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{println}}{{end}}' | grep uploads
+cd /root/shop && docker inspect $(docker compose ps -q backend) --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{println}}{{end}}' | grep uploads
 ```
 
-خطِ آخر می‌گوید پوشهٔ `uploads` روی سرور کجاست. فایل‌های اپ بعداً در زیرپوشهٔ `app-dadehlink` همان‌جا می‌نشینند.
+   با FileZilla داخلِ همان پوشه یک پوشهٔ تازه بساز به نامِ `app-dadehlink`. فایل‌های اپ بعداً همان‌جا می‌روند.
 
-**برگشت، اگر چیزی خراب شد:**
+**برگشت، اگر چیزی خراب شد:** با FileZilla جارِ تازه را از `target` بیرون ببر و `shop1-before-1405-07-11.jar.bak`
+را دوباره `shop1-0.0.1-SNAPSHOT.jar` نام بده. بعد:
 
 ```bash
-mv /root/jar-backup/shop1-before-1405-07-11.jar /root/shop/target/shop1-0.0.1-SNAPSHOT.jar && cd /root/shop && docker compose up -d --build backend
+cd /root/shop && docker compose up -d --build backend
 ```
 
 ## ب — پس از بالاآمدن
