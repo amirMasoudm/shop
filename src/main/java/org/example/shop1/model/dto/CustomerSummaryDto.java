@@ -25,6 +25,8 @@ public class CustomerSummaryDto {
     private final String maskedPhone;
     private final Instant createdAt;
     private final String role;
+    /** شمارهٔ سفارش‌ها — توی سازنده شمرده نمی‌شود چون یک کوئری به‌ازای هر ردیف می‌شد. */
+    private Integer orderCount;
 
     public CustomerSummaryDto(User u) {
         this.id = u.getId();
@@ -46,7 +48,7 @@ public class CustomerSummaryDto {
      * چهار رقمِ میانی پوشانده می‌شود، نه ابتدا و انتها: پیش‌شماره و چند رقمِ آخر
      * برایِ تشخیصِ «همین نفر بود؟» کافی‌اند، ولی عددِ کامل بازسازی‌شدنی نیست.
      */
-    static String mask(String raw) {
+    public static String mask(String raw) {
         if (raw == null) return null;
         String d = raw.trim();
         if (d.length() < 8) return "—";
@@ -59,4 +61,6 @@ public class CustomerSummaryDto {
     public String getMaskedPhone() { return maskedPhone; }
     public Instant getCreatedAt() { return createdAt; }
     public String getRole() { return role; }
+    public Integer getOrderCount() { return orderCount; }
+    public void setOrderCount(Integer orderCount) { this.orderCount = orderCount; }
 }

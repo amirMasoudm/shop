@@ -82,6 +82,9 @@ public class ActivityLogService {
     /** گفت‌وگوی پشتیبانی — برداشتن، ارجاع، انصراف، بستن. */
     public static final String ENTITY_CONVERSATION = "CONVERSATION";
 
+    /** مقالهٔ بلاگ — نشانیِ عمومی و ایندکس‌شده، پس هر دستی رویش قابلِ ممیزی است. */
+    public static final String ENTITY_ARTICLE = "ARTICLE";
+
     public void record(ActivityLog.Action action, ActivityLog.Source source,
                        String entityType, String entityId, String entityName,
                        String field, Object oldValue, Object newValue) {

@@ -102,7 +102,13 @@ public class SecurityConfig {
                         // ریدایرکتِ آدرس‌های قدیمیِ ایندکس‌شده — خودِ ریدایرکت برای همه باز
                         // است (روی ریشهٔ دامنه و بیرونِ /api/)، ولی مدیریتش فقط ادمین.
                         .requestMatchers("/api/v1/legacy-redirects/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/articles/admin/**").hasRole("ADMIN")
+                        // مقاله‌ها: هر چهار نقشِ پنل می‌نویسند و منتشر می‌کنند، ولی حذف فقط ADMIN.
+                        // ⚠️ ترتیب حیاتی است: قاعدهٔ DELETE باید پیش از قاعدهٔ عمومی بیاید؛
+                        // اولین match برنده است و برعکس، هر چهار نقش می‌توانستند مقاله را حذف کنند.
+                        // دلیلِ تفاوت: حذف، نشانیِ ایندکس‌شده و سئوی مقاله را از بین می‌برد.
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/articles/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/articles/admin/**")
+                            .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
                         .requestMatchers("/api/v1/products/admin/**").hasAnyRole("ADMIN", "PRICER")
                         .requestMatchers("/api/v1/rfq/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/settings/admin/**").hasRole("ADMIN")
@@ -237,7 +243,10 @@ public class SecurityConfig {
                         // ⚠️ باید پیش از بلاکِ «مسیرهای ادمین» بیایند، وگرنه
                         // /api/comments/admin/** اول match می‌شود و کارشناس ۴۰۳ می‌گیرد.
                         // شمارهٔ تلفن در پاسخِ مشتریان نیست (CustomerSummaryDto).
-                        .requestMatchers("/api/users/panel/customers")
+                        // 🔴 همهٔ شاخهٔ /panel/ — نه فقط فهرست. هر چه زیرِ این مسیر است از
+                        // DTOهایِ پوشانده رد می‌شود و هیچ شمارهٔ کاملی بیرون نمی‌دهد
+                        // (PanelCustomersController). شاخهٔ /admin/ دست‌نخورده فقط ADMIN می‌ماند.
+                        .requestMatchers("/api/users/panel/**")
                             .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")
                         .requestMatchers(HttpMethod.GET, "/api/comments/admin/list")
                             .hasAnyRole("ADMIN", "PRICER", "SALES", "SUPPORT")

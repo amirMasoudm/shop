@@ -9,11 +9,22 @@
     <link rel="stylesheet" href="/css/fonts/Vazirmatn-font-face.css">
     <!-- بدونِ این، دکمه‌هایِ دیالوگ (جستجو/انصراف) بی‌رنگ و نامرئی می‌شوند -->
     <link rel="stylesheet" href="/css/swal-fix.css">
+    <!-- ویرایشگرِ مقاله — همان نسخه‌ای که پنلِ ادمین دارد (لوکال، نه CDN) -->
+    <link href="/css/quill.snow.css" rel="stylesheet">
+    <script src="/js/quill.min.js"></script>
+    <script src="/js/quill-image-resize.min.js"></script>
 
     <style>
         body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
         .hidden-section { display: none !important; }
         .tab-btn.active { background: #4338ca; color: #fff; }
+        /* 🔴 با هشت زبانه، نوار در ۳۷۵ پیکسل باید خودش اسکرول بخورد و نه کلِ صفحه.
+           flex-wrap ممنوع است: شکستنِ خط نوار را دو-سه ردیفه می‌کند و میزِ کار را
+           از صفحهٔ اول بیرون می‌اندازد. */
+        nav.sales-tabs { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: thin; }
+        nav.sales-tabs::-webkit-scrollbar { height: 4px; }
+        nav.sales-tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,.3); border-radius: 4px; }
+        nav.sales-tabs .tab-btn { white-space: nowrap; flex: none; }
 
         #loading {
             position: fixed; inset: 0; background: rgba(255,255,255,.6);
@@ -48,26 +59,29 @@
 
         <!-- میزِ کار/لاگ برایِ ADMIN/PRICER/SALES/SUPPORT (SUPPORT فقط‌مشاهده)؛
              تبِ محصولات فقط برایِ ADMIN/PRICER (پنهان به‌صورتِ پیش‌فرض، window.onload بازش می‌کند). -->
-        <nav class="max-w-[1400px] mx-auto px-4 flex gap-2 pb-2">
+        <nav class="sales-tabs max-w-[1400px] mx-auto px-4 flex gap-2 pb-2">
             <button id="tabbtn-workspace" onclick="showSalesTab('workspace')"
                     class="tab-btn active px-4 py-2 rounded-lg text-sm font-bold bg-white/10">میز قیمت‌گذاری و موجودی</button>
-            <button id="tabbtn-log" onclick="showSalesTab('log')"
-                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">تاریخچه تغییرات</button>
-            <button id="tabbtn-products" onclick="showSalesTab('products')"
-                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">محصولات</button>
-            <!-- کدِ کالا و موجودی: همان دو نقشی که حقِ نوشتنِ محصول دارند (ADMIN/PRICER)،
-                 پس کنارِ تبِ محصولات پنهان/آشکار می‌شود. -->
-            <button id="tabbtn-holoo" onclick="showSalesTab('holoo')"
-                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">کد کالا و موجودی</button>
-            <!-- مشتریان و نظرات برایِ هر چهار نقش. شمارهٔ تلفن در پاسخِ سرور نیست. -->
-            <button id="tabbtn-customers" onclick="showSalesTab('customers')"
-                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">مدیریت مشتریان</button>
-            <button id="tabbtn-comments" onclick="showSalesTab('comments')"
-                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">مدیریت نظرات</button>
             <!-- پشتیبانی عمداً برایِ هر چهار نقش باز است (ADMIN/PRICER/SALES/SUPPORT):
                  صف مشترک است و هر کارشناسی می‌تواند تصاحب کند. -->
             <button id="tabbtn-support" onclick="showSalesTab('support')"
                     class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">پشتیبانی مشتریان</button>
+            <!-- مشتریان و نظرات برایِ هر چهار نقش. شمارهٔ تلفن در پاسخِ سرور پوشانده است. -->
+            <button id="tabbtn-customers" onclick="showSalesTab('customers')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">مدیریت مشتریان</button>
+            <button id="tabbtn-comments" onclick="showSalesTab('comments')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">مدیریت نظرات</button>
+            <button id="tabbtn-products" onclick="showSalesTab('products')"
+                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">محصولات</button>
+            <!-- مقالات برایِ هر چهار نقش؛ حذفِ مقاله فقط ادمین (مرز در SecurityConfig). -->
+            <button id="tabbtn-articles" onclick="showSalesTab('articles')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">مدیریت مقالات</button>
+            <!-- کدِ کالا و موجودی: همان دو نقشی که حقِ نوشتنِ محصول دارند (ADMIN/PRICER)،
+                 پس کنارِ تبِ محصولات پنهان/آشکار می‌شود. -->
+            <button id="tabbtn-holoo" onclick="showSalesTab('holoo')"
+                    class="hidden tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">کد کالا و موجودی</button>
+            <button id="tabbtn-log" onclick="showSalesTab('log')"
+                    class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-white/10">تاریخچه تغییرات</button>
         </nav>
     </header>
 
@@ -80,6 +94,7 @@
         <div id="tab-holoo" class="hidden-section"></div>
         <div id="tab-customers" class="hidden-section"></div>
         <div id="tab-comments" class="hidden-section"></div>
+        <div id="tab-articles" class="hidden-section"></div>
         <div id="tab-support" class="hidden-section"></div>
     </main>
 </div>
@@ -96,6 +111,8 @@
 <script src="/js/products-tab.js"></script>
 <script src="/js/holoo-tab.js"></script>
 <script src="/js/sales-extra-tabs.js"></script>
+<!-- مدیریتِ مقالات — فایلِ مشترک با Admin.html -->
+<script src="/js/articles-admin.js"></script>
 <!-- چتِ پشتیبانی — chat-core.js همان هسته‌ای است که حبابِ مشتری هم استفاده می‌کند -->
 <script src="/js/chat-core.js"></script>
 <script src="/js/support-tab.js"></script>
@@ -158,6 +175,7 @@
         document.getElementById('tab-holoo').classList.toggle('hidden-section', id !== 'holoo');
         document.getElementById('tab-customers').classList.toggle('hidden-section', id !== 'customers');
         document.getElementById('tab-comments').classList.toggle('hidden-section', id !== 'comments');
+        document.getElementById('tab-articles').classList.toggle('hidden-section', id !== 'articles');
         document.getElementById('tabbtn-workspace').classList.toggle('active', id === 'workspace');
         document.getElementById('tabbtn-log').classList.toggle('active', id === 'log');
         document.getElementById('tabbtn-products').classList.toggle('active', id === 'products');
@@ -165,6 +183,7 @@
         document.getElementById('tabbtn-holoo').classList.toggle('active', id === 'holoo');
         document.getElementById('tabbtn-customers').classList.toggle('active', id === 'customers');
         document.getElementById('tabbtn-comments').classList.toggle('active', id === 'comments');
+        document.getElementById('tabbtn-articles').classList.toggle('active', id === 'articles');
         if (id === 'log') fetchActivityLogs();
         // mount تنبل است: تا کارشناس تبِ پشتیبانی را باز نکند، وب‌سوکت وصل نمی‌شود.
         if (id === 'support') SupportTab.mount(document.getElementById('tab-support'));
@@ -173,6 +192,8 @@
         if (id === 'customers') SalesCustomersTab.mount(document.getElementById('tab-customers'));
         if (id === 'comments') SalesCommentsTab.mount(document.getElementById('tab-comments'),
                 {canEdit: window.__salesCanEditComments === true});
+        if (id === 'articles') ArticlesAdminTab.mount(document.getElementById('tab-articles'),
+                {canDelete: window.__salesCanDeleteArticles === true});
     }
 
     async function logoutSales() {
@@ -221,6 +242,10 @@
             // تصمیمِ مالک: هر چهار نقشِ پنل نظر را تأیید/رد می‌کنند. سرور هم همین
             // را اعمال می‌کند؛ «فقط‌مشاهده»بودنِ SUPPORT جای دیگری دست‌نخورده است.
             window.__salesCanEditComments = isAdmin || isPricer || isSales || isSupport;
+            // مقاله: هر چهار نقش می‌نویسند و منتشر می‌کنند، ولی حذف فقط ادمین —
+            // چون نشانیِ ایندکس‌شده و سئوی مقاله با حذف از دست می‌رود.
+            // مرزِ واقعی در SecurityConfig است؛ این فقط دکمه را پنهان می‌کند.
+            window.__salesCanDeleteArticles = isAdmin;
             const hasProducts = isAdmin || isPricer;
             let firstProductsRefresh = true;
 

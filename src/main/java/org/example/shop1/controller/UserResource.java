@@ -33,21 +33,6 @@ public class UserResource {
         return userService.getAllUsers();
     }
 
-    /**
-     * فهرستِ مشتریان برایِ پنلِ فروشِ حضوری — هر چهار نقشِ پنل می‌بینند.
-     * <p>
-     * 🔴 خروجی از {@link org.example.shop1.model.dto.CustomerSummaryDto} رد می‌شود،
-     * پس شمارهٔ تلفن اصلاً در پاسخ نیست. مسیرش هم عمداً زیرِ {@code /admin/} نیست،
-     * چون آن شاخه فقط ADMIN است و اینجا کارشناس هم باید ببیند.
-     */
-    @GetMapping("/panel/customers")
-    @ResponseBody
-    public List<org.example.shop1.model.dto.CustomerSummaryDto> customersForPanel() {
-        return userService.getCustomers().stream()
-                .map(org.example.shop1.model.dto.CustomerSummaryDto::of)
-                .toList();
-    }
-
     // ===== مدیریتِ کارکنان (ادمین/پشتیبان) =====
     // کلِ /api/users/admin/** در SecurityConfig فقط برای ROLE_ADMIN باز است.
 

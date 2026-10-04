@@ -676,52 +676,8 @@
     </div>
 
     <!-- ARTICLES (بلاگ) -->
-    <div id="tab-articles" class="hidden-section fade-in">
-        <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
-            <h2 class="text-2xl font-bold text-gray-800">مقالات بلاگ</h2>
-            <div class="flex gap-2">
-                <a href="/blog" target="_blank"
-                   class="w-full md:w-auto bg-gray-100 text-gray-700 px-4 py-2 rounded-lg border hover:bg-gray-200 flex items-center justify-center gap-2 text-sm">
-                    👁 مشاهده بلاگ
-                </a>
-                <button onclick="openArticleModal()"
-                        class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 flex items-center justify-center gap-2">
-                    <span>📝</span> مقاله جدید
-                </button>
-            </div>
-        </div>
-        <!-- جست‌وجو/فیلترِ جدول — چون هابِ ۲۸ مقاله به‌هم‌ریخته است و بدونِ این ابزار
-             پیداکردنشان بینِ ۲۸۱ ردیف طاقت‌فرساست. سمتِ کلاینت (state.articles از قبل کامل است). -->
-        <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border mb-4 flex flex-col md:flex-row gap-3">
-            <input type="text" id="art-search" placeholder="جست‌وجو در عنوان/اسلاگ…" oninput="filterArticles()"
-                   class="flex-1 p-2.5 border rounded-lg outline-none text-sm">
-            <select id="art-hub-filter" onchange="filterArticles()" class="p-2.5 border rounded-lg bg-white outline-none text-sm md:w-56">
-                <option value="">همهٔ هاب‌ها</option>
-                <option value="__NONE__">⚠️ بدون هاب</option>
-            </select>
-            <select id="art-status-filter" onchange="filterArticles()" class="p-2.5 border rounded-lg bg-white outline-none text-sm md:w-40">
-                <option value="">همهٔ وضعیت‌ها</option>
-                <option value="published">منتشرشده</option>
-                <option value="draft">پیش‌نویس</option>
-            </select>
-            <div class="text-xs text-gray-400 flex items-center whitespace-nowrap" id="art-filter-count"></div>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
-            <table class="w-full text-right text-sm">
-                <thead class="bg-gray-50 text-gray-500">
-                <tr>
-                    <th class="p-3 md:p-4">عنوان</th>
-                    <th class="p-3 md:p-4 hidden md:table-cell">اسلاگ</th>
-                    <th class="p-3 md:p-4">هاب</th>
-                    <th class="p-3 md:p-4">وضعیت</th>
-                    <th class="p-3 md:p-4 hidden md:table-cell">به‌روزرسانی</th>
-                    <th class="p-3 md:p-4">عملیات</th>
-                </tr>
-                </thead>
-                <tbody id="articles-tbody"></tbody>
-            </table>
-        </div>
-    </div>
+    <!-- مقالات: مارک‌آپ و مودالش از /js/articles-admin.js تزریق می‌شوند — همان فایلی که پنلِ فروش هم می‌خورد -->
+    <div id="tab-articles" class="hidden-section fade-in"></div>
 
     <!-- 5. FINANCE -->
     <div id="tab-finance" class="hidden-section fade-in">
@@ -1914,94 +1870,6 @@
     </div>
 </div>
 
-<!-- Article Modal (مقالات بلاگ) -->
-<div id="articleModal"
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-4">
-    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col" style="max-height:82vh;">
-        <div data-drag-handle class="shrink-0 flex justify-between items-center px-5 py-4 bg-gray-800 text-white rounded-t-2xl select-none">
-            <h3 class="text-lg font-bold" id="article-modal-title">مقاله جدید</h3>
-            <button onclick="closeModalSafe('articleModal')" class="text-white/70 hover:text-white text-2xl font-bold leading-none px-1 outline-none">✕</button>
-        </div>
-        <input type="hidden" id="a-id">
-        <div class="flex-1 overflow-y-auto px-5 md:px-6 py-4 md:py-5" style="min-height:0;">
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="md:col-span-2">
-                <label class="block text-sm text-gray-600 mb-1">عنوان مقاله <span class="text-red-500">*</span></label>
-                <input type="text" id="a-title" placeholder="مثلاً: آموزش عیب‌یابی رادیو میکروتیک"
-                       class="w-full p-2.5 border rounded-lg outline-none" oninput="updateArticleSeoPreview()">
-            </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">اسلاگ آدرس (خالی = ساخت خودکار از عنوان)</label>
-                <input type="text" id="a-slug" dir="ltr" class="w-full p-2.5 border rounded-lg outline-none font-mono text-sm">
-            </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">وضعیت</label>
-                <select id="a-published" class="w-full p-2.5 border rounded-lg bg-white outline-none">
-                    <option value="false">پیش‌نویس (منتشر نشود)</option>
-                    <option value="true">منتشرشده</option>
-                </select>
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm text-gray-600 mb-1">
-                    خوشه‌ی محتوایی (Content Hub)
-                    <span class="text-[10px] text-gray-400">— مقالات هم‌خوشه خودکار به هم لینک می‌شوند و صفحه‌ی مجموعه می‌سازند</span>
-                </label>
-                <input type="text" id="a-hub" list="hub-list" placeholder="مثلاً: آموزش میکروتیک"
-                       class="w-full p-2.5 border rounded-lg outline-none">
-                <datalist id="hub-list"></datalist>
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm text-gray-600 mb-1">خلاصه (برای کارت بلاگ و توضیح متا)</label>
-                <textarea id="a-excerpt" rows="2" class="w-full p-2.5 border rounded-lg outline-none resize-none"
-                          oninput="updateArticleSeoPreview()"></textarea>
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm text-gray-600 mb-1">تصویر شاخص</label>
-                <div class="flex items-center gap-3">
-                    <input type="file" id="a-cover-file" accept="image/*" class="text-xs" onchange="uploadArticleCover(this)">
-                    <img id="a-cover-preview" src="" alt="" class="h-14 rounded-lg border hidden">
-                    <input type="hidden" id="a-cover">
-                </div>
-            </div>
-        </div>
-
-        <!-- ادیتور محتوا -->
-        <div class="mt-4">
-            <label class="block text-sm text-gray-600 mb-1">متن مقاله</label>
-            <div id="a-editor" style="min-height:260px; direction:rtl;" class="bg-white border rounded-b-lg"></div>
-        </div>
-
-        <!-- سئو مقاله -->
-        <div class="bg-purple-50 p-3 rounded-xl border border-purple-200 mt-4">
-            <label class="block text-xs font-bold text-purple-800 mb-2">تنظیمات سئو مقاله</label>
-            <div class="flex items-center justify-between mb-1">
-                <label class="text-[11px] text-gray-600">عنوان سئو (خالی = عنوان مقاله + برند)</label>
-                <span id="a-seo-title-count" class="text-[10px] text-gray-400">0/60</span>
-            </div>
-            <input type="text" id="a-seo-title" class="w-full p-2 text-sm border rounded-lg outline-none"
-                   oninput="updateArticleSeoPreview()">
-            <div class="flex items-center justify-between mt-2 mb-1">
-                <label class="text-[11px] text-gray-600">توضیح متا (خالی = خلاصه)</label>
-                <span id="a-seo-desc-count" class="text-[10px] text-gray-400">0/160</span>
-            </div>
-            <textarea id="a-seo-desc" rows="2" class="w-full p-2 text-sm border rounded-lg outline-none resize-none"
-                      oninput="updateArticleSeoPreview()"></textarea>
-        </div>
-
-        </div>
-        <div class="shrink-0 flex flex-col md:flex-row justify-end gap-3 px-5 py-4 border-t bg-white rounded-b-2xl">
-            <button onclick="closeModalSafe('articleModal')"
-                    class="w-full md:w-auto px-4 py-2 text-gray-500 border rounded-lg">انصراف
-            </button>
-            <button onclick="saveArticle()"
-                    class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">
-                ذخیره مقاله
-            </button>
-        </div>
-    </div>
-</div>
-
 <!-- انتهای بخش محتوا و مودال‌ها -->
 
 <!-- پایان تمام DIVها قبل از شروع اسکریپت -->
@@ -2014,6 +1882,8 @@
 <script src="/js/admin-modal-utils.js"></script>
 <script src="/js/rf-spec-editor.js"></script>
 <script src="/js/products-tab.js"></script>
+<!-- مدیریتِ مقالات — فایلِ مشترک با SalesPanel.html -->
+<script src="/js/articles-admin.js"></script>
 <!-- تبِ رفتارِ کاربران — فقط ADMIN؛ مرزِ واقعی در SecurityConfig است -->
 <!-- تبدیلِ شمسی↔میلادی — تبِ رفتار فیلدهای تاریخش را از این می‌گیرد -->
 <script src="/js/dn-jalali.js"></script>
@@ -2114,6 +1984,9 @@
 
             const user = await res.json();
             const roles = (user && user.roles) || [];
+            // حذفِ مقاله فقط ادمین است (SecurityConfig)؛ ماژولِ مقاله‌ها دکمه را
+            // با همین پرچم می‌سازد تا دکمه‌ای نماند که کلیکش ۴۰۳ بگیرد.
+            ADMIN_IS_ADMIN = roles.includes("ROLE_ADMIN");
 
             if (roles.includes("ROLE_ADMIN")) {
                 document.getElementById('adminDashboard').style.display = 'flex';
@@ -2223,9 +2096,9 @@
         if (id === 'appRegistrations') AppRegistrationsTab.mount(document.getElementById('tab-appRegistrations'));
         if (id === 'rfImport') RfImportTab.mount(document.getElementById('tab-rfImport'));
         if (id === 'holoo') HolooTab.mount(document.getElementById('tab-holoo'));
-        if (id === 'articles') fetchArticles();
-        if (id === 'banners' && !state.articles) fetchArticles();
-        if (id === 'homeBanners' && !state.articles) fetchArticles();
+        if (id === 'articles') mountArticlesTab();
+        if (id === 'banners' && !ArticlesAdminTab.getArticles().length) fetchArticles();
+        if (id === 'homeBanners' && !ArticlesAdminTab.getArticles().length) fetchArticles();
         if (id === 'rfq') fetchRfqsAdmin();
         if (id === 'stockNotify') fetchStockNotifications();
         if (id === 'settings') {
@@ -2267,8 +2140,9 @@
     // موتورِ مودال (openModal/closeModal/closeModalSafe/resetForm/درگ/ریسایز) به
     // /js/admin-modal-utils.js منتقل شد — همان فایل با SalesPanel.html هم مشترک است.
     // 'productModal' اینجا نیست چون /js/products-tab.js خودش موقعِ mount اضافه‌اش می‌کند.
+    // 'articleModal' اینجا نیست: /js/articles-admin.js خودش موقعِ mount ثبتش می‌کند.
     ['categoryModal', 'sectionModal', 'bannerModal', 'educationModal', 'courseModal',
-        'courseCategoryModal', 'imageRowModal', 'articleModal', 'staffModal']
+        'courseCategoryModal', 'imageRowModal', 'staffModal']
         .forEach(id => window.FORM_MODALS.add(id));
 
     function flatten(list, res = []) {
@@ -3185,7 +3059,7 @@
 
     function populateBannerArticleSelect(selected = '') {
         document.getElementById('bn-link-article').innerHTML = '<option value="">— انتخابِ مقاله —</option>' +
-            (state.articles || []).map(a => `<option value="${a.id}" ${a.id === selected ? 'selected' : ''}>${a.title}</option>`).join('');
+            ArticlesAdminTab.getArticles().map(a => `<option value="${a.id}" ${a.id === selected ? 'selected' : ''}>${escapeHTML(a.title || '')}</option>`).join('');
     }
 
     function onBannerLinkTypeChange() {
@@ -3911,301 +3785,20 @@
     // ==========================================
     // مقالات بلاگ (Articles)
     // ==========================================
-    let articleQuill = null;
+    // کدِ کامل به /js/articles-admin.js رفت تا پنلِ فروشِ حضوری هم از همان بخورد.
+    // اینجا فقط پوسته‌ای می‌ماند برای جاهایی که از قبل این نام‌ها را صدا می‌زدند
+    // (تبِ بنرها و بنرهای صفحهٔ اصلی، که برای سلکتِ «لینک به مقاله» فهرست را لازم دارند).
+    let ADMIN_IS_ADMIN = false;
 
-    function initArticleEditor() {
-        if (articleQuill) return;
-        articleQuill = new Quill('#a-editor', {
-            theme: 'snow',
-            placeholder: 'متن مقاله را اینجا بنویسید…',
-            modules: {
-                toolbar: [
-                    [{header: [2, 3, false]}],
-                    ['bold', 'italic', 'underline'],
-                    [{list: 'ordered'}, {list: 'bullet'}],
-                    [{direction: 'rtl'}, {align: []}],
-                    ['link', 'image', 'code-block'],
-                    ['clean']
-                ],
-                // تغییر سایز عکس با درگ گوشه‌ها + نمایش ابعاد + دکمه‌های چینش
-                imageResize: { modules: ['Resize', 'DisplaySize', 'Toolbar'] }
-            }
-        });
-        // جهت پیش‌فرض فارسی: راست‌چین
-        articleQuill.format('direction', 'rtl');
-        articleQuill.format('align', 'right');
-        // آپلود تصویر داخل متن از طریق سرور خودمان (نه base64)
-        articleQuill.getModule('toolbar').addHandler('image', () => {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = 'image/*';
-            input.onchange = async () => {
-                if (!input.files[0]) return;
-                const fd = new FormData(); fd.append('file', input.files[0]);
-                try {
-                    const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
-                    const range = articleQuill.getSelection(true);
-                    articleQuill.insertEmbed(range.index, 'image', res.data);
-                } catch (e) { Swal.fire('خطا', 'آپلود تصویر ناموفق بود', 'error'); }
-            };
-            input.click();
-        });
+    function fetchArticles() {
+        return ArticlesAdminTab.fetch();
     }
 
-    async function fetchArticles() {
-        try {
-            const res = await axios.get(`${API}/v1/articles/admin/all`);
-            state.articles = res.data || [];
-            refreshHubLists();
-            filterArticles();
-        } catch (e) {
-            Swal.fire('خطا', 'دریافت مقالات ناموفق بود', 'error');
-        }
-    }
-
-    // پیشنهادهای خوشه (هم برایِ دیتالیستِ فرمِ کامل، هم برایِ سلکتِ فیلترِ جدول) —
-    // بعدِ هر ذخیره هم دوباره صدا زده می‌شود تا هابِ تازه‌تایپ‌شده فوراً در لیست بیاید.
-    function refreshHubLists() {
-        const hubs = [...new Set((state.articles || []).map(a => a.hub).filter(Boolean))].sort();
-        document.getElementById('hub-list').innerHTML = hubs.map(h => `<option value="${h}">`).join('');
-        const sel = document.getElementById('art-hub-filter');
-        const current = sel.value;
-        sel.innerHTML = '<option value="">همهٔ هاب‌ها</option><option value="__NONE__">⚠️ بدون هاب</option>'
-            + hubs.map(h => `<option value="${h}">${h}</option>`).join('');
-        sel.value = hubs.includes(current) || current === '__NONE__' ? current : '';
-    }
-
-    // فیلترِ سمتِ کلاینت (۲۸۱ مقاله از قبل در state.articles است، نیازی به کالِ تازه نیست)
-    function filterArticles() {
-        const q = (document.getElementById('art-search').value || '').trim().toLowerCase();
-        const hubFilter = document.getElementById('art-hub-filter').value;
-        const statusFilter = document.getElementById('art-status-filter').value;
-
-        let rows = state.articles || [];
-        if (q) rows = rows.filter(a => (a.title || '').toLowerCase().includes(q) || (a.slug || '').toLowerCase().includes(q));
-        if (hubFilter === '__NONE__') rows = rows.filter(a => !a.hub);
-        else if (hubFilter) rows = rows.filter(a => a.hub === hubFilter);
-        if (statusFilter === 'published') rows = rows.filter(a => a.published);
-        else if (statusFilter === 'draft') rows = rows.filter(a => !a.published);
-
-        document.getElementById('art-filter-count').innerText = `${rows.length} از ${(state.articles || []).length}`;
-        renderArticles(rows);
-    }
-
-    function renderArticles(rows) {
-        rows = (rows || state.articles || []).slice().sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
-        document.getElementById('articles-tbody').innerHTML = rows.length ? rows.map(a => `
-            <tr class="border-t hover:bg-gray-50">
-                <td class="p-3 md:p-4 font-medium text-gray-800">${a.title || '—'}</td>
-                <td class="p-3 md:p-4 hidden md:table-cell text-xs text-gray-500" dir="ltr">${a.slug || ''}</td>
-                <td class="p-3 md:p-4">
-                    <div class="flex items-center gap-1.5">
-                        <input type="text" list="hub-list" value="${escapeHTML(a.hub || '')}" placeholder="بدون هاب"
-                               id="hub-input-${a.id}"
-                               class="w-28 md:w-36 p-1.5 text-xs border rounded-lg outline-none ${a.hub ? '' : 'border-amber-400 bg-amber-50 placeholder-amber-500'}"
-                               onkeydown="if(event.key==='Enter'){event.preventDefault(); quickSetArticleHub('${a.id}');}">
-                        <button onclick="quickSetArticleHub('${a.id}')" title="ذخیرهٔ هاب"
-                                class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1.5 rounded hover:bg-indigo-100">✓</button>
-                        ${a.hub ? '' : '<span class="text-[9px] md:text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded whitespace-nowrap">بدون هاب</span>'}
-                    </div>
-                </td>
-                <td class="p-3 md:p-4">
-                    <span class="px-2 py-1 rounded text-[10px] md:text-xs font-bold ${a.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
-                        ${a.published ? 'منتشرشده' : 'پیش‌نویس'}
-                    </span>
-                </td>
-                <td class="p-3 md:p-4 hidden md:table-cell text-xs text-gray-400">${(a.updatedAt || '').substring(0, 10)}</td>
-                <td class="p-3 md:p-4">
-                    <div class="flex gap-1">
-                        ${a.published ? `<a href="/blog/${encodeURIComponent(a.slug || a.id)}" target="_blank" class="text-xs bg-gray-50 text-gray-600 px-2 py-1 rounded hover:bg-gray-100">👁</a>` : ''}
-                        <button onclick='editArticle("${a.id}")' class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100">✏️</button>
-                        <button onclick='deleteArticle("${a.id}")' class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded hover:bg-red-100">✕</button>
-                    </div>
-                </td>
-            </tr>
-        `).join('') : '<tr><td colspan="6" class="p-8 text-center text-gray-400">هیچ مقاله‌ای با این فیلتر پیدا نشد.</td></tr>';
-    }
-
-    // تغییرِ هابِ یک مقاله بدونِ بازکردنِ ویرایشگرِ کامل — عمداً از همان
-    // POST /v1/articles/admin رد می‌شود (سرور خودش hubSlug را می‌سازد، دقیقاً همان
-    // منطقِ ذخیره‌ی کاملِ مقاله) و کلِ آبجکتِ موجود را دوباره می‌فرستد تا هیچ فیلدی
-    // (متن، کاور، سئو) گم نشود — همان باگی که یک‌بار در ذخیره‌ی محصول افتاده بود.
-    async function quickSetArticleHub(id) {
-        const article = (state.articles || []).find(x => x.id === id);
-        if (!article) return;
-        const input = document.getElementById(`hub-input-${id}`);
-        const newHub = input.value.trim();
-        if (newHub === (article.hub || '')) return; // چیزی عوض نشده
-
-        const payload = Object.assign({}, article, {hub: newHub || null});
-        try {
-            const res = await axios.post(`${API}/v1/articles/admin`, payload);
-            const idx = state.articles.findIndex(x => x.id === id);
-            if (idx !== -1) state.articles[idx] = res.data;
-            refreshHubLists();
-            filterArticles();
-            Swal.fire({icon: 'success', title: 'هاب ذخیره شد', timer: 1000, showConfirmButton: false});
-        } catch (e) {
-            Swal.fire('خطا', (e.response && e.response.data) || 'ذخیره‌ی هاب ناموفق بود', 'error');
-        }
-    }
-
-    function updateArticleSeoPreview() {
-        const t = document.getElementById('a-seo-title').value;
-        const d = document.getElementById('a-seo-desc').value;
-        const tc = document.getElementById('a-seo-title-count');
-        tc.innerText = t.length + '/60';
-        tc.style.color = t.length > 60 ? '#dc2626' : '#9ca3af';
-        const dc = document.getElementById('a-seo-desc-count');
-        dc.innerText = d.length + '/160';
-        dc.style.color = d.length > 160 ? '#dc2626' : '#9ca3af';
-    }
-
-    function openArticleModal() {
-        initArticleEditor();
-        resetForm('a');
-        document.getElementById('a-published').value = 'false';
-        document.getElementById('a-cover-preview').classList.add('hidden');
-        articleQuill.setContents([]);
-        updateArticleSeoPreview();
-        document.getElementById('article-modal-title').innerText = 'مقاله جدید';
-        openModal('articleModal');
-    }
-
-    function editArticle(id) {
-        const a = (state.articles || []).find(x => x.id === id);
-        if (!a) return;
-        initArticleEditor();
-        document.getElementById('a-id').value = a.id;
-        document.getElementById('a-title').value = a.title || '';
-        document.getElementById('a-slug').value = a.slug || '';
-        document.getElementById('a-excerpt').value = a.excerpt || '';
-        document.getElementById('a-hub').value = a.hub || '';
-        document.getElementById('a-published').value = String(!!a.published);
-        document.getElementById('a-seo-title').value = a.seoTitle || '';
-        document.getElementById('a-seo-desc').value = a.seoDescription || '';
-        document.getElementById('a-cover').value = a.coverImage || '';
-        const prev = document.getElementById('a-cover-preview');
-        if (a.coverImage) { prev.src = a.coverImage; prev.classList.remove('hidden'); }
-        else prev.classList.add('hidden');
-        articleQuill.root.innerHTML = a.contentHtml || '';
-        updateArticleSeoPreview();
-        document.getElementById('article-modal-title').innerText = 'ویرایش مقاله';
-        openModal('articleModal');
-    }
-
-    async function uploadArticleCover(input) {
-        if (!input.files || !input.files[0]) return;
-        const fd = new FormData(); fd.append('file', input.files[0]);
-        try {
-            const res = await axios.post(`${API}/v1/files/upload`, fd, {headers: {'Content-Type': 'multipart/form-data'}});
-            document.getElementById('a-cover').value = res.data;
-            const prev = document.getElementById('a-cover-preview');
-            prev.src = res.data; prev.classList.remove('hidden');
-        } catch (e) { Swal.fire('خطا', 'آپلود تصویر شاخص ناموفق بود', 'error'); }
-    }
-
-    /**
-     * آدرسِ مقاله عوض شد — همان کادرِ محصول، با متنِ یکسان.
-     *
-     * چرا تأیید و نه خودکار: مقالهٔ منتشرنشده اگر اسلاگش اصلاح شود، ریدایرکت فقط
-     * زباله می‌سازد. تصمیم با کسی است که می‌داند صفحه ایندکس شده یا نه.
-     */
-    async function offerArticleSlugRedirect(oldSlug, newSlug, title) {
-        const r = await Swal.fire({
-            title: 'آدرسِ مقاله عوض شد',
-            html: `<div style="text-align:right; line-height:2; font-size:.9rem;">
-                     مقاله: <b>${escapeHTML(title || '')}</b><br>
-                     آدرسِ قبلی: <code style="direction:ltr; display:inline-block; max-width:100%; word-break:break-all;">/blog/${escapeHTML(oldSlug)}</code><br>
-                     آدرسِ جدید: <code style="direction:ltr; display:inline-block; max-width:100%; word-break:break-all;">/blog/${escapeHTML(newSlug)}</code><br><br>
-                     آدرسِ قبلی از الان <b>۴۰۴</b> می‌دهد. ریدایرکتِ ۳۰۱ به آدرسِ جدید ثبت شود؟
-                     <span style="display:block; color:#6b7280; font-size:.82rem;">
-                       اگر این مقاله قبلاً منتشر/ایندکس شده بود، «بله» را بزنید.
-                     </span>
-                   </div>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'بله، ریدایرکت ثبت کن',
-            cancelButtonText: 'نه، لازم نیست',
-            confirmButtonColor: '#1b4f8a'
-        });
-        if (!r.isConfirmed) return;
-
-        try {
-            // ⚠️ اسلاگ دیکدشده فرستاده می‌شود، نه درصد-کدشده: سرور خودش fromPath را
-            // نرمال می‌کند و مقصد را برای پیداکردنِ مقاله خام می‌خواند.
-            const res = await axios.post(`${API}/v1/legacy-redirects`, {
-                fromPath: `/blog/${oldSlug}`,
-                toPath: `/blog/${newSlug}`,
-                note: `تغییرِ اسلاگِ «${title || ''}» از پنل`
-            });
-            const flattened = (res.data && res.data.flattened) || 0;
-            Swal.fire({
-                icon: 'success',
-                title: 'ریدایرکت ثبت شد',
-                text: flattened > 0
-                        ? `${flattened} ریدایرکتِ قدیمی هم مستقیم به آدرسِ تازه وصل شد.`
-                        : '',
-                timer: flattened > 0 ? 2600 : 1400,
-                showConfirmButton: false
-            });
-        } catch (e) {
-            const msg = (e.response && e.response.data && (e.response.data.message || e.response.data))
-                    || 'ثبتِ ریدایرکت ناموفق بود';
-            // ⚠️ مقاله از قبل ذخیره شده؛ این فقط هشدار است نه شکستِ ذخیره. نبودنِ
-            // دسترسی به /api/v1/legacy-redirects (۴۰۳) هم دقیقاً همین‌جا و به همین
-            // شکلِ بی‌خطر فرود می‌آید — مقاله سالم ذخیره مانده.
-            Swal.fire('ریدایرکت ثبت نشد', String(msg) + ' — آدرسِ قبلی ۴۰۴ می‌دهد.', 'error');
-        }
-    }
-
-    function saveArticle() {
-        const title = document.getElementById('a-title').value.trim();
-        if (!title) { Swal.fire('خطا', 'عنوان مقاله را وارد کنید', 'error'); return; }
-
-        // اسلاگِ پیش از ذخیره. فقط روی ویرایش معنی دارد — مقالهٔ تازه اسلاگِ قبلی ندارد.
-        const editingId = document.getElementById('a-id').value || null;
-        const oldSlug = editingId
-                ? ((state.articles || []).find(x => x.id === editingId) || {}).slug || null
-                : null;
-
-        const data = {
-            id: document.getElementById('a-id').value || null,
-            title: title,
-            slug: document.getElementById('a-slug').value.trim() || null,
-            excerpt: document.getElementById('a-excerpt').value.trim(),
-            hub: document.getElementById('a-hub').value.trim() || null,
-            contentHtml: articleQuill.root.innerHTML,
-            coverImage: document.getElementById('a-cover').value || null,
-            seoTitle: document.getElementById('a-seo-title').value.trim() || null,
-            seoDescription: document.getElementById('a-seo-desc').value.trim() || null,
-            published: document.getElementById('a-published').value === 'true'
-        };
-
-        axios.post(`${API}/v1/articles/admin`, data)
-            .then(async res => {
-                closeModal('articleModal');
-                fetchArticles();
-
-                // 🔴 اسلاگِ تازه از پاسخِ سرور خوانده می‌شود، نه از فیلدِ فرم:
-                // ArticleService.save آن را از generateUniqueSlug رد می‌کند و ممکن
-                // است چیزِ دیگری برگرداند (یکتاسازی یا slugify). با خواندن از فرم،
-                // ریدایرکت به آدرسی می‌رفت که اصلاً وجود ندارد.
-                const newSlug = res && res.data ? res.data.slug : null;
-
-                if (oldSlug && newSlug && oldSlug !== newSlug) {
-                    await offerArticleSlugRedirect(oldSlug, newSlug, title);
-                } else {
-                    Swal.fire({icon:'success', title:'ذخیره شد', timer:1200, showConfirmButton:false});
-                }
-            })
-            .catch(err => Swal.fire('خطا', (err.response && err.response.data) || 'ذخیره مقاله ناموفق بود', 'error'));
-    }
-
-    function deleteArticle(id) {
-        Swal.fire({title: 'حذف مقاله؟', text: 'این عمل قابل بازگشت نیست', icon: 'warning', showCancelButton: true, confirmButtonText: 'حذف'})
-            .then(r => {
-                if (r.isConfirmed) axios.delete(`${API}/v1/articles/admin/${id}`).then(() => fetchArticles());
-            });
+    function mountArticlesTab() {
+        // حذف فقط ادمین است و این صفحه هم فقط برای ادمین/کارشناس باز می‌شود؛
+        // مرزِ واقعی سمتِ سرور است (DELETE /api/v1/articles/admin/**).
+        return ArticlesAdminTab.mount(document.getElementById('tab-articles'),
+                {canDelete: ADMIN_IS_ADMIN});
     }
 
     // ==========================================

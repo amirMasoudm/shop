@@ -2,6 +2,7 @@ package org.example.shop1.model.service;
 
 import org.example.shop1.config.SecurityUtils;
 import org.example.shop1.exeption.ApiException;
+import org.example.shop1.model.entity.ActivityLog;
 import org.example.shop1.model.entity.Article;
 import org.example.shop1.model.reposritory.ArticleRepository;
 import org.example.shop1.model.service.util.SlugUtil;
@@ -18,9 +19,11 @@ import java.util.Optional;
 public class ArticleService {
 
     private final ArticleRepository repo;
+    private final ActivityLogService activityLog;
 
-    public ArticleService(ArticleRepository repo) {
+    public ArticleService(ArticleRepository repo, ActivityLogService activityLog) {
         this.repo = repo;
+        this.activityLog = activityLog;
     }
 
     public Article save(Article input) {
@@ -47,6 +50,8 @@ public class ArticleService {
         article.setCoverImage(SecurityUtils.clean(input.getCoverImage()));
         // محتوای مقاله: HTML غنی با Safelist ریلکس
         article.setContentHtml(SecurityUtils.cleanRich(input.getContentHtml()));
+        // وضعیتِ پیش از تغییر، برایِ لاگِ انتشار — بعد از set دیگر دردسترس نیست.
+        boolean wasPublished = !isNew && article.isPublished();
         article.setPublished(input.isPublished());
         article.setUpdatedAt(Instant.now());
 
@@ -67,14 +72,37 @@ public class ArticleService {
             article.setSlug(generateUniqueSlug(article.getTitle(), article.getId()));
         }
 
-        return repo.save(article);
+        Article saved = repo.save(article);
+
+        // ردپا — چهار نقشِ پنل روی محتوایِ عمومی دست می‌برند، پس باید معلوم باشد کی چه کرد.
+        // ⚠️ انتشار جدا لاگ می‌شود و نه درونِ همان رکوردِ ویرایش: سؤالِ واقعی «چه کسی
+        // این را منتشر کرد؟» است، نه «چه کسی دستش زد؟».
+        if (isNew) {
+            activityLog.record(ActivityLog.Action.ARTICLE_CREATE, ActivityLog.Source.MANUAL,
+                    ActivityLogService.ENTITY_ARTICLE, saved.getId(), saved.getTitle(),
+                    "article", null, saved.isPublished() ? "منتشرشده" : "پیش‌نویس");
+        } else {
+            activityLog.record(ActivityLog.Action.ARTICLE_UPDATE, ActivityLog.Source.MANUAL,
+                    ActivityLogService.ENTITY_ARTICLE, saved.getId(), saved.getTitle(),
+                    "article", null, null);
+        }
+        if (wasPublished != saved.isPublished()) {
+            activityLog.record(ActivityLog.Action.ARTICLE_UPDATE, ActivityLog.Source.MANUAL,
+                    ActivityLogService.ENTITY_ARTICLE, saved.getId(), saved.getTitle(),
+                    "published",
+                    wasPublished ? "منتشرشده" : "پیش‌نویس",
+                    saved.isPublished() ? "منتشرشده" : "پیش‌نویس");
+        }
+        return saved;
     }
 
     public void delete(String id) {
-        if (!repo.existsById(id)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "مقاله یافت نشد");
-        }
+        Article existing = repo.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "مقاله یافت نشد"));
         repo.deleteById(id);
+        activityLog.record(ActivityLog.Action.ARTICLE_DELETE, ActivityLog.Source.MANUAL,
+                ActivityLogService.ENTITY_ARTICLE, id, existing.getTitle(),
+                "article", existing.getSlug(), null);
     }
 
     public List<Article> getAllForAdmin() {
