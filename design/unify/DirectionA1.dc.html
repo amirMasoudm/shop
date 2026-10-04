@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    /* ── الف‌۱ — «خنثی» ───────────────────────────────────────────────
+       همان شبکهٔ الف. مدرن‌سازی از سه جا می‌آید:
+       ۱) بومِ سفید — نوارِ آبیِ توپُر حذف، هدر سفید با خطِ مو
+       ۲) کنتراستِ تایپ — لیبلِ ۱۰px مونو در برابرِ نامِ ۱۵px
+       ۳) عدد با فونتِ مونو و ارقامِ هم‌عرض                              */
+    .n { --ink:#0d1520; --ink-2:#46536b; --ink-3:#94a2b8;
+         --line:#e9edf2; --line-2:#f2f5f8; --surface:#fff;
+         --primary:#1b4f8a; --accent:#e8861a;
+         --ease:cubic-bezier(.2,.8,.3,1); --dur:140ms; }
+    .n * { box-sizing:border-box; margin:0; }
+    .n { font-family:Vazirmatn,Tahoma,sans-serif; background:var(--surface); color:var(--ink);
+         direction:rtl; height:100%; overflow:hidden; display:flex; flex-direction:column; }
+    .mono { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; }
+
+    /* هدر: سفید، خطِ مو، بدونِ گرادیان */
+    .hd { height:52px; display:flex; align-items:center; gap:26px; padding:0 18px;
+          border-bottom:1px solid var(--line); flex-shrink:0; }
+    .hd .bd { font-weight:800; font-size:.95rem; letter-spacing:-.4px; }
+    .hd nav { display:flex; gap:20px; font-size:.78rem; }
+    .hd nav span { color:var(--ink-3); position:relative; padding:3px 0; cursor:pointer;
+                   transition:color var(--dur) var(--ease); }
+    .hd nav span.on { color:var(--ink); font-weight:600; }
+    .hd nav span.on::after { content:''; position:absolute; bottom:-17px; right:0; left:0;
+                             height:2px; background:var(--accent); }
+    .hd nav span:not(.on):hover { color:var(--ink-2); }
+    .hd .sp { flex:1; }
+    .hd .cnt { font-size:.68rem; color:var(--ink-3); }
+
+    /* تیترِ بخش: کنتراستِ تایپ — همان چیزی که «مدرن» را می‌سازد */
+    .ttl { padding:20px 18px 14px; display:flex; align-items:flex-end;
+           justify-content:space-between; gap:14px; }
+    .ttl .lb { font-size:.62rem; font-weight:500; color:var(--ink-3);
+               letter-spacing:1.4px; text-transform:uppercase; display:block; margin-bottom:6px; }
+    .ttl h1 { font-size:1.42rem; font-weight:800; letter-spacing:-.7px; line-height:1.2; }
+    .ttl .act { font-size:.72rem; color:var(--primary); font-weight:600; cursor:pointer;
+                border-bottom:1px solid transparent; padding-bottom:1px;
+                transition:border-color var(--dur) var(--ease); }
+    .ttl .act:hover { border-bottom-color:var(--primary); }
+
+    .bar { display:flex; align-items:center; gap:22px; padding:0 18px; height:38px;
+           border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .bar b { font-size:.71rem; font-weight:600; color:var(--ink); cursor:pointer;
+             position:relative; padding:11px 0; transition:color var(--dur) var(--ease); }
+    .bar b::after { content:''; position:absolute; bottom:0; right:0; left:0; height:1.5px;
+                    background:var(--ink); }
+    .bar span { font-size:.71rem; color:var(--ink-3); cursor:pointer; padding:11px 0;
+                transition:color var(--dur) var(--ease); }
+    .bar span:hover { color:var(--ink); }
+    .bar .sp { flex:1; }
+    .bar input { border:0; outline:0; background:transparent; font-family:inherit;
+                 font-size:.71rem; color:var(--ink); width:150px; height:38px; }
+    .bar input::placeholder { color:var(--ink-3); }
+
+    /* شبکه با مرزِ مشترک — ساختارِ الف، دست‌نخورده */
+    .cells { display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+             background:var(--line); gap:1px; border-bottom:1px solid var(--line); }
+    .cell { background:var(--surface); padding:13px 14px 15px; cursor:pointer;
+            transition:background var(--dur) var(--ease); }
+    .cell:hover { background:#fafbfd; }
+    .cell:active { background:#f4f7fa; }
+    .cell .sku { font-size:.6rem; color:var(--ink-3); letter-spacing:.5px; }
+    .cell .nm { font-size:.82rem; font-weight:600; line-height:1.62; margin-top:6px;
+                height:2.6em; overflow:hidden; }
+    .cell .ft { display:flex; align-items:baseline; justify-content:space-between;
+                margin-top:12px; }
+    .cell .pr { font-size:.92rem; font-weight:700; letter-spacing:-.3px; }
+    .cell .pr i { font-style:normal; font-size:.62rem; color:var(--ink-3);
+                  font-weight:400; margin-right:3px; }
+    .cell .st { font-size:.6rem; color:var(--ink-3); }
+    .cell .st.ok::before { content:''; display:inline-block; width:5px; height:5px;
+                           background:#16a34a; margin-left:5px; vertical-align:middle; }
+    .cell .st.no::before { content:''; display:inline-block; width:5px; height:5px;
+                           background:var(--accent); margin-left:5px; vertical-align:middle; }
+
+    .tbl { border-bottom:1px solid var(--line); }
+    .tbl .r { display:grid; grid-template-columns:132px 1fr; padding:0 18px;
+              border-bottom:1px solid var(--line-2);
+              transition:background var(--dur) var(--ease); }
+    .tbl .r:last-child { border-bottom:0; }
+    .tbl .r:hover { background:#fafbfd; }
+    .tbl .r span { padding:9px 0; font-size:.66rem; color:var(--ink-3);
+                   letter-spacing:.4px; text-transform:uppercase; }
+    .tbl .r b { padding:9px 0; font-size:.74rem; font-weight:500; color:var(--ink); }
+
+    .note { margin-top:auto; font-size:.65rem; color:var(--ink-3); line-height:1.9;
+            padding:12px 18px; border-top:1px solid var(--line); }
+    .note b { color:var(--ink); font-weight:600; }
+  </style>
+</helmet>
+
+<div class="n">
+  <div class="hd">
+    <span class="bd">داده نما</span>
+    <nav><span class="on">داده‌نما</span><span>فروشگاه</span><span>آموزش</span><span>بلاگ</span></nav>
+    <span class="sp"></span>
+    <span class="cnt mono">۲۲۷</span>
+  </div>
+
+  <div class="ttl">
+    <div>
+      <span class="lb mono">CATALOG</span>
+      <h1>آنتن و دیش</h1>
+    </div>
+    <span class="act">همهٔ دسته‌ها ❮</span>
+  </div>
+
+  <div class="bar">
+    <b>محصولات</b><span>مشخصات</span><span>پرسش‌ها</span>
+    <span class="sp"></span>
+    <input type="text" placeholder="جست‌وجو…">
+  </div>
+
+  <div class="cells">
+    <div class="cell">
+      <div class="sku mono">SP62-32D</div>
+      <div class="nm">آنتن دیش وایمکس‌نیر ۳۲dBi دوقطبی</div>
+      <div class="ft"><div class="pr mono">۴٬۱۰۴٬۰۰۰<i>تومان</i></div><div class="st ok">موجود</div></div>
+    </div>
+    <div class="cell">
+      <div class="sku mono">RB4011iGS+</div>
+      <div class="nm">روتربرد میکروتیک RB4011</div>
+      <div class="ft"><div class="pr mono">۹٬۸۵۰٬۰۰۰<i>تومان</i></div><div class="st ok">۳ عدد</div></div>
+    </div>
+    <div class="cell">
+      <div class="sku mono">B5c</div>
+      <div class="nm">رادیو میموسا B5c پرظرفیت</div>
+      <div class="ft"><div class="pr mono">۱۸٬۲۰۰٬۰۰۰<i>تومان</i></div><div class="st no">در راه</div></div>
+    </div>
+    <div class="cell">
+      <div class="sku mono">U-POE-at</div>
+      <div class="nm">آداپتور PoE یوبیکیوتی ۸۰۲.۳at</div>
+      <div class="ft"><div class="pr mono">۴٬۱۰۴٬۰۰۰<i>تومان</i></div><div class="st ok">موجود</div></div>
+    </div>
+    <div class="cell">
+      <div class="sku mono">CRS310-1G-5S</div>
+      <div class="nm">سوئیچ میکروتیک CRS310</div>
+      <div class="ft"><div class="pr mono">۱۲٬۴۰۰٬۰۰۰<i>تومان</i></div><div class="st ok">۱ عدد</div></div>
+    </div>
+    <div class="cell">
+      <div class="sku mono">SPA-34.5x-D</div>
+      <div class="nm">آنتن دیش وای‌لینک ۳۴dBi دوقطبی</div>
+      <div class="ft"><div class="pr mono">۷٬۹۵۰٬۰۰۰<i>تومان</i></div><div class="st ok">موجود</div></div>
+    </div>
+  </div>
+
+  <div class="tbl">
+    <div class="r"><span class="mono">FREQUENCY</span><b>۴۸۰۰ تا ۶۲۰۰ مگاهرتز</b></div>
+    <div class="r"><span class="mono">CONNECTOR</span><b>۲ × N-Female</b></div>
+    <div class="r"><span class="mono">GAIN</span><b>۳۰٫۲ تا ۳۲٫۲ dBi در سراسرِ باند</b></div>
+  </div>
+
+  <div class="note">
+    <b>الف‌۱ — خنثی.</b> بومِ سفید، هدر بدونِ نوارِ رنگی، لیبل‌های مونوی کوچک در برابرِ تیترِ درشت.
+    نارنجی فقط زیرِ تبِ فعال و روی نشانگرِ «در راه».
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

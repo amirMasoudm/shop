@@ -1,0 +1,229 @@
+﻿holooCode,productId,name,mikrotikCode,category,slug
+DN-0001,6a5cbe4089e6bfd0ee962813,HGO-antenna-OUT میکروتیک,,آنتن و دیش,hgo-antenna-out-میکروتیک
+DN-0002,6a941e59c1194803791491bc,آنتن دیش فاز Phase-30ISO-WB-HP — ۳۰dBi دوقطبی توپُر,Phase-30ISO-WB-HP,آنتن و دیش,آنتن-دیش-فاز-phase-30iso-wb-hp-30dbi
+DN-0003,6a941e59c1194803791491bb,آنتن دیش فاز Phase-34-WB-NP — ۳۴dBi دوقطبی مشبک,PHASE-34-WB-NP,آنتن و دیش,آنتن-دیش-فاز-phase-34-wb-np-34dbi
+DN-0004,6a9473cf185a9b9e630da59d,آنتن دیش وایمکس‌نیر SP62-30 XD — ۳۰dBi دوقطبی,,آنتن و دیش,آنتن-دیش-نیر-sp62-30-xd-30dbi
+DN-0005,6a5cbd4e89e6bfd0ee962730,آنتن دیش وایمکس‌نیر SP62-30D — ۳۰dBi دوقطبی,,آنتن و دیش,دیش-وایمکس-نیر-مدل-sp62-30d
+DN-0006,6a9473cf185a9b9e630da59f,آنتن دیش وایمکس‌نیر SP62-33 LO — ۳۳dBi دوقطبی,SP62-33D-L,آنتن و دیش,آنتن-دیش-نیر-sp62-33-lo-33dbi
+DN-0007,6a5cbd5189e6bfd0ee962732,آنتن دیش وایمکس‌نیر SP62-35D — ۳۵dBi دوقطبی,,آنتن و دیش,آنتن-وایمکس-نیر-sp62-35d
+DN-0008,6a5cbd6489e6bfd0ee962744,آنتن دیش وایمکس‌نیر ۲۷dBi دوقطبی,,آنتن و دیش,آنتن-دیش-وایمکس-نیر-27d
+DN-0009,6a5cbd6389e6bfd0ee962743,آنتن دیش وایمکس‌نیر ۳۰dBi دوقطبی,,آنتن و دیش,آنتن-دیش-وایمکس-نیر-30d
+DN-0010,6a9473cf185a9b9e630da59c,آنتن دیش وایمکس‌نیر ۳۰dBi دوقطبی — نسخهٔ L,,آنتن و دیش,آنتن-دیش-نیر-30dbi-دوقطبی-l
+DN-0011,6a5cbd5289e6bfd0ee962733,آنتن دیش وایمکس‌نیر ۳۲dBi دوقطبی,,آنتن و دیش,آنتن-دیش-وایمکس-نیر-۳۲dbi
+DN-0012,6a9473cf185a9b9e630da59e,آنتن دیش وایمکس‌نیر ۳۲dBi دوقطبی HP — رادوم‌دار,SP62-32D-HP,آنتن و دیش,آنتن-دیش-نیر-32dbi-دوقطبی-hp-رادوم-دار
+DN-0013,6a5cbd6289e6bfd0ee962742,آنتن دیش وایمکس‌نیر ۳۳dBi دوقطبی,,آنتن و دیش,آنتن-دیش-وایمکس-نیر-33d
+DN-0014,6a947405185a9b9e630da5a0,آنتن دیش وای‌لینک HSPA-29.5x-D — ۲۹dBi دوقطبی پرقدرت,HSPA-29.5x-D,آنتن و دیش,آنتن-دیش-وایلینک-hspa-29-5x-d-29dbi
+DN-0015,6a941e58c1194803791491b8,آنتن دیش وای‌لینک SPA-29.5x-D — ۲۹٫۶dBi دوقطبی ۵ گیگاهرتز,SPA-29.5x-D,آنتن و دیش,آنتن-دیش-وایلینک-spa-29-5x-d-29dbi
+DN-0016,6a941e59c1194803791491ba,آنتن دیش وای‌لینک SPA-34.5x-D — ۳۴dBi دوقطبی ۵ گیگاهرتز,SPA-34.5x-D,آنتن و دیش,آنتن-دیش-وایلینک-spa-34-5x-d-34dbi
+DN-0017,6a5cbda989e6bfd0ee962785,آنتن دیش ۵ گیگاهرتز Kenbotong TDJ-5158P9Ax2,,آنتن و دیش,آنتن-وایرلس-دیش-کنبوتونگ-kenbotong-tdj-5158p9ax2
+DN-0018,6a5cbe3189e6bfd0ee962805,رادیو کلاینت یوبیکیوتی LiteBeam 5AC-23,,آنتن و دیش,آنتن-دو-قطبی-ubiquiti-litebeam-5ac-23
+DN-0019,6a5cbe6289e6bfd0ee962833,سوئیچ 24 پورت EnGenius EWS7928P-FIT,,انجنیوس,سوئیچ-24-پورت-engenius-ews7928p-fit
+DN-0020,6a5cbe6089e6bfd0ee962831,سوئیچ 8 پورت EnGenius ECS1112FP,,انجنیوس,سوئیچ-8-پورت-engenius-ecs1112fp
+DN-0021,6a5cbe6189e6bfd0ee962832,سوئیچ 8 پورت EnGenius ECS2510FP,,انجنیوس,سوئیچ-8-پورت-engenius-ecs2510fp
+DN-0022,6a5cbe6389e6bfd0ee962834,سوئیچ EnGenius EWS7928FP-FIT,,انجنیوس,سوئیچ-engenius-ews7928fp-fit
+DN-0023,6a5cbe6489e6bfd0ee962835,کنترلر شبکه EnGenius FitController100,,انجنیوس,کنترلر-شبکه-engenius-fitcontroller100
+DN-0024,6a5cbd5089e6bfd0ee962731,⛔ [تعلیق] فروش ویژه ENS500 و دیش وایمکس نیر,,انجنیوس,فروش-ویژه-ens500-و-دیش-وایمکس-نیر
+DN-0025,6a5cbe6a89e6bfd0ee96283a,اکسس پوینت EWS276-FIT اینجینیوس,,اکسس پوینت,اکسس-پوینت-ews276-fit-اینجینیوس
+DN-0026,6a5cbe6989e6bfd0ee962839,اکسس پوینت EnGenius ENH1350EXT,,اکسس پوینت,اکسس-پوینت
+DN-0027,6a5cbe6789e6bfd0ee962838,اکسس پوینت EnGenius ENS620EXT,,اکسس پوینت,اکسس-پوینت-engenius-ens620ext
+DN-0028,6a5cbe6589e6bfd0ee962836,اکسس پوینت EnGenius EWS356-FIT,,اکسس پوینت,اکسس-پوینت-engenius-ews356-fit
+DN-0029,6a5cbe6689e6bfd0ee962837,اکسس پوینت EnGenius EWS357-FIT,,اکسس پوینت,اکسس-پوینت-engenius-ews357-fit
+DN-0030,6a5cbe4e89e6bfd0ee962820,اکسس پوینت یوبیکیوتی UniFi U6 LR,,اکسس پوینت,u6-lr
+DN-0031,6a5cbe5289e6bfd0ee962824,اکسس پوینت یوبیکیوتی UniFi U6 Pro,,اکسس پوینت,u6-pro
+DN-0032,6a5cbe5189e6bfd0ee962823,اکسس پوینت یوبیکیوتی UniFi U7 Pro,,اکسس پوینت,u7-pro
+DN-0033,6a5cbe5389e6bfd0ee962825,اکسس پوینت یوبیکیوتی UniFi UAP-AC Pro,,اکسس پوینت,uap-ac-pro
+DN-0034,6a5cbe5f89e6bfd0ee962830,گیت‌وی EnGenius XG60-FIT,,اکسس پوینت,گیتوی-engenius-xg60-fit
+DN-0035,6a5cbd7189e6bfd0ee962750,Mikrotik hAP ac²,,اکسس پوینت میکروتیک,mikrotik-hap-ac²
+DN-0036,6a5cbe5b89e6bfd0ee96282c,cAP XL ac,,اکسس پوینت میکروتیک,cap-xl-ac
+DN-0037,6a5cbe0789e6bfd0ee9627dd,اکسس پوینت آتدور میکروتیک wAP ac,RBwAPG-5HacT2HnD,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-wap-ac-be
+DN-0038,6a76bd4b43a7b8c6279cd8b1,اکسس پوینت آتدور میکروتیک wAP ax,,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-wap-ax
+DN-0039,6a5cbdab89e6bfd0ee962787,اکسس پوینت سقفی میکروتیک cAP lite,RBcAPL-2nD,اکسس پوینت میکروتیک,اکسس-پوینت-سقفی-cap-lite-میکروتیک-mikrotik-rbcapl-2nd
+DN-0040,6a5cbe0589e6bfd0ee9627db,اکسس پوینت میکروتیک cAP ac,RBcAPGi-5acD2nD,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-cap-ac
+DN-0041,6a5cbe4c89e6bfd0ee96281e,اکسس پوینت میکروتیک cAP ax,cAPGi-5HaxD2HaxD,اکسس پوینت میکروتیک,cap-ax
+DN-0042,6a5cbe0489e6bfd0ee9627da,اکسس پوینت میکروتیک hAP ac lite,RB952Ui-5ac2nD,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-hap-ac-lite
+DN-0043,6a89627212e497ee8664907f,اکسس پوینت میکروتیک hAP ax S,E62iUGS-2axD5axT,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-hap-ax-s
+DN-0044,6a5cbe3b89e6bfd0ee96280e,اکسس پوینت میکروتیک hAP ax²,C52iG-5HaxD2HaxD-TC,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-مدل-hap-ax²
+DN-0045,6a5cbdaa89e6bfd0ee962786,اکسس پوینت میکروتیک mAP,RBmAP2nD,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-mikrotik-rb-map2nd
+DN-0046,6a5cbe0389e6bfd0ee9627d9,اکسس پوینت میکروتیک wsAP ac lite (مدل RBwsAP-5Hac2nD),RBwsAP-5Hac2nD,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-wsap-ac-lite
+DN-0047,6a5cbe3a89e6bfd0ee96280d,اکسس پوینت میکروتیک مدل hAP ax³,C53UiG+5HPaxD2HPaxD,اکسس پوینت میکروتیک,اکسس-پوینت-میکروتیک-مدل-hap-ax³
+DN-0048,6a5cbd8789e6bfd0ee962765,اکسس‌پوینت سقفی میکروتیک cAP (RBcAP2nD) — 2.4GHz,,اکسس پوینت میکروتیک,rbcap2nd
+DN-0049,6a5cbda389e6bfd0ee96277f,اکسس‌پوینت میکروتیک WAP (RB-WAP-2nD) — 2.4GHz داخلی,RBwAP2nD,اکسس پوینت میکروتیک,wap
+DN-0050,6a5cbd8289e6bfd0ee962760,روتر بی‌سیم میکروتیک RB951G-2HnD — ۵ پورت گیگابیت 2.4GHz,,اکسس پوینت میکروتیک,rb951g-2hnd
+DN-0051,6a5cbe5889e6bfd0ee962829,روتر میکروتیک hAP ax lite LTE6 (مدل L41G-2axD&FG621-EA),,اکسس پوینت میکروتیک,hap-ax-lite-lte6
+DN-0052,6a5cbdfd89e6bfd0ee9627d4,روتر میکروتیک hAP lite TC (مدل RB941-2nD-TC),RB941-2nD-TC,اکسس پوینت میکروتیک,روتر-میکروتیک-hap-lite-tc
+DN-0053,6a92e20885e5ed7d34676a7a,آداپتور PoE اختصاصیِ اینجنیوس EPA5006GP — ۵۴ ولت ۰٫۶ آمپر,EPA5006GP,تجهیزات پسیو و کابل شبکه,آداپتور-poe-اینجنیوس-epa5006gp
+DN-0054,6a89b10912e497ee86649099,آداپتور PoE اچ‌آر‌یو‌آی HR-FBG-48006 — ۴۸ ولت ۳۰ وات,HR-FBG-48006,تجهیزات پسیو و کابل شبکه,آداپتور-poe-hrui-hr-fbg5-48006
+DN-0055,6a92e20885e5ed7d34676a78,آداپتور PoE اکتیوِ اچ‌آر‌یو‌آی HR900-AFG-N301 — ۵۲ ولت ۳۰ وات,HR900-AFG-N301,تجهیزات پسیو و کابل شبکه,آداپتور-poe-اکتیو-hrui-hr900-afg-n301
+DN-0056,6a92e20885e5ed7d34676a79,آداپتور PoE میموسا Gigabit 50V — ۱٫۲ آمپر (۶۰ وات),G0566-500-120,تجهیزات پسیو و کابل شبکه,آداپتور-poe-میموسا-g0566-500-120
+DN-0057,6a89b10a12e497ee8664909a,آداپتور PoE گاس‌پاور G0720-240-050 — ۲۴ ولت ۰٫۵ آمپر,G0720-240-050,تجهیزات پسیو و کابل شبکه,آداپتور-poe-پسیو-24v-0-5a-12w
+DN-0058,6a89b14c12e497ee8664909c,آداپتور PoE یوبیکیوتی POE-24-12W — ۲۴ ولت ۰٫۵ آمپر فست‌اترنت,POE-24-12W,تجهیزات پسیو و کابل شبکه,آداپتور-poe-یوبیکیوتی-poe-24-12w
+DN-0059,6a89b14c12e497ee8664909b,آداپتور PoE یوبیکیوتی POE-24-24W-G — ۲۴ ولت ۱ آمپر گیگابیت,POE-24-24W-G,تجهیزات پسیو و کابل شبکه,آداپتور-poe-یوبیکیوتی-poe-24-24w-g
+DN-0060,6a89b14c12e497ee8664909d,آداپتور PoE یوبیکیوتی POE-48-24W-G — ۴۸ ولت ۰٫۵ آمپر گیگابیت,POE-48-24W-G,تجهیزات پسیو و کابل شبکه,آداپتور-poe-یوبیکیوتی-poe-48-24w-g
+DN-0061,6a89b14c12e497ee8664909e,آداپتور PoE یوبیکیوتی U-POE-af — ۸۰۲.۳af گیگابیت ۱۵ وات,U-POE-af,تجهیزات پسیو و کابل شبکه,آداپتور-poe-یوبیکیوتی-u-poe-af
+DN-0062,6a89b14c12e497ee8664909f,آداپتور PoE یوبیکیوتی U-POE-at — ۸۰۲.۳at گیگابیت ۳۰ وات,U-POE-at,تجهیزات پسیو و کابل شبکه,آداپتور-poe-یوبیکیوتی-u-poe-at
+DN-0063,6a5cbe4689e6bfd0ee962818,کابل شبکه Cat6 SFTP خارجی — Outdoor,,تجهیزات پسیو و کابل شبکه,wifi-cabel-cat-6-sftp
+DN-0064,6a5cbe4489e6bfd0ee962817,کابل شبکه Cat6 SFTP خارجی — Outdoor (WiMAX),,تجهیزات پسیو و کابل شبکه,wimax-cabel-cat-6-sftp
+DN-0065,6a5cbe4389e6bfd0ee962816,کابل شبکه Cat6 UTP — Mikrowan,,تجهیزات پسیو و کابل شبکه,کابل-میکرو-ون-cat6utp
+DN-0066,6a5cbd8f89e6bfd0ee96276c,کابل پیگتیل LMR 200 — N-type به SMA,,تجهیزات پسیو و کابل شبکه,lmr-200
+DN-0067,6a5cbd9089e6bfd0ee96276d,کابل پیگتیل LMR 400 — N-type به N-type,,تجهیزات پسیو و کابل شبکه,lmr-400
+DN-0068,6a5cbde089e6bfd0ee9627b9,LDF 5 ac/به همراه آنتن 29 dbi,RBLDFG-5acD,رادیو وایرلس آتدور میکروتیک,فید-میکروتیک-ldf-5-ac
+DN-0069,6a5cbd6889e6bfd0ee962748,LHG XL HP5,,رادیو وایرلس آتدور میکروتیک,lhg-xl-hp5
+DN-0070,6a5cbd7f89e6bfd0ee96275d,Mikrotik SXTsq Lite5,,رادیو وایرلس آتدور میکروتیک,mikrotik-sxtsq-lite5
+DN-0071,6a5cbe2d89e6bfd0ee962801,SXT SA5 AC,RBSXTG-5HPacD-SA,رادیو وایرلس آتدور میکروتیک,sxt-sa5-ac
+DN-0072,6a5cbd6c89e6bfd0ee96274c,آنتن دیش میکروتیک mANT 30dBi — پارابولیک ۵ گیگاهرتز,MTAD-5G-30D3,رادیو وایرلس آتدور میکروتیک,آنتن-دیش-میکروتیک-mant-30dbi
+DN-0073,6a5cbd6d89e6bfd0ee96274d,آنتن دیش میکروتیک mANT30 PA,MTAD-5G-30D3-PA,رادیو وایرلس آتدور میکروتیک,mikrotik-mant30-pa
+DN-0074,6a5cbdf289e6bfd0ee9627c9,اکسس پوینت میکروتیک OmniTIK 5 PoE ac,RBOmniTikPG-5HacD,رادیو وایرلس آتدور میکروتیک,اکسس-پوینت-میکروتیک-omnitik-5-poe-ac
+DN-0075,6a5cbdef89e6bfd0ee9627c7,اکسس پوینت میکروتیک OmniTIK 5 ac,RBOmniTikG-5HacD,رادیو وایرلس آتدور میکروتیک,اکسس-پوینت-میکروتیک-omnitik-5-ac
+DN-0076,6a5cbe2889e6bfd0ee9627fc,اکسس پوینت میکروتیک مدل QRT 5 ac,RB911G-5HPacD-QRT,رادیو وایرلس آتدور میکروتیک,qrt-5-ac
+DN-0077,6a5cbd7889e6bfd0ee962757,بسته ۳تایی رادیو میکروتیک LHG 5 — 5GHz 24.5dBi,,رادیو وایرلس آتدور میکروتیک,lhg-5-2
+DN-0078,6a5cbd6989e6bfd0ee962749,رادیو داینادیش میکروتیک DynaDish 5 ac,,رادیو وایرلس آتدور میکروتیک,mikrotik-dynadish-5
+DN-0079,6a5cbd7289e6bfd0ee962751,رادیو میکروتیک BaseBox5,,رادیو وایرلس آتدور میکروتیک,mikrotik-basebox5-2
+DN-0080,6a5cbd6f89e6bfd0ee96274e,رادیو میکروتیک SXTsq 5 High Power,RBSXTsq5HPnD,رادیو وایرلس آتدور میکروتیک,mikrotik-sxtsq-5-high-power
+DN-0081,6a5cbdba89e6bfd0ee962795,رادیو میکروتیک Wireless Wire nRAY,nRAYG-60adpair,رادیو وایرلس آتدور میکروتیک,آنتن-وایرلس-میکروتیک-wireless-wire-nray
+DN-0082,6a5cbde289e6bfd0ee9627ba,رادیو وایرلس DISC Lite5 ac میکروتیک,RBDiscG-5acD,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-disc-lite5-ac-میکروتیک
+DN-0083,6a5cbe2b89e6bfd0ee9627ff,رادیو وایرلس خارجی میکروتیک BaseBox 2 (مدل RB912UAG-2HPnD-OUT),RB912UAG-2HPnD-OUT,رادیو وایرلس آتدور میکروتیک,basebox-2
+DN-0084,6a5cbde789e6bfd0ee9627bf,رادیو وایرلس میکروتیک BaseBox 6,RB912UAG-6HPnD-OUT,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-basebox-6
+DN-0085,6a89a97f12e497ee8664908d,رادیو وایرلس میکروتیک Cube 60Pro ac,CubeG-5ac60ay,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-cube-60pro-ac
+DN-0086,6a5cbdb089e6bfd0ee96278b,رادیو وایرلس میکروتیک Groove A-52HPn,RBGrooveA-52HPn,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-mikrotik-rbgroovea-52hpn
+DN-0087,6a5cbde989e6bfd0ee9627c1,رادیو وایرلس میکروتیک GrooveA 52 ac,RBGrooveGA-52HPacn,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-groovea-52-ac
+DN-0088,6a89633912e497ee86649089,رادیو وایرلس میکروتیک LHG 5 ax,LHG-5axD,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-lhg-5-ax
+DN-0089,6a5cbdf589e6bfd0ee9627cc,رادیو وایرلس میکروتیک LHG 60G,RBLHGG-60ad,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-lhg-60g
+DN-0090,6a5cbdeb89e6bfd0ee9627c3,رادیو وایرلس میکروتیک LHG XL 5 ac,RBLHGG-5acD-XL,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-lhg-xl-5-ac
+DN-0091,6a89633912e497ee8664908a,رادیو وایرلس میکروتیک LHG XL 5 ax,LHG-5axD-XL,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-lhg-xl-5-ax
+DN-0092,6a5cbdf089e6bfd0ee9627c8,رادیو وایرلس میکروتیک Metal 52 ac,RBMetalG-52SHPacn,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-metal-52-ac
+DN-0093,6a5cbdee89e6bfd0ee9627c6,رادیو وایرلس میکروتیک NetBox 5,RB911G-5HPacD-NB,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-netbox-5
+DN-0094,6a8962c012e497ee86649084,رادیو وایرلس میکروتیک NetBox 5 ax,L11UG-5HaxD-NB,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-netbox-5-ax
+DN-0095,6a8962c012e497ee86649083,رادیو وایرلس میکروتیک NetMetal 5 (RB922UAGS-5HPacD-NM),RB922UAGS-5HPacD-NM,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-netmetal-5-rb922uags-5hpacd-nm
+DN-0096,6a5cbdf889e6bfd0ee9627cf,رادیو وایرلس میکروتیک NetMetal 5SHP triple (RB921UAGS-5SHPacT-NM),RB921UAGS-5SHPacT-NM,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-netmetal-5shp-triple
+DN-0097,6a8962c012e497ee86649082,رادیو وایرلس میکروتیک NetMetal ax,L23UGSR-5HaxD2HaxD-NM,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-netmetal-ax
+DN-0098,6a5cbd8389e6bfd0ee962761,رادیو وایرلس میکروتیک QRT 5 — 5GHz فلت‌پنل ۲۴dBi,,رادیو وایرلس آتدور میکروتیک,qrt-5
+DN-0099,6a5cbddf89e6bfd0ee9627b8,رادیو وایرلس میکروتیک SXTsq 5 ac,RBSXTsqG-5acD,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-sxtsq-5-ac
+DN-0100,6a8962fd12e497ee86649087,رادیو وایرلس میکروتیک SXTsq 5 ax,SXTsq-5axD,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-sxtsq-5-ax
+DN-0101,6a5cbdf489e6bfd0ee9627cb,رادیو وایرلس میکروتیک mANTBox 15s,RB921GS-5HPacD-15S,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-mantbox-15s
+DN-0102,6a5cbdfb89e6bfd0ee9627d2,رادیو وایرلس میکروتیک mANTBox 19s,RB921GS-5HPacD-19S,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-mantbox-19s
+DN-0103,6a8962fd12e497ee86649085,رادیو وایرلس میکروتیک mANTBox ax 15s,L22UGS-5HaxD2HaxD-15S,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-mantbox-ax-15s
+DN-0104,6a5cbe4289e6bfd0ee962815,رادیو وایرلس میکروتیک mANTBox2 12s,RB911G-2HPnD-12S,رادیو وایرلس آتدور میکروتیک,رادیو-وایرلس-میکروتیک-mantbox2-12s
+DN-0105,6a5cbdfe89e6bfd0ee9627d5,لینک بی‌سیم میکروتیک LHG 60G — Wireless Wire Dish (مدل RBLHGG-60adkit),RBLHGG-60adkit,رادیو وایرلس آتدور میکروتیک,لینک-بی‌سیم-میکروتیک-lhg-60g
+DN-0106,6a5cbd5689e6bfd0ee962737,لینک مایکروویو Racom RAy3 (1Gbps / آنتن 3ft),,راکام,ray3-microwave-link-1gbps-3ft
+DN-0107,6a5cbd5589e6bfd0ee962736,لینک مایکروویو Racom RAy3 (500Mbps / آنتن 2ft),,راکام,ray3-microwave-link-500mbps-2ft
+DN-0108,6a5cbe4789e6bfd0ee962819,CCR2004-16G-2S+,,روتر میکروتیک,15727
+DN-0109,6a5cbe4a89e6bfd0ee96281c,L009UiGS-RM,,روتر میکروتیک,l009uigs-rm
+DN-0110,6a5cbdc689e6bfd0ee9627a0,روتر آتدور میکروتیک PowerBox Pro,RB960PGS-PB,روتر میکروتیک,میکروتیک-powerbox-pro
+DN-0111,6a5cbd7389e6bfd0ee962752,روتر سازمانی میکروتیک CCR1036-12G-4S-EM (دست دوم),CCR1036-12G-4S-EM,روتر میکروتیک,ccr1036-12g-4s-em
+DN-0112,6a5cbe0889e6bfd0ee9627de,روتر سوییچ میکروتیک RB4011iGS+5HacQ2HnD-IN,RB4011iGS+5HacQ2HnD-IN,روتر میکروتیک,روتر-سوییچ-میکروتیک-rb4011igs5hacq2hnd-in
+DN-0113,6a5cbdcc89e6bfd0ee9627a6,روتر مرکزی میکروتیک CCR1016-12S-1S+,CCR1016-12S-1S+,روتر میکروتیک,روتر-میکروتیک-ccr1016-12s-1s
+DN-0114,6a5cbd9389e6bfd0ee962770,روتر میکروتیک CCR1009-7G-1C-1S+,CCR1009-7G-1C-1S+,روتر میکروتیک,mikrotik-ccr1009-7g-1c-1s
+DN-0115,6a5cbdb489e6bfd0ee96278f,روتر میکروتیک CCR1072-1G-8S+,CCR1072-1G-8S+,روتر میکروتیک,روتر-میکروتیک-مدل-mikrotik-ccr-1072-1g-8
+DN-0116,6a5cbe4989e6bfd0ee96281b,روتر میکروتیک L009UiGS-2HaxD-IN,,روتر میکروتیک,l009uigs-2haxd-in
+DN-0117,6a5cbdae89e6bfd0ee96278a,روتر میکروتیک Mikrotik router hEX S - RB760iGS,RB760iGS,روتر میکروتیک,روتر-میکروتیک-mikrotik-router-hex-s-rb760igs
+DN-0118,6a5cbd8589e6bfd0ee962763,روتر میکروتیک RB1100AHx4 Dude Edition,,روتر میکروتیک,mikrotik-rb1100ahx4-dude-edition
+DN-0119,6a5cbd9589e6bfd0ee962772,روتر میکروتیک RB1100AHx4 — Enterprise 13 پورت گیگابیت,,روتر میکروتیک,rb1100ahx4
+DN-0120,6a5cbdc489e6bfd0ee96279e,روتر میکروتیک RB2011iL-IN,RB2011iL-IN,روتر میکروتیک,روتر-میکروتیک-rb2011il-in
+DN-0121,6a89627212e497ee8664907e,روتر میکروتیک RB5009UPr+S+IN,RB5009UPr+S+IN,روتر میکروتیک,روتر-میکروتیک-rb5009uprsin
+DN-0122,6a5cbe5789e6bfd0ee962828,روتر میکروتیک hAP ax lite (مدل L41G-2axD),,روتر میکروتیک,hap-ax-lite
+DN-0123,6a5cbd9789e6bfd0ee962774,روتر میکروتیک hEX (RB750Gr3) — ۵ پورت گیگابیت,RB750Gr3,روتر میکروتیک,hex-rb750gr3
+DN-0124,6a5cbd9889e6bfd0ee962775,روتر میکروتیک hEX Lite (RB750r2) — ۵ پورت Fast Ethernet,RB750r2,روتر میکروتیک,hex-lite-rb750r2
+DN-0125,6a5cbd7689e6bfd0ee962755,روتر میکروتیک hEX PoE lite,,روتر میکروتیک,hex-poe-lite
+DN-0126,6a8961fa12e497ee8664907d,روتر میکروتیک hEX refresh (E50UG),E50UG,روتر میکروتیک,روتر-میکروتیک-hex-refresh-e50ug
+DN-0127,6a5cbe3789e6bfd0ee96280a,روتر میکروتیک مدل +CCR2116-12G-4S,CCR2116-12G-4S+,روتر میکروتیک,روتر-میکروتیک-مدل-ccr2116-12g-4s
+DN-0128,6a5cbe3489e6bfd0ee962808,روتر میکروتیک مدل CCR2216-1G-12XS-2XQ,CCR2216-1G-12XS-2XQ,روتر میکروتیک,روتر-میکروتیک-مدل-ccr2216-1g-12xs-2xq
+DN-0129,6a5cbdb289e6bfd0ee96278d,روتر میکروتیک مدل Mikrotik RB4011iGS+RM,RB4011iGS+RM,روتر میکروتیک,روتر-میکروتیک-مدل-mikrotik-rb4011igsrm
+DN-0130,6a5cbe3889e6bfd0ee96280b,روتر میکروتیک مدل RB5009UG+S+IN,RB5009UG+S+IN,روتر میکروتیک,روتر-میکروتیک-مدل-rb5009ugsin
+DN-0131,6a5cbe3989e6bfd0ee96280c,روتر وایرلس میکروتیک RB951Ui-2HnD,RB951Ui-2HnD,روتر میکروتیک,روتر-میکروتیک-95ui-wireless
+DN-0132,6a5cbdb589e6bfd0ee962790,روتربرد میکروتیک CCR2004-1G-12S+2XS,CCR2004-1G-12S+2XS,روتر میکروتیک,روتربرد-میکروتیک-ccr2004-1g-12s2xs
+DN-0133,6a5cbe4b89e6bfd0ee96281d,سوئیچ میکروتیک CRS125-24G-1S-2HnD-IN,,روتر میکروتیک,crs-125-24g-1s-2hnd-in
+DN-0134,6a5cbe3689e6bfd0ee962809,سوئیچ میکروتیک CRS504-4XQ-IN (چهار پورت ۱۰۰ گیگابیت QSFP28),CRS504-4XQ-IN,روتر میکروتیک,روتر-سوئیچ-mikritik-crs504-4xq-in
+DN-0135,6a5cbdc389e6bfd0ee96279d,میکروتیک hEX PoE,RB960PGS,روتر میکروتیک,میکروتیک-hex-poe
+DN-0136,6a5cbd6b89e6bfd0ee96274b,Mikrotik CRS112-8P-4S-IN,CRS112-8P-4S-IN,سوییچ میکروتیک,mikrotik-crs112-8p-4s-in
+DN-0137,6a5cbdad89e6bfd0ee962789,روتر سوئیچ میکروتیک مدل Mikrotik CRS328-24P-4S+RM,CRS328-24P-4S+RM,سوییچ میکروتیک,روتر-سوئیچ-میکروتیک-مدل-mikrotik-crs328-24p-4srm
+DN-0138,6a5cbdd489e6bfd0ee9627ad,روتر سوییچ میکروتیک CRS326-24G-2S+RM,CRS326-24G-2S+RM,سوییچ میکروتیک,روتر-سوییچ-میکروتیک-crs326-24g-2sin
+DN-0139,6a5cbdd389e6bfd0ee9627ac,روتر میکروتیک CRS305-1G-4S+IN,CRS305-1G-4S+IN,سوییچ میکروتیک,روتر-میکروتیک-crs305-1g-4sin
+DN-0140,6a5cbdb689e6bfd0ee962791,سوییچ اوتدر netPower 15FR,CRS318-1Fi-15Fr-2S-OUT,سوییچ میکروتیک,سوییچ-اوتدر-netpower-15fr
+DN-0141,6a5cbdb789e6bfd0ee962792,سوییچ اوتدر netPower 16P,CRS318-16P-2S+OUT,سوییچ میکروتیک,سوییچ-اوتدر-netpower-16p
+DN-0142,6a5cbdd189e6bfd0ee9627aa,سوییچ اوتدور میکروتیک netPower Lite 7R,CSS610-1Gi-7R-2S+OUT,سوییچ میکروتیک,روتر-میکروتیک-netpower-lite-7r
+DN-0143,6a5cbdd789e6bfd0ee9627b0,سوییچ روتر میکروتیک CRS309-1G-8S+IN,CRS309-1G-8S+IN,سوییچ میکروتیک,سوییچ-روتر-میکروتیک-crs309-1g-8sin
+DN-0144,6a5cbdda89e6bfd0ee9627b3,سوییچ روتر میکروتیک CRS354-48G-4S+2Q+RM,CRS354-48G-4S+2Q+RM,سوییچ میکروتیک,سوییچ-روتر-میکروتیک-crs354-48g-4s2qrm
+DN-0145,6a5cbdcf89e6bfd0ee9627a9,سوییچ روتر میکروتیک CSS610-8G-2S+IN,CSS610-8G-2S+IN,سوییچ میکروتیک,سوییچ-روتر-میکروتیک-css610-8g-2sin
+DN-0146,6a5cbddb89e6bfd0ee9627b4,سوییچ رک 10G مسی میکروتیک CRS312-4C+8XG-RM,CRS312-4C+8XG-RM,سوییچ میکروتیک,سوییچ-روتر-میکروتیک-crs312-4c8xg-rm
+DN-0147,6a5cbdd989e6bfd0ee9627b2,سوییچ رک 10G میکروتیک CRS326-24S+2Q+RM,CRS326-24S+2Q+RM,سوییچ میکروتیک,سوییچ-روتر-میکروتیک-crs326-24s2qrm
+DN-0148,6a5cbdd889e6bfd0ee9627b1,سوییچ رک فیبر میکروتیک CRS328-4C-20S-4S+RM,CRS328-4C-20S-4S+RM,سوییچ میکروتیک,سوییچ-روتر-میکروتیک-crs328-4c-20s-4srm
+DN-0149,6a5cbdb889e6bfd0ee962793,سوییچ میکروتیک CRS354-48P-4S+2Q+RM,,سوییچ میکروتیک,سوییچ-میکروتیک-crs354-48p-4s2qrm
+DN-0150,6a5cbe2989e6bfd0ee9627fd,تزریق‌کنندهٔ PoE میکروتیک RBGPOE,RBGPOE,لایسنس و اکسسوری میکروتیک,rbgpoe
+DN-0151,6a89b10912e497ee86649098,تزریق‌کنندهٔ PoE میکروتیک RBGPOE-CON-HP,RBGPOE-CON-HP,لایسنس و اکسسوری میکروتیک,تزریق-کننده-poe-میکروتیک-rbgpoe-con-hp
+DN-0152,6a5cbd8b89e6bfd0ee962769,تزریق‌کنندهٔ PoE پسیو میکروتیک RBPOE,,لایسنس و اکسسوری میکروتیک,rbpoe
+DN-0153,6a5cbd8c89e6bfd0ee96276a,تکرارکنندهٔ پسیو گیگابیت اترنت میکروتیک GPeR,,لایسنس و اکسسوری میکروتیک,gper
+DN-0154,6a5cbda589e6bfd0ee962781,ماژول SFP مسی میکروتیک S-RJ01 — گیگابیت RJ45,S-RJ01,لایسنس و اکسسوری میکروتیک,s-rj01
+DN-0155,6a5cbda689e6bfd0ee962782,ماژول SFP میکروتیک S-31DLC20D — 1310nm 1.25G تک‌مود 20km,S-31DLC20D,لایسنس و اکسسوری میکروتیک,s-31dlc20d
+DN-0156,6a5cbda889e6bfd0ee962784,ماژول SFP میکروتیک S-85DLC05D — 850nm 1.25G مالتی‌مود,S-85DLC05D,لایسنس و اکسسوری میکروتیک,s-85dlc05d
+DN-0157,6a5cbe3e89e6bfd0ee962811,ماژول SFP+ به RJ45 میکروتیک مدل S+RJ10,S+RJ10,لایسنس و اکسسوری میکروتیک,ماژول-فیبر-نوری-میکروتیک-مدل-srj10
+DN-0158,6a89a97f12e497ee8664908e,ماژول SFP+ میکروتیک S+31DLC10D,S+31DLC10D,لایسنس و اکسسوری میکروتیک,ماژول-sfp-میکروتیک-s31dlc10d
+DN-0159,6a5cbda789e6bfd0ee962783,ماژول SFP+ میکروتیک S+85DLC03D — 850nm 10G مالتی‌مود,S+85DLC03D,لایسنس و اکسسوری میکروتیک,s85dlc03d
+DN-0160,6a5cbe3f89e6bfd0ee962812,ماژول فیبر نوری میکروتیک S-55DLC80D,S-55DLC80D,لایسنس و اکسسوری میکروتیک,ماژول-فیبر-نوری-میکروتیک-s-55dlc80d
+DN-0161,6a5cbd8d89e6bfd0ee96276b,پایهٔ نصب سریع میکروتیک QMP-LHG,,لایسنس و اکسسوری میکروتیک,qmp-lhg
+DN-0162,6a5cbe3389e6bfd0ee962807,پوشش محافظ آنتن میکروتیک MTA Radome Kit,MTRADC,لایسنس و اکسسوری میکروتیک,کاور-آنتن-mta-radome-kit
+DN-0163,6a5cbe5c89e6bfd0ee96282d,LigoDLB 5ac,,لیگوویو,ligowave-dlb-5ac
+DN-0164,6a5cbe6b89e6bfd0ee96283b,رادیو 5گیگاهرتز لیگوویو مدل ligoPTP 5-N RapidFire,,لیگوویو,رادیو-5گیگاهرتز-لیگوویو-مدل-ligoptp-5-n-rapidfire
+DN-0165,6a5cbe6c89e6bfd0ee96283c,رادیو بی سیم لیگوویو LigoPTP 6-N RapidFire,,لیگوویو,رادیو-بی-سیم-لیگوویو-ligoptp-6-n-rapidfire
+DN-0166,6a5cbe1189e6bfd0ee9627e7,اکسس پوینت میکروتیک LtAP,RBLtAP-2HnD,مودم و روتر LTE میکروتیک,اکسس-پوینت-میکروتیک-ltap
+DN-0167,6a5cbe1a89e6bfd0ee9627ef,اکسس پوینت میکروتیک LtAP LTE kit,RBLtAP-2HnD&R11e-LTE,مودم و روتر LTE میکروتیک,اکسس-پوینت-میکروتیک-ltap-lte-kit
+DN-0168,6a5cbe0f89e6bfd0ee9627e5,اکسس پوینت میکروتیک LtAP mini LTE kit,RB912R-2nD-LTm&R11e-LTE,مودم و روتر LTE میکروتیک,اکسس-پوینت-میکروتیک-ltap-mini-lte-kit
+DN-0169,6a5cbdbd89e6bfd0ee962798,اکسس پوینت میکروتیک مدل Chateau LTE12,RBD53G-5HacD2HnD-TC&EG12-EA,مودم و روتر LTE میکروتیک,اکسس-پوینت-میکروتیک-مدل-chateau-lte12
+DN-0170,6a5cbe0e89e6bfd0ee9627e4,اکسس‌پوینت خارجی میکروتیک LtAP mini (مدل RB912R-2nD-LTm),RB912R-2nD-LTm,مودم و روتر LTE میکروتیک,اکسس-پوینت-میکروتیک-ltap-mini
+DN-0171,6a5cbe1689e6bfd0ee9627eb,رادیو وایرلس میکروتیک LHG LTE kit,RBLHGR&R11e-LTE,مودم و روتر LTE میکروتیک,رادیو-وایرلس-میکروتیک-lhg-lte-kit
+DN-0172,6a5cbe1c89e6bfd0ee9627f1,رادیو وایرلس میکروتیک LHG LTE6 kit,RBLHGR&R11e-LTE6,مودم و روتر LTE میکروتیک,رادیو-وایرلس-میکروتیک-lhg-lte6-kit
+DN-0173,6a5cbe1089e6bfd0ee9627e6,رادیو وایرلس میکروتیک SXT LTE kit (مدل RBSXTR&R11e-LTE),RBSXTR&R11e-LTE,مودم و روتر LTE میکروتیک,رادیو-وایرلس-میکروتیک-sxt-lte-kit
+DN-0174,6a5cbe1589e6bfd0ee9627ea,رادیو وایرلس میکروتیک SXT LTE6 kit,RBSXTR&R11e-LTE6,مودم و روتر LTE میکروتیک,رادیو-وایرلس-میکروتیک-sxt-lte6-kit
+DN-0175,6a5cbd9e89e6bfd0ee96277b,مودم LTE میکروتیک wAP LTE kit,RBwAPR-2nD&R11e-LTE,مودم و روتر LTE میکروتیک,wap-lte-kit
+DN-0176,6a89633912e497ee86649088,مودم روتر میکروتیک ATL LTE18 kit,ATLGM&EG18-EA,مودم و روتر LTE میکروتیک,مودم-روتر-میکروتیک-atl-lte18-kit
+DN-0177,6a89627212e497ee86649080,مودم روتر میکروتیک Chateau 5G ax,S53UG+M-5HaxD2HaxD-TC&RG502Q-EA,مودم و روتر LTE میکروتیک,مودم-روتر-میکروتیک-chateau-5g-ax
+DN-0178,6a8962c012e497ee86649081,مودم روتر میکروتیک Chateau LTE7,D53G-5HacD2HnD-TC&R11e-LTE7,مودم و روتر LTE میکروتیک,مودم-روتر-میکروتیک-chateau-lte7
+DN-0179,6a89a91912e497ee8664908b,مودم روتر میکروتیک LHGG LTE6 kit,LHGGR&FG621-EA,مودم و روتر LTE میکروتیک,مودم-روتر-میکروتیک-lhgg-lte6-kit
+DN-0180,6a89a91912e497ee8664908c,مودم روتر میکروتیک LHGG LTE7 kit,LHGGR&R11e-LTE7,مودم و روتر LTE میکروتیک,مودم-روتر-میکروتیک-lhgg-lte7-kit
+DN-0181,6a8962fd12e497ee86649086,مودم روتر میکروتیک SXT LTE7 kit,SXTR&R11e-LTE7,مودم و روتر LTE میکروتیک,مودم-روتر-میکروتیک-sxt-lte7-kit
+DN-0182,6aaaea866b2208a9515ffa6d,تست تولید,,میموسا,تست-تولید
+DN-0183,6a5cbd9189e6bfd0ee96276e,رادیو میموسا A5c,,میموسا,a5c-mimosa-networks
+DN-0184,6a5cbd8a89e6bfd0ee962768,رادیو میموسا B5C,,میموسا,رادیو-میموسا-مدل-b5c
+DN-0185,6a5cbe3c89e6bfd0ee96280f,رادیو میموسا B5x,,میموسا,رادیو-وایرلس-میموسا-مدل-b5x
+DN-0186,6a5cbd6a89e6bfd0ee96274a,رادیو میموسا C5C,,میموسا,mimosa-c5c
+DN-0187,6a5cbe3d89e6bfd0ee962810,رادیو میموسا C5X,,میموسا,رادیو-وایرلس-میموسا-مدل-c5x
+DN-0188,6a89a98012e497ee8664908f,رادیو میموسا C6x,C6x,میموسا,رادیو-میموسا-c6x
+DN-0189,6a5cbe2c89e6bfd0ee962800,اکسس‌پوینت سکتور میکروتیک SXT SA5 (مدل RBSXTG-5HPnD-SAr2),RBSXTG-5HPnD-SAr2,میکروتیک,sxt-sa5
+DN-0190,6a5cbe2f89e6bfd0ee962803,رادیو وایرلس میکروتیک SXTsq Lite2 (مدل RBSXTsq2nD),RBSXTsq2nD,میکروتیک,sxt-sq-lite-2
+DN-0191,6a5cbd8989e6bfd0ee962767,روتربورد میکروتیک RB912UAG — بورد وایرلس اوتدر,,میکروتیک,rb912
+DN-0192,6a5cbe2a89e6bfd0ee9627fe,سوئیچ ریک‌مونت میکروتیک CRS317-1G-16S+RM (۱۶ پورت SFP+ 10G),CRS317-1G-16S+RM,میکروتیک,crs317-1g-16srm
+DN-0193,6a89b0d612e497ee86649095,تلفن تحت شبکه فنویل مدل V61W,V61W,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-فنویل-مدل-v61w
+DN-0194,6a89b0d612e497ee86649094,تلفن تحت شبکه فنویل مدل V62G,V62G,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-فنویل-مدل-v62g
+DN-0195,6a89b0d612e497ee86649097,تلفن تحت شبکه فنویل مدل X1SP,X1SP,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-فنویل-مدل-x1sp
+DN-0196,6a89b0d612e497ee86649096,تلفن تحت شبکه فنویل مدل X303P,X303P,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-فنویل-مدل-x303p
+DN-0197,6a5cbd5489e6bfd0ee962735,تلفن تحت شبکه فنویل مدل X3S,,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-فنویل-مدل-x3s
+DN-0198,6a5cbe2289e6bfd0ee9627f7,تلفن تحت شبکه فنویل مدل X3SP,,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-فنویل-مدل-x3sp
+DN-0199,6a5cbe2389e6bfd0ee9627f8,تلفن تحت شبکه فنویل مدل X4,,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-فنویل-مدل-x4
+DN-0200,6a5cbe3289e6bfd0ee962806,تلفن تحت شبکه یالینک مدل T23G,,ویپ و تلفن تحت شبکه,تلفن-تحت-شبکه-یالینک-مدل-t23g
+DN-0201,6a5cbd6589e6bfd0ee962745,ماژول GSM زایکو مدل 2GSM,,ویپ و تلفن تحت شبکه,ماژول-gsm-زایکو-مدل-2gsm
+DN-0202,6a5cbdc189e6bfd0ee96279b,ماژول GSM زایکو مدل 4GSM,,ویپ و تلفن تحت شبکه,ماژول-gsm-زایکو-مدل-4gsm
+DN-0203,6a5cbd5389e6bfd0ee962734,ماژول GSM زایکو مدل ۱GSM,,ویپ و تلفن تحت شبکه,ماژول-gsm-زایکو-مدل-۱gsm-2
+DN-0204,6a5cbd5f89e6bfd0ee96273f,ماژول مرکز تلفن زایکو مدل CooVox 4FXO,,ویپ و تلفن تحت شبکه,ماژول-مرکز-تلفن-زایکو-مدل-coovox-4fxo-2
+DN-0205,6a5cbd5d89e6bfd0ee96273e,ماژول مرکز تلفن زایکو مدل CooVox 4FXS,,ویپ و تلفن تحت شبکه,ماژول-مرکز-تلفن-زایکو-مدل-coovox-4fxs
+DN-0206,6a5cbd6089e6bfd0ee962740,ماژول مرکز تلفن زایکو مدل CooVox FXO200,,ویپ و تلفن تحت شبکه,ماژول-مرکز-تلفن-زایکو-مدل-coovox-fxo200-2
+DN-0207,6a5cbd6189e6bfd0ee962741,ماژول مرکز تلفن زایکو مدل CooVox FXS200,,ویپ و تلفن تحت شبکه,ماژول-مرکز-تلفن-زایکو-مدل-coovox-fxs200-2
+DN-0208,6a5cbe2689e6bfd0ee9627fa,ماژول مرکز تلفن زایکو مدل CooVox V2 1PRI,,ویپ و تلفن تحت شبکه,ماژول-مرکز-تلفن-زایکو-مدل-coovox-v2-1pri
+DN-0209,6a5cbd5c89e6bfd0ee96273d,ماژول مرکز تلفن زایکو مدل CooVox V2 2FXOS,,ویپ و تلفن تحت شبکه,ماژول-مرکز-تلفن-زایکو-مدل-coovox-v2-2fxos
+DN-0210,6a5cbd5b89e6bfd0ee96273c,مرکز تلفن تحت شبکه زایکو مدل U100-V3,,ویپ و تلفن تحت شبکه,مرکز-تلفن-تحت-شبکه-زایکو-مدل-u100-v3
+DN-0211,6a5cbd5789e6bfd0ee962738,مرکز تلفن تحت شبکه زایکو مدل U20-V3,,ویپ و تلفن تحت شبکه,مرکز-تلفن-تحت-شبکه-زایکو-مدل-u20-v3
+DN-0212,6a5cbd5889e6bfd0ee962739,مرکز تلفن تحت شبکه زایکو مدل U50-V3,,ویپ و تلفن تحت شبکه,مرکز-تلفن-تحت-شبکه-زایکو-مدل-u50-v3
+DN-0213,6a5cbd5989e6bfd0ee96273a,مرکز تلفن تحت شبکه زایکو مدل U60-V3,,ویپ و تلفن تحت شبکه,مرکز-تلفن-تحت-شبکه-زایکو-مدل-u60-v3-2
+DN-0214,6a5cbd5a89e6bfd0ee96273b,مرکز تلفن تحت شبکه زایکو مدل U80-V3,,ویپ و تلفن تحت شبکه,مرکز-تلفن-تحت-شبکه-زایکو-مدل-u80-v3
+DN-0215,6a5cbe7089e6bfd0ee962840,رادیو موتورولا کمبیوم نت ورکز PTP 670 Connectorized,,کمبیوم نتورک,رادیو-موتورولا-کمبیوم-نت-ورکز-ptp-670-connectorized
+DN-0216,6a5cbe6d89e6bfd0ee96283d,رادیو وایرلس Cambium Force 4600C,,کمبیوم نتورک,رادیو-وایرلس-cambium-force-4600c
+DN-0217,6a5cbe6e89e6bfd0ee96283e,رادیو کمبیوم نتورک 6GHz FORCE 4625,,کمبیوم نتورک,رادیو-کمبیوم-نتورک-6ghz-force-4625
+DN-0218,6a5cbe6f89e6bfd0ee96283f,⛔ [تعلیق] رادیو کمبیوم نتورک 6GHz FORCE 4630,,کمبیوم نتورک,رادیو-کمبیوم-نتورک-6ghz-force-4630
+DN-0219,6a5cbe5d89e6bfd0ee96282e,Air Grid M5 27dbi,,یوبیکیوتی (UBNT),air-grid-m5-27dbi
+DN-0220,6a5cbe4f89e6bfd0ee962821,اکسس پوینت مش یوبیکیوتی UniFi U6 Mesh,,یوبیکیوتی (UBNT),ubiquiti-unifi-u6-mesh
+DN-0221,6a5cbe5089e6bfd0ee962822,اکسس پوینت یوبیکیوتی UniFi AP-AC Mesh Pro,,یوبیکیوتی (UBNT),unifi-ap-ac-mesh-pro
+DN-0222,6a89a9cb12e497ee86649091,اکسس پوینت یوبیکیوتی UniFi U6 Mesh Pro,U6-Mesh-Pro,یوبیکیوتی (UBNT),اکسس-پوینت-یوبیکیوتی-unifi-u6-mesh-pro
+DN-0223,6a89a9cb12e497ee86649090,اکسس پوینت یوبیکیوتی UniFi U6+,U6+,یوبیکیوتی (UBNT),اکسس-پوینت-یوبیکیوتی-unifi-u6-plus
+DN-0224,6a89ac9b12e497ee86649093,اکسس پوینت یوبیکیوتی UniFi U7 LR,U7-LR,یوبیکیوتی (UBNT),اکسس-پوینت-یوبیکیوتی-unifi-u7-lr
+DN-0225,6a89a9cb12e497ee86649092,اکسس پوینت یوبیکیوتی UniFi U7 Lite,U7-Lite,یوبیکیوتی (UBNT),اکسس-پوینت-یوبیکیوتی-unifi-u7-lite
+DN-0226,6a5cbe5589e6bfd0ee962827,رادیو یوبیکیوتی AirFiber 5XHD,,یوبیکیوتی (UBNT),airfiber-5xhd-ubiquiti
+DN-0227,6a5cbe4d89e6bfd0ee96281f,رادیو یوبیکیوتی AirFiber 60 LR,,یوبیکیوتی (UBNT),airfiber-60lr
+DN-0228,6a5cbe5489e6bfd0ee962826,رادیو یوبیکیوتی AirFiber 60 XG,,یوبیکیوتی (UBNT),ubiquiti-airfiber-60-xg

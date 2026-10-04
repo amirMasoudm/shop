@@ -1,0 +1,232 @@
+<title>اتصال داده‌لینک به فروشگاه</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column like a field engineer's spec sheet; side notes and meters sit inside it, never beside it. */
+:root{
+  --bg:#f3f6f4; --surface:#ffffff; --fg:#17211d; --muted:#56635d; --line:#d3ddd7;
+  --accent:#0d6b5a; --accent-soft:#e1f0eb;
+  --warn:#9a5a06; --warn-soft:#fbf0dc; --bad:#a42a20; --bad-soft:#f9e3e0; --good:#2c7a3f; --good-soft:#e2f2e5;
+  --track:#e3e9e5;
+  --font-body:"Vazirmatn",Tahoma,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111815; --surface:#18211d; --fg:#e2ebe6; --muted:#9fb0a8; --line:#2b3833;
+  --accent:#5ccdb1; --accent-soft:#173a32;
+  --warn:#e2a54a; --warn-soft:#3a2c14; --bad:#f08a7f; --bad-soft:#3d1d1a; --good:#7fd08f; --good-soft:#1b3322;
+  --track:#26322d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111815; --surface:#18211d; --fg:#e2ebe6; --muted:#9fb0a8; --line:#2b3833;
+  --accent:#5ccdb1; --accent-soft:#173a32;
+  --warn:#e2a54a; --warn-soft:#3a2c14; --bad:#f08a7f; --bad-soft:#3d1d1a; --good:#7fd08f; --good-soft:#1b3322;
+  --track:#26322d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.9}
+.page{max-width:46rem;margin:0 auto;padding-inline:16px;padding-block:2.5rem 4rem;display:flex;flex-direction:column;gap:2.75rem}
+h1,h2,h3{text-wrap:balance;line-height:1.4;margin:0}
+h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.3rem;font-weight:800;padding-bottom:.5rem;border-bottom:2px solid var(--fg)}
+h3{font-size:1.02rem;font-weight:700;color:var(--accent)}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:1rem;min-width:0}
+ul,ol{margin:0;padding-inline-start:1.3rem;display:flex;flex-direction:column;gap:.45rem}
+code,.mono{font-family:var(--font-mono);font-size:.84em;direction:ltr;unicode-bidi:isolate;background:var(--accent-soft);padding:.05em .35em;border-radius:3px}
+pre{font-family:var(--font-mono);font-size:.82rem;line-height:1.7;direction:ltr;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.9rem 1rem;margin:0;overflow-x:auto}
+.lede{font-size:1.08rem;color:var(--fg)}
+.meta{color:var(--muted);font-size:.9rem}
+.defaults{display:flex;flex-wrap:wrap;gap:.5rem}
+.defaults span{font-family:var(--font-mono);font-size:.82rem;direction:ltr;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:.15rem .7rem;font-variant-numeric:tabular-nums}
+.verdict{background:var(--surface);border:1px solid var(--line);border-inline-start:4px solid var(--accent);border-radius:6px;padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.7rem}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem}
+.fact{border-top:1px solid var(--line);padding-top:.6rem;display:flex;flex-direction:column;gap:.2rem;min-width:0}
+.fact b{font-weight:700}
+.fact span{color:var(--muted);font-size:.92rem}
+.pill{display:inline-block;font-size:.78rem;font-weight:700;border-radius:999px;padding:.05rem .6rem;white-space:nowrap}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.checks{list-style:none;padding:0;gap:.75rem}
+.checks li{display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:baseline}
+.checks li>div{min-width:0}
+.meters{display:flex;flex-direction:column;gap:.55rem;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1rem 1.1rem}
+.meter{display:grid;grid-template-columns:minmax(7.5rem,10rem) 1fr 4.2rem;gap:.75rem;align-items:center;font-size:.92rem}
+.meter .bar{height:.6rem;background:var(--track);border-radius:999px;overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.meter .bar i.low{background:var(--warn)}
+.meter .bar i.none{background:var(--bad)}
+.meter .n{font-variant-numeric:tabular-nums;color:var(--muted);text-align:left;direction:ltr;font-family:var(--font-mono);font-size:.8rem}
+.group-label{font-weight:700;font-size:.85rem;color:var(--muted);letter-spacing:.02em;margin-top:.3rem}
+.note{font-size:.88rem;color:var(--muted)}
+.callout{background:var(--warn-soft);border-radius:6px;padding:.9rem 1.1rem;display:flex;flex-direction:column;gap:.4rem}
+.callout b{color:var(--warn)}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.split>div{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.5rem;min-width:0}
+.split h3{color:var(--fg)}
+.steps{list-style:none;padding:0;counter-reset:s;gap:1rem}
+.steps li{counter-increment:s;display:grid;grid-template-columns:2.2rem 1fr;gap:.8rem;align-items:start}
+.steps li::before{content:counter(s,persian);font-weight:800;font-size:1.05rem;color:var(--accent);border:2px solid var(--accent);border-radius:50%;width:2rem;height:2rem;display:grid;place-items:center;line-height:1}
+.steps li>div{min-width:0;display:flex;flex-direction:column;gap:.25rem}
+.steps .who{font-size:.85rem;color:var(--muted)}
+.decisions{list-style:none;padding:0;gap:.9rem}
+.decisions li{border-bottom:1px dashed var(--line);padding-bottom:.8rem;display:flex;flex-direction:column;gap:.25rem}
+.decisions li:last-child{border-bottom:0}
+.decisions .rec{font-size:.9rem;color:var(--muted)}
+.decisions .rec b{color:var(--accent)}
+footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:1rem}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:480px){h1{font-size:1.55rem}.meter{grid-template-columns:1fr 3.6rem}.meter .label{grid-column:1/-1}}
+</style>
+
+<div class="page" dir="rtl" lang="fa">
+
+<header style="display:flex;flex-direction:column;gap:.9rem">
+  <p class="meta">تحلیلِ فنی · ۹ مهر ۱۴۰۵ · نسخهٔ بررسی‌شده: <bdi class="mono">1.1.0-rc3</bdi> (کدِ نسخهٔ ۱۱۲)</p>
+  <h1>اتصالِ داده‌لینک به فروشگاه</h1>
+  <p class="lede">داده‌لینک یک ماشین‌حسابِ بودجهٔ لینکِ رادیویی است که داخلِ یک صفحهٔ وب در اندروید اجرا می‌شود. دو خواستهٔ ما این است: اپ بر اساسِ لینکی که کاربر طراحی کرده کالای مناسب را از فروشگاه نشان بدهد و به آن پیوند بدهد، و ورودِ کاربر به حسابِ مشتریِ خودمان وصل شود.</p>
+  <div>
+    <p class="note" style="margin-bottom:.4rem">پیش‌فرض‌های خودِ اپ، همان چیزی که کاربر با بازکردنش می‌بیند:</p>
+    <div class="defaults" dir="ltr">
+      <span>f = 5.5 GHz</span><span>d = 20 km</span><span>Tx = 20 dBm</span><span>Rx = −75 dBm</span><span>G = 32 dBi ×2</span><span>pol = V</span>
+    </div>
+  </div>
+</header>
+
+<div class="verdict">
+  <h2 style="border:0;padding:0">جمع‌بندی</h2>
+  <p>اپ برای کاری که می‌کند تمیز و محتاطانه ساخته شده. فرمول‌های پایه درست‌اند و نویسنده‌اش هر جا چیزی آماده نبوده، صریح گفته و فعالش نکرده.</p>
+  <p><b>گلوگاهِ «کالای مناسب» کد نیست، دادهٔ کاتالوگ است.</b> بهره و باندِ آنتن‌ها در فروشگاه متنِ آزاد است، و حساسیتِ گیرنده برای هیچ رادیویی ثبت نشده. همین داده پیش‌نیازِ ابزارِ وبیِ محاسبهٔ لینک هم هست؛ پس یک بار کارِ داده، هر دو را باز می‌کند.</p>
+  <p><b>ورودِ کاربر</b> با کدِ پیامکیِ خودمان شدنی است، ولی سشنِ فعلیِ سایت داخلِ اپ کار نمی‌کند. اپ یک توکنِ جدا لازم دارد که باید ساخته شود.</p>
+  <p><b>هر تغییری در اپ</b> یک بیلدِ تازه با کلیدِ امضای نویسنده می‌خواهد، و آن کلید در سورس نیست.</p>
+</div>
+
+<section>
+  <h2>اپ چه می‌کند</h2>
+  <div class="facts">
+    <div class="fact"><b>محاسبهٔ لینک</b><span>سیگنالِ دریافتی، حاشیهٔ تضعیف، توانِ تشعشعی، افتِ فضای آزاد، شعاعِ ناحیهٔ فرنل در وسطِ مسیر.</span></div>
+    <div class="fact"><b>آب‌وهوا</b><span>افتِ اکسیژن و بخارِ آب و باران طبقِ توصیه‌نامه‌های ITU، با دادهٔ بارشِ رسمیِ ۱۷ شهرِ ایران.</span></div>
+    <div class="fact"><b>تنظیمِ آنتن</b><span>موقعیتِ گوشی، قطب‌نما، نقشهٔ خیابانی، و جهت و فاصلهٔ نقطهٔ مقابل روی نقشه.</span></div>
+    <div class="fact"><b>ذخیره</b><span>تا ۳۰ لینکِ ذخیره‌شده، فقط روی همان گوشی. هیچ چیزی به سرور نمی‌رود.</span></div>
+  </div>
+  <p>بازهٔ ورودی‌ها: فرکانس ۲ تا ۸۰ گیگاهرتز، فاصله تا ۱۱۰ کیلومتر، توانِ ارسالی منفیِ ۱۰ تا ۳۳ dBm، حساسیتِ گیرنده منفیِ ۹۰ تا منفیِ ۴۰ dBm. بهرهٔ آنتن یا مستقیم وارد می‌شود یا از قطرِ دیش با بازدهِ ۷۵٪ حساب می‌شود.</p>
+  <p>ساختار: کلِ رابط و محاسبات یک فایلِ HTMLِ حدودِ ۷۵۰ کیلوبایتی است. دو کلاسِ جاوا فقط آن را نشان می‌دهند و حسگرهای گوشی را به آن می‌رسانند. بیلد با یک اسکریپتِ پایتون انجام می‌شود، نه Gradle.</p>
+</section>
+
+<section>
+  <h2>آنچه مستقل سنجیده شد</h2>
+  <ul class="checks">
+    <li><span class="pill good">تأیید</span><div><b>APK دقیقاً از همین سورس ساخته شده.</b> صفحهٔ داخلِ APK با خروجیِ اسکریپتِ بیلد، بعد از یکسان‌کردنِ انتهای خط‌ها، بایت‌به‌بایت یکی است. تنظیماتش هم یکی است.</div></li>
+    <li><span class="pill good">تأیید</span><div><b>فرمول‌های پایه درست‌اند:</b> بهرهٔ دیش، افتِ فضای آزاد، شعاعِ فرنل و بودجهٔ لینک همان فرمول‌های استاندارد است. فرمول‌های باران و گاز را دوباره مشتق نکردم؛ نویسنده ۱۱۰۴ بررسیِ عددی گزارش کرده. تست‌هایش را اجرا نکردم.</div></li>
+    <li><span class="pill warn">محدودیت</span><div><b>اپ زمین را نمی‌بیند.</b> شعاعِ فرنل را می‌دهد ولی نمی‌سنجد تپه یا برآمدگیِ زمین جلوی مسیر هست یا نه. طرحِ ابزارِ وبیِ ما همین را با دادهٔ ارتفاعِ ناحیه اضافه می‌کند.</div></li>
+    <li><span class="pill warn">محدودیت</span><div><b>اپ تقریباً هیچ درخواستِ شبکه‌ای را اجازه نمی‌دهد.</b> جز صفحهٔ خودش، کاشی‌های نقشه و دقیقاً یک نشانیِ ثبت‌نام، همه چیز را خالی برمی‌گرداند. پس خواندنِ کاتالوگ از فروشگاه بدونِ تغییرِ کدِ جاوا و بیلدِ دوباره ممکن نیست. این سخت‌گیری از نظرِ امنیت درست است.</div></li>
+    <li><span class="pill warn">محدودیت</span><div><b>پیوندها در مرورگرِ گوشی باز می‌شوند،</b> نه داخلِ اپ. دکمهٔ «قیمت تجهیزات» امروز فقط صفحهٔ اصلیِ سایت را باز می‌کند.</div></li>
+    <li><span class="pill bad">ریسک</span><div><b>کلیدِ امضا در سورس نیست.</b> گواهیِ APK به نامِ <bdi class="mono">CN=DedehLink, O=Dadehnama</bdi> و معتبر تا ۲۰۵۴ است. اگر کس دیگری بیلد بگیرد، اسکریپت خودکار کلیدِ تازه می‌سازد و آن نسخه روی نسخهٔ نصب‌شده به‌روز نمی‌شود.</div></li>
+  </ul>
+</section>
+
+<section>
+  <h2>خواستهٔ اول: کالای مناسب در اپ</h2>
+  <p>اپ در لحظهٔ محاسبه همهٔ چیزی را که برای انتخابِ کالا لازم است می‌داند: فرکانس، بهره یا قطرِ آنتنِ هر طرف، توانِ ارسالی، حساسیتِ گیرنده و فاصله. قاعدهٔ انتخاب ساده است:</p>
+  <ul>
+    <li><b>آنتن:</b> باندش فرکانسِ کاربر را بپوشاند و بهره‌اش دست‌کم برابرِ بهرهٔ انتخاب‌شده باشد. از کوچک‌ترین آنتنی که جواب می‌دهد مرتب شود، نه بزرگ‌ترین.</li>
+    <li><b>رادیو:</b> باندش فرکانس را بپوشاند، توانش دست‌کم برابرِ عددِ کاربر باشد، و حساسیتش دست‌کم به‌همان خوبی.</li>
+    <li>اگر هیچ کالایی جواب نداد، دکمهٔ استعلامِ قیمت که در سایت هست.</li>
+  </ul>
+
+  <h3>وضعِ دادهٔ کاتالوگ برای این قاعده</h3>
+  <div class="meters" role="img" aria-label="پوششِ فیلدهای فنی در کاتالوگ">
+    <p class="group-label">آنتن‌ها · ۲۶ کالا</p>
+    <div class="meter"><span class="label">بهره</span><span class="bar"><i style="width:73%"></i></span><span class="n">19 / 26</span></div>
+    <div class="meter"><span class="label">باندِ فرکانسی</span><span class="bar"><i style="width:85%"></i></span><span class="n">22 / 26</span></div>
+    <div class="meter"><span class="label">قطرِ دیش یا ابعاد</span><span class="bar"><i class="low" style="width:50%"></i></span><span class="n">13 / 26</span></div>
+    <p class="group-label">رادیوها · حدودِ ۸۲ کالا</p>
+    <div class="meter"><span class="label">باندِ فرکانسی</span><span class="bar"><i class="low" style="width:52%"></i></span><span class="n">43 / 82</span></div>
+    <div class="meter"><span class="label">توانِ ارسالی</span><span class="bar"><i class="low" style="width:16%"></i></span><span class="n">13 / 82</span></div>
+    <div class="meter"><span class="label">حساسیتِ گیرنده</span><span class="bar"><i class="none" style="width:0%"></i></span><span class="n">0 / 82</span></div>
+  </div>
+  <p class="note">شمارش روی دیتابیسِ لوکال است (۲۲۸ کالا، سرور ۲۲۹) و تفکیکِ آنتن از رادیو با نام و دسته تقریبی است. «ثبت‌شده» یعنی ردیفی با آن عنوان در جدولِ مشخصات هست، نه اینکه عددش قابلِ محاسبه باشد.</p>
+
+  <div class="callout">
+    <p><b>حتی آنجا که داده هست، ماشین نمی‌تواند بخواندش.</b></p>
+    <p>دو نمونهٔ واقعی از فیلدِ «بهره»: <bdi class="mono">30 dBi</bdi> و «۳۰٫۲ تا ۳۲٫۲ dBi (در سراسرِ باند)». ارقامِ فارسی، بازهٔ دوعددی و توضیحِ داخلِ پرانتز. انتخابِ کالا روی چنین متنی شکننده است و جواب‌های غلط می‌دهد.</p>
+  </div>
+
+  <p><b>راه‌حل:</b> چند فیلدِ عددیِ جدا روی محصول، کنارِ جدولِ مشخصات که برای نمایش می‌ماند. برای آنتن: بهره، کمینه و بیشینهٔ فرکانس، نوع (دیش، سکتور، همه‌جهته، یکپارچه) و قطر. برای رادیو: باند، بیشینهٔ توان و حساسیت در پایین‌ترین نرخ. این همان پیش‌نیازی است که طرحِ ابزارِ وبیِ محاسبهٔ لینک از ۲۰ شهریور دارد.</p>
+
+  <h3>بقیهٔ کار</h3>
+  <ul>
+    <li><b>سمتِ فروشگاه:</b> یک نشانیِ عمومیِ فقط-خواندنی که پارامترهای لینک را بگیرد و فهرستِ کوتاهِ کالا برگرداند: نام، عکس، قیمت، موجودی و نشانی. همین نشانی بعداً به ابزارِ وب هم سرویس می‌دهد؛ یک موتور، دو رابط.</li>
+    <li><b>سمتِ اپ:</b> اجازهٔ شبکه برای همین نشانی، و یک بخشِ «تجهیزاتِ پیشنهادی» زیرِ نتیجهٔ محاسبه.</li>
+    <li><b>سنجشِ فروش:</b> پیوندِ هر کالا از سامانهٔ لینکِ کارزارِ خودمان بگذرد. آن‌وقت فروشی که از اپ می‌آید در تبِ «رفتارِ کاربران» جدا دیده می‌شود.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>خواستهٔ دوم: ورودِ کاربر</h2>
+  <div class="split">
+    <div>
+      <h3>آنچه اپ امروز دارد</h3>
+      <p>یک فرمِ نام، موبایل و شرکت، که خاموش است چون نشانیِ مقصدی نداشته. پیامکی در کار نیست و مالکیتِ شماره سنجیده نمی‌شود. هر کسی می‌تواند هر شماره‌ای ثبت کند، و نتیجه فهرستِ مشتریِ دومی جدا از حساب‌های سایت است.</p>
+    </div>
+    <div>
+      <h3>آنچه سایت دارد</h3>
+      <p>ورود با کدِ پیامکی و سشنِ سی‌روزه. این سشن داخلِ اپ کار نمی‌کند: صفحهٔ اپ مبدأ دیگری دارد، وب‌ویوی اندروید کوکیِ مبدأِ دیگر را پیش‌فرض نمی‌پذیرد، و کوکیِ سشن طوری تنظیم شده که در درخواستِ بین‌سایتی فرستاده نمی‌شود.</p>
+    </div>
+  </div>
+  <p><b>پیشنهاد:</b> همان کدِ پیامکیِ سایت، ولی خروجی‌اش برای اپ یک توکن باشد نه کوکی. توکن تصادفی است، در سرور هش‌شده و با تاریخِ انقضا نگه داشته می‌شود و قابلِ ابطال است. چون شماره یکی است، کاربرِ اپ همان مشتریِ سایت است: سفارش، استعلام و تاریخچه یک‌جا. کاربرانی که از اپ آمده‌اند در پنل علامت می‌خورند.</p>
+  <ul>
+    <li><b>اجباری نباشد، دست‌کم اول.</b> ورود فقط برای کاری خواسته شود که هویت لازم دارد، مثلِ استعلامِ قیمت. خودِ نویسنده هم عمداً صفحهٔ ثبت‌نامِ اجباری را فعال نکرده.</li>
+    <li><b>پیش از انتشار، محدودیتِ ارسالِ پیامک سفت شود.</b> امروز فقط فاصلهٔ بینِ دو کد برای یک شماره کنترل می‌شود، نه تعدادِ شماره‌ها از یک دستگاه یا یک آی‌پی. اپی که این را در دسترس بگذارد، هزینهٔ پیامک را در معرضِ سوءاستفاده می‌گذارد.</li>
+    <li><b>بردنِ کاربرِ واردشده به مرورگر در نسخهٔ اول لازم نیست.</b> کاربر در سایت با همان شماره وارد می‌شود و همان حساب را می‌بیند. ورودِ یک‌مرحله‌ای از اپ به سایت را می‌شود بعداً اضافه کرد.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>مخزنِ جدا</h2>
+  <p>موافقم. کدِ اپ در یک مخزنِ مستقل بنشیند و فروشگاه فقط دو قابلیتِ عمومی بگیرد: «پیشنهادِ کالا بر اساسِ پارامترهای لینک» و «ورودِ اپ با توکن». هر دو مخصوصِ داده‌نما نیستند، پس با قاعدهٔ «هستهٔ عمومیِ فروشگاه» جور درمی‌آیند.</p>
+  <ul>
+    <li>قراردادِ بینِ دو طرف یک سندِ نسخه‌دار باشد، تا اگر نسخهٔ تازه‌ای از اپ آمد، چیزی سمتِ فروشگاه نشکند.</li>
+    <li>سورسِ رسیده تاریخچهٔ گیت ندارد. اولین کامیتِ مخزنِ تازه همین بستهٔ <bdi class="mono">rc3</bdi> باشد، تا تغییرِ هر نسخهٔ بعدی دیده شود.</li>
+    <li>کلیدِ امضا یا پیش از شروع از نویسنده گرفته و جایی مثلِ KeePassXC نگه داشته شود، یا همهٔ بیلدهای انتشار با خودِ او بماند. حالتِ وسط وجود ندارد.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>ریسک‌های دیگر</h2>
+  <ul>
+    <li><b>نقشه:</b> اپ مستقیم از سرورِ عمومیِ OpenStreetMap کاشی می‌گیرد. قاعدهٔ آن سرور استفادهٔ پرحجمِ اپ‌ها را نمی‌پذیرد و نویسنده هم خودش این را نوشته. تصمیمِ ارائه‌دهندهٔ نقشه همان تصمیمی است که ابزارِ وب هم منتظرش است؛ بهتر است یک بار برای هر دو گرفته شود.</li>
+    <li><b>حریمِ خصوصی:</b> اپ دسترسیِ موقعیت می‌گیرد و قرار است شماره و نام هم بگیرد. برای انتشار در کافه‌بازار یا مایکت، صفحهٔ سیاستِ حریمِ خصوصی روی سایت لازم است.</li>
+    <li><b>نگه‌داری:</b> کدِ جاوا فشرده و تک‌خطی نوشته شده و کلِ رابط یک قالبِ ۴۷ کیلوبایتی است. برای این اندازه قابلِ‌قبول است، ولی افزودنِ بخش‌های تازه را کند می‌کند.</li>
+    <li><b>قطب‌نما روی دکل:</b> خودِ نویسنده می‌گوید روی سازهٔ فلزی تضمینی نیست. این برای کالای ما ریسک ندارد، ولی متنِ اپ نباید جوری باشد که دقتش را تضمین کند.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>تصمیم‌هایی که با شماست</h2>
+  <ul class="decisions">
+    <li><b>صاحبِ اپ کیست؟</b> اگر نویسنده نگه‌داری‌اش را ادامه می‌دهد، ما فقط سمتِ فروشگاه و سندِ قرارداد را می‌سازیم. اگر به ما سپرده می‌شود، کلیدِ امضا پیش از هر کاری لازم است.<span class="rec">پیشنهاد: <b>تا نسخهٔ بعدی نیامده، نویسنده نگه دارد</b> و ما قرارداد را بدهیم.</span></li>
+    <li><b>ورود اجباری باشد یا اختیاری؟</b><span class="rec">پیشنهاد: <b>اختیاری</b>، و لازم فقط برای استعلام.</span></li>
+    <li><b>ارائه‌دهندهٔ نقشه</b>، مشترک با ابزارِ وب.<span class="rec">پیشنهاد: نسخهٔ اولِ وب <b>بدونِ نقشه</b>؛ اپ فعلاً با همان نقشهٔ خیابانی.</span></li>
+    <li><b>کانالِ انتشار:</b> کافه‌بازار، مایکت، یا فایلِ مستقیم از سایت؟</li>
+    <li><b>پیشنهادِ رادیو از همین اول بیاید یا فقط آنتن؟</b> برای رادیوها فعلاً فقط تطبیقِ باند ممکن است.<span class="rec">پیشنهاد: <b>اول فقط آنتن</b>؛ داده‌اش نزدیک به کامل است.</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>ترتیبِ اجرا</h2>
+  <ol class="steps">
+    <li><div><b>تصمیم‌های بالا، ساختِ مخزنِ جدا، و تکلیفِ کلیدِ امضا.</b><span class="who">مالک</span></div></li>
+    <li><div><b>فیلدهای عددیِ آنتن و رادیو و پرکردنشان.</b> پیش‌نیازِ قطعیِ اپ و ابزارِ وب، هر دو.<span class="who">تیمِ داده</span></div></li>
+    <li><div><b>نشانیِ عمومیِ پیشنهادِ کالا در فروشگاه</b>، با تست و نشانیِ لینکِ کارزار.<span class="who">تیمِ فنی</span></div></li>
+    <li><div><b>ورودِ اپ با کدِ پیامکی و توکن</b>، به‌همراهِ محدودیتِ ارسالِ پیامک.<span class="who">تیمِ فنی</span></div></li>
+    <li><div><b>سمتِ اپ:</b> اجازهٔ شبکه، بخشِ تجهیزاتِ پیشنهادی، و ورود. در مخزنِ جدا و با کلیدِ امضا.<span class="who">نویسندهٔ اپ یا ما، بسته به تصمیمِ اول</span></div></li>
+  </ol>
+  <p class="note">بردِ سریع، مستقل از این ترتیب: دکمهٔ «قیمت تجهیزات» به‌جای صفحهٔ اصلی به دستهٔ آنتن و دیش برود. یک خط در تنظیماتِ اپ است، ولی آن هم بیلد و امضای تازه می‌خواهد.</p>
+</section>
+
+<footer>
+  منبع‌ها: سورس و APKِ <bdi class="mono">DadehLink-1.1.0-rc3</bdi>، گزارشِ نسخهٔ نویسنده، کدِ فروشگاه روی شاخهٔ <bdi class="mono">security-hardening</bdi>، دیتابیسِ لوکال، و صفحهٔ زندهٔ سایت. هیچ کدی از اپ اجرا نشد جز اسکریپتِ ساختِ HTML برای مقایسه با APK.
+</footer>
+
+</div>

@@ -31,8 +31,18 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <!-- سشنِ ادمین در MongoDB ذخیره شود تا ری‌استارتِ داکر/لپ‌تاپ را رد کند (نسخه از BOM) -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-mongodb</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -47,12 +57,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- چتِ پشتیبانی: وب‌سوکتِ خام (نه STOMP/SockJS) — نگاه کن به WebSocketConfig -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
+
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -63,6 +74,32 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.projectlombok</groupId>-->
+<!--            <artifactId>lombok</artifactId>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!--
+            تولیدِ کدِ QR برایِ لینکِ کوتاهِ کارزار — محلی و آفلاین.
+            هیچ سرویسِ QRی از بیرون صدا زده نمی‌شود: قاعدهٔ ثابتِ پروژه است که هیچ
+            ماژولی نباید به سرویسِ بیرونی گره بخورد، و لینکِ کارزار هم دادهٔ
+            بازاریابیِ خودمان است که نباید سر از سرورِ کسِ دیگری دربیاورد.
+            کتابخانهٔ خالصِ جاوا و بدونِ وابستگیِ زنجیره‌ای است.
+        -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -70,8 +107,53 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+
+                <configuration>
+                    <layers>
+                        <enabled>true</enabled>
+                    </layers>
+                </configuration>
+
             </plugin>
         </plugins>
     </build>
+    <!-- مخزن تحریم‌گذر و پرسرعت اختصاصی جاوا در ایران (Maven Hub) -->
+    <repositories>
+        <repository>
+            <id>mvnhub</id>
+            <url>https://mvnhub.ir/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mvnhub</id>
+            <url>https://mvnhub.ir/</url>
+        </pluginRepository>
+    </pluginRepositories>
+    <profiles>
+
+        <profile>
+            <id>dev</id>
+
+            <dependencies>
+
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+
+            </dependencies>
+
+        </profile>
+
+    </profiles>
 </project>
+

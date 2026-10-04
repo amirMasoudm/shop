@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#f3faf5">
+    <title th:text="${seoTitle}">محاسبه لینک وایرلس</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta property="og:site_name" content="داده نما">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+    <!-- اسکیما سروری ساخته می‌شود (الگوی aboutJsonLd) — نه درون‌قالبی -->
+    <script type="application/ld+json" th:if="${linkCalJsonLd != null}" th:utext="${linkCalJsonLd}"></script>
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <link href="/tools/dadehlink/dadehlink.css?v=15" rel="stylesheet">
+    <style>
+        body { margin:0; font-family:Vazirmatn, Tahoma, sans-serif; color:#1f2937;
+               background:radial-gradient(ellipse at top left,#c2efd380,transparent 60%),#f3faf5; }
+        .lc-page { max-width:1360px; margin:0 auto; padding:14px 16px 8px; }
+        .lc-page .crumb { font-size:.8rem; color:#6b7280; margin:0 0 4px; }
+        .lc-page .crumb a { color:#17406f; text-decoration:none; }
+        .lc-page h1 { font-size:1.35rem; line-height:1.6; margin:0 0 8px; color:#145632; text-align:center; }
+        .lc-text { max-width:720px; margin:22px auto 0; background:#fff; border:1px solid #d6e9dc;
+                   border-radius:16px; padding:18px 22px; line-height:2.05; font-size:.95rem; }
+        .lc-text p { margin:0 0 10px; }
+        .lc-text h2 { font-size:1.08rem; color:#145632; margin:22px 0 8px; line-height:1.7; }
+        .lc-text h2:first-child { margin-top:0; }
+        .lc-text h3 { font-size:.97rem; color:#1f4d33; margin:14px 0 4px; }
+        .lc-text ul { margin:0 0 10px; padding-right:20px; }
+        .lc-text li { margin-bottom:4px; }
+        .lc-text a { color:#087b43; }
+        .lc-lead { max-width:760px; margin:0 auto 12px; text-align:center; color:#374151; font-size:.93rem; line-height:2; }
+        .lc-lead p { margin:0 0 4px; }
+        .lc-app { max-width:720px; margin:18px auto 0; font-size:.9rem; color:#374151; text-align:center; } .lc-app a { color:#087b43; font-weight:bold; }
+        .lc-text p:last-child { margin-bottom:0; }
+
+        footer.site-footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:40px; }
+        footer.site-footer .in { max-width:980px; margin:0 auto; }
+        footer.site-footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer.site-footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+
+        /* حبابِ چتِ سایت در موبایل: جایش با اندازه‌گیری در ۳۷۵×۸۱۲ انتخاب شد؛ در نمای اول روی
+           هیچ عددی نیست (پیش‌فرضِ ۹۲ پیکسل روی حساسیتِ گیرنده می‌نشست). html:root از :rootِ
+           تزریق‌شدهٔ ویجت قوی‌تر است. */
+        /* حبابِ چت در موبایل وقتی ابزار روی صفحه است پنهان می‌شود: هر جای ثابتی در اسکرول روی
+           عددی می‌افتاد. بعد از ابزار (متنِ صفحه) دوباره می‌آید. پنلِ بازِ چت دست نمی‌خورد. */
+        @media (max-width:768px) { body.dl-tool-in-view .dn-chat-bubble { display:none !important; } }
+        @media (max-width:599px) {
+            .lc-page { padding:10px 0 8px; }
+            .lc-page .crumb, .lc-page h1 { padding:0 16px; }
+            .lc-page h1 { font-size:1.15rem; margin-bottom:4px; }
+            .lc-text { margin:18px 16px 0; padding:14px 16px; font-size:.9rem; }
+            .lc-lead { padding:0 16px; text-align:right; font-size:.88rem; margin-bottom:8px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/support/link-cal" class="active">داده‌لینک</a>
+        <a href="/learn">آموزش</a>
+        <a href="/blog">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<main class="lc-page">
+    <nav class="crumb">
+        <a th:href="${baseUrl + '/'}">خانه</a> <span>/ محاسبه‌گر لینک وایرلس</span>
+    </nav>
+    <h1>محاسبه‌گر لینک وایرلس</h1>
+    <div class="lc-lead">
+        <p>با این محاسبه‌گرِ لینک وایرلس، پیش از انتخابِ تجهیزات سیگنالِ لینک را برآورد کنید؛ اثرِ آب‌وهوا را ببینید و فاصلهٔ دو نقطه را از روی نقشه بردارید.</p>
+        <p>برای یک لینکِ ۲۰ کیلومتری چه سیگنالی انتظار دارید؟ اگر همان تجهیزات در شهری پرباران نصب شوند، چقدر از حاشیهٔ اطمینانِ لینک کم می‌شود؟ داده‌لینک این پرسش‌ها را در یک ابزارِ فارسی و جمع‌وجور کنارِ هم می‌گذارد: برآوردِ بودجهٔ لینکِ وایرلس و مایکروویو، سناریوی آب‌وهوا، و فاصله و جهتِ مسیر روی نقشه.</p>
+    </div>
+
+    <!-- رابطِ داده‌لینک — نشانه‌گذاریِ web/index.html اپ. استایل در dadehlink.css زیرِ .dl -->
+    <div class="dl"><div class="app" id="dlApp">
+<header><div class="tools"><button class="icon" id="helpBtn" aria-label="راهنما"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 2-2.5 2-2.5 4M12 16v1"/></svg></button></div><span class="version">v1.1.0-rc3</span><a class="brand" href="/" aria-label="سایت داده‌نما"><img src="/tools/dadehlink/logo.png" width="96" height="72" alt="داده‌نما"><b dir="ltr">DadehLink</b><svg class="brandDish" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 5a12 12 0 0014 14L5 5zM12 12l6-6M17 4l3 3M10 17l-2 5h10M16 17l2 5"/></svg></a></header>
+<nav class="dlTabs" role="tablist" th:if="${equipmentTab}" aria-label="نوعِ محاسبه"><button type="button" role="tab" id="tabCalc" aria-selected="true" class="on">محاسبه لینک وایرلس</button><button type="button" role="tab" id="tabEquip" aria-selected="false">محاسبه بر اساسِ تجهیزات</button></nav>
+<div class="caption"><strong>محاسبهٔ لینک نقطه‌به‌نقطه<span class="subtitle" dir="ltr">PTP Link Budget</span></strong></div>
+<nav class="quicknav"><button id="alignBtn">تنظیم آنتن</button></nav>
+<div class="dl-in"><section class="equip" id="dlEquip" hidden aria-label="انتخابِ تجهیزات"></section><section class="panel" aria-label="پارامترهای لینک" id="fields"></section>
+<div class="antennaTitle"><strong>آنتن‌ها <span dir="ltr">Antenna Gain</span></strong><span>گین دستی یا محاسبه از روی قطر</span></div>
+<section class="antennas" id="antennas"></section>
+<div id="error" class="error" role="alert"></div></div>
+<div class="dl-out"><section class="result" aria-live="polite"><div class="rhead"><strong>سیگنال دریافتی</strong><small>RX Signal Level (RSL)</small></div><div class="signals" id="signals"><div class="drySignal" id="drySignal"><div class="signalLabel">☀ هوای خشک</div><div class="rx"><strong id="dryRx">—</strong><span>dBm</span></div></div><div class="activeSignal"><div class="signalLabel" id="activeLabel"></div><div class="rx"><strong id="rx">—</strong><span>dBm</span></div><div id="weakSignal" class="weakSignal"></div></div></div><div class="margin"><span id="marginLabel">حاشیه تضعیف - Fade Margin</span><b id="margin">—</b></div><div id="linkWarning" class="linkWarning"></div><div class="bar" dir="ltr"><i id="marginBar"></i></div><div class="metrics"><div>شعاع ناحیهٔ فرنل<small>وسط مسیر · ناحیهٔ اول</small><b id="fresnel">—</b></div><div>افت فضای آزاد (FSPL)<b id="fspl">—</b></div><div><span id="gasTitle">افت گازی</span><small id="gasSubtitle">Oxygen / Dry Air</small><b id="gas">—</b></div></div><div class="atmos"><span id="weather"></span><span id="weatherStatus"></span></div></section>
+<div class="bottom"><button class="primary" id="saveBtn">☆ ذخیرهٔ لینک</button><button id="favoritesBtn">لینک‌های ذخیره‌شده</button><div class="weatherControl"><input type="checkbox" id="weatherEnabled" aria-label="اعمال اثر آب‌وهوا"><button id="atmosBtn" aria-label="تنظیمات آب‌وهوا">آب‌وهوا ⚙</button></div></div></div>
+<!-- تنظیمِ آنتن: بخشِ ثابت، نه پنجره. محتوا را alignment.js می‌سازد؛ نقشه وقتی به دید رسید. -->
+<section class="dl-align" id="dlAlign" aria-label="تنظیم آنتن"></section>
+<!-- جای محصولاتِ پیشنهادی — تسکِ بعد پرش می‌کند -->
+<section id="suggested-products" class="dl-sugg" hidden aria-live="polite"></section>
+    </div></div>
+
+    <!-- متنِ صفحه: docs/content-drafts/dadehlink-tool-page.md (بندِ ۱۰)، عیناً. دادهٔ ساختاریافتهٔ پرسش‌ها عمداً ساخته نمی‌شود. -->
+    <p class="lc-app">نسخهٔ اندرویدِ همین ابزار، با قطب‌نما و کارِ بی‌اینترنت: <a href="/dadehlink">دانلود داده‌لینک</a></p>
+    <article class="lc-text">
+        <h2>داده‌لینک برای چه کسانی کاربرد دارد</h2>
+        <ul><li>نصاب‌های وایرلس و دوربینِ مداربسته که پیش از اجرا به برآوردِ ارتباطِ بینِ دو نقطه نیاز دارند.</li><li>کارشناسان و مدیرانِ شبکه در شرکت‌های FCP، ISP و سازمان‌ها که چند انتخابِ فرکانس، آنتن یا فاصله را بررسی می‌کنند.</li><li>تیم‌های فروش و طراحی که می‌خواهند اثرِ انتخابِ تجهیزات را با عدد به مشتری توضیح دهند.</li><li>مدرسان و علاقه‌مندانِ شبکه که به یک ابزارِ عملی برای دیدنِ ارتباطِ ورودی‌ها و نتیجهٔ لینک نیاز دارند.</li></ul>
+        <h2>محاسبهٔ بودجهٔ لینک در یک صفحه</h2>
+        <p>فرکانس، فاصله، توانِ ارسال و حساسیتِ گیرنده را تنظیم کنید؛ سپس گینِ آنتن و افتِ کابلِ هر سمت را وارد کنید. داده‌لینک سطحِ سیگنالِ دریافتی، حاشیهٔ تضعیف، افتِ فضای آزاد و شعاعِ ناحیهٔ اولِ فرنل در وسطِ مسیر را نشان می‌دهد. تغییرِ عددها با ورودیِ مستقیم یا نوارِ تنظیم انجام می‌شود و نتیجه همان‌جا به‌روز می‌شود.</p>
+        <p>محدودهٔ ورودیِ فرکانس ۲ تا ۸۰ گیگاهرتز و فاصله ۰٫۰۱ تا ۱۱۰ کیلومتر است. این بازه محدودهٔ ورودِ اطلاعات است و به‌معنای تأییدِ امکان‌پذیریِ همهٔ لینک‌ها یا اعتبارِ یکسانِ مدل‌های آب‌وهوا در تمامِ بازه نیست. برای حساسیتِ گیرنده، مقدارِ متناسب با حالتِ کاری و مدولاسیونِ موردنظر را از دیتاشیتِ رادیو بردارید.</p>
+        <p>فرمول‌ها و ناحیهٔ فرنل را در <a href="https://dadehnama.com/blog/نحوه-محاسبه-لینک-وایرلس">آموزشِ نحوهٔ محاسبهٔ لینک وایرلس</a> گام‌به‌گام توضیح داده‌ایم.</p>
+        <h3>سه عددی که باید بشناسید</h3>
+        <ul><li><strong>سیگنالِ دریافتی:</strong> برآوردِ توانِ رسیدنِ سیگنال به گیرنده، با واحدِ dBm.</li><li><strong>حاشیهٔ تضعیف:</strong> فاصلهٔ سیگنالِ برآوردی از حساسیتِ انتخاب‌شدهٔ گیرنده، با واحدِ dB. حاشیهٔ منفی یعنی سیگنالِ برآوردی از آستانهٔ انتخاب‌شده پایین‌تر است.</li><li><strong>شعاعِ فرنل:</strong> شعاعِ ناحیهٔ اولِ فرنل در وسطِ مسیر؛ نمایشِ آن به معنیِ تأییدِ آزادبودنِ مسیر نیست.</li></ul>
+        <h2>گینِ آنتن را دستی وارد کنید یا از قطر به دست آورید</h2>
+        <p>اگر گینِ آنتن را از دیتاشیت می‌دانید، مستقیم وارد کنید. برای برآوردِ گینِ دیش، ماشین‌حسابِ داخلی در دسترس است: فرکانس و قطرِ آنتن را مشخص کنید و نتیجه را اعمال کنید. محاسبهٔ قطر بر پایهٔ بازدهِ ۷۵ درصد انجام می‌شود و خروجی به پلهٔ نیم دسی‌بل رو به پایین گرد می‌شود. گینِ درج‌شده در دیتاشیتِ معتبرِ آنتن، برای مدلِ واقعیِ شما مبنای مناسب‌تری است.</p>
+        <h2>اثرِ باران و آب‌وهوا را برحسبِ شهر بررسی کنید</h2>
+        <p>در بخشِ آب‌وهوا، شهر را از فهرست انتخاب کنید یا شرایط را دستی وارد کنید. داده‌لینک برای ۱۷ شهرِ ایران مقدارِ مرجعِ بارشِ طراحی دارد: اصفهان، تهران، مشهد، شیراز، تبریز، ساری، رشت، گرگان، یزد، کرمان، زاهدان، اهواز، همدان، کرمانشاه، بیرجند، قزوین و سمنان.</p>
+        <p>شدتِ بارش، دما، فشارِ هوا، رطوبتِ نسبی و قطبشِ عمودی یا افقی قابلِ تنظیم‌اند. ابزار افتِ باران، جذبِ اکسیژن و هوای خشک، جذبِ بخارِ آب و مجموعِ افتِ آب‌وهوا را نشان می‌دهد. با فعال‌کردنِ آب‌وهوا، سیگنالِ حالتِ خشک و سیگنال با اثرِ آب‌وهوا هم‌زمان دیده می‌شوند؛ حاشیهٔ تضعیف نیز براساسِ حالتِ فعال محاسبه می‌شود.</p>
+        <p>اطلاعاتِ شهر نقطهٔ شروعِ طراحی است؛ این بخش سرویسِ هواشناسیِ زنده نیست. بارشِ مرجع، میانگینِ بارندگیِ سالانه نیست و به شدتی مربوط است که در ۰٫۰۱ درصدِ زمانِ یک سالِ متوسط از آن عبور می‌شود. دما، رطوبت و فشارِ پیشنهادی قابلِ ویرایش‌اند و باید با سناریوی پروژه تطبیق داده شوند.</p>
+        <h2>فاصله و جهتِ مسیر را روی نقشه بگیرید</h2>
+        <p>زیرِ ماشین‌حساب، با «موقعیتِ من» مبدأ A را مشخص کنید و مقصد B را روی نقشه انتخاب و تأیید کنید؛ ورودِ دستیِ مختصات هم در دسترس است. خطِ قرمزِ مسیر جهتِ ارتباطِ بینِ دو نقطه را نشان می‌دهد. فاصلهٔ محاسبه‌شده را با یک دکمه به ماشین‌حساب منتقل کنید تا در بودجهٔ لینک استفاده شود.</p>
+        <p>قطب‌نمای درجه‌بندی‌شده برای جهت‌یابیِ آنتن در محلِ نصب، در نسخهٔ اندرویدِ داده‌لینک است. آهن‌آلاتِ دکل می‌توانند جهت را منحرف کنند؛ تطبیقِ نقشه با محیط و تنظیمِ نهایی با سیگنالِ خودِ رادیو ضروری است.</p>
+        <h2>یک مثالِ ساده</h2>
+        <p>یک لینکِ ۲۰ کیلومتری با فرکانسِ ۵٫۵ گیگاهرتز، توانِ ارسالِ ۲۰ dBm، گینِ ۳۲ dBi در هر دو سمت، افتِ کابلِ صفر و حساسیتِ گیرندهٔ منفیِ ۷۵ dBm را در نظر بگیرید. در حالتِ خشک با دمای ۱۵ درجه و فشارِ ۱۰۱۳٫۲۵ hPa، سیگنال حدودِ منفیِ ۴۹٫۴ dBm و حاشیهٔ تضعیف حدودِ ۲۵٫۶ dB است. افتِ فضای آزاد حدودِ ۱۳۳٫۳ dB و شعاعِ فرنل در وسطِ مسیر حدودِ ۱۶٫۵ متر است. این همان پیش‌فرضِ ابزار است.</p>
+        <p>این اعداد برآوردِ طراحی‌اند؛ موانعِ مسیر، تداخل، کابلِ واقعی، تنظیمِ آنتن و ویژگی‌های تجهیزات می‌توانند نتیجهٔ اجرا را تغییر دهند. ابزار پستی‌وبلندیِ زمین، ساختمان و درختِ مسیر را نمی‌بیند؛ دیدِ مستقیم را در محل بررسی کنید.</p>
+        <h2>پرسش‌های متداول</h2>
+        <h3>محاسبه‌گر لینک‌های وایرلس دقیقاً چه چیزی را حساب می‌کند</h3>
+        <p>سیگنالِ دریافتی، حاشیهٔ تضعیف و اثرِ باران را از روی فاصله، فرکانس، توان، حساسیتِ گیرنده و بهرهٔ آنتن‌ها برآورد می‌کند. برای لینک‌های وایرلس و مایکروویوِ نقطه‌به‌نقطه است، نه پوششِ نقطه‌به‌چندنقطه.</p>
+        <h3>آیا داده‌لینک به برندِ خاصی وابسته است</h3>
+        <p>محاسبات با مشخصاتِ واردشدهٔ لینک انجام می‌شود. می‌توانید مشخصاتِ رادیو و آنتنِ برندهای مختلف را وارد کنید؛ ابزار به پنلِ رادیو متصل نمی‌شود و توان یا سیگنالِ واقعیِ آن را نمی‌خواند.</p>
+        <h3>آیا ثبت‌نام لازم است</h3>
+        <p>بله، فقط یک بار. نام و شمارهٔ موبایل را وارد و با کدِ پیامکی تأیید می‌کنید؛ نامِ شرکت اختیاری است. دفعاتِ بعد روی همان مرورگر چیزی پرسیده نمی‌شود.</p>
+        <h3>آیا بدونِ اینترنت کار می‌کند</h3>
+        <p>این صفحه در مرورگر اجرا می‌شود و اینترنت می‌خواهد. کارِ بدونِ اینترنت و قطب‌نما ویژگی‌های نسخهٔ اندرویدِ داده‌لینک‌اند.</p>
+        <h3>آیا شهرهای بارانی و خشک تفاوت دارند</h3>
+        <p>برای هر شهر مقدارِ بارشِ مرجعِ جداگانه وجود دارد و بعضی شرایطِ محیطیِ پیشنهادی هم متفاوت‌اند. همهٔ این ورودی‌ها قابلِ تغییرند؛ حتی برای شهری با اقلیمِ خشک نیز سناریوی بارش قابلِ بررسی است.</p>
+        <h3>آیا ابزار سرعت و پهنای باندِ لینک را تضمین می‌کند</h3>
+        <p>خیر. این ابزار برآوردِ سیگنال است. ظرفیتِ واقعی به رادیو، پهنای کانال، مدولاسیون، تداخل و شرایطِ اجرا بستگی دارد. بررسیِ پروفیلِ ارتفاعی و موانعِ مسیر نیز جزوِ امکاناتِ فعلی نیست.</p>
+        <h2>لینکِ بعدی را پیش از اجرا بررسی کنید</h2>
+        <p>برای انتخابِ آنتن، مقایسهٔ فرکانس‌ها یا طراحیِ یک ارتباطِ نقطه‌به‌نقطه، مشخصاتِ لینکِ خود را وارد کنید، شهر و شرایطِ محیط را بسنجید و نتیجه را برای پروژهٔ بعدی ذخیره کنید. آنتن و دیش‌های مناسب را در <a th:href="${baseUrl + '/shop/category/antenna-dish'}" href="/shop/category/antenna-dish">فروشگاهِ داده‌نما</a> ببینید.</p>
+    </article>
+</main>
+
+<!-- پنجره‌ها بیرونِ <main>اند: اپ هنگامِ بازبودنِ پنجره main را inert می‌کند -->
+<div class="dl"><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="sheet" id="sheet"></div></div><div class="toast" id="toast" role="status"></div></div>
+
+<footer class="site-footer" th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/blog'}" style="color:#f5b06a; font-weight:700;">✍️ بلاگ آموزشی</a>
+            <a th:href="${baseUrl + '/about'}" style="color:#f5b06a; font-weight:700;">سابقه و اعتبار</a>
+            <a th:href="${baseUrl + '/support/link-cal'}" style="color:#f5b06a; font-weight:700;">محاسبه لینک وایرلس</a>
+            <a th:href="${baseUrl + '/privacy'}" style="color:#f5b06a; font-weight:700;">حریم خصوصی</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© داده نما</div>
+    </div>
+</footer>
+
+<script>
+window.DADEHLINK_CONFIG = {
+    pricesUrl: '/shop/category/antenna-dish',
+    streetUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    citiesUrl: '/tools/dadehlink/engine/cities.json',
+    // دروازهٔ ورود (gate.js) — نسخه‌ای که در فهرستِ ثبت‌نامِ پنل دیده می‌شود، و متنِ رضایتِ قرارداد
+    appVersion: '1.1.0-rc3',
+    consentText: 'اطلاعات شما برای ثبتِ کاربری و پشتیبانی به داده‌نما ارسال می‌شود.',
+    vendor: {
+        geodesic: '/tools/dadehlink/vendor/geographiclib-geodesic.min.js',
+        leafletJs: '/tools/dadehlink/vendor/leaflet.js',
+        leafletCss: '/tools/dadehlink/vendor/leaflet.css'
+    }
+};
+</script>
+<script src="/tools/dadehlink/engine/rf.js"></script>
+<script src="/tools/dadehlink/app.js?v=15"></script>
+<script src="/tools/dadehlink/alignment.js?v=15"></script>
+<script src="/tools/dadehlink/gate.js?v=15"></script>
+<script src="/tools/dadehlink/equipment.js?v=15"></script>
+
+<script>
+(function () {
+    var tool = document.getElementById('dlApp');
+    if (!tool || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function (es) {
+        document.body.classList.toggle('dl-tool-in-view', es[0].isIntersecting);
+    }, {rootMargin: '0px 0px -60px 0px'}).observe(tool);
+})();
+</script>
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-chat-widget.js"></script>
+<script src="/js/dn-track.js"></script>
+</body>
+</html>

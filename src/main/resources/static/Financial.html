@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت مالی فروشگاه</title>
+    <script src="/_sdk/element_sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .menu-item {
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            transform: translateX(-2px);
+        }
+    </style>
+    <style>@view-transition { navigation: auto; }</style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+</head>
+<body class="h-full">
+<div id="app" class="h-full w-full flex overflow-auto"><!-- Sidebar -->
+    <aside id="sidebar" class="w-64 flex-shrink-0 shadow-lg flex flex-col">
+        <div class="p-6 border-b">
+            <h2 id="sidebar-title" class="text-xl font-bold">پنل مدیریت مالی</h2>
+        </div>
+        <nav class="flex-1 p-4 overflow-y-auto"><a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="dashboard">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg><span>داشبورد</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="online">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg><span>فروش آنلاین</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="pos">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg><span>فروش حضوری (POS)</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="inventory">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg><span>موجودی و انبار</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="expenses">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg><span>هزینه‌ها</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="profit">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg><span>سود و زیان</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="reports">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg><span>گزارش‌های مالی</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="tax">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg><span>مالیات</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="users">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg><span>کاربران و دسترسی‌ها</span> </a> <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-medium" data-page="settings">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg><span>تنظیمات</span> </a>
+        </nav>
+    </aside><!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-hidden"><!-- Header -->
+        <header id="header" class="shadow-sm border-b px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 id="store-name" class="text-2xl font-bold">فروشگاه زنجیره‌ای پارس</h1>
+                    <p id="dashboard-title" class="text-sm mt-1">داشبورد مالی</p>
+                </div>
+                <div class="flex items-center gap-4"><button class="relative p-2 rounded-lg hover:bg-opacity-80 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg><span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> </button>
+                    <div class="flex items-center gap-3 pr-4 border-r">
+                        <div class="text-right">
+                            <p id="manager-name" class="font-medium">علی احمدی</p>
+                            <p class="text-xs">مدیر مالی</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
+                            👤
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header><!-- Page Content -->
+        <div id="page-content" class="flex-1 overflow-y-auto p-8"><!-- Dashboard Page (Default) -->
+            <div id="page-dashboard" class="page-container"><!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                    <div id="card-total" class="rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium">فروش کل امروز</h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-3xl font-bold mb-1">۴۸٫۵ میلیون</p>
+                        <p class="text-sm flex items-center gap-1"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium">↑ ۱۲٪</span> نسبت به دیروز</p>
+                    </div>
+                    <div id="card-online" class="rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium">فروش آنلاین</h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <p class="text-3xl font-bold mb-1">۲۸٫۲ میلیون</p>
+                        <p class="text-sm flex items-center gap-1"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium">↑ ۱۸٪</span> نسبت به دیروز</p>
+                    </div>
+                    <div id="card-pos" class="rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium">فروش حضوری</h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-3xl font-bold mb-1">۲۰٫۳ میلیون</p>
+                        <p class="text-sm flex items-center gap-1"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium">↑ ۵٪</span> نسبت به دیروز</p>
+                    </div>
+                    <div id="card-profit" class="rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium">سود خالص</h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                        <p class="text-3xl font-bold mb-1">۱۲٫۱ میلیون</p>
+                        <p class="text-sm flex items-center gap-1"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium">↑ ۱۵٪</span> حاشیه سود ۲۵٪</p>
+                    </div>
+                    <div id="card-expenses" class="rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium">هزینه‌ها</h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-3xl font-bold mb-1">۵٫۳ میلیون</p>
+                        <p class="text-sm flex items-center gap-1"><span class="inline-block px-2 py-0.5 rounded text-xs font-medium">↓ ۳٪</span> نسبت به دیروز</p>
+                    </div>
+                </div><!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div id="chart-sales" class="lg:col-span-2 rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold">روند فروش (۷ روز اخیر)</h3>
+                            <div class="flex gap-4 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full" id="legend-line-online"></div><span>فروش آنلاین</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full" id="legend-line-pos"></div><span>فروش حضوری</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div id="chart-channels" class="rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-bold mb-6">سهم کانال‌های فروش</h3>
+                        <div class="chart-container flex items-center justify-center">
+                            <svg width="200" height="200" viewbox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="none" stroke="#E5E7EB" stroke-width="40" /> <circle cx="100" cy="100" r="80" fill="none" stroke-width="40" stroke-dasharray="351.86 150.8" stroke-dashoffset="87.96" transform="rotate(-90 100 100)" id="circle-online" /> <circle cx="100" cy="100" r="80" fill="none" stroke-width="40" stroke-dasharray="251.33 251.33" stroke-dashoffset="-263.9" transform="rotate(-90 100 100)" id="circle-pos" />
+                            </svg>
+                        </div>
+                        <div class="mt-6 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full" id="legend-online"></div><span class="text-sm">فروش آنلاین</span>
+                                </div><span class="font-bold">۵۸٪</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full" id="legend-pos"></div><span class="text-sm">فروش حضوری</span>
+                                </div><span class="font-bold">۴۲٪</span>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- Transactions Table -->
+                <div id="transactions-table" class="rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">آخرین تراکنش‌ها</h3><button class="btn-primary px-4 py-2 rounded-lg font-medium transition-colors hover:opacity-90"> مشاهده همه </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b">
+                                <th class="text-right py-3 px-4 font-medium">شناسه</th>
+                                <th class="text-right py-3 px-4 font-medium">مشتری</th>
+                                <th class="text-right py-3 px-4 font-medium">نوع</th>
+                                <th class="text-right py-3 px-4 font-medium">مبلغ</th>
+                                <th class="text-right py-3 px-4 font-medium">وضعیت</th>
+                                <th class="text-right py-3 px-4 font-medium">تاریخ</th>
+                            </tr>
+                            </thead>
+                            <tbody id="transactions-body">
+                            <tr class="border-b hover:bg-opacity-50 transition-colors">
+                                <td class="py-3 px-4 font-medium">#۱۲۳۴۵</td>
+                                <td class="py-3 px-4">محمد رضایی</td>
+                                <td class="py-3 px-4"><span class="badge-online inline-block px-3 py-1 rounded-full text-xs font-medium">آنلاین</span></td>
+                                <td class="py-3 px-4 font-bold">۱٫۲۵۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs font-medium">تکمیل شده</span></td>
+                                <td class="py-3 px-4">۱۴:۳۲</td>
+                            </tr>
+                            <tr class="border-b hover:bg-opacity-50 transition-colors">
+                                <td class="py-3 px-4 font-medium">#۱۲۳۴۴</td>
+                                <td class="py-3 px-4">فاطمه احمدی</td>
+                                <td class="py-3 px-4"><span class="badge-pos inline-block px-3 py-1 rounded-full text-xs font-medium">حضوری</span></td>
+                                <td class="py-3 px-4 font-bold">۸۵۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs font-medium">تکمیل شده</span></td>
+                                <td class="py-3 px-4">۱۴:۱۸</td>
+                            </tr>
+                            <tr class="border-b hover:bg-opacity-50 transition-colors">
+                                <td class="py-3 px-4 font-medium">#۱۲۳۴۳</td>
+                                <td class="py-3 px-4">علی محمدی</td>
+                                <td class="py-3 px-4"><span class="badge-online inline-block px-3 py-1 rounded-full text-xs font-medium">آنلاین</span></td>
+                                <td class="py-3 px-4 font-bold">۲٫۱۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-warning inline-block px-3 py-1 rounded-full text-xs font-medium">در حال پردازش</span></td>
+                                <td class="py-3 px-4">۱۴:۰۵</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- Online Sales Page -->
+            <div id="page-online" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">فروش آنلاین</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">فروش امروز</h3>
+                        <p class="text-3xl font-bold">۲۸٫۲ میلیون</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">تعداد سفارش</h3>
+                        <p class="text-3xl font-bold">۱۴۲</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">میانگین سفارش</h3>
+                        <p class="text-3xl font-bold">۱۹۸٫۰۰۰ ت</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">نرخ تبدیل</h3>
+                        <p class="text-3xl font-bold">۳٫۲٪</p>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">سفارشات آنلاین اخیر</h3><button class="btn-primary px-4 py-2 rounded-lg font-medium">افزودن سفارش</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b">
+                                <th class="text-right py-3 px-4 font-medium">کد سفارش</th>
+                                <th class="text-right py-3 px-4 font-medium">مشتری</th>
+                                <th class="text-right py-3 px-4 font-medium">محصولات</th>
+                                <th class="text-right py-3 px-4 font-medium">مبلغ</th>
+                                <th class="text-right py-3 px-4 font-medium">وضعیت</th>
+                                <th class="text-right py-3 px-4 font-medium">تاریخ</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#WEB۲۰۲۴۰۱</td>
+                                <td class="py-3 px-4">مریم کریمی</td>
+                                <td class="py-3 px-4">۳ محصول</td>
+                                <td class="py-3 px-4 font-bold">۲٫۳۵۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">ارسال شده</span></td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۸/۱۵</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#WEB۲۰۲۴۰۲</td>
+                                <td class="py-3 px-4">رضا نوری</td>
+                                <td class="py-3 px-4">۱ محصول</td>
+                                <td class="py-3 px-4 font-bold">۹۵۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-warning inline-block px-3 py-1 rounded-full text-xs">در حال پردازش</span></td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۸/۱۵</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#WEB۲۰۲۴۰۳</td>
+                                <td class="py-3 px-4">سحر محمدی</td>
+                                <td class="py-3 px-4">۵ محصول</td>
+                                <td class="py-3 px-4 font-bold">۴٫۱۲۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">تحویل داده شده</span></td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۸/۱۴</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- POS Page -->
+            <div id="page-pos" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">فروش حضوری (POS)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">فروش امروز</h3>
+                        <p class="text-3xl font-bold">۲۰٫۳ میلیون</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">تعداد فروش</h3>
+                        <p class="text-3xl font-bold">۸۷</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">میانگین فروش</h3>
+                        <p class="text-3xl font-bold">۲۳۳٫۰۰۰ ت</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">شعبه فعال</h3>
+                        <p class="text-3xl font-bold">۵</p>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-bold mb-4">فروش بر اساس شعبه</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="font-medium">شعبه تهران - ونک</span> <span class="font-bold">۶٫۵ میلیون</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar h-2 rounded-full" style="width: 32%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="font-medium">شعبه تهران - نیاوران</span> <span class="font-bold">۵٫۲ میلیون</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar h-2 rounded-full" style="width: 26%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="font-medium">شعبه اصفهان - چهارباغ</span> <span class="font-bold">۴٫۱ میلیون</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar h-2 rounded-full" style="width: 20%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">تراکنش‌های حضوری اخیر</h3><button class="btn-primary px-4 py-2 rounded-lg font-medium">ثبت فروش جدید</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b">
+                                <th class="text-right py-3 px-4 font-medium">کد فروش</th>
+                                <th class="text-right py-3 px-4 font-medium">شعبه</th>
+                                <th class="text-right py-3 px-4 font-medium">محصولات</th>
+                                <th class="text-right py-3 px-4 font-medium">مبلغ</th>
+                                <th class="text-right py-3 px-4 font-medium">روش پرداخت</th>
+                                <th class="text-right py-3 px-4 font-medium">زمان</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#POS۱۵۲۳</td>
+                                <td class="py-3 px-4">ونک</td>
+                                <td class="py-3 px-4">۲ قلم</td>
+                                <td class="py-3 px-4 font-bold">۱٫۸۵۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-pos inline-block px-3 py-1 rounded-full text-xs">کارت</span></td>
+                                <td class="py-3 px-4">۱۵:۲۳</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#POS۱۵۲۲</td>
+                                <td class="py-3 px-4">نیاوران</td>
+                                <td class="py-3 px-4">۱ قلم</td>
+                                <td class="py-3 px-4 font-bold">۶۵۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-pos inline-block px-3 py-1 rounded-full text-xs">نقدی</span></td>
+                                <td class="py-3 px-4">۱۵:۱۸</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#POS۱۵۲۱</td>
+                                <td class="py-3 px-4">چهارباغ</td>
+                                <td class="py-3 px-4">۴ قلم</td>
+                                <td class="py-3 px-4 font-bold">۳٫۲۲۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4"><span class="badge-pos inline-block px-3 py-1 rounded-full text-xs">کارت</span></td>
+                                <td class="py-3 px-4">۱۵:۰۵</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- Inventory Page -->
+            <div id="page-inventory" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">مدیریت موجودی و انبار</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">ارزش کل موجودی</h3>
+                        <p class="text-3xl font-bold">۱۲۵ میلیون</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">تعداد محصولات</h3>
+                        <p class="text-3xl font-bold">۳۴۸</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">کالای کم‌موجود</h3>
+                        <p class="text-3xl font-bold text-red-600">۲۳</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">کالای ناموجود</h3>
+                        <p class="text-3xl font-bold text-red-600">۷</p>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">لیست محصولات</h3>
+                        <div class="flex gap-3"><input type="text" placeholder="جستجو..." class="search-input px-4 py-2 border rounded-lg"> <button class="btn-primary px-4 py-2 rounded-lg font-medium">افزودن محصول</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b">
+                                <th class="text-right py-3 px-4 font-medium">کد محصول</th>
+                                <th class="text-right py-3 px-4 font-medium">نام محصول</th>
+                                <th class="text-right py-3 px-4 font-medium">دسته‌بندی</th>
+                                <th class="text-right py-3 px-4 font-medium">موجودی</th>
+                                <th class="text-right py-3 px-4 font-medium">قیمت</th>
+                                <th class="text-right py-3 px-4 font-medium">وضعیت</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#PRD۰۰۱</td>
+                                <td class="py-3 px-4">تی‌شرت مردانه</td>
+                                <td class="py-3 px-4">پوشاک</td>
+                                <td class="py-3 px-4">۱۲۵ عدد</td>
+                                <td class="py-3 px-4 font-bold">۳۵۰٫۰۰۰ ت</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">موجود</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#PRD۰۰۲</td>
+                                <td class="py-3 px-4">شلوار جین</td>
+                                <td class="py-3 px-4">پوشاک</td>
+                                <td class="py-3 px-4">۸ عدد</td>
+                                <td class="py-3 px-4 font-bold">۶۵۰٫۰۰۰ ت</td>
+                                <td class="py-3 px-4"><span class="inline-block px-3 py-1 rounded-full text-xs" style="background-color: #FEF3C7; color: #D97706">کم‌موجود</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#PRD۰۰۳</td>
+                                <td class="py-3 px-4">کفش ورزشی</td>
+                                <td class="py-3 px-4">کفش</td>
+                                <td class="py-3 px-4">۰ عدد</td>
+                                <td class="py-3 px-4 font-bold">۱٫۲۰۰٫۰۰۰ ت</td>
+                                <td class="py-3 px-4"><span class="inline-block px-3 py-1 rounded-full text-xs" style="background-color: #FEE2E2; color: #DC2626">ناموجود</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- Expenses Page -->
+            <div id="page-expenses" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">مدیریت هزینه‌ها</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">هزینه امروز</h3>
+                        <p class="text-3xl font-bold">۵٫۳ میلیون</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">هزینه این ماه</h3>
+                        <p class="text-3xl font-bold">۸۵٫۲ میلیون</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">بیشترین هزینه</h3>
+                        <p class="text-xl font-bold">حقوق و دستمزد</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">تعداد هزینه‌ها</h3>
+                        <p class="text-3xl font-bold">۱۴۲</p>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-bold mb-4">هزینه‌ها بر اساس دسته‌بندی</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="font-medium">حقوق و دستمزد</span> <span class="font-bold">۴۵ میلیون (۵۳٪)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar h-2 rounded-full" style="width: 53%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="font-medium">اجاره و املاک</span> <span class="font-bold">۱۵ میلیون (۱۸٪)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar h-2 rounded-full" style="width: 18%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="font-medium">آب و برق و گاز</span> <span class="font-bold">۸ میلیون (۹٪)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar h-2 rounded-full" style="width: 9%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="font-medium">بازاریابی و تبلیغات</span> <span class="font-bold">۱۲ میلیون (۱۴٪)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar h-2 rounded-full" style="width: 14%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">لیست هزینه‌های اخیر</h3><button class="btn-primary px-4 py-2 rounded-lg font-medium">ثبت هزینه جدید</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b">
+                                <th class="text-right py-3 px-4 font-medium">شناسه</th>
+                                <th class="text-right py-3 px-4 font-medium">عنوان</th>
+                                <th class="text-right py-3 px-4 font-medium">دسته‌بندی</th>
+                                <th class="text-right py-3 px-4 font-medium">مبلغ</th>
+                                <th class="text-right py-3 px-4 font-medium">تاریخ</th>
+                                <th class="text-right py-3 px-4 font-medium">وضعیت</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#EXP۵۶۷</td>
+                                <td class="py-3 px-4">حقوق پرسنل</td>
+                                <td class="py-3 px-4">حقوق و دستمزد</td>
+                                <td class="py-3 px-4 font-bold">۴۵٫۰۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۸/۰۱</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">پرداخت شده</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#EXP۵۶۸</td>
+                                <td class="py-3 px-4">اجاره شعبه ونک</td>
+                                <td class="py-3 px-4">اجاره و املاک</td>
+                                <td class="py-3 px-4 font-bold">۵٫۰۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۸/۰۵</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">پرداخت شده</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">#EXP۵۶۹</td>
+                                <td class="py-3 px-4">کمپین اینستاگرام</td>
+                                <td class="py-3 px-4">بازاریابی و تبلیغات</td>
+                                <td class="py-3 px-4 font-bold">۳٫۵۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۸/۱۰</td>
+                                <td class="py-3 px-4"><span class="badge-warning inline-block px-3 py-1 rounded-full text-xs">در انتظار</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- Profit Page -->
+            <div id="page-profit" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">گزارش سود و زیان</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">سود خالص این ماه</h3>
+                        <p class="text-3xl font-bold">۱۸۵٫۳ میلیون</p>
+                        <p class="text-sm mt-2">حاشیه سود: ۲۴٫۵٪</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">درآمد کل</h3>
+                        <p class="text-3xl font-bold">۷۵۶٫۲ میلیون</p>
+                        <p class="text-sm mt-2 flex items-center gap-1"><span class="badge-success inline-block px-2 py-0.5 rounded text-xs">↑ ۱۸٪</span> نسبت به ماه قبل</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">هزینه کل</h3>
+                        <p class="text-3xl font-bold">۵۷۰٫۹ میلیون</p>
+                        <p class="text-sm mt-2 flex items-center gap-1"><span class="inline-block px-2 py-0.5 rounded text-xs" style="background-color: #FEE2E2; color: #DC2626">↑ ۵٪</span> نسبت به ماه قبل</p>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-bold mb-4">صورت سود و زیان ماه جاری</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium">درآمد فروش</span> <span class="font-bold">۷۵۶٫۲۰۰٫۰۰۰ تومان</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium mr-4">- بهای تمام شده کالای فروش رفته</span> <span class="font-bold">(۴۲۵٫۵۰۰٫۰۰۰ تومان)</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b"><span class="font-semibold">سود ناخالص</span> <span class="font-bold">۳۳۰٫۷۰۰٫۰۰۰ تومان</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium mr-4">- هزینه‌های عملیاتی</span> <span class="font-bold">(۸۵٫۲۰۰٫۰۰۰ تومان)</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium mr-4">- هزینه‌های بازاریابی</span> <span class="font-bold">(۳۵٫۲۰۰٫۰۰۰ تومان)</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium mr-4">- هزینه‌های اداری</span> <span class="font-bold">(۲۵٫۰۰۰٫۰۰۰ تومان)</span>
+                        </div>
+                        <div class="flex justify-between py-3 border-t-2"><span class="font-bold text-xl">سود خالص</span> <span class="font-bold text-xl">۱۸۵٫۳۰۰٫۰۰۰ تومان</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold mb-4">روند سود و زیان (۶ ماه اخیر)</h3>
+                    <div class="h-64 flex items-end justify-around gap-4 border-b pb-4">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="bar-chart w-16 rounded-t" style="height: 45%"></div><span class="text-sm">اردیبهشت</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="bar-chart w-16 rounded-t" style="height: 58%"></div><span class="text-sm">خرداد</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="bar-chart w-16 rounded-t" style="height: 65%"></div><span class="text-sm">تیر</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="bar-chart w-16 rounded-t" style="height: 72%"></div><span class="text-sm">مرداد</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="bar-chart w-16 rounded-t" style="height: 80%"></div><span class="text-sm">شهریور</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="bar-chart w-16 rounded-t" style="height: 90%"></div><span class="text-sm">مهر</span>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- Reports Page -->
+            <div id="page-reports" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">گزارش‌های مالی</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center icon-bg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">گزارش فروش روزانه</h3>
+                                <p class="text-sm">آخرین بروزرسانی: امروز</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4"><button class="btn-primary flex-1 py-2 rounded-lg font-medium text-sm">آنلاین</button> <button class="btn-secondary flex-1 py-2 rounded-lg font-medium text-sm">حضوری</button>
+                        </div>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center icon-bg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">گزارش ماهانه</h3>
+                                <p class="text-sm">آخرین بروزرسانی: مهر ۱۴۰۳</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4"><button class="btn-primary flex-1 py-2 rounded-lg font-medium text-sm">آنلاین</button> <button class="btn-secondary flex-1 py-2 rounded-lg font-medium text-sm">حضوری</button>
+                        </div>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center icon-bg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">تحلیل فروش محصول</h3>
+                                <p class="text-sm">آخرین بروزرسانی: امروز</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4"><button class="btn-primary flex-1 py-2 rounded-lg font-medium text-sm">آنلاین</button> <button class="btn-secondary flex-1 py-2 rounded-lg font-medium text-sm">حضوری</button>
+                        </div>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center icon-bg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">گزارش هزینه‌ها</h3>
+                                <p class="text-sm">آخرین بروزرسانی: این ماه</p>
+                            </div>
+                        </div><button class="btn-primary w-full py-2 rounded-lg font-medium mt-4">مشاهده</button>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center icon-bg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">گزارش مشتریان</h3>
+                                <p class="text-sm">آخرین بروزرسانی: امروز</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4"><button class="btn-primary flex-1 py-2 rounded-lg font-medium text-sm">آنلاین</button> <button class="btn-secondary flex-1 py-2 rounded-lg font-medium text-sm">حضوری</button>
+                        </div>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center icon-bg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">گزارش موجودی انبار</h3>
+                                <p class="text-sm">آخرین بروزرسانی: ۱ ساعت پیش</p>
+                            </div>
+                        </div><button class="btn-primary w-full py-2 rounded-lg font-medium mt-4">مشاهده</button>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold mb-6">گزارش‌های سفارشی</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div><label class="block text-sm font-medium mb-2">نوع گزارش</label> <select class="search-input w-full px-4 py-2 border rounded-lg"> <option>فروش</option> <option>هزینه</option> <option>سود و زیان</option> <option>موجودی</option> </select>
+                        </div>
+                        <div><label class="block text-sm font-medium mb-2">از تاریخ</label> <input type="text" value="۱۴۰۳/۰۸/۰۱" class="search-input w-full px-4 py-2 border rounded-lg">
+                        </div>
+                        <div><label class="block text-sm font-medium mb-2">تا تاریخ</label> <input type="text" value="۱۴۰۳/۰۸/۱۵" class="search-input w-full px-4 py-2 border rounded-lg">
+                        </div>
+                    </div><button class="btn-primary px-6 py-2 rounded-lg font-medium">ایجاد گزارش</button>
+                </div>
+            </div><!-- Tax Page -->
+            <div id="page-tax" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">مدیریت مالیات</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">مالیات این ماه</h3>
+                        <p class="text-3xl font-bold">۱۶٫۶ میلیون</p>
+                        <p class="text-sm mt-2">۹٪ از فروش خالص</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">مالیات پرداخت شده</h3>
+                        <p class="text-3xl font-bold">۱۲٫۵ میلیون</p>
+                        <p class="text-sm mt-2">تا تاریخ این ماه</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">مالیات معوق</h3>
+                        <p class="text-3xl font-bold text-red-600">۴٫۱ میلیون</p>
+                        <p class="text-sm mt-2">نیاز به پرداخت</p>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-bold mb-4">خلاصه مالیاتی فصل جاری</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium">جمع فروش خالص</span> <span class="font-bold">۱۸۵٫۰۰۰٫۰۰۰ تومان</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium">نرخ مالیات (۹٪)</span> <span class="font-bold">۱۶٫۶۵۰٫۰۰۰ تومان</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b"><span class="font-medium">مالیات پرداخت شده</span> <span class="font-bold">۱۲٫۵۰۰٫۰۰۰ تومان</span>
+                        </div>
+                        <div class="flex justify-between py-3 border-t-2"><span class="font-bold text-lg">مانده قابل پرداخت</span> <span class="font-bold text-lg text-red-600">۴٫۱۵۰٫۰۰۰ تومان</span>
+                        </div>
+                    </div><button class="btn-primary w-full py-3 rounded-lg font-medium mt-6">پرداخت مالیات</button>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold mb-6">تاریخچه پرداخت‌های مالیاتی</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b">
+                                <th class="text-right py-3 px-4 font-medium">دوره</th>
+                                <th class="text-right py-3 px-4 font-medium">مبلغ مالیات</th>
+                                <th class="text-right py-3 px-4 font-medium">مبلغ پرداختی</th>
+                                <th class="text-right py-3 px-4 font-medium">تاریخ پرداخت</th>
+                                <th class="text-right py-3 px-4 font-medium">وضعیت</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">تیر ۱۴۰۳</td>
+                                <td class="py-3 px-4">۱۴٫۲۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۴٫۲۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۴/۳۱</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">پرداخت شده</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">مرداد ۱۴۰۳</td>
+                                <td class="py-3 px-4">۱۵٫۸۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۵٫۸۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۴۰۳/۰۶/۳۱</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">پرداخت شده</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">شهریور ۱۴۰۳</td>
+                                <td class="py-3 px-4">۱۶٫۶۵۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">۱۲٫۵۰۰٫۰۰۰ تومان</td>
+                                <td class="py-3 px-4">-</td>
+                                <td class="py-3 px-4"><span class="inline-block px-3 py-1 rounded-full text-xs" style="background-color: #FEE2E2; color: #DC2626">معوق</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- Users Page -->
+            <div id="page-users" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">مدیریت کاربران و دسترسی‌ها</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">کل کاربران</h3>
+                        <p class="text-3xl font-bold">۲۴</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">مدیران</h3>
+                        <p class="text-3xl font-bold">۳</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">کارمندان</h3>
+                        <p class="text-3xl font-bold">۱۸</p>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-sm font-medium mb-2">کاربران فعال</h3>
+                        <p class="text-3xl font-bold">۲۱</p>
+                    </div>
+                </div>
+                <div class="card-surface rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">لیست کاربران</h3><button class="btn-primary px-4 py-2 rounded-lg font-medium">افزودن کاربر</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b">
+                                <th class="text-right py-3 px-4 font-medium">نام و نام خانوادگی</th>
+                                <th class="text-right py-3 px-4 font-medium">ایمیل</th>
+                                <th class="text-right py-3 px-4 font-medium">نقش</th>
+                                <th class="text-right py-3 px-4 font-medium">شعبه</th>
+                                <th class="text-right py-3 px-4 font-medium">وضعیت</th>
+                                <th class="text-right py-3 px-4 font-medium">عملیات</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">علی احمدی</td>
+                                <td class="py-3 px-4">ali.ahmadi@example.com</td>
+                                <td class="py-3 px-4"><span class="badge-online inline-block px-3 py-1 rounded-full text-xs">مدیر مالی</span></td>
+                                <td class="py-3 px-4">دفتر مرکزی</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">فعال</span></td>
+                                <td class="py-3 px-4"><button class="text-sm hover:underline">ویرایش</button></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">زهرا رضایی</td>
+                                <td class="py-3 px-4">zahra.rezaei@example.com</td>
+                                <td class="py-3 px-4"><span class="badge-pos inline-block px-3 py-1 rounded-full text-xs">فروشنده</span></td>
+                                <td class="py-3 px-4">شعبه ونک</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">فعال</span></td>
+                                <td class="py-3 px-4"><button class="text-sm hover:underline">ویرایش</button></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">محمد کریمی</td>
+                                <td class="py-3 px-4">mohammad.karimi@example.com</td>
+                                <td class="py-3 px-4"><span class="badge-pos inline-block px-3 py-1 rounded-full text-xs">انباردار</span></td>
+                                <td class="py-3 px-4">شعبه نیاوران</td>
+                                <td class="py-3 px-4"><span class="badge-success inline-block px-3 py-1 rounded-full text-xs">فعال</span></td>
+                                <td class="py-3 px-4"><button class="text-sm hover:underline">ویرایش</button></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- Settings Page -->
+            <div id="page-settings" class="page-container" style="display:none;">
+                <h2 class="text-2xl font-bold mb-6">تنظیمات سیستم</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-bold mb-4">تنظیمات عمومی</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-sm font-medium mb-2">نام فروشگاه</label> <input type="text" value="فروشگاه زنجیره‌ای پارس" class="search-input w-full px-4 py-2 border rounded-lg">
+                            </div>
+                            <div><label class="block text-sm font-medium mb-2">شماره تماس</label> <input type="text" value="۰۲۱-۱۲۳۴۵۶۷۸" class="search-input w-full px-4 py-2 border rounded-lg">
+                            </div>
+                            <div><label class="block text-sm font-medium mb-2">ایمیل</label> <input type="email" value="info@parsstore.com" class="search-input w-full px-4 py-2 border rounded-lg">
+                            </div><button class="btn-primary w-full py-2 rounded-lg font-medium">ذخیره تغییرات</button>
+                        </div>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-bold mb-4">تنظیمات مالی</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-sm font-medium mb-2">واحد پول</label> <select class="search-input w-full px-4 py-2 border rounded-lg"> <option>تومان</option> <option>ریال</option> </select>
+                            </div>
+                            <div><label class="block text-sm font-medium mb-2">نرخ مالیات (%)</label> <input type="number" value="9" class="search-input w-full px-4 py-2 border rounded-lg">
+                            </div>
+                            <div><label class="block text-sm font-medium mb-2">سال مالی</label> <select class="search-input w-full px-4 py-2 border rounded-lg"> <option>۱۴۰۳</option> <option>۱۴۰۲</option> </select>
+                            </div><button class="btn-primary w-full py-2 rounded-lg font-medium">ذخیره تغییرات</button>
+                        </div>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-bold mb-4">اعلان‌ها</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between"><span class="font-medium">اعلان فروش جدید</span> <label class="relative inline-block w-12 h-6"> <input type="checkbox" class="sr-only peer" checked> <span class="toggle-switch absolute cursor-pointer inset-0 rounded-full transition-colors"></span> </label>
+                            </div>
+                            <div class="flex items-center justify-between"><span class="font-medium">هشدار موجودی کم</span> <label class="relative inline-block w-12 h-6"> <input type="checkbox" class="sr-only peer" checked> <span class="toggle-switch absolute cursor-pointer inset-0 rounded-full transition-colors"></span> </label>
+                            </div>
+                            <div class="flex items-center justify-between"><span class="font-medium">یادآوری پرداخت مالیات</span> <label class="relative inline-block w-12 h-6"> <input type="checkbox" class="sr-only peer" checked> <span class="toggle-switch absolute cursor-pointer inset-0 rounded-full transition-colors"></span> </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-surface rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-bold mb-4">امنیت</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-sm font-medium mb-2">رمز عبور فعلی</label> <input type="password" class="search-input w-full px-4 py-2 border rounded-lg">
+                            </div>
+                            <div><label class="block text-sm font-medium mb-2">رمز عبور جدید</label> <input type="password" class="search-input w-full px-4 py-2 border rounded-lg">
+                            </div>
+                            <div><label class="block text-sm font-medium mb-2">تکرار رمز عبور</label> <input type="password" class="search-input w-full px-4 py-2 border rounded-lg">
+                            </div><button class="btn-primary w-full py-2 rounded-lg font-medium">تغییر رمز عبور</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<script>
+    const defaultConfig = {
+        background_color: "#F3F4F6",
+        surface_color: "#FFFFFF",
+        text_color: "#1F2937",
+        primary_action_color: "#2563EB",
+        secondary_action_color: "#10B981",
+        store_name: "فروشگاه زنجیره‌ای پارس",
+        manager_name: "علی احمدی",
+        dashboard_title: "داشبورد مالی",
+        font_family: "Vazirmatn",
+        font_size: 16
+    };
+
+    let currentPage = 'dashboard';
+
+    // Page navigation
+    document.querySelectorAll('nav a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            if (page) {
+                switchPage(page);
+            }
+        });
+    });
+
+    function switchPage(pageName) {
+        currentPage = pageName;
+
+        const config = window.elementSdk ? window.elementSdk.config : defaultConfig;
+        const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+        const surfaceColor = config.surface_color || defaultConfig.surface_color;
+        const textColor = config.text_color || defaultConfig.text_color;
+
+        // Hide all pages
+        document.querySelectorAll('.page-container').forEach(page => {
+            page.style.display = 'none';
+        });
+
+        // Show selected page
+        const selectedPage = document.getElementById('page-' + pageName);
+        if (selectedPage) {
+            selectedPage.style.display = 'block';
+        }
+
+        // Update ALL menu items - reset all first
+        document.querySelectorAll('nav a').forEach(link => {
+            link.classList.remove('menu-active');
+            link.style.backgroundColor = 'transparent';
+            link.style.color = textColor;
+        });
+
+        // Then apply active style to selected item only
+        document.querySelectorAll('nav a').forEach(link => {
+            if (link.getAttribute('data-page') === pageName) {
+                link.classList.add('menu-active');
+                link.style.backgroundColor = primaryColor;
+                link.style.color = surfaceColor;
+            }
+        });
+    }
+
+    async function onConfigChange(config) {
+        const backgroundColor = config.background_color || defaultConfig.background_color;
+        const surfaceColor = config.surface_color || defaultConfig.surface_color;
+        const textColor = config.text_color || defaultConfig.text_color;
+        const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+        const secondaryColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+        const storeName = config.store_name || defaultConfig.store_name;
+        const managerName = config.manager_name || defaultConfig.manager_name;
+        const dashboardTitle = config.dashboard_title || defaultConfig.dashboard_title;
+        const fontFamily = config.font_family || defaultConfig.font_family;
+        const fontSize = config.font_size || defaultConfig.font_size;
+
+        // Apply background
+        document.getElementById('app').style.backgroundColor = backgroundColor;
+
+        // Apply surface colors
+        document.getElementById('sidebar').style.backgroundColor = surfaceColor;
+        document.getElementById('header').style.backgroundColor = surfaceColor;
+
+        document.querySelectorAll('.card-surface').forEach(card => {
+            card.style.backgroundColor = surfaceColor;
+        });
+
+        const cards = ['card-total', 'card-online', 'card-pos', 'card-profit', 'card-expenses'];
+        cards.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.backgroundColor = surfaceColor;
+        });
+
+        const chartSales = document.getElementById('chart-sales');
+        if (chartSales) chartSales.style.backgroundColor = surfaceColor;
+        const chartChannels = document.getElementById('chart-channels');
+        if (chartChannels) chartChannels.style.backgroundColor = surfaceColor;
+        const transTable = document.getElementById('transactions-table');
+        if (transTable) transTable.style.backgroundColor = surfaceColor;
+
+        // Apply text colors
+        document.getElementById('app').style.color = textColor;
+        document.getElementById('sidebar-title').style.color = textColor;
+        document.getElementById('store-name').style.color = textColor;
+        document.getElementById('manager-name').style.color = textColor;
+
+        // Apply menu colors - reset all first then apply active
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.style.color = textColor;
+            item.style.backgroundColor = 'transparent';
+        });
+
+        const activeMenu = document.querySelector('.menu-active');
+        if (activeMenu) {
+            activeMenu.style.backgroundColor = primaryColor;
+            activeMenu.style.color = surfaceColor;
+        }
+
+        // Apply primary action color
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            btn.style.backgroundColor = primaryColor;
+            btn.style.color = surfaceColor;
+        });
+
+        // Apply secondary button color
+        document.querySelectorAll('.btn-secondary').forEach(btn => {
+            btn.style.backgroundColor = secondaryColor;
+            btn.style.color = surfaceColor;
+        });
+
+        // Apply secondary color to stats
+        const statBadges = document.querySelectorAll('#card-total span, #card-online span, #card-pos span, #card-profit span');
+        statBadges.forEach(badge => {
+            badge.style.backgroundColor = secondaryColor + '20';
+            badge.style.color = secondaryColor;
+        });
+
+        const expenseBadge = document.querySelector('#card-expenses span');
+        if (expenseBadge) {
+            expenseBadge.style.backgroundColor = '#EF444420';
+            expenseBadge.style.color = '#EF4444';
+        }
+
+        // Apply colors to badges
+        document.querySelectorAll('.badge-online').forEach(badge => {
+            badge.style.backgroundColor = primaryColor + '20';
+            badge.style.color = primaryColor;
+        });
+
+        document.querySelectorAll('.badge-pos').forEach(badge => {
+            badge.style.backgroundColor = secondaryColor + '20';
+            badge.style.color = secondaryColor;
+        });
+
+        document.querySelectorAll('.badge-success').forEach(badge => {
+            badge.style.backgroundColor = secondaryColor + '20';
+            badge.style.color = secondaryColor;
+        });
+
+        document.querySelectorAll('.badge-warning').forEach(badge => {
+            badge.style.backgroundColor = '#F59E0B20';
+            badge.style.color = '#F59E0B';
+        });
+
+        // Apply colors to chart elements
+        const circleOnline = document.getElementById('circle-online');
+        if (circleOnline) circleOnline.setAttribute('stroke', primaryColor);
+        const circlePos = document.getElementById('circle-pos');
+        if (circlePos) circlePos.setAttribute('stroke', secondaryColor);
+        const legendOnline = document.getElementById('legend-online');
+        if (legendOnline) legendOnline.style.backgroundColor = primaryColor;
+        const legendPos = document.getElementById('legend-pos');
+        if (legendPos) legendPos.style.backgroundColor = secondaryColor;
+        const legendLineOnline = document.getElementById('legend-line-online');
+        if (legendLineOnline) legendLineOnline.style.backgroundColor = primaryColor;
+        const legendLinePos = document.getElementById('legend-line-pos');
+        if (legendLinePos) legendLinePos.style.backgroundColor = secondaryColor;
+
+        // Apply colors to progress bars and bar charts
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            bar.style.backgroundColor = primaryColor;
+        });
+
+        document.querySelectorAll('.bar-chart').forEach(bar => {
+            bar.style.backgroundColor = primaryColor;
+        });
+
+        // Apply icon background colors
+        document.querySelectorAll('.icon-bg').forEach(icon => {
+            icon.style.backgroundColor = primaryColor + '20';
+            icon.style.color = primaryColor;
+        });
+
+        // Apply search input styles
+        document.querySelectorAll('.search-input').forEach(input => {
+            input.style.borderColor = '#D1D5DB';
+            input.style.color = textColor;
+        });
+
+        // Apply toggle switch colors
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.style.backgroundColor = '#D1D5DB';
+        });
+
+        document.querySelectorAll('input[type="checkbox"]:checked + .toggle-switch').forEach(toggle => {
+            toggle.style.backgroundColor = primaryColor;
+        });
+
+        // Update text content
+        document.getElementById('store-name').textContent = storeName;
+        document.getElementById('manager-name').textContent = managerName;
+        document.getElementById('dashboard-title').textContent = dashboardTitle;
+
+        // Apply font
+        const fontStack = `${fontFamily}, Vazirmatn, sans-serif`;
+        document.getElementById('app').style.fontFamily = fontStack;
+
+        // Apply font sizes
+        document.getElementById('store-name').style.fontSize = `${fontSize * 1.5}px`;
+        document.getElementById('dashboard-title').style.fontSize = `${fontSize * 0.875}px`;
+        document.getElementById('sidebar-title').style.fontSize = `${fontSize * 1.25}px`;
+
+        // Redraw chart with new colors
+        drawChart();
+    }
+
+    function drawChart() {
+        const canvas = document.getElementById('salesChart');
+        if (!canvas) return;
+
+        const config = window.elementSdk ? window.elementSdk.config : defaultConfig;
+        const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+        const secondaryColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+        const textColor = config.text_color || defaultConfig.text_color;
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        const data1 = [15, 22, 18, 28, 25, 32, 28];
+        const data2 = [12, 15, 14, 20, 18, 23, 20];
+        const labels = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'];
+
+        const padding = 40;
+        const chartWidth = canvas.width - padding * 2;
+        const chartHeight = canvas.height - padding * 2;
+        const stepX = chartWidth / (data1.length - 1);
+        const maxValue = Math.max(...data1, ...data2);
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Grid
+        ctx.strokeStyle = '#E5E7EB';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (chartHeight / 4) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(canvas.width - padding, y);
+            ctx.stroke();
+        }
+
+        // Line 1 (Online)
+        ctx.strokeStyle = primaryColor;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        data1.forEach((value, index) => {
+            const x = padding + stepX * index;
+            const y = padding + chartHeight - (value / maxValue) * chartHeight;
+            if (index === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Line 2 (POS)
+        ctx.strokeStyle = secondaryColor;
+        ctx.beginPath();
+        data2.forEach((value, index) => {
+            const x = padding + stepX * index;
+            const y = padding + chartHeight - (value / maxValue) * chartHeight;
+            if (index === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Labels
+        ctx.fillStyle = textColor;
+        ctx.font = '12px Vazirmatn';
+        ctx.textAlign = 'center';
+        labels.forEach((label, index) => {
+            const x = padding + stepX * index;
+            ctx.fillText(label, x, canvas.height - 10);
+        });
+    }
+
+    if (window.elementSdk) {
+        window.elementSdk.init({
+            defaultConfig,
+            onConfigChange,
+            mapToCapabilities: (config) => ({
+                recolorables: [
+                    {
+                        get: () => config.background_color || defaultConfig.background_color,
+                        set: (value) => {
+                            config.background_color = value;
+                            window.elementSdk.setConfig({ background_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.surface_color || defaultConfig.surface_color,
+                        set: (value) => {
+                            config.surface_color = value;
+                            window.elementSdk.setConfig({ surface_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.text_color || defaultConfig.text_color,
+                        set: (value) => {
+                            config.text_color = value;
+                            window.elementSdk.setConfig({ text_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.primary_action_color || defaultConfig.primary_action_color,
+                        set: (value) => {
+                            config.primary_action_color = value;
+                            window.elementSdk.setConfig({ primary_action_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+                        set: (value) => {
+                            config.secondary_action_color = value;
+                            window.elementSdk.setConfig({ secondary_action_color: value });
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: {
+                    get: () => config.font_family || defaultConfig.font_family,
+                    set: (value) => {
+                        config.font_family = value;
+                        window.elementSdk.setConfig({ font_family: value });
+                    }
+                },
+                fontSizeable: {
+                    get: () => config.font_size || defaultConfig.font_size,
+                    set: (value) => {
+                        config.font_size = value;
+                        window.elementSdk.setConfig({ font_size: value });
+                    }
+                }
+            }),
+            mapToEditPanelValues: (config) => new Map([
+                ["store_name", config.store_name || defaultConfig.store_name],
+                ["manager_name", config.manager_name || defaultConfig.manager_name],
+                ["dashboard_title", config.dashboard_title || defaultConfig.dashboard_title]
+            ])
+        });
+    }
+
+    // Initialize
+    switchPage('dashboard');
+    drawChart();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b223171b54d0a53',t:'MTc2NjQzMzQ5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

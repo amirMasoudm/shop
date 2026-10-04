@@ -1,0 +1,411 @@
+<!--
+    مارکاپِ تبِ محصولات — مشترک بینِ Admin.html و SalesPanel.html.
+    عمداً یک فایلِ جدا است (نه کپی‌شده در دو صفحه) تا تغییرِ فرمِ محصول یک‌جا انجام
+    شود. توسطِ /js/products-tab.js (تابعِ ProductsTab.mount) واکشی و به دو نقطه
+    از میزبان تزریق می‌شود: یکی برایِ خودِ تب (جدول+فیلترها)، یکی برایِ مودالِ
+    افزودن/ویرایشِ محصول.
+-->
+<template id="products-tab-shell-tpl">
+    <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800">مدیریت محصولات</h2>
+        <!-- data-add-product: ProductsTab.mount برایِ نقش‌های فقط-مشاهده پنهانش می‌کند -->
+        <button data-add-product onclick="openProductModal()"
+                class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow transition flex items-center justify-center gap-2">
+            <span>➕</span> افزودن محصول جدید
+        </button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <div class="p-4 border-b bg-gray-50 flex flex-wrap gap-3 items-end">
+            <div class="relative w-full md:w-56">
+                <label class="block text-xs text-gray-500 mb-1">جستجو</label>
+                <span class="absolute right-3 top-8 text-gray-400">🔍</span>
+                <input type="text" id="prod-search" onkeyup="applyProductFilters()" placeholder="نام یا کد..."
+                       class="w-full pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">دسته‌بندی</label>
+                <select id="filter-category" onchange="applyProductFilters()"
+                        class="w-44 py-2 px-2 border rounded-lg bg-white outline-none text-sm">
+                    <option value="">همه دسته‌ها</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">قیمت از</label>
+                <input type="number" id="filter-min-price" oninput="applyProductFilters()" placeholder="حداقل"
+                       class="w-28 py-2 px-2 border rounded-lg outline-none text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">قیمت تا</label>
+                <input type="number" id="filter-max-price" oninput="applyProductFilters()" placeholder="حداکثر"
+                       class="w-28 py-2 px-2 border rounded-lg outline-none text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">موجودی</label>
+                <select id="filter-stock" onchange="applyProductFilters()"
+                        class="w-32 py-2 px-2 border rounded-lg bg-white outline-none text-sm">
+                    <option value="">همه</option>
+                    <option value="in">موجود</option>
+                    <option value="out">ناموجود</option>
+                    <option value="low">کم‌موجود (≤۵)</option>
+                </select>
+            </div>
+            <button onclick="resetProductFilters()"
+                    class="py-2 px-3 text-gray-500 border rounded-lg text-sm hover:bg-gray-100">پاک‌کردن</button>
+            <div class="text-xs text-gray-500 mr-auto self-center" id="filter-count"></div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-right whitespace-nowrap md:whitespace-normal">
+                <thead class="bg-gray-100 text-gray-600 text-sm">
+                <tr>
+                    <th class="p-3 md:p-4">تصویر</th>
+                    <th class="p-3 md:p-4">نام و مشخصات</th>
+                    <th class="p-3 md:p-4 hidden md:table-cell">دسته‌بندی (سایت)</th>
+                    <th class="p-3 md:p-4 text-green-700">قیمت آنلاین</th>
+                    <th class="p-3 md:p-4 text-indigo-700 hidden md:table-cell">قیمت انبار</th>
+                    <th class="p-3 md:p-4 text-center">موجودی</th>
+                    <th class="p-3 md:p-4 text-center">عملیات</th>
+                </tr>
+                </thead>
+                <tbody id="products-table-body" class="divide-y text-xs md:text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+</template>
+
+<template id="products-tab-modal-tpl">
+    <div id="productModal"
+         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 md:p-4">
+        <div class="bg-white w-full max-w-6xl rounded-2xl shadow-2xl flex flex-col" style="max-height:80vh;">
+            <div data-drag-handle class="bg-gray-800 text-white p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl select-none">
+                <h3 class="font-bold text-base md:text-lg flex items-center gap-2">
+                    <span id="modal-title-action">افزودن محصول</span>
+                    <span class="text-[10px] md:text-xs bg-gray-600 px-2 py-1 rounded text-gray-300" id="modal-title-id">ID: NEW</span>
+                </h3>
+                <button onclick="closeModalSafe('productModal')"
+                        class="text-white/70 hover:text-white text-2xl md:text-3xl font-bold outline-none leading-none px-1">✕
+                </button>
+            </div>
+
+            <div class="overflow-y-auto bg-gray-100 p-4 md:p-6 flex-1" style="min-height:0;">
+                <input type="hidden" id="p-id">
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+                    <!-- LEFT COL: IMAGES -->
+                    <div class="lg:col-span-3">
+                        <div class="bg-white p-4 rounded-xl border shadow-sm h-full">
+                            <label class="block text-xs md:text-sm font-bold text-gray-700 mb-2">تصاویر محصول</label>
+                            <p class="text-[10px] text-gray-400 mb-2">تصویرِ اول = تصویرِ کارتِ محصول. برای تغییرِ ترتیب، تصویرها را بکشید؛ یا فایل را مستقیم داخلِ همین کادر رها کنید.</p>
+                            <div id="image-preview-container"
+                                 class="grid grid-cols-3 md:grid-cols-2 gap-2 min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-2 mb-3 bg-gray-50 transition"></div>
+                            <div class="space-y-2">
+                                <label class="block w-full cursor-pointer bg-indigo-50 text-indigo-700 text-center py-2 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition text-xs md:text-sm font-bold">
+                                    📂 انتخاب از فایل
+                                    <input type="file" multiple accept="image/*" class="hidden"
+                                           onchange="handleImageSelect(event)">
+                                </label>
+                                <div class="flex gap-1">
+                                    <input type="text" id="p-image-url-box" class="flex-1 p-2 border rounded text-xs"
+                                           placeholder="لینک عکس..." onblur="addImageByUrl(this.value)">
+                                    <button class="bg-gray-200 px-3 rounded text-gray-600"
+                                            onclick="addImageByUrl(document.getElementById('p-image-url-box').value)">+
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COL: LOGICAL FORM -->
+                    <div class="lg:col-span-9 space-y-4 md:space-y-5">
+                        <!-- 1. IDENTIFICATION -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm">
+                            <h4 class="text-indigo-800 font-bold border-b pb-2 mb-3 md:mb-4 flex gap-2 text-sm md:text-base">
+                                <span>🏷️</span> مشخصات پایه</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2"><label
+                                        class="block text-xs md:text-sm font-bold text-gray-700 mb-1">نام محصول <span
+                                        class="text-red-500">*</span></label><input type="text" id="p-name"
+                                                                                    class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                                <div><label class="block text-xs md:text-sm text-gray-600 mb-1">دسته‌بندی سایت
+                                    (Online)</label><select id="p-category"
+                                                            class="w-full p-2.5 border rounded-lg bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-400"></select>
+                                </div>
+                                <div><label class="block text-xs md:text-sm text-gray-600 mb-1">دسته‌بندی انبار
+                                    (Warehouse)</label><select id="p-warehouse-cat"
+                                                               class="w-full p-2.5 border rounded-lg bg-yellow-50 outline-none border-yellow-200 focus:ring-2 focus:ring-yellow-400"></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. PRICING -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-green-500">
+                            <h4 class="text-green-800 font-bold border-b pb-2 mb-3 md:mb-4 flex gap-2 text-sm md:text-base">
+                                <span>💰</span> قیمت‌گذاری (تومان)</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div><label class="block text-[10px] md:text-sm text-gray-500 mb-1">قیمت پایه (خرید)</label><input
+                                        type="number" id="p-base-price"
+                                        class="w-full p-2 md:p-2.5 border rounded-lg bg-gray-50 text-gray-600 outline-none text-left"
+                                        dir="ltr"></div>
+                                <div><label class="block text-[10px] md:text-sm text-indigo-700 font-bold mb-1">قیمت انبار
+                                    (فیزیکی)</label><input type="number" id="p-price"
+                                                           class="w-full p-2 md:p-2.5 border border-indigo-300 rounded-lg text-indigo-700 font-bold outline-none text-left"
+                                                           dir="ltr"></div>
+                                <div><label class="block text-[10px] md:text-sm text-green-700 font-bold mb-1">قیمت فروش
+                                    (سایت)</label><input type="number" id="p-online-price"
+                                                         class="w-full p-2 md:p-2.5 border border-green-400 bg-green-50 rounded-lg font-bold text-green-700 outline-none text-left"
+                                                         dir="ltr"></div>
+                                <div><label class="block text-[10px] md:text-sm text-red-500 mb-1">تخفیف سایت
+                                    (%)</label><input type="number" id="p-discount"
+                                                      class="w-full p-2 md:p-2.5 border rounded-lg text-center outline-none">
+                                </div>
+                            </div>
+
+                            <!-- ======= کدِ کالا برایِ همگام‌سازیِ موجودی ======= -->
+                            <div class="mt-4 pt-3 border-t" id="p-holoo-box">
+                                <label class="block text-[11px] md:text-sm font-bold text-gray-700 mb-1">
+                                    کدِ کالا (هلو)
+                                </label>
+
+                                <!-- ویرایش: فقط نمایش. کد بعد از ساخت عوض نمی‌شود، چون شرکت
+                                     همان را در هلو روی کالا نشانده. -->
+                                <div id="p-holoo-existing" class="hidden">
+                                    <div class="flex items-center gap-2">
+                                        <code id="p-holoo-code-text" dir="ltr"
+                                              class="px-2 py-1 bg-gray-100 rounded text-[13px] font-bold text-gray-800"></code>
+                                        <button type="button" id="p-holoo-copy"
+                                                class="text-[10px] px-2 py-1 border rounded text-gray-600 hover:bg-gray-50">کپی</button>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1 leading-5">
+                                        کدِ کالا بعد از ساخت عوض نمی‌شود — شرکت همین کد را در هلو روی
+                                        این کالا ثبت کرده و عوض‌کردنش همگام‌سازیِ موجودی را می‌شکند.
+                                    </p>
+                                </div>
+
+                                <!-- ساخت: کدِ تازه یا یکی از رزروها -->
+                                <div id="p-holoo-new" class="hidden">
+                                    <select id="p-holoo-select"
+                                            class="w-full p-2 md:p-2.5 border rounded-lg text-[11px] md:text-sm outline-none">
+                                        <option value="">کدِ تازه صادر شود</option>
+                                    </select>
+                                    <p class="text-[10px] text-gray-500 mt-1 leading-5">
+                                        اگر قبلاً برای این کالا کد گرفته‌اید و در هلو ثبتش کرده‌اید،
+                                        همان را از فهرست انتخاب کنید — نه کدِ تازه.
+                                    </p>
+
+                                    <!-- فقط در ویرایشِ محصولِ بی‌کد دیده می‌شود: در ساخت، کد
+                                         همراهِ خودِ ذخیره صادر می‌شود و دکمهٔ جدا لازم ندارد. -->
+                                    <button type="button" id="p-holoo-issue"
+                                            class="hidden w-full sm:w-auto mt-2 bg-indigo-600 text-white text-[11px] md:text-sm font-bold px-4 py-2 rounded-lg hover:bg-indigo-700">
+                                        صدورِ کدِ هلو
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="p-torob-enabled" checked class="w-4 h-4">
+                                    <span class="text-[11px] md:text-sm font-bold text-gray-700">نمایش در ترب</span>
+                                </label>
+                                <p class="text-[10px] text-gray-500 mt-1 leading-5">
+                                    برداشتنِ تیک محصول را از ترب حذف می‌کند، ولی تا بازدیدِ بعدیِ خزندهٔ ترب
+                                    ممکن است چند روز طول بکشد. صفحهٔ خودِ محصول در سایت دست‌نخورده می‌ماند.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- توقفِ تولید — چارچوبِ سئوی ناموجودی: با جایگزین ۳۰۱، بی‌جایگزین صفحه می‌ماند -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-rose-500">
+                            <h4 class="text-rose-800 font-bold border-b pb-2 mb-3 flex gap-2 text-sm md:text-base">
+                                <span>⛔</span> توقفِ تولید</h4>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="p-discontinued" class="w-4 h-4"
+                                       onchange="toggleDiscontinuedFields()">
+                                <span class="text-[11px] md:text-sm font-bold text-gray-700">تولیدِ این محصول متوقف شده است</span>
+                            </label>
+                            <p class="text-[10px] text-gray-500 mt-1 leading-5">
+                                محصول از ترب و از خرید کنار می‌رود. صفحه‌اش حذف نمی‌شود: اگر جایگزین داشته باشد
+                                به آن ریدایرکت می‌شود، وگرنه با همین آدرس می‌ماند.
+                            </p>
+
+                            <div id="p-discontinued-fields" class="hidden mt-3 pt-3 border-t flex flex-col gap-3">
+                                <div>
+                                    <label class="block text-[11px] md:text-sm font-bold text-gray-700 mb-1">
+                                        محصولِ جایگزین <span class="font-normal text-gray-400">(اختیاری)</span></label>
+                                    <input type="text" id="p-replacement-search" placeholder="جست‌وجوی محصولِ جایگزین..."
+                                           oninput="filterReplacementProducts()"
+                                           class="w-full p-2 mb-2 text-sm border rounded-lg outline-none">
+                                    <div id="p-replacement-list" class="max-h-40 overflow-y-auto border rounded-lg p-1"></div>
+                                    <p class="text-[10px] text-gray-500 mt-1 leading-5">
+                                        با انتخابِ جایگزین، آدرسِ این محصول ۳۰۱ به آن می‌رود و اعتبارِ سئو منتقل می‌شود.
+                                    </p>
+                                </div>
+
+                                <div class="bg-rose-50 border border-rose-200 rounded-lg p-3">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="p-discontinued-notice" class="w-4 h-4">
+                                        <span class="text-[11px] md:text-sm font-bold text-rose-700">به بازدیدکننده پیام نشان داده شود</span>
+                                    </label>
+                                    <p class="text-[10px] text-gray-600 mt-1 leading-5">
+                                        با جایگزین: صفحهٔ جایگزین می‌گوید این محصول جایگزینِ کالای متوقف‌شده است.
+                                        بی‌جایگزین: همین صفحه می‌گوید تولیدش متوقف شده.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. INVENTORY & UNIT -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-blue-500">
+                            <h4 class="text-blue-800 font-bold border-b pb-2 mb-3 md:mb-4 flex gap-2 text-sm md:text-base">
+                                <span>📦</span> انبار و واحد</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                                <div><label class="block text-[10px] md:text-sm font-bold text-gray-700 mb-1">موجودی
+                                    فعلی</label><input type="number" id="p-stock"
+                                                       class="w-full p-2 md:p-2.5 border border-blue-300 rounded-lg text-center font-bold text-blue-600 outline-none">
+                                </div>
+                                <div><label class="block text-[10px] md:text-sm text-gray-600 mb-1">واحد سنجش</label><select
+                                        id="p-unit" onchange="togglePackInput()"
+                                        class="w-full p-2 md:p-2.5 border rounded-lg outline-none">
+                                    <option value="عدد">عدد</option>
+                                    <option value="بسته">بسته / کارتن</option>
+                                    <option value="کیلوگرم">کیلوگرم</option>
+                                    <option value="متر">متر</option>
+                                    <option value="لیتر">لیتر</option>
+                                </select></div>
+                                <div id="pack-qty-wrapper" class="hidden"><label
+                                        class="block text-[10px] md:text-sm text-purple-700 mb-1 font-bold">تعداد در
+                                    بسته</label><input type="number" id="p-pack-qty"
+                                                       class="w-full p-2 md:p-2.5 border border-purple-300 bg-purple-50 rounded-lg text-center outline-none">
+                                </div>
+                                <div class="col-span-2 md:col-span-1"><label
+                                        class="block text-[10px] md:text-sm text-gray-600 mb-1">یادداشت
+                                    انباردار</label><input type="text" id="p-warehouse-desc"
+                                                           class="w-full p-2 md:p-2.5 border rounded-lg text-xs"></div>
+                            </div>
+                        </div>
+
+                        <!-- فیلدهای فیزیکی -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-orange-500">
+                            <h4 class="text-orange-800 font-bold border-b pb-2 mb-3 md:mb-4 flex gap-2 text-sm md:text-base">
+                                <span>🚚</span> اطلاعات ارسال (ابعاد و وزن)</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div><label class="block text-[10px] md:text-sm font-bold text-gray-700 mb-1">وزن (گرم)
+                                    <span class="text-red-500">*</span></label><input type="number" id="p-weight"
+                                                                                      class="w-full p-2 md:p-2.5 border border-orange-300 rounded-lg text-center outline-none">
+                                </div>
+                                <div class="hidden md:block"><label class="block text-[10px] md:text-sm text-gray-600 mb-1">طول
+                                    (cm)</label><input type="number" id="p-length"
+                                                       class="w-full p-2 md:p-2.5 border rounded-lg text-center outline-none">
+                                </div>
+                                <div class="hidden md:block"><label class="block text-[10px] md:text-sm text-gray-600 mb-1">عرض
+                                    (cm)</label><input type="number" id="p-width"
+                                                       class="w-full p-2 md:p-2.5 border rounded-lg text-center outline-none">
+                                </div>
+                                <div class="hidden md:block"><label class="block text-[10px] md:text-sm text-gray-600 mb-1">ارتفاع
+                                    (cm)</label><input type="number" id="p-height"
+                                                       class="w-full p-2 md:p-2.5 border rounded-lg text-center outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DYNAMIC SPECIFICATIONS -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-purple-500">
+                            <h4 class="text-purple-800 font-bold border-b pb-2 mb-3 md:mb-4 flex gap-2 text-sm md:text-base">
+                                <span>⚙️</span> ویژگی‌های فنی (فیلترها)</h4>
+                            <div id="p-specs-container" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <p class="text-xs text-gray-400 col-span-full">لطفاً ابتدا دسته‌بندی سایت را انتخاب
+                                    کنید.</p>
+                            </div>
+                        </div>
+                        <!-- TECH SPECS TABLE (جدول مشخصات فنی) -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-blue-500">
+                            <div class="flex justify-between items-center border-b pb-2 mb-3">
+                                <h4 class="text-blue-800 font-bold flex gap-2 text-sm md:text-base"><span>📋</span> جدول مشخصات فنی</h4>
+                                <button type="button" onclick="addTechSpecRow()"
+                                        class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700">＋ ردیف</button>
+                            </div>
+                            <p class="text-[10px] text-gray-400 mb-2">جدا از فیلترهاست؛ در صفحه محصول به‌صورت جدول کامل نمایش داده می‌شود. «گروه» اختیاری است (مثلاً: مشخصات وایرلس).</p>
+                            <div id="tech-specs-rows" class="space-y-2"></div>
+                        </div>
+
+                        <!-- مشخصاتِ رادیویی (rf) — /js/rf-spec-editor.js -->
+                        <div id="rf-spec-editor" hidden class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-emerald-500"></div>
+
+                        <!-- FAQ (پرسش‌های متداول) -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-amber-500">
+                            <div class="flex justify-between items-center border-b pb-2 mb-3">
+                                <h4 class="text-amber-800 font-bold flex gap-2 text-sm md:text-base"><span>❓</span> پرسش‌های متداول (FAQ)</h4>
+                                <button type="button" onclick="addFaqRow()"
+                                        class="text-xs bg-amber-600 text-white px-3 py-1 rounded-lg hover:bg-amber-700">＋ سوال</button>
+                            </div>
+                            <p class="text-[10px] text-gray-400 mb-2">اسکیمای FAQPage گوگل خودکار ساخته می‌شود — شانس نمایش سوال‌ها زیر نتیجه در گوگل.</p>
+                            <div id="faq-rows" class="space-y-2"></div>
+                        </div>
+
+                        <!-- RELATED PRODUCTS (محصولات مکمل) -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-emerald-500">
+                            <h4 class="text-emerald-800 font-bold border-b pb-2 mb-3 flex gap-2 text-sm md:text-base"><span>🔗</span> محصولات مکمل (انتخاب دستی)</h4>
+                            <p class="text-[10px] text-gray-400 mb-2">هم‌دسته‌ای‌ها خودکار نمایش داده می‌شوند؛ اینجا فقط مکمل‌ها را انتخاب کن (مثلاً آنتن برای رادیو). حداکثر ۱۰ مورد.</p>
+                            <input type="text" id="rel-prod-search" placeholder="جستجوی محصول..." oninput="filterRelProducts()"
+                                   class="w-full p-2 mb-2 text-sm border rounded-lg outline-none">
+                            <div id="rel-prod-list" class="max-h-44 overflow-y-auto border rounded-lg p-1"></div>
+                        </div>
+
+                        <!-- 4.5 SEO SETTINGS -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm border-l-4 border-l-teal-500 mb-4 md:mb-5">
+                            <h4 class="text-teal-800 font-bold border-b pb-2 mb-3 md:mb-4 flex gap-2 text-sm md:text-base">
+                                <span>🔎</span> تنظیمات سئو (SEO)</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] md:text-sm font-bold text-gray-700 mb-1">عنوان سئو (Meta
+                                        Title)</label>
+                                    <input type="text" id="p-seo-title"
+                                           class="w-full p-2 md:p-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                                           placeholder="مثال: خرید آیفون 13 پرو با بهترین قیمت">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] md:text-sm text-gray-600 mb-1">لینک محصول (Slug - حتما
+                                        انگلیسی یا پینگلیش)</label>
+                                    <input type="text" id="p-slug"
+                                           class="w-full p-2 md:p-2.5 border rounded-lg outline-none text-left bg-gray-50"
+                                           dir="ltr" placeholder="iphone-13-pro-max">
+                                    <p id="p-slug-hint" class="text-[9px] text-gray-400 mt-1">اگر خالی بگذارید، سیستم به صورت خودکار از روی
+                                        نام محصول می‌سازد.</p>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] md:text-sm text-gray-600 mb-1">توضیحات متا (Meta
+                                        Description)</label>
+                                    <textarea id="p-seo-desc" rows="2"
+                                              class="w-full p-2 md:p-2.5 border rounded-lg outline-none text-xs"
+                                              placeholder="توضیحات جذاب برای نمایش در گوگل (حدود 150 کاراکتر)..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 4. DESCRIPTION & AI -->
+                        <div class="bg-white p-4 md:p-5 rounded-xl border shadow-sm">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-gray-800 font-bold text-sm md:text-base">توضیحات محصول</h4>
+                                <button onclick="generateDescriptionWithAI()" id="btn-ai"
+                                        class="text-[10px] md:text-xs bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-3 md:px-4 py-1.5 rounded-full shadow transition flex items-center gap-1 outline-none">
+                                    <span>🤖</span> تولید با هوش مصنوعی
+                                </button>
+                            </div>
+                            <textarea id="p-desc" rows="4"
+                                      class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-purple-200 text-sm leading-6"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 md:p-4 bg-white border-t flex flex-col md:flex-row justify-end gap-3 shrink-0">
+                <button onclick="closeModalSafe('productModal')"
+                        class="w-full md:w-auto px-6 py-2.5 text-gray-600 border rounded-lg transition">انصراف
+                </button>
+                <button onclick="saveProduct()"
+                        class="w-full md:w-auto px-8 py-2.5 bg-green-600 text-white rounded-lg shadow-lg font-bold transition">
+                    💾 ذخیره محصول
+                </button>
+            </div>
+        </div>
+    </div>
+</template>

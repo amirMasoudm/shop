@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${seoTitle}">بلاگ | داده نما</title>
+    <meta name="description" th:content="${seoDescription}">
+    <link rel="canonical" th:href="${canonicalUrl}">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" th:content="${canonicalUrl}">
+    <meta property="og:image" th:content="${ogImage}">
+    <meta name="google-site-verification" th:if="${gscToken != null and gscToken != ''}" th:content="${gscToken}">
+
+    <th:block th:if="${ga4Id != null and ga4Id != ''}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${ga4Id}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', [[${ga4Id}]]);
+        </script>
+    </th:block>
+
+    <link href="/css/fonts/Vazirmatn-font-face.css" rel="stylesheet">
+    <link href="/css/site-nav.css" rel="stylesheet">
+    <style>
+        :root { --primary:#1b4f8a; --accent:#e8861a; --text:#1f2937; --mid:#6b7280; --bg:#f6f8fb; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:Vazirmatn, Tahoma, sans-serif; background:var(--bg); color:var(--text); }
+        .topbar { background:var(--primary); color:#fff; padding:14px 16px; }
+        .topbar .in { max-width:1100px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; }
+        .topbar a { color:#fff; text-decoration:none; font-weight:700; }
+        main { max-width:1100px; margin:0 auto; padding:28px 16px; }
+        h1 { font-size:1.5rem; margin-bottom:6px; }
+        .sub { color:var(--mid); font-size:.9rem; margin-bottom:24px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px; }
+        .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; overflow:hidden; text-decoration:none; color:inherit; display:block; transition:.15s; }
+        .card:hover { box-shadow:0 8px 20px rgba(0,0,0,.07); transform:translateY(-2px); }
+        .card img { width:100%; height:160px; object-fit:cover; background:#eef2f7; }
+        .card .b { padding:14px; }
+        .card h2 { font-size:1rem; margin-bottom:8px; line-height:1.6; }
+        .card p { font-size:.82rem; color:var(--mid); line-height:1.8; }
+        .empty { background:#fff; border:1px dashed #cbd5e1; border-radius:14px; padding:48px; text-align:center; color:var(--mid); }
+        .pg { display:flex; gap:10px; justify-content:center; margin-top:28px; }
+        .pg a { padding:8px 18px; background:#fff; border:1px solid #e5e7eb; border-radius:100px; text-decoration:none; color:var(--primary); font-weight:700; font-size:.85rem; }
+        footer { background:#1b2a3a; color:#cbd5e1; padding:28px 16px; margin-top:44px; }
+        footer .in { max-width:1100px; margin:0 auto; }
+        footer nav { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+        footer a { color:#cbd5e1; text-decoration:none; font-size:.8rem; }
+    </style>
+</head>
+<body>
+
+<header class="topnav">
+    <a class="brand" href="/">داده نما</a>
+    <nav>
+        <a href="/wimaxnear">WimaxNear</a>
+        <a href="/shop">فروشگاه</a>
+        <a href="/support/link-cal">داده‌لینک</a>
+        <a href="/learn">آموزش</a>
+        <a href="/blog" class="active">بلاگ</a>
+    </nav>
+    <div class="spacer"></div>
+</header>
+
+<header class="topbar">
+    <div class="in">
+        <a th:href="${baseUrl + '/shop'}">🛒 فروشگاه داده نما</a>
+        <span style="font-size:.85rem;">بلاگ آموزشی</span>
+    </div>
+</header>
+
+<main>
+    <nav th:if="${hubName != null}" style="font-size:.8rem; color:var(--mid); margin-bottom:12px;">
+        <a th:href="${baseUrl + '/blog'}" style="color:var(--primary); text-decoration:none;">بلاگ</a>
+        <span> / خوشه‌ی محتوایی</span>
+    </nav>
+    <h1 th:text="${hubName != null ? hubName : 'بلاگ آموزشی میکروتیک و شبکه'}">بلاگ آموزشی میکروتیک و شبکه</h1>
+    <p class="sub" th:text="${hubName != null ? 'مجموعه مقالات این موضوع — از مقدماتی تا پیشرفته' : 'آموزش، عیب‌یابی و راهنمای خرید — به قلم تیم فنی داده نما'}">زیرعنوان</p>
+
+    <div class="grid" th:if="${cards != null and !cards.isEmpty()}">
+        <a class="card" th:each="a : ${cards}"
+           th:href="${baseUrl + '/blog/' + (a.slug != null and !a.slug.isEmpty() ? a.slug : a.id)}">
+            <img th:src="${a.coverImage != null and !a.coverImage.isEmpty() ? a.coverImage : '/img/logo.png'}"
+                 th:alt="${a.title}" loading="lazy">
+            <div class="b">
+                <h2 th:text="${a.title}">عنوان مقاله</h2>
+                <p th:text="${a.excerpt}">خلاصه</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="empty" th:if="${cards == null or cards.isEmpty()}">
+        هنوز مقاله‌ای منتشر نشده — به‌زودی!
+    </div>
+
+    <div class="pg" th:if="${articles != null and articles.totalPages > 1}">
+        <a th:if="${blogPage > 0}" th:href="${baseUrl + '/blog?page=' + (blogPage - 1)}">→ صفحه قبل</a>
+        <a th:if="${blogPage < articles.totalPages - 1}" th:href="${baseUrl + '/blog?page=' + (blogPage + 1)}">صفحه بعد ←</a>
+    </div>
+</main>
+
+<footer th:if="${footerCategories != null and !footerCategories.isEmpty()}">
+    <div class="in">
+        <div style="font-weight:bold; color:#fff;">دسته‌بندی‌های فروشگاه</div>
+        <nav>
+            <a th:each="fc : ${footerCategories}"
+               th:href="${baseUrl + '/shop/category/' + (fc.slug != null and !fc.slug.isEmpty() ? fc.slug : fc.id)}"
+               th:text="${fc.name}">دسته</a>
+            <a th:href="${baseUrl + '/support/link-cal'}" style="color:#f5b06a; font-weight:700;">محاسبه لینک وایرلس</a>
+            <a th:href="${baseUrl + '/privacy'}" style="color:#f5b06a; font-weight:700;">حریم خصوصی</a>
+        </nav>
+        <div style="margin-top:16px; font-size:.75rem; color:#94a3b8;">© فروشگاه داده نما</div>
+    </div>
+</footer>
+<!-- حبابِ چتِ پشتیبانی — هستهٔ مشترک با پنلِ کارشناس (/js/chat-core.js) -->
+<script src="/js/chat-core.js"></script>
+<script src="/js/support-chat-widget.js"></script>
+<!-- بیکنِ ردگیریِ رفتار — فقط برایِ چیزی که سرور نمی‌بیند (SPA، فیلتر، عمقِ مطالعه) -->
+<script src="/js/dn-track.js"></script>
+</body>
+</html>

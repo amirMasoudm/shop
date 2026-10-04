@@ -1,0 +1,189 @@
+[
+  {
+    "name": "اصفهان",
+    "lat": 32.6546,
+    "lon": 51.668,
+    "rate": 10.93,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "تهران",
+    "lat": 35.6892,
+    "lon": 51.389,
+    "rate": 17.15,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "مشهد",
+    "lat": 36.2605,
+    "lon": 59.6168,
+    "rate": 15.98,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "شیراز",
+    "lat": 29.5918,
+    "lon": 52.5837,
+    "rate": 18.64,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "تبریز",
+    "lat": 38.08,
+    "lon": 46.2919,
+    "rate": 16.13,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "ساری",
+    "lat": 36.5633,
+    "lon": 53.0601,
+    "rate": 33.52,
+    "humidity": 75,
+    "temp": 20,
+    "pressure": 1013.25,
+    "scenario": "humid",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "رشت",
+    "lat": 37.2808,
+    "lon": 49.5832,
+    "rate": 40.98,
+    "humidity": 75,
+    "temp": 20,
+    "pressure": 1013.25,
+    "scenario": "humid",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "گرگان",
+    "lat": 36.8456,
+    "lon": 54.4393,
+    "rate": 29.21,
+    "humidity": 75,
+    "temp": 20,
+    "pressure": 1013.25,
+    "scenario": "humid",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "یزد",
+    "lat": 31.8974,
+    "lon": 54.3569,
+    "rate": 11.48,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "کرمان",
+    "lat": 30.2839,
+    "lon": 57.0834,
+    "rate": 13.95,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "زاهدان",
+    "lat": 29.4963,
+    "lon": 60.8629,
+    "rate": 12.36,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "اهواز",
+    "lat": 31.3183,
+    "lon": 48.6706,
+    "rate": 21.83,
+    "humidity": 35,
+    "temp": 40,
+    "pressure": 1013.25,
+    "scenario": "hot-dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "همدان",
+    "lat": 34.7989,
+    "lon": 48.515,
+    "rate": 16.01,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "کرمانشاه",
+    "lat": 34.3142,
+    "lon": 47.065,
+    "rate": 18.66,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "بیرجند",
+    "lat": 32.8649,
+    "lon": 59.2262,
+    "rate": 14.25,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "قزوین",
+    "lat": 36.2688,
+    "lon": 50.0041,
+    "rate": 16.4,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  },
+  {
+    "name": "سمنان",
+    "lat": 35.5769,
+    "lon": 53.3921,
+    "rate": 14.56,
+    "humidity": 35,
+    "temp": 25,
+    "pressure": 1013.25,
+    "scenario": "dry",
+    "source": "ITU-R P.837-8 (2025), R001.TXT, bilinear interpolation"
+  }
+]

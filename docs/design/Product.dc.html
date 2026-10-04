@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #1B4DD1; text-decoration: none; }
+    .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-feature-settings: "tnum"; }
+    .kufi { font-family: "Noto Kufi Arabic", sans-serif; }
+    .spec { display: grid; grid-template-columns: 180px 1fr; gap: 20px; padding: 12px 16px; border-bottom: 1px solid #E6E8EB; font-size: 13px; }
+    .spec > :first-child { color: #767C83; }
+    .cta { font-family: inherit; font-size: 13.5px; font-weight: 600; color: #FFFFFF; background: #16181A; border: 1px solid #16181A; padding: 13px 0; width: 100%; cursor: pointer; }
+    .cta.ghost { color: #16181A; background: #FFFFFF; border-color: #D5D9DE; }
+    h2.sec { font-family: "Noto Kufi Arabic", sans-serif; font-size: 17px; font-weight: 700; margin: 0 0 16px; line-height: 1.6; }
+  </style>
+</helmet>
+
+<div dir="rtl" style="background: #FFFFFF; color: #16181A;">
+
+  <div style="border-bottom: 1px solid #16181A; background: #FFFFFF;">
+    <div style="max-width: 1216px; margin: 0 auto; padding: 0 32px; height: 64px; display: flex; align-items: center; gap: 16px;">
+      <span class="kufi" style="font-size: 17px; font-weight: 700;">داده نما</span>
+      <span style="font-size: 12.5px; border: 1px solid #D5D9DE; padding: 8px 12px;">همهٔ دسته‌ها ▾</span>
+      <span style="flex-grow: 1; display: flex; align-items: center; gap: 9px; font-size: 13px; color: #9AA0A6; border: 1px solid #D5D9DE; padding: 9px 12px; max-width: 460px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA0A6" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+        کدِ مدل یا نامِ محصول
+      </span>
+      <span style="display: flex; gap: 20px; font-size: 13px; color: #767C83;"><span>آموزش</span><span>بلاگ</span><span>سابقه</span></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="1.6"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12h11.2L21 7H6"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+    </div>
+  </div>
+
+  <div style="background: #FAFBFB; border-bottom: 1px solid #E6E8EB;">
+    <div style="max-width: 1216px; margin: 0 auto; padding: 0 32px; height: 40px; display: flex; align-items: center;">
+      <span style="font-size: 12px; color: #767C83;">فروشگاه <span style="color: #C2C8CE;">/</span> میکروتیک <span style="color: #C2C8CE;">/</span> روتر <span style="color: #C2C8CE;">/</span> <span style="color: #16181A;">RB5009UPr+S+IN</span></span>
+    </div>
+  </div>
+
+  <div style="max-width: 1216px; margin: 0 auto; padding: 0 32px 56px;">
+
+    <div style="display: grid; grid-template-columns: 1fr 360px; gap: 44px; padding-top: 36px; align-items: start;">
+
+      <!-- گالری + محتوا -->
+      <div>
+        <div style="border: 1px solid #E6E8EB; height: 360px; display: flex; align-items: center; justify-content: center; background: #FCFCFD;">
+          <svg width="330" height="200" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="0.9"><rect x="6" y="20" width="108" height="36"/><rect x="14" y="28" width="12" height="9"/><rect x="30" y="28" width="12" height="9"/><rect x="46" y="28" width="12" height="9"/><rect x="62" y="28" width="12" height="9"/><rect x="78" y="28" width="12" height="9"/><rect x="94" y="28" width="12" height="9"/></svg>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px;">
+          <div style="border: 1px solid #16181A; height: 68px; background: #FCFCFD;"></div>
+          <div style="border: 1px solid #E6E8EB; height: 68px; background: #FCFCFD;"></div>
+          <div style="border: 1px solid #E6E8EB; height: 68px; background: #FCFCFD;"></div>
+          <div style="border: 1px solid #E6E8EB; height: 68px; background: #FCFCFD;"></div>
+          <div style="border: 1px solid #E6E8EB; height: 68px; background: #FCFCFD;"></div>
+        </div>
+
+        <!-- مشخصات -->
+        <div style="margin-top: 44px;">
+          <h2 class="sec">مشخصاتِ فنی</h2>
+          <div style="border-top: 1px solid #16181A;">
+            <div class="spec" style="background: #FAFBFB;"><span>کدِ مدل</span><span class="mono">RB5009UPr+S+IN</span></div>
+            <div class="spec"><span>پردازنده</span><span>ARM 64bit · ۴ هسته · <span class="mono">1.4GHz</span></span></div>
+            <div class="spec" style="background: #FAFBFB;"><span>حافظه</span><span><span class="mono">1GB</span> رم · <span class="mono">1GB</span> فلش NAND</span></div>
+            <div class="spec"><span>پورتِ اترنت</span><span><span class="mono">۸ × 1G</span> (یکی PoE-in)</span></div>
+            <div class="spec" style="background: #FAFBFB;"><span>پورتِ نوری</span><span class="mono">1 × SFP+ (10G)</span></div>
+            <div class="spec"><span>خروجیِ PoE</span><span>روی پورت‌های ۲ تا ۸ · بودجهٔ <span class="mono">130W</span></span></div>
+            <div class="spec" style="background: #FAFBFB;"><span>سیستم‌عامل</span><span>RouterOS v7 · لایسنسِ <span class="mono">L5</span></span></div>
+            <div class="spec" style="border-bottom: 1px solid #16181A;"><span>ابعاد و نصب</span><span>رک‌مونتِ <span class="mono">1U</span> · بدنهٔ فلزی</span></div>
+          </div>
+        </div>
+
+        <!-- توضیح -->
+        <div style="margin-top: 44px;">
+          <h2 class="sec">این دستگاه به چه دردی می‌خورد</h2>
+          <p style="margin: 0; font-size: 13.5px; color: #4B5158; line-height: 2.15;">
+            RB5009 برای جایی است که یک روترِ خانگی کم می‌آورد ولی رفتن سراغِ CCR هنوز توجیه ندارد: دفترِ متوسط، هستهٔ یک شبکهٔ کوچک، یا نقطهٔ تجمیعِ چند لینکِ رادیویی. پورتِ <span class="mono">SFP+</span> اجازه می‌دهد اتصالِ ده‌گیگ به سوییچِ مرکزی برقرار شود و خروجیِ PoE، اکسس‌پوینت‌ها و رادیوهای بیرونی را بدونِ آداپتورِ جدا تغذیه می‌کند.
+          </p>
+        </div>
+
+        <!-- پرسش‌ها -->
+        <div style="margin-top: 44px;">
+          <h2 class="sec">پرسش‌های پرتکرار</h2>
+          <div style="border-top: 1px solid #E6E8EB;">
+            <div style="padding: 15px 0; border-bottom: 1px solid #E6E8EB; display: flex; justify-content: space-between; font-size: 13.5px;">
+              <span>لایسنسِ L5 یعنی چه محدودیتی؟</span><span style="color: #9AA0A6;">+</span>
+            </div>
+            <div style="padding: 15px 0; border-bottom: 1px solid #E6E8EB; display: flex; justify-content: space-between; font-size: 13.5px;">
+              <span>با چه ماژولِ SFP+ کار می‌کند؟</span><span style="color: #9AA0A6;">+</span>
+            </div>
+            <div style="padding: 15px 0; border-bottom: 1px solid #E6E8EB; display: flex; justify-content: space-between; font-size: 13.5px;">
+              <span>بودجهٔ ۱۳۰ وات بینِ چند دستگاه تقسیم می‌شود؟</span><span style="color: #9AA0A6;">+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- جعبهٔ خرید -->
+      <div style="position: sticky; top: 80px;">
+        <div class="mono" style="font-size: 11.5px; color: #767C83;">RB5009UPr+S+IN</div>
+        <h1 style="margin: 8px 0 0; font-size: 22px; font-weight: 600; line-height: 1.75;">روتر میکروتیک RB5009UPr+S+IN</h1>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px;">
+          <span class="mono" style="font-size: 11.5px; border: 1px solid #D5D9DE; padding: 6px 10px;">8 × 1G</span>
+          <span class="mono" style="font-size: 11.5px; border: 1px solid #D5D9DE; padding: 6px 10px;">1 × SFP+</span>
+          <span class="mono" style="font-size: 11.5px; border: 1px solid #D5D9DE; padding: 6px 10px;">PoE 130W</span>
+          <span class="mono" style="font-size: 11.5px; border: 1px solid #D5D9DE; padding: 6px 10px;">1U</span>
+        </div>
+
+        <div style="border: 1px solid #16181A; margin-top: 22px;">
+          <div style="padding: 20px; border-bottom: 1px solid #E6E8EB;">
+            <div style="font-size: 11.5px; color: #767C83;">قیمت (تومان)</div>
+            <div class="mono" style="font-size: 27px; font-weight: 500; margin-top: 7px;">64,800,000</div>
+            <div style="display: flex; align-items: center; gap: 7px; margin-top: 14px; font-size: 12.5px;">
+              <span style="width: 5px; height: 5px; border-radius: 50%; background: #1F8A4C;"></span> موجود در انبار · <span class="mono">۳ عدد</span>
+            </div>
+            <div style="font-size: 11.5px; color: #767C83; margin-top: 8px;">آخرین به‌روزرسانیِ قیمت: <span class="mono">۱۴۰۵/۰۶/۲۷</span></div>
+          </div>
+          <div style="padding: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #D5D9DE; padding: 9px 14px;">
+              <span style="font-size: 16px; color: #767C83;">−</span>
+              <span class="mono" style="font-size: 14px;">۱</span>
+              <span style="font-size: 16px; color: #767C83;">+</span>
+            </div>
+            <button class="cta" style="margin-top: 12px;">افزودن به سبد</button>
+            <button class="cta ghost" style="margin-top: 8px;">استعلامِ خرید عمده</button>
+          </div>
+        </div>
+
+        <div style="border: 1px solid #E6E8EB; border-top: none; padding: 16px 20px; font-size: 12.5px; color: #4B5158; line-height: 2.05;">
+          ارسال از انبارِ اصفهان · گارانتیِ شرکتی<br>
+          نصب و پیکربندی به‌درخواست
+        </div>
+      </div>
+
+    </div>
+
+    <!-- محصولاتِ مرتبط -->
+    <div style="margin-top: 52px;">
+      <h2 class="sec">گزینه‌های هم‌رده</h2>
+      <div style="border-top: 1px solid #16181A;">
+        <div style="display: grid; grid-template-columns: 72px 1fr 120px 104px 150px; align-items: center; gap: 18px; padding: 14px 16px; border-bottom: 1px solid #E6E8EB;">
+          <div style="display: flex; justify-content: center;"><svg width="60" height="36" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="1.5"><rect x="18" y="24" width="84" height="28"/><rect x="26" y="32" width="11" height="8"/><rect x="41" y="32" width="11" height="8"/><rect x="56" y="32" width="11" height="8"/></svg></div>
+          <div><div style="font-size: 14px; font-weight: 600;">روتر میکروتیک RB4011iGS+RM</div><div class="mono" style="font-size: 11px; color: #767C83; margin-top: 4px;">بدونِ PoE-out · رک ۱U</div></div>
+          <div class="mono" style="font-size: 12.5px;">10 × 1G</div>
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #1F8A4C;"></span> ۶ عدد</div>
+          <div class="mono" style="font-size: 15px; font-weight: 500; text-align: left;">48,200,000</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 72px 1fr 120px 104px 150px; align-items: center; gap: 18px; padding: 14px 16px; border-bottom: 1px solid #E6E8EB; background: #FCFCFD;">
+          <div style="display: flex; justify-content: center;"><svg width="60" height="36" viewBox="0 0 120 76" fill="none" stroke="#B9BFC5" stroke-width="1.5"><rect x="8" y="22" width="104" height="32"/><line x1="16" y1="30" x2="16" y2="46"/><line x1="24" y1="30" x2="24" y2="46"/><line x1="32" y1="30" x2="32" y2="46"/></svg></div>
+          <div><div style="font-size: 14px; font-weight: 600;">روتر میکروتیک CCR2004-16G-2S+</div><div class="mono" style="font-size: 11px; color: #767C83; margin-top: 4px;">دو SFP+ · توانِ عبورِ بالاتر</div></div>
+          <div class="mono" style="font-size: 12.5px;">16 × 1G</div>
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #1F8A4C;"></span> ۲ عدد</div>
+          <div class="mono" style="font-size: 15px; font-weight: 500; text-align: left;">129,600,000</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

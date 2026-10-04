@@ -1,0 +1,272 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    .k { --primary:#1b4f8a; --accent:#e8861a; --danger:#e74c3c;
+         --ink:#0b1119; --ink-2:#46536b; --ink-3:#94a2b8;
+         --dark:#101826; --dark-2:#1c2942; --on-dark:#8fa3c0;
+         --surface:#fff; --line:#e9edf2; --line-2:#f2f5f8; --ok:#16a34a;
+         --ease:cubic-bezier(.2,.8,.3,1); --dur:140ms; }
+    .k * { box-sizing:border-box; margin:0; }
+    .k { font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif; background:var(--surface);
+         color:var(--ink); direction:rtl; -webkit-font-smoothing:antialiased; }
+    .kufi { font-family:"Noto Kufi Arabic",sans-serif; }
+    .mono { font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+
+    /* ── بلوکِ تیره: هویت، ناوبری، تیترِ دسته ── */
+    .top { background:var(--dark); color:#fff; }
+    .hd { height:54px; display:flex; align-items:center; gap:24px; padding:0 22px;
+          border-bottom:1px solid rgba(255,255,255,.08); }
+    .hd .bd { font-family:"Noto Kufi Arabic",sans-serif; font-weight:700; font-size:.92rem; }
+    .hd nav { display:flex; gap:19px; font-size:.76rem; }
+    .hd nav span { color:var(--on-dark); position:relative; padding:4px 0; cursor:pointer;
+                   transition:color var(--dur) var(--ease); }
+    .hd nav span.on { color:#fff; font-weight:600; }
+    .hd nav span.on::after { content:''; position:absolute; bottom:-18px; right:0; left:0;
+                             height:2px; background:var(--accent); }
+    .hd .sp { flex:1; }
+    .hd .srch { display:flex; align-items:center; gap:8px; height:32px; padding:0 11px;
+                background:rgba(255,255,255,.06); width:250px; }
+    .hd .srch span { font-size:.7rem; color:var(--on-dark); }
+    .hd .ic { display:flex; gap:15px; }
+
+    .ttl { padding:20px 22px; display:flex; align-items:flex-end; justify-content:space-between; gap:14px; }
+    .ttl .lb { font-size:.6rem; font-weight:500; color:var(--on-dark); letter-spacing:1.5px; display:block; margin-bottom:7px; }
+    .ttl h1 { font-family:"Noto Kufi Arabic",sans-serif; font-size:1.36rem; font-weight:700; line-height:1.45; }
+    .ttl .rt { text-align:left; font-size:.68rem; color:var(--on-dark); line-height:1.9; }
+    .ttl .rt b { color:#fff; font-weight:600; }
+
+    /* ── نوارِ ابزار ── */
+    .bar { display:flex; align-items:center; gap:20px; padding:0 22px; height:40px;
+           border-bottom:1px solid var(--line); }
+    .bar .crumb { font-size:.68rem; color:var(--ink-3); }
+    .bar .crumb b { color:var(--ink); font-weight:500; }
+    .bar .sp { flex:1; }
+    .bar .sort { font-size:.68rem; color:var(--ink-2); cursor:pointer; display:flex; align-items:center; gap:6px; }
+    .bar .sort b { color:var(--ink); font-weight:600; }
+
+    /* ── چیدمانِ اصلی ── */
+    .wrap { display:grid; grid-template-columns:200px 1fr; }
+    .side { border-left:1px solid var(--line); padding:0 0 18px; }
+    .fg { border-bottom:1px solid var(--line-2); padding:14px 18px; }
+    .fg h4 { font-family:"Noto Kufi Arabic",sans-serif; font-size:.7rem; font-weight:700; line-height:1.6; }
+    .fo { display:flex; align-items:center; gap:8px; font-size:.68rem; color:var(--ink-2);
+          margin-top:9px; cursor:pointer; transition:color var(--dur) var(--ease); }
+    .fo:hover { color:var(--ink); }
+    .bx { width:12px; height:12px; box-shadow:inset 0 0 0 1px #c3ccd9; flex-shrink:0; }
+    .bx.on { background:var(--primary); box-shadow:none; position:relative; }
+    .bx.on::after { content:''; position:absolute; inset:3px 2px 4px 3px;
+                    border:solid #fff; border-width:0 0 1.5px 1.5px; transform:rotate(-45deg); }
+    .fo .n { margin-right:auto; font-size:.58rem; color:var(--ink-3); }
+    .clr { display:block; width:100%; padding:13px 18px; font-size:.66rem; color:var(--danger);
+           font-weight:600; background:none; border:0; cursor:pointer; text-align:right; font-family:inherit; }
+
+    .main { padding:0; }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+            gap:1px; background:var(--line); border-bottom:1px solid var(--line); }
+    .card { background:var(--surface); position:relative; cursor:pointer; display:flex; flex-direction:column;
+            transition:background var(--dur) var(--ease); }
+    .card:hover { background:#fbfcfe; }
+    .card:active { background:#f4f7fa; }
+    .img { aspect-ratio:1; border-bottom:1px solid var(--line-2);
+           display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .img svg { width:66%; height:66%; }
+    .body { padding:10px 12px 0; flex:1; }
+    .spec { font-size:.55rem; color:var(--ink-3); letter-spacing:.5px; height:1.5em; overflow:hidden; }
+    .nm { font-size:.75rem; font-weight:600; line-height:1.66; margin-top:4px; height:3.32em; overflow:hidden; }
+    .foot { padding:8px 12px 12px; }
+    .old { font-size:.57rem; color:var(--ink-3); text-decoration:line-through; display:block; }
+    .pr { font-size:.87rem; font-weight:600; letter-spacing:-.3px; }
+    .pr i { font-style:normal; font-size:.55rem; color:var(--ink-3); font-weight:400; margin-right:3px; }
+    .st { font-size:.56rem; color:var(--ink-3); margin-top:5px; display:flex; align-items:center; gap:5px; }
+    .dot { width:5px; height:5px; flex-shrink:0; }
+    .btn { margin-top:9px; height:32px; width:100%; border:0; cursor:pointer; font-family:inherit;
+           font-size:.68rem; font-weight:600; background:var(--dark); color:#fff;
+           transition:background var(--dur) var(--ease); }
+    .btn:hover { background:var(--dark-2); }
+    .btn.ghost { background:#fff; color:var(--primary); box-shadow:inset 0 0 0 1px var(--line); }
+    .badges { position:absolute; top:0; right:0; display:flex; flex-direction:column; z-index:2; }
+    .bdg { font-size:.54rem; font-weight:600; color:#fff; padding:4px 7px; }
+
+    .more { display:flex; justify-content:center; padding:20px 0; border-bottom:1px solid var(--line); }
+    .more button { font-family:inherit; font-size:.72rem; font-weight:600; color:var(--ink);
+                   background:#fff; box-shadow:inset 0 0 0 1px var(--ink); border:0;
+                   padding:10px 30px; cursor:pointer; transition:background var(--dur) var(--ease); }
+    .more button:hover { background:var(--line-2); }
+
+    .intro { padding:20px 22px; }
+    .intro h3 { font-family:"Noto Kufi Arabic",sans-serif; font-size:.8rem; font-weight:700; line-height:1.6; }
+    .intro p { font-size:.7rem; color:var(--ink-2); line-height:2.05; margin-top:9px; max-width:720px; }
+  </style>
+</helmet>
+
+<div class="k">
+
+  <div class="top">
+    <div class="hd">
+      <span class="bd">داده نما</span>
+      <nav><span>داده‌نما</span><span class="on">فروشگاه</span><span>آموزش</span><span>بلاگ</span></nav>
+      <span class="sp"></span>
+      <div class="srch">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8fa3c0" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+        <span>کدِ مدل یا نامِ محصول</span>
+      </div>
+      <div class="ic">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12h11.2L21 7H6"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8fa3c0" stroke-width="1.7"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+      </div>
+    </div>
+    <div class="ttl">
+      <div><span class="lb mono">CATALOG</span><h1>روتر میکروتیک</h1></div>
+      <div class="rt"><b class="mono">۳۸</b> محصول · <b class="mono">۲۴</b> موجود</div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <span class="crumb">فروشگاه / میکروتیک / <b>روتر</b></span>
+    <span class="sp"></span>
+    <span class="sort">مرتب‌سازی: <b>موجودها اول</b> ▾</span>
+  </div>
+
+  <div class="wrap">
+
+    <!-- پالایش -->
+    <aside class="side">
+      <div class="fg" style="padding-top:16px;">
+        <h4>فیلتر هوشمند</h4>
+      </div>
+      <div class="fg">
+        <h4>تعدادِ پورت</h4>
+        <div class="fo"><span class="bx on"></span> ۵ پورت <span class="n mono">۹</span></div>
+        <div class="fo"><span class="bx"></span> ۸ پورت <span class="n mono">۶</span></div>
+        <div class="fo"><span class="bx"></span> ۱۰ پورت <span class="n mono">۴</span></div>
+        <div class="fo"><span class="bx"></span> ۲۴ پورت <span class="n mono">۳</span></div>
+      </div>
+      <div class="fg">
+        <h4>پورتِ نوری</h4>
+        <div class="fo"><span class="bx"></span> SFP <span class="n mono">۷</span></div>
+        <div class="fo"><span class="bx on"></span> SFP+ <span class="n mono">۵</span></div>
+        <div class="fo"><span class="bx"></span> ندارد <span class="n mono">۲۶</span></div>
+      </div>
+      <div class="fg">
+        <h4>خروجیِ PoE</h4>
+        <div class="fo"><span class="bx"></span> دارد <span class="n mono">۱۱</span></div>
+        <div class="fo"><span class="bx"></span> ندارد <span class="n mono">۲۷</span></div>
+      </div>
+      <button class="clr">× حذف فیلترها</button>
+    </aside>
+
+    <!-- محصولات -->
+    <main class="main">
+      <div class="grid">
+
+        <div class="card">
+          <div class="badges"><span class="bdg" style="background:var(--danger);">۱۵٪ تخفیف</span></div>
+          <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="6" y="20" width="108" height="36"/><rect x="14" y="28" width="12" height="9"/><rect x="30" y="28" width="12" height="9"/><rect x="46" y="28" width="12" height="9"/><rect x="62" y="28" width="12" height="9"/><rect x="78" y="28" width="12" height="9"/><rect x="94" y="28" width="12" height="9"/></svg></div>
+          <div class="body"><div class="spec mono">۸ پورت · SFP+ · PoE-out</div><div class="nm">روتر میکروتیک RB5009UPr+S+IN</div></div>
+          <div class="foot">
+            <span class="old mono">۶۴٬۸۰۰٬۰۰۰ ت</span>
+            <div class="pr mono">۵۵٬۰۸۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۳ عدد</div>
+            <button class="btn">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="22" y="26" width="76" height="30"/><line x1="34" y1="18" x2="34" y2="26"/><line x1="86" y1="18" x2="86" y2="26"/><rect x="32" y="36" width="10" height="8"/><rect x="46" y="36" width="10" height="8"/><rect x="60" y="36" width="10" height="8"/></svg></div>
+          <div class="body"><div class="spec mono">وای‌فای ۶ · ۴ پورت گیگابیت</div><div class="nm">روتر میکروتیک hAP ax lite</div></div>
+          <div class="foot">
+            <div class="pr mono" style="margin-top:13px;">۱۴٬۵۸۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۱۷ عدد</div>
+            <button class="btn">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="18" y="24" width="84" height="28"/><rect x="26" y="32" width="11" height="8"/><rect x="41" y="32" width="11" height="8"/><rect x="56" y="32" width="11" height="8"/><rect x="71" y="32" width="11" height="8"/></svg></div>
+          <div class="body"><div class="spec mono">۵ پورت گیگابیت · RouterOS L4</div><div class="nm">روتر میکروتیک hEX refresh</div></div>
+          <div class="foot">
+            <div class="pr mono" style="margin-top:13px;">۱۳٬۵۰۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۹ عدد</div>
+            <button class="btn">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="badges"><span class="bdg" style="background:var(--accent);">در راه</span></div>
+          <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="8" y="22" width="104" height="32"/><line x1="16" y1="30" x2="16" y2="46"/><line x1="24" y1="30" x2="24" y2="46"/><line x1="32" y1="30" x2="32" y2="46"/><line x1="40" y1="30" x2="40" y2="46"/><rect x="88" y="32" width="16" height="12"/></svg></div>
+          <div class="body"><div class="spec mono">۲۴ پورت · SFP · وای‌فای</div><div class="nm">سوییچ میکروتیک CRS125-24G-1S-2HnD</div></div>
+          <div class="foot">
+            <div class="pr mono" style="margin-top:13px;">۲۱٬۶۰۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--accent);"></span> در راه · ۱۲ عدد</div>
+            <button class="btn ghost">اطلاع بده</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="14" y="24" width="92" height="28"/><rect x="22" y="32" width="11" height="8"/><rect x="37" y="32" width="11" height="8"/><rect x="52" y="32" width="11" height="8"/><rect x="67" y="32" width="11" height="8"/><rect x="82" y="32" width="11" height="8"/></svg></div>
+          <div class="body"><div class="spec mono">۱۰ پورت گیگابیت · رک ۱U</div><div class="nm">روتر میکروتیک RB4011iGS+RM</div></div>
+          <div class="foot">
+            <div class="pr mono" style="margin-top:13px;">۴۸٬۲۰۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۶ عدد</div>
+            <button class="btn">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="badges"><span class="bdg" style="background:var(--primary);">پیشنهاد ویژه</span></div>
+          <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="26" y="22" width="68" height="34"/><circle cx="60" cy="39" r="9"/><rect x="34" y="48" width="8" height="5"/></svg></div>
+          <div class="body"><div class="spec mono">۵ پورت · مودم LTE</div><div class="nm">روتر میکروتیک Chateau LTE12</div></div>
+          <div class="foot">
+            <div class="pr mono" style="margin-top:13px;">۳۶٬۹۰۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۴ عدد</div>
+            <button class="btn">افزودن به سبد</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="img" style="opacity:.45;"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="6" y="18" width="108" height="40"/><rect x="14" y="26" width="10" height="8"/><rect x="28" y="26" width="10" height="8"/><rect x="42" y="26" width="10" height="8"/><rect x="84" y="28" width="22" height="20"/></svg></div>
+          <div class="body"><div class="spec mono">۱۲ پورت · ۴×SFP+ · دو منبع</div><div class="nm" style="color:var(--ink-2);">روتر میکروتیک CCR2116-12G-4S+</div></div>
+          <div class="foot">
+            <div class="pr mono" style="margin-top:13px; color:var(--ink-2);">۱۶۸٬۴۰۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ink-3);"></span> ناموجود</div>
+            <button class="btn ghost">اطلاع بده</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="img"><svg viewBox="0 0 120 76" fill="none" stroke="#c7cfdb" stroke-width="1.3"><rect x="30" y="26" width="60" height="30"/><rect x="38" y="34" width="10" height="8"/><rect x="52" y="34" width="10" height="8"/></svg></div>
+          <div class="body"><div class="spec mono">۵ پورت گیگابیت · PoE-in</div><div class="nm">روتر میکروتیک hEX S</div></div>
+          <div class="foot">
+            <div class="pr mono" style="margin-top:13px;">۱۶٬۲۰۰٬۰۰۰<i>تومان</i></div>
+            <div class="st"><span class="dot" style="background:var(--ok);"></span> موجود · ۱۱ عدد</div>
+            <button class="btn">افزودن به سبد</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="more"><button>نمایش محصولات بیشتر</button></div>
+
+      <div class="intro">
+        <h3>دربارهٔ روترهای میکروتیک</h3>
+        <p>
+          متنِ معرفیِ دسته همان‌جایی می‌ماند که الان هست — زیرِ محصولات، نه بالای آن‌ها. کسی که وارد
+          صفحهٔ دسته می‌شود دنبالِ محصول است نه متن؛ ولی موتورِ جست‌وجو این متن را لازم دارد. این
+          ترتیب هر دو را راضی می‌کند.
+        </p>
+      </div>
+    </main>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
