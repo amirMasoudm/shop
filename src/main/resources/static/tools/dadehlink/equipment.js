@@ -92,7 +92,9 @@ const baseStore=storeState;
 const NARROW={tx:[...ranges.tx],sensitivity:[...ranges.sensitivity]};
 function widen(on){ranges.tx=on?[-30,50]:NARROW.tx;ranges.sensitivity=on?[-130,-20]:NARROW.sensitivity;for(const k of ['tx','sensitivity']){$(k).min=ranges[k][0];$(k).max=ranges[k][1]}}
 function pick(o,keys){const r={};for(const k of keys)r[k]=o[k];return r}
-$('tabCalc').onclick=()=>setTab('calc');$('tabEquip').onclick=()=>setTab('equip');
+// زبانهٔ «محاسبه بر اساسِ تجهیزات» با app.dadehlink.equipment-tab خاموش می‌شود؛ آن‌وقت نوارِ زبانه در HTML نیست.
+const equipEnabled=!!$('tabEquip');
+if(equipEnabled){$('tabCalc').onclick=()=>setTab('calc');$('tabEquip').onclick=()=>setTab('equip')}
 
 // ---------------------------------------------------------------- زبانهٔ دوم
 let sel={a:'',b:'',antA:'',antB:'',f:null,rate:'low'};
@@ -185,6 +187,6 @@ function showSelected(list){
 
 // ---------------------------------------------------------------- شروع
 let startTab='calc';try{startTab=localStorage.getItem(TAB_KEY)==='equip'?'equip':'calc'}catch(e){}
-if(startTab==='equip')setTab('equip',true);else querySuggest();
+if(startTab==='equip'&&equipEnabled)setTab('equip',true);else querySuggest();
 syncHeights();document.fonts?.ready.then(syncHeights);
 })();

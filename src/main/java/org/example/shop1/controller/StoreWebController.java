@@ -41,6 +41,10 @@ public class StoreWebController {
     @org.springframework.beans.factory.annotation.Value("${analytics.ga4.measurement-id:}")
     private String ga4Id;
 
+    // زبانهٔ «محاسبه بر اساسِ تجهیزات» در ابزارِ سایت. خاموش تا منطقِ تازهٔ کارشناس پیاده شود.
+    @org.springframework.beans.factory.annotation.Value("${app.dadehlink.equipment-tab:false}")
+    private boolean equipmentTabEnabled;
+
     @org.springframework.beans.factory.annotation.Value("${analytics.gsc.verification:}")
     private String gscToken;
 
@@ -917,6 +921,7 @@ public class StoreWebController {
         model.addAttribute("seoDescription", description);
         model.addAttribute("canonicalUrl", canonical);
         model.addAttribute("linkCalJsonLd", buildLinkCalJsonLd(baseUrl, canonical, description));
+        model.addAttribute("equipmentTab", equipmentTabEnabled);
         return "link-cal";
     }
 
