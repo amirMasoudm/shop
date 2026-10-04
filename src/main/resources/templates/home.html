@@ -328,8 +328,19 @@
         .site-contact .tel a { color: #1b4f8a; font-weight: 700; text-decoration: none; unicode-bidi: isolate; }
         .site-contact .tel a:hover { text-decoration: underline; }
         .site-contact .ext { color: #6b7280; font-size: .8rem; }
+        /* نقشه: ارتفاعِ ثابتِ از پیش‌اعلام‌شده تا با بارشدنِ iframe صفحه نپرد (CLS). */
+        .site-contact .map { margin-top: 12px; }
+        .site-contact .map iframe { display: block; width: 100%; height: 320px; border: 0;
+                                    border-radius: 12px; background: #e5e7eb; }
+        .site-contact .ways { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .site-contact .ways a { flex: 1 1 auto; text-align: center; min-width: 96px;
+                                border: 1px solid #cbd5e1; border-radius: 100px; padding: 7px 12px;
+                                font-size: .8rem; font-weight: 700; color: #1b4f8a;
+                                text-decoration: none; background: #f8fafc; }
+        .site-contact .ways a:hover { background: #1b4f8a; color: #fff; border-color: #1b4f8a; }
         @media (max-width: 520px) {
             .site-contact .ext { display: block; }
+            .site-contact .map iframe { height: 240px; }
         }
 
         footer.site-footer { background: #1b2a3a; color: #cbd5e1; padding: 26px 16px; margin-top: 10px; }
@@ -836,12 +847,32 @@
             <div class="office">
                 <div class="t">دفتر اصفهان</div>
                 <p class="addr">اصفهان، خیابان شیخ صدوق شمالی، کوچه پیام (۳۲)، پلاک ۱۴، طبقهٔ اول</p>
-                <!-- ⚠️ عمداً لینکِ tel: ندارد: این شماره هشت رقم است و شمارهٔ ثابتِ
-                     اصفهان یازده رقم می‌شود، پس احتمالاً ناقص فرستاده شده. تا تأییدِ
-                     عددِ کامل، متنِ ساده می‌ماند تا لینکِ شماره‌گیریِ خراب نسازیم. -->
+                <!-- هشت‌رقمی‌بودن عمدی است و ناقص نیست: صفحهٔ این مکان در نشان هم
+                     دقیقاً همین عدد را دارد، و سایتِ وردپرسیِ قدیم هم tel:03135018 داشت. -->
                 <p class="tel">تلفن تماس:
-                    <span dir="ltr">۰۳۱۳۵۰۱۸</span>
+                    <a href="tel:03135018" dir="ltr">۰۳۱۳۵۰۱۸</a>
                 </p>
+                <!-- 🔴 نقشه تا پیش از دیده‌شدن هیچ درخواستی به neshan.org نمی‌زند.
+                     src عمداً خالی است و آدرس در data-src می‌ماند؛ loading="lazy" به‌تنهایی
+                     تضمین نیست چون آستانهٔ مرورگر ممکن است تا چند صفحه جلوتر را هم شامل شود.
+                     IntersectionObserver آدرس را فقط وقتی کادر به دید می‌آید می‌نشاند. -->
+                                <!-- ⚠️ زوم ۱۷ است نه ۲۰یِ سایتِ قدیم: در ۲۰z کاشی‌هایِ نشان رندر نمی‌شوند
+                     و فقط سوزنِ قرمز روی زمینهٔ خاکستری دیده می‌شود (هر دو زوم آزموده شد). -->
+<div class="map">
+                    <iframe data-lazy-map
+                            data-src="https://neshan.org/maps/iframe/places/51fea568eaa762e951945de1400d1504#c32.629-51.673-17z-0p/32.62888346127169/51.673208237710796"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="موقعیتِ دفترِ داده‌نما در اصفهان روی نقشه"></iframe>
+                </div>
+                <div class="ways">
+                    <a href="https://neshan.org/maps/places/51fea568eaa762e951945de1400d1504"
+                       target="_blank" rel="noopener">مسیریابی با نشان</a>
+                    <a href="https://balad.ir/p/PEL25zysVTzvE8"
+                       target="_blank" rel="noopener">مسیریابی با بلد</a>
+                    <a href="https://www.google.com/maps/search/?api=1&amp;query=32.628883,51.673208"
+                       target="_blank" rel="noopener">گوگل مپ</a>
+                </div>
             </div>
             <div class="office">
                 <div class="t">نمایندگی تهران</div>
@@ -1048,6 +1079,45 @@
     });
 </script>
 <!-- حبابِ چتِ پشتیبانی — هستهٔ مشترک با پنلِ کارشناس (/js/chat-core.js) -->
+<script>
+    // نقشهٔ تماس — آدرس فقط وقتی روی iframe می‌نشیند که کادر نزدیکِ دید باشد؛
+    // تا آن لحظه هیچ درخواستی به neshan.org نمی‌رود.
+    //
+    // ⚠️ عمداً فقط به IntersectionObserver تکیه نمی‌کند: در صفحهٔ پنهان
+    // (document.visibilityState === 'hidden' — تبِ پس‌زمینه، پیش‌رندر، مرورگرِ
+    // خودکار) مرورگر هیچ کالِ‌بکی نمی‌دهد و نقشه هرگز بار نمی‌شد.
+    // سنجشِ مستقیمِ مختصات روی scroll/resize همیشه کار می‌کند؛ IO فقط میانبر است.
+    (function () {
+        var frames = Array.prototype.slice.call(
+            document.querySelectorAll('iframe[data-lazy-map][data-src]'));
+        if (!frames.length) return;
+
+        var MARGIN = 200;
+
+        function load(f) {
+            if (f.getAttribute('src')) return;
+            f.setAttribute('src', f.getAttribute('data-src'));
+        }
+
+        function sweep() {
+            frames = frames.filter(function (f) {
+                var r = f.getBoundingClientRect();
+                var vh = window.innerHeight || document.documentElement.clientHeight;
+                if (r.top > vh + MARGIN || r.bottom < -MARGIN) return true;
+                load(f);
+                return false;
+            });
+            if (!frames.length) {
+                window.removeEventListener('scroll', sweep);
+                window.removeEventListener('resize', sweep);
+            }
+        }
+
+        window.addEventListener('scroll', sweep, {passive: true});
+        window.addEventListener('resize', sweep);
+        sweep();
+    })();
+</script>
 <script src="/js/chat-core.js"></script>
 <script src="/js/support-chat-widget.js"></script>
 <!-- بیکنِ ردگیریِ رفتار — فقط برایِ چیزی که سرور نمی‌بیند (SPA، فیلتر، عمقِ مطالعه) -->

@@ -676,7 +676,12 @@ public class StoreWebController {
     private String esc(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"")
-                .replace("\n", " ").replace("\r", " ").replace("\t", " ");
+                .replace("\n", " ").replace("\r", " ").replace("\t", " ")
+                // 🔴 درونِ <script type="application/ld+json"> مرورگر دنبالِ رشتهٔ </script
+                // می‌گردد، نه دنبالِ JSON معتبر؛ پس عنوانِ حاویِ آن اسکریپت را زودتر می‌بندد
+                // و بقیهٔ JSON به متنِ صفحه سرریز می‌کند. فرارِ یونیکدِ همان نویسه است،
+                // پس برایِ خوانندهٔ JSON هیچ چیز عوض نمی‌شود.
+                .replace("<", "\\u003C");
     }
 
     // ================= بلاگ (SSR کامل — قطب محتوای آموزشی) =================
@@ -1043,18 +1048,57 @@ public class StoreWebController {
      * ⚠️ عمداً بدون telephone/email/sameAs (قانون ضد-دور-زدن).
      */
     private String buildOrganizationJsonLd(String baseUrl, String description) {
+        return buildOrganizationJsonLd(baseUrl, description, false);
+    }
+
+    /**
+     * همان بلاک، با یک کلید: آیا نشانی و تلفن هم بیاید یا نه.
+     * <p>
+     * 🔴 تفاوتِ {@code /} و {@code /about} عمدی است. مالک قانونِ ضد-دور-زدن را
+     * فقط برای بخشِ تماسِ صفحهٔ اصلی برداشته است؛ {@code /about} همچنان هیچ راهِ تماسِ
+     * مستقیمی نمی‌دهد. پس این دو نباید دوباره یکی شوند.
+     */
+    private String buildOrganizationJsonLd(String baseUrl, String description, boolean withContact) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"@type\":\"Organization\",\"name\":\"داده نما\"")
                 .append(",\"alternateName\":\"شرکت ارتباطات شبکه داده نما\"")
                 .append(",\"url\":\"").append(esc(baseUrl)).append("/\"")
                 .append(",\"logo\":\"").append(esc(baseUrl)).append("/img/logo.png\"")
-                .append(",\"description\":\"").append(esc(description)).append("\"}");
+                .append(",\"description\":\"").append(esc(description)).append("\"");
+        if (withContact) {
+            sb.append(",\"telephone\":[\"").append(ISFAHAN_TEL).append("\",\"").append(TEHRAN_TEL).append("\"]")
+                    .append(",\"address\":[")
+                    .append(postalAddress("اصفهان", ISFAHAN_STREET))
+                    .append(",").append(postalAddress("تهران", TEHRAN_STREET))
+                    .append("]")
+                    .append(",\"location\":{\"@type\":\"Place\",\"name\":\"دفتر اصفهان داده نما\"")
+                    .append(",\"address\":").append(postalAddress("اصفهان", ISFAHAN_STREET))
+                    .append(",\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":").append(ISFAHAN_LAT)
+                    .append(",\"longitude\":").append(ISFAHAN_LON).append("}}");
+        }
+        sb.append("}");
         return sb.toString();
+    }
+
+    // نشانی و مختصاتِ دفاتر — همان چیزی که در بخشِ تماسِ home.html دیده می‌شود.
+    // مختصات از صفحهٔ همین مکان در نشان می‌آید (همان که سایتِ وردپرسیِ قدیم داشت).
+    private static final String ISFAHAN_TEL = "+983135018";
+    private static final String TEHRAN_TEL = "+982188538411";
+    private static final String ISFAHAN_STREET = "خیابان شیخ صدوق شمالی، کوچه پیام (۳۲)، پلاک ۱۴، طبقهٔ اول";
+    private static final String TEHRAN_STREET = "خیابان پاکستان، کوچهٔ ۴، پلاک ۱۸، طبقهٔ اول، واحد ۵";
+    private static final String ISFAHAN_LAT = "32.62888346127169";
+    private static final String ISFAHAN_LON = "51.673208237710796";
+
+    private String postalAddress(String locality, String street) {
+        return "{\"@type\":\"PostalAddress\",\"addressLocality\":\"" + esc(locality) + "\""
+                + ",\"streetAddress\":\"" + esc(street) + "\""
+                + ",\"addressCountry\":\"IR\"}";
     }
 
     /** سندِ کاملِ مستقلِ JSON-LD (با {@code @context}) — برای ریشهٔ سایت که فقط همین یک اسکیما را دارد. */
     private String buildStandaloneOrganizationJsonLd(String baseUrl, String description) {
-        return "{\"@context\":\"https://schema.org/\",\"@graph\":[" + buildOrganizationJsonLd(baseUrl, description) + "]}";
+        return "{\"@context\":\"https://schema.org/\",\"@graph\":["
+                + buildOrganizationJsonLd(baseUrl, description, true) + "]}";
     }
 
     // ارقام لاتین → فارسی (عددهای داخل متنِ فارسیِ صفحه باید فارسی باشند)
